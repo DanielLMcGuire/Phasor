@@ -1,0 +1,95 @@
+// Port of 'ls' directory listing program for GNU.
+// 'ls' directory listing program for Phasor.
+//   Copyright (C) 2025 Daniel McGuire.
+//
+//   This program is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+include_stdfile();
+include_stdsys();
+include_stdstr();
+include_stdio();
+
+var g_show_hidden = false;
+var g_long_format = false;
+var g_path = ".";
+
+fn show_help() -> void {
+    puts("Usage: ls [OPTION]... [FILE]");
+    puts("List information about the FILE (the current directory by default).");
+    puts("");
+    puts("Options:");
+    puts("  -a, --all          do not ignore entries starting with .");
+    puts("  -l                 use a long listing format");
+    puts("  --help             display this help and exit");
+    puts("  --version          output version information and exit");
+}
+
+fn show_version() -> void {
+    puts("ls (Phasor coreutils) 0.1");
+    puts("Copyright (C) 2025 Daniel McGuire");
+    puts("License GPLv3+: GNU GPL version 3 or later");
+    puts("This is free software: you are free to change and redistribute it.");
+    puts("There is NO WARRANTY, to the extent permitted by law.");
+}
+
+fn list_directory() -> int {
+    var dir_listing = freaddir(g_path);
+    if (dir_listing == null || dir_listing == "") {
+        puts_error("ls: cannot access '" + g_path + "': No such file or directory");
+        return 1;
+    }
+    
+    puts(dir_listing);
+    return 0;
+}
+
+fn main() -> int {
+    var i = 1;
+    var arg_count = sys_argc();
+    
+    while (i < arg_count) {
+        var arg = sys_argv(i);
+        
+        if (arg == "--help") {
+            show_help();
+            return 0;
+        } else if (arg == "--version") {
+            show_version();
+            return 0;
+        } else if (arg == "--all") {
+            g_show_hidden = true;
+        } else if (arg == "-a") {
+            g_show_hidden = true;
+        } else if (arg == "-l") {
+            g_long_format = true;
+        } else if (starts_with(arg, "-")) {
+            puts("ls: invalid option");
+            puts("Try 'ls --help' for more information.");
+            return 1;
+        } else if (g_path == "." && i == arg_count - 1) {
+            g_path = arg;
+        }
+        
+        i = i + 1;
+    }
+    
+    return list_directory();
+}
+
+fn starts_with(input: string, prefix: string) -> bool {
+    if (len(input) < len(prefix)) return false;
+    return substr(input, 0, len(prefix)) == prefix;
+}
+
+shutdown(main());

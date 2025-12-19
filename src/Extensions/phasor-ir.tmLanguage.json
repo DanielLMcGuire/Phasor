@@ -1,0 +1,93 @@
+{
+  "name": "Phasor IR",
+  "scopeName": "source.phasor-ir",
+  "fileTypes": ["phir"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#sections"
+    },
+    {
+      "include": "#opcodes"
+    },
+    {
+      "include": "#registers"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#strings"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.semicolon.phasor-ir",
+          "match": ";.*$"
+        }
+      ]
+    },
+    "sections": {
+      "patterns": [
+        {
+          "name": "keyword.control.section.phasor-ir",
+          "match": "^\\.(PHIR|CONSTANTS|VARIABLES|FUNCTIONS|STRUCTS|INSTRUCTIONS)\\b"
+        }
+      ]
+    },
+    "opcodes": {
+      "patterns": [
+        {
+          "name": "keyword.operator.opcode.phasor-ir",
+          "match": "\\b(PUSH_CONST|POP|ADD|SUBTRACT|MULTIPLY|DIVIDE|MODULO|SQRT|POW|LOG|EXP|SIN|COS|TAN|NEGATE|NOT|AND|OR|EQUAL|NOT_EQUAL|LESS_THAN|GREATER_THAN|LESS_EQUAL|GREATER_EQUAL|JUMP|JUMP_IF_FALSE|JUMP_IF_TRUE|JUMP_BACK|STORE_VAR|LOAD_VAR|PRINT|PRINTERROR|READLINE|IMPORT|HALT|CALL_NATIVE|CALL|SYSTEM|RETURN|TRUE|FALSE|NULL_VAL|LEN|CHAR_AT|SUBSTR|MOV|LOAD_CONST_R|LOAD_VAR_R|STORE_VAR_R|ADD_R|SUB_R|MUL_R|DIV_R|MOD_R|SQRT_R|POW_R|LOG_R|EXP_R|SIN_R|COS_R|TAN_R|AND_R|OR_R|EQ_R|NE_R|LT_R|GT_R|LE_R|GE_R|PUSH_R|PUSH2_R|POP_R|POP2_R|NEG_R|NOT_R|PRINT_R|PRINTERROR_R|READLINE_R|SYSTEM_R)\\b"
+        }
+      ]
+    },
+    "registers": {
+      "patterns": [
+        {
+          "name": "variable.parameter.register.phasor-ir",
+          "match": "\\br\\d+\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "storage.type.constant.phasor-ir",
+          "match": "\\b(NULL|BOOL|INT|FLOAT|STRING)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.phasor-ir",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.phasor-ir",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.phasor-ir",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "name": "Phasor",
+  "scopeName": "source.phasor",
+  "fileTypes": ["phs"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#types"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.phasor",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.phasor",
+          "match": "\\b(if|else|while|for|switch|case|default|break|continue|return)\\b"
+        },
+        {
+          "name": "keyword.declaration.phasor",
+          "match": "\\b(var|const|fn|struct|import|export|unsafe)\\b"
+        },
+        {
+          "name": "constant.language.phasor",
+          "match": "\\b(true|false|null)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.phasor",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.phasor",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.phasor",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.phasor",
+          "match": "(\\+\\+|--|==|!=|<=|>=|&&|\\|\\||->|[+\\-*/%<>=!&|.])"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.phasor",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+        },
+        {
+          "name": "support.function.phasor",
+          "match": "\\b(include_stdio|include_stdmath|include_stdstr|include_stdfile|include_stdsys|include_stdtype|include_stdregex|puts|printf|gets|putf|msgbox|math_sqrt|math_pow|math_sin|math_cos|len|substr|concat|to_upper|to_lower|fread|fwrite|fexists|fcopy|fmove|time|sleep|sys_os|sys_exec|clear|to_int|to_float|to_string|to_bool|regex_match|regex_search|regex_replace)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.phasor",
+          "match": "\\b(int|float|string|bool)\\b"
+        }
+      ]
+    }
+  }
+}

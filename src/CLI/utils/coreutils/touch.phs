@@ -1,0 +1,180 @@
+// Port of touch -- change modification and access times of files for GNU.
+// 'touch' file modification program for Phasor.
+//   Copyright (C) 2025 Daniel McGuire.
+//
+//   This program is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+include_stdfile();
+include_stdsys();
+include_stdstr();
+include_stdtype();
+include_stdio();
+
+// Global variables for options
+var g_no_create = false;
+var g_no_dereference = false;
+var g_update_atime = true;
+var g_update_mtime = true;
+var g_reference = null;
+var g_date = null;
+var g_timestamp = null;
+var g_error_occurred = false;
+
+fn startsWith(input: string, prefix: string) {
+    if (len(input) < len(prefix)) return false;
+    return substr(input, 0, len(prefix)) == prefix;
+}
+
+// Function to display help message
+fn show_help() -> void {
+    puts("Usage: touch [OPTION]... FILE");
+    puts("Update the access and modification times of FILE to the current time.");
+    puts("If FILE does not exist, it is created empty, unless -c is supplied.");
+    puts("");
+    puts("Options:");
+    puts("  -a                  change only the access time");
+    puts("  -c, --no-create     do not create any files");
+    puts("  -d, --date=STRING   parse STRING and use as time");
+    puts("  -h, --no-dereference affect symbolic links directly");
+    puts("  -m                  change only the modification time");
+    puts("  -r, --reference=FILE use this file's times");
+    puts("  --help              display this help and exit");
+    puts("  --version           output version information and exit");
+}
+
+// Function to display version information
+fn show_version() -> void {
+    puts("touch (Phasor coreutils) 0.1");
+    puts("Copyright (C) 2025 Daniel McGuire");
+    puts("License GPLv3+: GNU GPL version 3 or later");
+    puts("This is free software: you are free to change and redistribute it.");
+    puts("There is NO WARRANTY, to the extent permitted by law.");
+}
+
+// Function to parse date string (simplified)
+fn parse_date(date_str: string) -> int {
+    return time() / 1000;
+}
+
+// Function to get time from reference file
+fn get_reference_time(ref_file: string) -> int {
+    if (!fexists(ref_file)) {
+        puts("touch: cannot stat reference file");
+        g_error_occurred = true;
+        return 0;
+    }
+    return fpropget(ref_file, "m", 0);
+}
+
+// Main touch function
+fn touch_file(filename: string) -> void {
+    var current_time = time() / 1000;
+    var target_time = current_time;
+    
+    if (g_reference) {
+        target_time = get_reference_time(g_reference);
+        if (g_error_occurred) return;
+    } else if (g_date) {
+        target_time = parse_date(g_date);
+    } else if (g_timestamp) {
+        target_time = to_int(g_timestamp);
+    }
+    
+    var exists = fexists(filename);
+    
+    if (!exists) {
+        if (g_no_create) return;
+        if (!fmk(filename)) {
+            puts("touch: cannot create file");
+            g_error_occurred = true;
+            return;
+        }
+    }
+    
+    if (g_update_atime && !fpropset(filename, "a", target_time)) {
+        puts("touch: cannot update access time");
+        g_error_occurred = true;
+    }
+    
+    if (g_update_mtime && !fpropset(filename, "m", target_time)) {
+        puts("touch: cannot update modification time");
+        g_error_occurred = true;
+    }
+}
+
+fn main() -> int {
+    var arg_count = sys_argc();
+    var filename = null;
+    
+    for (var i = 1; i < arg_count; i = i + 1) {
+        var arg = sys_argv(i);
+        
+        if (arg == "--help") {
+            show_help();
+            return 0;
+        } else if (arg == "--version") {
+            show_version();
+            return 0;
+        } else if (arg == "--") {
+            i = i + 1;
+            break;
+        } else if (arg == "--no-create" || arg == "-c") {
+            g_no_create = true;
+        } else if (arg == "--no-dereference" || arg == "-h") {
+            g_no_dereference = true;
+        } else if (arg == "-a") {
+            g_update_atime = true;
+            g_update_mtime = false;
+        } else if (arg == "-m") {
+            g_update_atime = false;
+            g_update_mtime = true;
+        } else if (startsWith(arg, "-") && len(arg) > 1) {
+            for (var j = 1; j < len(arg); j = j + 1) {
+                var opt = substr(arg, j, 1);
+                if (opt == "a") {
+                    g_update_atime = true;
+                    g_update_mtime = false;
+                } else if (opt == "c") {
+                    g_no_create = true;
+                } else if (opt == "h") {
+                    g_no_dereference = true;
+                } else if (opt == "m") {
+                    g_update_atime = false;
+                    g_update_mtime = true;
+                } else {
+                    puts("touch: invalid option");
+                    puts("Try 'touch --help' for more information.");
+                    return 1;
+                }
+            }
+        } else {
+            filename = arg;
+        }
+    }
+    
+    if (filename == null) {
+        puts("touch: missing file operand");
+        puts("Try 'touch --help' for more information.");
+        return 1;
+    }
+    
+    touch_file(filename);
+    
+    if (g_error_occurred) {
+        return 1;
+    }
+    return 0;
+}
+
+shutdown(main());

@@ -1,0 +1,71 @@
+// Port of 'mv' - move (rename) files for GNU.
+// 'mv' file moving program for Phasor.
+//   Copyright (C) 2025 Daniel McGuire.
+//
+//   This program is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+include_stdio();
+include_stdfile();
+include_stdsys();
+
+fn show_help() -> void {
+    puts("Usage: mv [OPTION]... SOURCE DEST");
+    puts("Rename SOURCE to DEST, or move SOURCE(s) into DEST directory.");
+    puts("");
+    puts("Options:");
+    puts("  -f, --force              overwrite destination if it exists");
+    puts("  --help                   display this help and exit");
+    puts("  --version                output version information and exit");
+}
+
+fn show_version() -> void {
+    puts("mv (Phasor coreutils) 0.1");
+    puts("Copyright (C) 2025 Daniel McGuire");
+    puts("License GPLv3+: GNU GPL version 3 or later");
+    puts("This is free software: you are free to change and redistribute it.");
+    puts("There is NO WARRANTY, to the extent permitted by law.");
+}
+
+fn main() -> int {
+    var argc = sys_argc();
+    if (argc < 3) {
+        putf("Usage: %s SOURCE DEST", sys_argv(0)); puts("");
+        puts("Move SOURCE to DEST.");
+        return 1;
+    }
+
+    var force = false;
+    var i = 1;
+    
+    for (i = 1; i < argc - 2; i = i + 1) {
+        var arg = sys_argv(i);
+        if (arg == "-f" || arg == "--force") {
+            force = true;
+        } else if (arg == "--help") {
+            show_help();
+            return 0;
+        } else if (arg == "--version") {
+            show_version();
+            return 0;
+        }
+    }
+
+    var src = sys_argv(argc - 2);
+    var dest = sys_argv(argc - 1);
+
+    fmv(src, dest);
+    return 0;
+}
+
+shutdown(main());

@@ -1,0 +1,116 @@
+// Simple Shell
+// (C) 2025 Daniel McGuire
+// This file is licensed under the MIT License
+
+include_stdio();
+include_stdstr();
+include_stdsys();
+include_stdfile();
+
+puts("Phasor Shell\n(C) 2025 Daniel McGuire\n");
+
+fn trim(s: string) -> string {
+    var out = "";
+    var i = 0;
+    var n = len(s);
+
+    while (i < n && substr(s, i, 1) == " ") {
+        i = i + 1;
+    }
+
+    while (i < n) {
+        out = concat(out, substr(s, i, 1));
+        i = i + 1;
+    }
+
+    var end = len(out) - 1;
+    while (end >= 0 && substr(out, end, 1) == " ") {
+        end = end - 1;
+    }
+
+    if (end < 0) return "";
+    return substr(out, 0, end + 1);
+}
+
+fn starts_with(input: string, prefix: string) -> bool {
+    if (len(input) < len(prefix)) return false;
+    return substr(input, 0, len(prefix)) == prefix;
+}
+
+fn main() {
+    while (true) {
+        printf("%s$ ", fcd());
+
+        var line = gets();
+
+        line = trim(line);
+        if (line.len() == 0) {
+            continue;
+        }
+
+        if (starts_with(line, "cd ")) {
+            fcd(substr(line, 3)); 
+            line = null;
+            continue;   
+        }
+
+        if (starts_with(line, "cat ")) {
+            var cmd = "cat-phs " + substr(line, 4);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "cp ")) {
+            var cmd = "cp-phs " + substr(line, 3);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "echo ")) {
+            var cmd = "echo-phs " + substr(line, 5);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "ls ")) {
+            var cmd = "ls-phs " + substr(line, 3);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "mv ")) {
+            var cmd = "mv-phs " + substr(line, 3);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "rm ")) {
+            var cmd = "rm-phs " + substr(line, 3);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "touch ")) {
+            var cmd = "touch-phs " + substr(line, 6);
+            sys_execute(cmd);
+            continue;
+        }
+
+        if (starts_with(line, "exit")) {
+            line = null;
+            return 0;
+        }
+
+        if (line == null) {
+            line = "";
+            continue;
+        }
+
+        sys_execute(line);
+    }
+    return 0;
+}
+
+if (!main()) {
+    puts_error("Unknown error");
+}

@@ -1,0 +1,305 @@
+#pragma once
+#include "../AST/AST.hpp"
+#include "../Runtime/Value.hpp"
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
+
+/**
+ * @class OpCode
+ * @brief Expanded opcode set for Phasor VM
+ */
+enum class OpCode : uint8_t
+{
+	// Stack operations
+	PUSH_CONST, ///< Push constant from constant pool
+	POP,        ///< Pop top of stack
+
+	// Arithmetic operations
+	ADD,      ///< Pop b, pop a, push a + b
+	SUBTRACT, ///< Pop b, pop a, push a - b
+	MULTIPLY, ///< Pop b, pop a, push a * b
+	DIVIDE,   ///< Pop b, pop a, push a / b
+	MODULO,   ///< Pop b, pop a, push a % b
+	SQRT,     ///< sqrt()
+	POW,      ///< pow()
+	LOG,      ///< log()
+	EXP,      ///< exp()
+	SIN,      ///< sin()
+	COS,      ///< cos()
+	TAN,      ///< tan()
+
+	// Unary operations
+	NEGATE, ///< Pop a, push -a
+	NOT,    ///< Pop a, push !a
+
+	// Logical operations
+	AND, ///< Pop b, pop a, push a && b
+	OR,  ///< Pop b, pop a, push a || b
+
+	// Comparison operations
+	EQUAL,         ///< Pop b, pop a, push a == b
+	NOT_EQUAL,     ///< Pop b, pop a, push a != b
+	LESS_THAN,     ///< Pop b, pop a, push a < b
+	GREATER_THAN,  ///< Pop b, pop a, push a > b
+	LESS_EQUAL,    ///< Pop b, pop a, push a <= b
+	GREATER_EQUAL, ///< Pop b, pop a, push a >= b
+
+	// Control flow
+	JUMP,          ///< Unconditional jump to offset
+	JUMP_IF_FALSE, ///< Jump if top of stack is false (pops value)
+	JUMP_IF_TRUE,  ///< Jump if top of stack is true (pops value)
+	JUMP_BACK,     ///< Jump backwards (for loops)
+
+	// Variable operations
+	STORE_VAR, ///< Pop top of stack, store in variable slot
+	LOAD_VAR,  ///< Push variable value onto stack
+
+	// I/O and control
+	PRINT,       ///< Pop top of stack and print
+	PRINTERROR,  ///< Pop top of stack and print to stderr
+	READLINE,    ///< Read line from input and push onto stack
+	IMPORT,      ///< Import a module: operand is index of module path in constants
+	HALT,        ///< Stop execution
+	CALL_NATIVE, ///< Call a native function: operand is index of function name in constants
+	CALL,        ///< Call a user function: operand is index of function name in constants
+	SYSTEM,      ///< Call a system function: operand is index of function name in constants
+	RETURN,      ///< Return from function
+
+	// Literal values
+	TRUE,     ///< Push true
+	FALSE,    ///< Push false
+	NULL_VAL, ///< Push null
+
+	// String operatoins
+	LEN,     ///< Pop s, push len(s)
+	CHAR_AT, ///< Pop index, pop s, push s[index]
+	SUBSTR,  ///< Pop len, pop start, pop s, push s.substr(start, len)
+
+	NEW_STRUCT,      ///< Create new struct: operand is index of struct name in constants
+    GET_FIELD,       ///< Pop struct, pop field name, push field value
+    SET_FIELD,       ///< Pop struct, pop field name, pop value, set field value
+
+    NEW_STRUCT_INSTANCE_STATIC, ///< Create new struct instance using struct section metadata (structIndex)
+    GET_FIELD_STATIC,           ///< Pop struct instance, push field by static offset (structIndex, fieldOffset)
+    SET_FIELD_STATIC,           ///< Pop value and struct instance, set field by static offset
+
+	// Register-based operations (v2.0)
+	// Data movement
+	MOV,          ///< Copy register to register: R[rA] = R[rB]
+	LOAD_CONST_R, ///< Load constant to register: R[rA] = constants[immediate]
+	LOAD_VAR_R,   ///< Load variable to register: R[rA] = variables[immediate]
+	STORE_VAR_R,  ///< Store register to variable: variables[immediate] = R[rA]
+	PUSH_R,       ///< Push register to stack: push(R[rA])
+	PUSH2_R,      ///< Push 2 registers to stack: push2(R[rA], R[rB])
+	POP_R,        ///< Pop stack to register: R[rA] = pop()
+	POP2_R,       ///< Pop 2 values from stack to registers: pop2(R[rA], R[rB])
+
+	// Register arithmetic (3-address code)
+	ADD_R,  ///< R[rA] = R[rB] + R[rC]
+	SUB_R,  ///< R[rA] = R[rB] - R[rC]
+	MUL_R,  ///< R[rA] = R[rB] * R[rC]
+	DIV_R,  ///< R[rA] = R[rB] / R[rC]
+	MOD_R,  ///< R[rA] = R[rB] % R[rC]
+	SQRT_R, ///< R[rA] = sqrt(R[rB])
+	POW_R,  ///< R[rA] = pow(R[rB], R[rC])
+	LOG_R,  ///< R[rA] = log(R[rB])
+	EXP_R,  ///< R[rA] = exp(R[rB])
+	SIN_R,  ///< R[rA] = sin(R[rB])
+	COS_R,  ///< R[rA] = cos(R[rB])
+	TAN_R,  ///< R[rA] = tan(R[rB])
+
+	// Register comparisons
+	AND_R, ///< R[rA] = R[rB] && R[rC]
+	OR_R,  ///< R[rA] = R[rB] || R[rC]
+	EQ_R,  ///< R[rA] = R[rB] == R[rC]
+	NE_R,  ///< R[rA] = R[rB] != R[rC]
+	LT_R,  ///< R[rA] = R[rB] < R[rC]
+	GT_R,  ///< R[rA] = R[rB] > R[rC]
+	LE_R,  ///< R[rA] = R[rB] <= R[rC]
+	GE_R,  ///< R[rA] = R[rB] >= R[rC]
+
+	// Register unary operations
+	NEG_R, ///< R[rA] = -R[rB]
+	NOT_R, ///< R[rA] = !R[rB]
+
+	// Register I/O
+	PRINT_R,      ///< Print register: print(R[rA])
+	PRINTERROR_R, ///< Print register to stderr: printerror(R[rA])
+	READLINE_R,   ///< Read line into register: readline(R[rA])
+	SYSTEM_R      ///< Run an operating system shell command: system(R[rA])
+};
+
+/// @brief Instruction with up to 5 operands
+/// Format: instruction operand1, operand2, operand3, operand4, operand5
+/// Each instruction uses only the operands it needs
+struct Instruction
+{
+	OpCode  op;       ///< Operation code
+	int32_t operand1; ///< First operand
+	int32_t operand2; ///< Second operand
+	int32_t operand3; ///< Third operand
+	int32_t operand4; ///< Fourth operand
+	int32_t operand5; ///< Fifth operand
+
+	// Default constructor
+	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0), operand4(0), operand5(0)
+	{
+	}
+
+	// Full constructor
+	Instruction(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0, int32_t op4 = 0, int32_t op5 = 0)
+	    : op(op), operand1(op1), operand2(op2), operand3(op3), operand4(op4), operand5(op5)
+	{
+	}
+};
+
+/// @brief Struct metadata stored alongside bytecode (struct section)
+struct StructInfo
+{
+	std::string              name;           ///< Struct name
+	int                      firstConstIndex;///< Index into constants for the first default value
+	int                      fieldCount;     ///< Number of fields in this struct
+	std::vector<std::string> fieldNames;     ///< Field names in declaration order
+};
+
+/// @brief Complete bytecode structure
+struct Bytecode
+{
+	std::vector<Instruction>   instructions;     ///< List of instructions
+	std::vector<Value>         constants;        ///< Constant pool
+	std::map<std::string, int> variables;        ///< Variable name -> index mapping
+	std::map<std::string, int> functionEntries;  ///< Function name -> instruction index mapping
+	int                        nextVarIndex = 0; ///< Next available variable index
+
+	// Struct section (planned usage by future struct codegen)
+	std::vector<StructInfo>          structs;        ///< List of struct descriptors
+	std::map<std::string, int>       structEntries;  ///< Struct name -> index in structs
+
+	/// @brief Add a constant to the pool and return its index
+	int addConstant(const Value &value)
+	{
+		constants.push_back(value);
+		return static_cast<int>(constants.size()) - 1;
+	}
+
+	/// @brief Get or create a variable index
+	int getOrCreateVar(const std::string &name)
+	{
+		auto it = variables.find(name);
+		if (it != variables.end())
+		{
+			return it->second;
+		}
+		int index = nextVarIndex++;
+		variables[name] = index;
+		return index;
+	}
+
+	/// @brief Emit an instruction with operands
+	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0, int32_t op4 = 0, int32_t op5 = 0)
+	{
+		instructions.push_back(Instruction(op, op1, op2, op3, op4, op5));
+	}
+};
+
+/**
+ * @brief Code generator for Phasor VM
+ */
+class CodeGenerator
+{
+  public:
+	/**
+	 * @brief Generate bytecode from program
+	 *
+	 * @param program Program to generate bytecode for
+	 * @param existingVars Existing variables to use
+	 * @param nextVarIdx Next available variable index
+	 * @param replMode REPL mode
+	 * @return Bytecode Generated bytecode
+	 */
+	Bytecode generate(const Program &program, const std::map<std::string, int> &existingVars = {}, int nextVarIdx = 0,
+	                  bool replMode = false);
+
+  private:
+	Bytecode bytecode;       ///< Generated bytecode
+	bool     isRepl = false; ///< REPL mode
+
+	// Register allocation for v2.0
+	uint8_t           nextRegister = 0; ///< Next available register
+	std::vector<bool> registerInUse;    ///< Track which registers are in use
+
+	/// @brief Allocate a new register
+	uint8_t allocateRegister()
+	{
+		for (size_t i = 0; i < 256; i++)
+		{
+			if (i >= registerInUse.size())
+			{
+				registerInUse.resize(i + 1, false);
+			}
+			if (!registerInUse[i])
+			{
+				registerInUse[i] = true;
+				return static_cast<uint8_t>(i);
+			}
+		}
+		throw std::runtime_error("Out of registers");
+	}
+
+	/// @brief Free a register
+	void freeRegister(uint8_t reg)
+	{
+		if (reg < registerInUse.size())
+		{
+			registerInUse[reg] = false;
+		}
+	}
+
+	/// @brief Reset register allocator
+	void resetRegisters()
+	{
+		registerInUse.clear();
+		nextRegister = 0;
+	}
+
+	/// @brief Check if expression is a compile-time literal
+	bool isLiteralExpression(const Expression *expr, Value &outValue);
+
+	void generateStatement(const Statement *stmt);                   ///< Generate bytecode from Statement
+	void generateExpression(const Expression *expr);                 ///< Generate bytecode from Expression
+	void generateVarDecl(const VarDecl *varDecl);                    ///< Generate bytecode from Variable Declaration
+	void generateExpressionStmt(const ExpressionStmt *exprStmt);     ///< Generate bytecode from Expression Statement
+	void generatePrintStmt(const PrintStmt *printStmt);              ///< Generate bytecode from Print Statement
+	void generateImportStmt(const ImportStmt *importStmt);           ///< Generate bytecode from Import Statement
+	void generateExportStmt(const ExportStmt *exportStmt);           ///< Generate bytecode from Export Statement
+	void generateNumberExpr(const NumberExpr *numExpr);              ///< Generate bytecode from Numeral Expression
+	void generateStringExpr(const StringExpr *strExpr);              ///< Generate bytecode from String Expression
+	void generateIdentifierExpr(const IdentifierExpr *identExpr);    ///< Generate bytecode from Identifier Expression
+	void generateUnaryExpr(const UnaryExpr *unaryExpr);              ///< Generate bytecode from Unary Expression
+	void generateCallExpr(const CallExpr *callExpr);                 ///< Generate bytecode from Call Expression
+	void generateBinaryExpr(const BinaryExpr *binExpr);              ///< Generate bytecode from Binary Expression
+	void generateBlockStmt(const BlockStmt *blockStmt);              ///< Generate bytecode from Block Statement
+	void generateIfStmt(const IfStmt *ifStmt);                       ///< Generate bytecode from If Statement
+	void generateWhileStmt(const WhileStmt *whileStmt);              ///< Generate bytecode from While Statement
+	void generateForStmt(const ForStmt *forStmt);                    ///< Generate bytecode from For Statement
+	void generateReturnStmt(const ReturnStmt *returnStmt);           ///< Generate bytecode from Return Statement
+	void generateUnsafeBlockStmt(const UnsafeBlockStmt *unsafeStmt); ///< Generate bytecode from Unsafe Block Statement
+	void generateFunctionDecl(const FunctionDecl *funcDecl);         ///< Generate bytecode from Function Declaration
+	void generateBooleanExpr(const BooleanExpr *boolExpr);           ///< Generate bytecode from Boolean Expression
+	void generateNullExpr(const NullExpr *nullExpr);                 ///< Generate bytecode from Null Expression
+	void generateAssignmentExpr(const AssignmentExpr *assignExpr);   ///< Generate bytecode from Assignment Expression
+	void generateStructDecl(const StructDecl* decl);
+    void generateStructInstanceExpr(const StructInstanceExpr* expr);
+    void generateFieldAccessExpr(const FieldAccessExpr* expr);
+	void generatePostfixExpr(const PostfixExpr* expr);
+	void generateBreakStmt();
+	void generateContinueStmt();
+	void generateSwitchStmt(const SwitchStmt* switchStmt);
+
+	// Loop context for break/continue
+	std::vector<int> loopStartStack;  // Stack of loop start positions
+	std::vector<std::vector<int>> breakJumpsStack;  // Stack of break jump positions to patch
+	std::vector<std::vector<int>> continueJumpsStack;  // Stack of continue jump positions to patch
+};

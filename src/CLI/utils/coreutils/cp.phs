@@ -1,0 +1,52 @@
+// Port of 'cp' file copying (main routines).
+// 'cp' file copying program for Phasor.
+//   Copyright (C) 2025 Daniel McGuire.
+//
+//   This program is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+include_stdio();
+include_stdfile();
+include_stdsys();
+
+fn main() {
+    var argc = sys_argc();
+    if (argc < 3) {
+        putf("Usage: %s SOURCE DEST", sys_argv(0)); puts("");
+        puts("Copy SOURCE to DEST.");
+        puts("");
+        puts("-f, --overwrite          overwrite destination if it exists");
+        return 0;    
+    }
+
+    var ow = false;
+    var i = 1;
+    
+    for (i = 1; i < argc; i = i + 1) {
+        var arg = sys_argv(i);
+        if (arg == "-f" || arg == "--overwrite") {
+            ow = true;
+            break;
+        }
+    }
+
+    var src = sys_argv(1);
+    var dest = sys_argv(2);
+
+    if (fcp(src, dest, ow) == null)
+        return 0;
+    else 
+        return 1;
+}
+
+shutdown(main());

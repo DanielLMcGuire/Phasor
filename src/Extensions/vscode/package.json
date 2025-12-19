@@ -1,0 +1,50 @@
+{
+  "name": "phasor-programming-language",
+  "publisher": "Daniel McGuire",
+  "displayName": "Phasor Programming Language",
+  "description": "Function VM Based Programming Language",
+  "version": "1.0.0",
+  "icon": "logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DanielLMcGuire/phasor"
+  },
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "scripts": {
+    "build": "vsce package"
+  },
+  "devDependencies": {
+    "vsce": "^2.0.0"
+  },
+  "contributes": {
+    "languages": [{
+      "id": "phasor",
+      "aliases": ["Phasor", "phasor"],
+      "extensions": ["phs"],
+      "configuration": "./language-configuration.json"
+    },
+    {
+      "id": "phasor-ir",
+      "aliases": ["PhasorIR", "phasor-ir"],
+      "extensions": ["phir"],
+      "configuration": "./language-configuration-ir.json"
+    }
+    ],
+    "grammars": [{
+      "language": "phasor",
+      "scopeName": "source.phasor",
+      "path": "./syntaxes/phasor.tmLanguage.json"
+    },
+    {
+      "language": "phasor-ir",
+      "scopeName": "source.phasor-ir",
+      "path": "./syntaxes/phasor-ir.tmLanguage.json"
+    }
+    ]
+  }
+}

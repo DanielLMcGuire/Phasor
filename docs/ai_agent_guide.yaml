@@ -1,0 +1,74 @@
+Guide: Low token quick reference for editing, building, running.
+
+Repo:
+  build: Out of source CMake build, has compile_commands.json.
+  docs: Language, VM, stdlib, opcode guides.
+  src:
+    App: Entry points.
+    AST: AST definitions (statements, expressions, structs).
+    Backend: Lexer, parser.
+    CLI: Compiler, REPL, runtimes.
+    Frontend: High level VM API.
+    Codegen: Bytecode, IR, C++ generation.
+    Runtime:
+      VM: Virtual machine, stack + register execution, native asm ops.
+      Stdlib: Math, string, I/O, file, system, type conversion, regex.
+      Value.hpp: Value type (int, float, string, bool, null).
+
+Editing:
+  - Open matching src folder and related doc.
+  - Use compile_commands.json for navigation.
+
+Build:
+  - If build missing: cmake -S . -B build
+  - If cmake not found: STOP! and prompt user to fix path.
+  - Build: cmake --build build
+
+Run:
+  - List executables: Get-ChildItem | Where-Object { $_.Name -like "phasor*.exe" }
+  - Run: .\build\<exe>.exe
+
+LanguageFeatures:
+  - Variables: var x = 10;
+  - Functions: fn add(a: int, b: int) -> int { return a + b; }
+  - Control flow: if/else, while, for, break, continue
+  - Structs: struct Point { x: int, y: int }
+  - Operators: arithmetic, comparison, logical, postfix (++, --)
+  - Built-in functions: math, string, I/O, file, system, type conversion, regex
+
+LanguageChanges:
+  - Read docs first (guide_phasor_language.md).
+  - Update opcode defs in src/Codegen/CodeGen.hpp.
+  - Update bytecode in src/Codegen/Bytecode.
+  - Update VM operation in src/Runtime/VM/VM.cpp.
+  - Add IR mappings in src/Codegen/IR/PhasorIR.cpp.
+  - Add tests or examples.
+  - Rebuild and run.
+
+Style:
+  - Match existing style.
+  - Keep headers stable.
+
+Testing:
+  - Use compile_commands.json with tools.
+  - Validate with phasorjit or CLI.
+
+Debug:
+  - Use compile_commands.json for IDE configs.
+  - Check build CMakeFiles and cache for issues.
+
+Help:
+  - Search symbols in src.
+  - Read related docs for design.
+
+StartHere:
+  - CMakeLists.txt
+  - build/compile_commands.json
+  - src/Runtime/VM
+  - src/Codegen
+  - docs/guide_phasor_language.md
+
+Flow:
+  - Find matching src and doc.
+  - Make small change.
+  - Build and run.

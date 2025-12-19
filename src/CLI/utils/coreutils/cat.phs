@@ -1,0 +1,203 @@
+// Port of 'cat' - concatenate files and print on the standard output for GNU.
+// 'cat' file concatenation program for Phasor.
+//   Copyright (C) 2025 Daniel McGuire.
+//
+//   This program is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+// Include standard libraries
+include_stdio();
+include_stdfile();
+include_stdsys();
+include_stdstr();
+
+// Global variables for options
+var g_show_all = false;        // -A, --show-all
+var g_number_nonblank = false; // -b, --number-nonblank
+var g_show_ends = false;       // -e, -E, --show-ends
+var g_number = false;          // -n, --number
+var g_squeeze_blank = false;   // -s, --squeeze-blank
+var g_show_tabs = false;       // -t, -T, --show-tabs
+var g_show_nonprinting = false; // -v, --show-nonprinting
+
+// Line number counter
+var g_line_number = 1;
+
+fn startsWith(input: string, prefix: string) {
+    if (len(input) < len(prefix)) return false;
+    return substr(input, 0, len(prefix)) == prefix;
+}
+
+// Function to display help message
+fn show_help() -> void {
+    puts("Usage: cat [OPTION]... [FILE]...");
+    puts("Concatenate FILE(s) to standard output.");
+    puts("");
+    puts("With no FILE, or when FILE is -, read standard input.");
+    puts("");
+    puts("Options:");
+    puts("  -A, --show-all           equivalent to -vET");
+    puts("  -b, --number-nonblank    number nonempty output lines, overrides -n");
+    puts("  -e                       equivalent to -vE");
+    puts("  -E, --show-ends          display $ at end of each line");
+    puts("  -n, --number             number all output lines");
+    puts("  -s, --squeeze-blank      suppress repeated empty output lines");
+    puts("  -t                       equivalent to -vT");
+    puts("  -T, --show-tabs          display TAB characters as ^I");
+    puts("  -u                       (ignored)");
+    puts("  -v, --show-nonprinting   use ^ and M- notation, except for LFD and TAB");
+    puts("      --help               display this help and exit");
+    puts("      --version            output version information and exit");
+    puts("");
+    puts("Examples:");
+    puts("  cat f - g  Output f's contents, then standard input, then g's contents.");
+    puts("  cat        Copy standard input to standard output.");
+    puts("");
+    puts("GNU coreutils online help: <https://www.gnu.org/software/coreutils/>");
+    puts("Report any translation bugs to <https://translationproject.org/team/>");
+}
+
+// Function to display version information
+fn show_version() -> void {
+    puts("cat (Phasor coreutils) 0.1");
+    puts("Copyright (C) 2025 Daniel McGuire");
+    puts("License GPLv3+: GNU GPL version 3 or later");
+    puts("This is free software: you are free to change and redistribute it.");
+    puts("There is NO WARRANTY, to the extent permitted by law.");
+    puts("");
+    puts("Written by Daniel McGuire");
+}
+
+// Process a file (or stdin if filename is "-")
+fn process_file(filename: string) -> void {
+    if (filename == "-") {
+        var line = gets();
+        while (line != null) {
+            puts(line);
+            line = gets();
+        }
+        return;
+    }
+    
+    if (!fexists(filename)) {
+        puts_error("cat: file not found");
+        return;
+    }
+    
+    var content = fread(filename);
+    if (content != null) {
+        puts(content);
+    }
+}
+
+// Main function
+fn main() -> int {
+    var arg_count = sys_argc();
+    var i = 1;
+    
+    if (arg_count == 1) {
+        process_file("-");
+        return 0;
+    }
+    
+    // Process options
+    for (; i < arg_count; i = i + 1) {
+        var arg = sys_argv(i);
+        
+        if (arg == "--") {
+            i = i + 1;
+            break;
+        }
+        
+        if (!startsWith(arg, "-")) break;
+        
+        if (arg == "--help") {
+            show_help();
+            return 0;
+        }
+        
+        if (arg == "--version") {
+            show_version();
+            return 0;
+        }
+        
+        if (arg == "-A" || arg == "--show-all") {
+            g_show_all = true;
+            g_show_nonprinting = true;
+            g_show_ends = true;
+            g_show_tabs = true;
+            continue;
+        }
+        
+        if (arg == "-b" || arg == "--number-nonblank") {
+            g_number_nonblank = true;
+            g_number = false;
+            continue;
+        }
+        
+        if (arg == "-e") {
+            g_show_nonprinting = true;
+            g_show_ends = true;
+            continue;
+        }
+        
+        if (arg == "-E" || arg == "--show-ends") {
+            g_show_ends = true;
+            continue;
+        }
+        
+        if (arg == "-n" || arg == "--number") {
+            if (!g_number_nonblank) g_number = true;
+            continue;
+        }
+        
+        if (arg == "-s" || arg == "--squeeze-blank") {
+            g_squeeze_blank = true;
+            continue;
+        }
+        
+        if (arg == "-t") {
+            g_show_nonprinting = true;
+            g_show_tabs = true;
+            continue;
+        }
+        
+        if (arg == "-T" || arg == "--show-tabs") {
+            g_show_tabs = true;
+            continue;
+        }
+        
+        if (arg == "-v" || arg == "--show-nonprinting") {
+            g_show_nonprinting = true;
+            continue;
+        }
+        
+        puts_error("cat: invalid option");
+        puts("Try 'cat --help' for more information.");
+        return 1;
+    }
+    
+    // Process files
+    if (i >= arg_count) {
+        process_file("-");
+    } else {
+        while (i < arg_count) {
+            process_file(sys_argv(i));
+            i = i + 1;
+        }
+    }
+    
+    return 0;
+}
+
+shutdown(main());
