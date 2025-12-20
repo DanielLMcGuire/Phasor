@@ -1,4 +1,4 @@
-Phasor Restrictive License (PRL) 1.1
+Phasor Restrictive License (PRL) 1.2
 
 Copyright (c) 2025 Daniel McGuire
 
@@ -14,6 +14,6 @@ Permission is hereby granted, subject to the following conditions:
 
 4. Neither the name of the copyright holder nor the names of contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
-5. Commercial usage of the latest commit is not permitted under any circumstances without written permission.
+5. Commercial usage of the latest commit is not permitted under any circumstances without written permission unless it is distributed via an official binary release.
 
 DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
