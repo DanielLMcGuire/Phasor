@@ -15,7 +15,7 @@ I do ***not*** promise a **smooth, stable experience**.
 
 ## Upcoming
 
-- Public Release (**Coming very soon!**)
+- JIT Execution instead of interpretation
 - Proposal based standard library updates (**Needs planning!**)
 - Micro operation architecture using native assembly to define all VM opcodes (**Nearly there!**)
 - C based standard library replacing remaining C++ parts (**Started**)
@@ -153,7 +153,7 @@ cmake --install build --prefix install
 
 ### Generation/Build Options
 
-- `ASSEMBLY=ON/OFF` - Enable/disable native assembly optimizations (default: ON)
+- `ASSEMBLY=ON/OFF` - Enable/disable native assembly optimizations (default: OFF)
 
 ## Output
 
