@@ -142,13 +142,12 @@ putf("%d! = %d\n", num, result);
 
 - CMake 3.10+
 - C++17 compiler (MSVC, GCC, Clang)
-- Optional Assembly support (MASM on Windows, GAS on Unix), fallsback to CRT
 
 ### Build Steps
 
 ```bash
 cmake -S . -B build
-cmake --build build --config Release (-DASSEMBLY=[ON,OFF])
+cmake --build build --config Release (-DASSEMBLY=[ON,OFF] (Off is recommended! The Assembly Operation set is experimental.))
 cmake --install build --prefix install
 ````
 
