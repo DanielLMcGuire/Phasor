@@ -40,7 +40,7 @@ I do ***not*** promise a **smooth, stable experience**.
 >
 > **Q** - This feels too much like 'JavaScript', is this intentional?
 >
-> **A** - No, in fact it was the opposite. I would have been better at that had I known JS when I wrote this. Instead I was forced to learn JS to make the website afterwards.
+> **A** - No, in fact my goal was the opposite. I would have been better at that goal had I actually known JS when I wrote this. Instead I was forced to learn JS to make the website afterwards and noticed.
 >
 > **Q** - How to declare a constant?
 >
