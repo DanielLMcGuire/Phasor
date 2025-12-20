@@ -88,7 +88,7 @@ int64_t file_get_properties(char* path, char param) {
 #endif
 }
 
-nlink_t file_get_links_count(const char* path) 
+nlink_t file_get_links_count(const char* path)
 #ifdef _WIN32
 {
 
@@ -106,7 +106,7 @@ nlink_t file_get_links_count(const char* path)
     return (nlink_t)info.nNumberOfLinks;
 }
 #else
-nlink_t file_get_links_count(const char* path) {
+{
     struct stat st;
     if (stat(path, &st) != 0) return 0;
     return st.st_nlink;
