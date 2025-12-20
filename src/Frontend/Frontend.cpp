@@ -97,7 +97,7 @@ void Frontend::runRepl(VM *vm)
 	std::string line;
 	while (true)
 	{
-		std::cout << "> ";
+		std::cout << "\n> ";
 		if (!std::getline(std::cin, line))
 			break;
 		if (!endsWith(line, ";"))
@@ -125,20 +125,20 @@ void Frontend::runRepl(VM *vm)
 		{
 			char         instruction[64];
 			unsigned int operand;
-			sscanf_s(line.c_str(), "vm_op %s %d", instruction, sizeof(instruction), &operand);
+			sscanf(line.c_str(), "vm_op %63s %d", instruction, &operand);
 			vm->operation(PhasorIR::stringToOpCode(std::string(instruction)), operand);
 			continue;
 		}
 		if (startsWith(line, "vm_getvar"))
 		{
 			int index;
-			sscanf_s(line.c_str(), "vm_getvar %d", &index);
+			sscanf(line.c_str(), "vm_getvar %d", &index);
 			line = "let getvarx = " + vm->getVariable(index).toString();
 		}
 		if (startsWith(line, "vm_setvar"))
 		{
 			char value[64];
-			sscanf_s(line.c_str(), "vm_setvar %s", value, sizeof(value));
+			sscanf(line.c_str(), "vm_setvar %63s", value);
 			line = "var setvarx = " + std::to_string(vm->addVariable(value));
 		}
 #pragma warning(pop)
