@@ -2,7 +2,10 @@
 #include <atomic>
 #include <chrono>
 #include <thread>
+#if defined(_MSC_VER)
 #include <vcruntime_startup.h>
+#endif
+
 
 Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 {
