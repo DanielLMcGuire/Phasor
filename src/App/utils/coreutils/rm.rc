@@ -20,7 +20,7 @@
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ PRODUCTVERSION 9,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -42,7 +42,7 @@ BEGIN
             VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
             VALUE "OriginalFilename", "rm.exe"
             VALUE "ProductName", "GNU Phasor 'rm'"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "9.0.0.0"
         END
     END
     BLOCK "VarFileInfo"

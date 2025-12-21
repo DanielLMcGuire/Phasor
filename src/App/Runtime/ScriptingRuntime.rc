@@ -4,8 +4,8 @@
 #define IDI_APP_ICON 101
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -22,12 +22,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Daniel McGuire"
             VALUE "FileDescription", "Phasor VM JIT Runtime"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", "1.1.0.0"
             VALUE "InternalName", "phasorjit.exe"
             VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
             VALUE "OriginalFilename", "phasorjit.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "1.1.0.0"
         END
     END
     BLOCK "VarFileInfo"
