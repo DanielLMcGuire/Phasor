@@ -5,7 +5,7 @@
 !define COPYRIGHT "(C) 2025 Daniel McGuire"
 !define LICENSE_TXT "license.txt"
 !define DESCRIPTION "Functional VM Compiled Programming Language"
-!define INSTALLER_NAME "phasor-x64rel-modern-setup.exe"
+!define INSTALLER_NAME "phasor-x.x.x_setup_avx2.exe"
 !define MAIN_APP_EXE "phasorvm.exe"
 !define INSTALL_TYPE "SetShellVarContext all"
 !define REG_ROOT "HKLM"
