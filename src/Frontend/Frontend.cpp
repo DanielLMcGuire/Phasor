@@ -18,15 +18,6 @@ bool startsWith(const std::string &input, const std::string &prefix)
 	return false;
 }
 
-bool endsWith(const std::string &input, const std::string &suffix)
-{
-	if (input.size() >= suffix.size() && input.compare(input.size() - suffix.size(), suffix.size(), suffix) == 0)
-	{
-		return true;
-	}
-	return false;
-}
-
 void Frontend::runScript(const std::string &source, VM *vm)
 {
 	Lexer lexer(source);
@@ -68,8 +59,8 @@ void Frontend::runScript(const std::string &source, VM *vm)
 
 void Frontend::runRepl(VM *vm)
 {
-	std::cout << "Phasor REPL v0.1\n(C) 2025 Daniel McGuire\n\n";
-	std::cout << "Type 'exit;' to quit.\n";
+	std::cout << "Phasor v1.1.0 REPL\n(C) 2025 Daniel McGuire\n\n";
+	std::cout << "Type 'exit;' to quit. Function declarations will not work.\n";
 
 	bool ownVM = false;
 	if (vm == nullptr)
@@ -100,11 +91,6 @@ void Frontend::runRepl(VM *vm)
 		std::cout << "\n> ";
 		if (!std::getline(std::cin, line))
 			break;
-		if (!endsWith(line, ";"))
-		{
-			std::cerr << "Missing semicolon at column " << line.length() + 1 << "\n";
-			continue;
-		}
 		if (startsWith(line, "vm_pop"))
 		{
 			line = "let popx = " + vm->pop().toString();
