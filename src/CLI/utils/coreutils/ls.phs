@@ -54,6 +54,11 @@ fn list_directory() -> int {
     return 0;
 }
 
+fn starts_with(input: string, prefix: string) -> bool {
+    if (len(input) < len(prefix)) return false;
+    return substr(input, 0, len(prefix)) == prefix;
+}
+
 fn main() -> int {
     var i = 1;
     var arg_count = sys_argc();
@@ -85,11 +90,6 @@ fn main() -> int {
     }
     
     return list_directory();
-}
-
-fn starts_with(input: string, prefix: string) -> bool {
-    if (len(input) < len(prefix)) return false;
-    return substr(input, 0, len(prefix)) == prefix;
 }
 
 shutdown(main());
