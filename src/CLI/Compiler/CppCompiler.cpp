@@ -27,7 +27,7 @@ int CppCompiler::run()
 	}
 	if (m_args.showHelp)
 	{
-		showHelp("phasor-cpp");
+		showHelp("phasornative");
 		return 0;
 	}
 
@@ -255,7 +255,6 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 
 bool CppCompiler::showHelp(const std::string &programName)
 {
-	std::cout << "Phasor C++ Code Generator\n\n";
 	std::cout << "Usage:\n";
 	std::cout << "  " << programName << " [options] <input.phs>\n\n";
 	std::cout << "Options:\n";
@@ -268,14 +267,13 @@ bool CppCompiler::showHelp(const std::string &programName)
 	std::cout << "  -g, --generate-only   Generate source file only\n";
 	std::cout << "  -O, --object-only     Generate and compile to object only\n";
 	std::cout << "  -v, --verbose         Enable verbose output\n";
-	std::cout << "  -h, --help            Show this help message\n\n";
+	std::cout << "  -h, --help            Show this help message\n";
 	std::cout << "  -n, --nologo          Do not show banner\n\n";
-	std::cout << "Description:\n";
-	std::cout << "  Compiles Phasor source code to a header file that embeds the bytecode.\n";
-	std::cout << "  The header should be included in CppRuntime_main.cpp and compiled\n";
-	std::cout << "  with the runtime to create a standalone executable.\n\n";
 	std::cout << "Example:\n";
-	std::cout << "  " << programName << " program.phs -o program.cpp\n";
+	std::cout << "  " << programName << " program.phs -o program.exe -c clang++ -l lld\n";
+	std::cout << "  " << programName << " -O program.phs -o program.obj -c clang++\n";
+	std::cout << "  " << programName << " -H program.phs -o program.hpp\n";
+	std::cout << "  " << programName << " -g program.phs -o program.cpp\n";
 	return true;
 }
 
