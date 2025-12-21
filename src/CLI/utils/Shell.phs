@@ -7,7 +7,7 @@ include_stdstr();
 include_stdsys();
 include_stdfile();
 
-puts("Phasor Shell\n(C) 2025 Daniel McGuire\n");
+puts("Phasor v1.1.0 Shell\n(C) 2025 Daniel McGuire\n");
 
 fn trim(s: string) -> string {
     var out = "";
@@ -37,7 +37,12 @@ fn starts_with(input: string, prefix: string) -> bool {
     return substr(input, 0, len(prefix)) == prefix;
 }
 
-fn main() {
+fn main(i: string) -> int {
+    if (i != "" || i != null) { 
+        // Fixes dragging an executable onto shell
+        sys_execute(i);
+        return 0;
+    }
     while (true) {
         printf("%s$ ", fcd());
 
@@ -45,54 +50,6 @@ fn main() {
 
         line = trim(line);
         if (line.len() == 0) {
-            continue;
-        }
-
-        if (starts_with(line, "cd ")) {
-            fcd(substr(line, 3)); 
-            line = null;
-            continue;   
-        }
-
-        if (starts_with(line, "cat ")) {
-            var cmd = "cat-phs " + substr(line, 4);
-            sys_execute(cmd);
-            continue;
-        }
-
-        if (starts_with(line, "cp ")) {
-            var cmd = "cp-phs " + substr(line, 3);
-            sys_execute(cmd);
-            continue;
-        }
-
-        if (starts_with(line, "echo ")) {
-            var cmd = "echo-phs " + substr(line, 5);
-            sys_execute(cmd);
-            continue;
-        }
-
-        if (starts_with(line, "ls ")) {
-            var cmd = "ls-phs " + substr(line, 3);
-            sys_execute(cmd);
-            continue;
-        }
-
-        if (starts_with(line, "mv ")) {
-            var cmd = "mv-phs " + substr(line, 3);
-            sys_execute(cmd);
-            continue;
-        }
-
-        if (starts_with(line, "rm ")) {
-            var cmd = "rm-phs " + substr(line, 3);
-            sys_execute(cmd);
-            continue;
-        }
-
-        if (starts_with(line, "touch ")) {
-            var cmd = "touch-phs " + substr(line, 6);
-            sys_execute(cmd);
             continue;
         }
 
@@ -111,6 +68,4 @@ fn main() {
     return 0;
 }
 
-if (!main()) {
-    puts_error("Unknown error");
-}
+shutdown(main());
