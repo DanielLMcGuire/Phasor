@@ -44,7 +44,7 @@ int BinaryRuntime::run()
 		StdLib::envp = m_args.envp;
 
 		// Binary runtime doesn't typically support source imports unless we also link the frontend
-		// But for now, let's leave the import handler empty or basic
+		// But for now, let's leave the import handler empty
 		vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});

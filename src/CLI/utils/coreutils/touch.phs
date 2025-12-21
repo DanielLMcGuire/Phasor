@@ -62,7 +62,7 @@ fn show_version() -> void {
     puts("There is NO WARRANTY, to the extent permitted by law.");
 }
 
-// Function to parse date string (simplified)
+// Function to parse date string
 fn parse_date(date_str: string) -> int {
     return time() / 1000;
 }
