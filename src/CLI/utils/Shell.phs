@@ -7,7 +7,7 @@ include_stdstr();
 include_stdsys();
 include_stdfile();
 
-puts("Phasor v1.1.0 Shell\n(C) 2025 Daniel McGuire\n");
+puts("Phasor Shell\n(C) 2025 Daniel McGuire\n");
 
 fn trim(s: string) -> string {
     var out = "";
@@ -37,12 +37,7 @@ fn starts_with(input: string, prefix: string) -> bool {
     return substr(input, 0, len(prefix)) == prefix;
 }
 
-fn main(i: string) -> int {
-    if (i != "" || i != null) { 
-        // Fixes dragging an executable onto shell
-        sys_execute(i);
-        return 0;
-    }
+fn main() {
     while (true) {
         printf("%s$ ", fcd());
 
@@ -68,4 +63,6 @@ fn main(i: string) -> int {
     return 0;
 }
 
-shutdown(main());
+if (!main()) {
+    puts_error("Unknown error");
+}
