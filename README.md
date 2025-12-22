@@ -2,7 +2,7 @@
 
 A dynamically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for performance and flexibility.
 
-I do ***not*** promise a **smooth, stable experience**.
+Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation needs a ton of work.
 
 ## Language Features
 
