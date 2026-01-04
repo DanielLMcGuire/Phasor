@@ -10,7 +10,7 @@ include_directories(src)
 
 # Set flags
 
-option(ASSEMBLY "Enable assembly for core code" OFF)
+option(ASSEMBLY "Enable assembly for core code" ON)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /DNOMINMAX /EHsc /fp:precise /arch:AVX2")
@@ -110,6 +110,21 @@ set(STDLIB_HEADERS
     src/Runtime/Stdlib/StdLib.hpp
 )
 
+if(WIN32)
+    list(APPEND STDLIB_SOURCES
+        src/Runtime/Stdlib/windows/windows.cpp
+        src/Runtime/Stdlib/windows/vhandle.cpp
+        src/Runtime/Stdlib/windows/winType.cpp
+        src/Runtime/Stdlib/windows/winuser.cpp
+    )
+    list(APPEND STDLIB_HEADERS
+        src/Runtime/Stdlib/windows/windows.hpp
+        src/Runtime/Stdlib/windows/vhandle.hpp
+        src/Runtime/Stdlib/windows/winType.hpp
+        src/Runtime/Stdlib/windows/winuser.hpp
+    )
+endif()
+
 set(RUNTIME_HEADERS
     src/Runtime/Value.hpp
     src/Runtime/VM/VM.hpp
@@ -117,6 +132,7 @@ set(RUNTIME_HEADERS
     src/Runtime/VM/core/arithmetic/arithmetic.h
     src/Runtime/VM/core/logical/logical.h
     src/Runtime/VM/core/IO/IO.h
+    src/sscanf.h
 )
 
 set(INTERPRETER_SOURCES
@@ -162,6 +178,10 @@ set(FRONTEND_HEADERS
 )
 
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS} ${STDLIB_SOURCES} ${STDLIB_HEADERS})
+
+if(WIN32)
+    target_link_libraries(PhasorRuntime ws2_32)
+endif()
 
 add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADERS})
 

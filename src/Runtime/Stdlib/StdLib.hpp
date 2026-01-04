@@ -33,11 +33,12 @@ class StdLib
 	static int    argc; ///< Number of command line arguments
 	static char **envp; ///< Environment variables
 
+	static void        checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+	                                 bool allowMoreArguments = false);
+
   private:
 	static int         dupenv(std::string &out, const char *name, char *const argp[]);
 	static std::string fixEscapeSequences(const std::string &s);
-	static void        checkArgCount(const std::vector<Value> &args, size_t expected, const std::string &name,
-	                                 bool allowMore = false);
 
 	static Value registerMathFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerStringFunctions(const std::vector<Value> &args, VM *vm);

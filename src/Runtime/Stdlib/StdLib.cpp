@@ -1,5 +1,9 @@
 #include "StdLib.hpp"
 
+#ifdef _WIN32
+#include "windows/windows.hpp"
+#endif
+
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
@@ -13,6 +17,9 @@ void StdLib::registerFunctions(VM &vm)
 	vm.registerNativeFunction("include_stdtype", registerTypeConvFunctions);
 	vm.registerNativeFunction("include_stdfile", registerFileFunctions);
 	vm.registerNativeFunction("include_stdregex", registerRegexFunctions);
+	#ifdef _WIN32
+	vm.registerNativeFunction("include_win32api", windows::registerFunctions);
+	#endif
 }
 
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
@@ -90,16 +97,16 @@ std::string StdLib::fixEscapeSequences(const std::string &s)
 	return out;
 }
 
-void StdLib::checkArgCount(const std::vector<Value> &args, size_t expected, const std::string &name, bool allowMore)
+void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name, bool allowMoreArguments)
 {
-	if (args.size() < expected)
+	if (args.size() < minimumArguments)
 	{
-		throw std::runtime_error("Function '" + name + "' expects at least " + std::to_string(expected) +
+		throw std::runtime_error("Function '" + name + "' expects at least " + std::to_string(minimumArguments) +
 		                         " arguments, but got " + std::to_string(args.size()));
 	}
-	if (!allowMore && args.size() > expected)
+	if (!allowMoreArguments && args.size() > minimumArguments)
 	{
-		throw std::runtime_error("Function '" + name + "' expects exactly " + std::to_string(expected) +
+		throw std::runtime_error("Function '" + name + "' expects exactly " + std::to_string(minimumArguments) +
 		                         " arguments, but got " + std::to_string(args.size()));
 	}
 }
