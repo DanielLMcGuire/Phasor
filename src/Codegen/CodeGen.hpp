@@ -68,8 +68,8 @@ enum class OpCode : uint8_t
 	RETURN,      ///< Return from function
 
 	// Literal values
-	TRUE,     ///< Push true
-	FALSE,    ///< Push false
+	TRUE_P,     ///< Push true
+	FALSE_P,    ///< Push false
 	NULL_VAL, ///< Push null
 
 	// String operatoins

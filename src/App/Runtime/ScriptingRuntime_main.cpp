@@ -1,4 +1,4 @@
-#include "../../cli/Runtime/ScriptingRuntime.hpp"
+#include "../../CLI/Runtime/ScriptingRuntime.hpp"
 #include "../../Frontend/Frontend.hpp"
 #include <iostream>
 

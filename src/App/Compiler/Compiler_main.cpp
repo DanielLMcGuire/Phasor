@@ -1,5 +1,5 @@
-#include "../../cli/Compiler/Compiler.hpp"
-#include "../../frontend/Frontend.hpp"
+#include "../../CLI/Compiler/Compiler.hpp"
+#include "../../Frontend/Frontend.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[], char *envp[])

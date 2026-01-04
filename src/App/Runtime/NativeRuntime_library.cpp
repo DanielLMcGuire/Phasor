@@ -1,4 +1,4 @@
-#include "../../cli/Runtime/NativeRuntime.hpp"
+#include "../../CLI/Runtime/NativeRuntime.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -16,6 +16,7 @@
 #endif
 
 #include <vector>
+#include <cstring>
 #include <sstream>
 
 std::vector<std::string> splits(const std::string &input)
@@ -43,10 +44,12 @@ extern "C"
 
 			if (nativeFunctionsVector != nullptr)
 			{
-				std::vector<std::pair<std::string, void (*)()>> nativeFunctions =
-				    *(std::vector<std::pair<std::string, void (*)()>> *)nativeFunctionsVector;
-				for (const auto &nativeFunction : nativeFunctions)
+				const void* ptr = nativeFunctionsVector;
+				const auto* funcVector = static_cast<const std::vector<std::pair<std::string, void*>>*>(ptr);
+				for (const auto &nativeFunction : *funcVector)
+				{
 					NativeRT.addNativeFunction(nativeFunction.first, nativeFunction.second);
+				}
 			}
 
 			NativeRT.run();
@@ -70,10 +73,12 @@ extern "C"
 
 			if (nativeFunctionsVector != nullptr)
 			{
-				std::vector<std::pair<std::string, void (*)()>> nativeFunctions =
-				    *(std::vector<std::pair<std::string, void (*)()>> *)nativeFunctionsVector;
-				for (const auto &nativeFunction : nativeFunctions)
+				const void* ptr = nativeFunctionsVector;
+				const auto* funcVector = static_cast<const std::vector<std::pair<std::string, void*>>*>(ptr);
+				for (const auto &nativeFunction : *funcVector)
+				{
 					NativeRT.addNativeFunction(nativeFunction.first, nativeFunction.second);
+				}
 			}
 
 			NativeRT.run();

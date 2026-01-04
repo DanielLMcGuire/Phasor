@@ -1,4 +1,4 @@
-#include "../../cli/Runtime/BinaryRuntime.hpp"
+#include "../../CLI/Runtime/BinaryRuntime.hpp"
 
 #include <iostream>
 

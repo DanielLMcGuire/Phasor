@@ -157,7 +157,7 @@ Value StdLib::sys_shutdown(const std::vector <Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "shutdown");
 	vm->reset();
-	int ret = args[0].asInt();
+	int ret = static_cast<int>(args[0].asInt());
 	std::exit(ret);
 	return Value(ret);
 }

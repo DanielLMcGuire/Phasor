@@ -1,5 +1,5 @@
-#include "../../cli/Repl/Repl.hpp"
-#include "../../frontend/Frontend.hpp"
+#include "../../CLI/Repl/Repl.hpp"
+#include "../../Frontend/Frontend.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[], char *envp[])

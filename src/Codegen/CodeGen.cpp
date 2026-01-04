@@ -278,6 +278,13 @@ void CodeGenerator::generateUnaryExpr(const UnaryExpr *unaryExpr)
 	case UnaryOp::Not:
 		bytecode.emit(OpCode::NOT);
 		break;
+	case UnaryOp::AddressOf:
+	// Not implemented
+	//	bytecode.emit(OpCode::ADROF);
+		__fallthrough; // for now
+	case UnaryOp::Dereference:
+	//	bytecode.emit(OpCode::DREF);
+		break;
 	}
 }
 
@@ -333,7 +340,7 @@ void CodeGenerator::generateCallExpr(const CallExpr *callExpr)
 		{
 			bool result =
 			    s->value.length() >= p->value.length() && s->value.compare(0, p->value.length(), p->value) == 0;
-			bytecode.emit(result ? OpCode::TRUE : OpCode::FALSE);
+			bytecode.emit(result ? OpCode::TRUE_P : OpCode::FALSE_P);
 			return;
 		}
 	}
@@ -347,7 +354,7 @@ void CodeGenerator::generateCallExpr(const CallExpr *callExpr)
 			bool result = s->value.length() >= suffix->value.length() &&
 			              s->value.compare(s->value.length() - suffix->value.length(), suffix->value.length(),
 			                               suffix->value) == 0;
-			bytecode.emit(result ? OpCode::TRUE : OpCode::FALSE);
+			bytecode.emit(result ? OpCode::TRUE_P : OpCode::FALSE_P);
 			return;
 		}
 	}
@@ -430,11 +437,11 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 			{
 				if (result.asBool())
 				{
-					bytecode.emit(OpCode::TRUE);
+					bytecode.emit(OpCode::TRUE_P);
 				}
 				else
 				{
-					bytecode.emit(OpCode::FALSE);
+					bytecode.emit(OpCode::FALSE_P);
 				}
 			}
 			else if (result.isNull())
@@ -462,7 +469,7 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 		int jumpToEndIndex = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP, 0);
 		bytecode.instructions[jumpToFalseIndex].operand1 = static_cast<int>(bytecode.instructions.size());
-		bytecode.emit(OpCode::FALSE);
+		bytecode.emit(OpCode::FALSE_P);
 		bytecode.instructions[jumpToEndIndex].operand1 = static_cast<int>(bytecode.instructions.size());
 		return;
 	}
@@ -475,7 +482,7 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 		int jumpToEndIndex = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP, 0);
 		bytecode.instructions[jumpToTrueIndex].operand1 = static_cast<int>(bytecode.instructions.size());
-		bytecode.emit(OpCode::TRUE);
+		bytecode.emit(OpCode::TRUE_P);
 		bytecode.instructions[jumpToEndIndex].operand1 = static_cast<int>(bytecode.instructions.size());
 		return;
 	}
@@ -766,11 +773,11 @@ void CodeGenerator::generateBooleanExpr(const BooleanExpr *boolExpr)
 {
 	if (boolExpr->value)
 	{
-		bytecode.emit(OpCode::TRUE);
+		bytecode.emit(OpCode::TRUE_P);
 	}
 	else
 	{
-		bytecode.emit(OpCode::FALSE);
+		bytecode.emit(OpCode::FALSE_P);
 	}
 }
 

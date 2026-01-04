@@ -1,13 +1,14 @@
 #include "Frontend.hpp"
-#include "../Backend/lexer/Lexer.hpp"
-#include "../Backend/parser/Parser.hpp"
-#include "../runtime/Stdlib/StdLib.hpp"
-#include "../runtime/VM/VM.hpp"
-#include "../Codegen/IR/PhasorIR.hpp" // Decode instructions
+#include "../Backend/Lexer/Lexer.hpp"
+#include "../Backend/Parser/Parser.hpp"
+#include "../Runtime/Stdlib/StdLib.hpp"
+#include "../Runtime/VM/VM.hpp"
+#include "../Codegen/IR/PhasorIR.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "../sscanf.h"
 
 bool startsWith(const std::string &input, const std::string &prefix)
 {
@@ -105,8 +106,6 @@ void Frontend::runRepl(VM *vm)
 		{
 			line = "let peekx = " + vm->peek().toString();
 		}
-#pragma warning(push)
-#pragma warning(disable : 4477)
 		if (startsWith(line, "vm_op"))
 		{
 			char         instruction[64];
@@ -127,7 +126,6 @@ void Frontend::runRepl(VM *vm)
 			sscanf(line.c_str(), "vm_setvar %63s", value);
 			line = "var setvarx = " + std::to_string(vm->addVariable(value));
 		}
-#pragma warning(pop)
 		if (startsWith(line, "vm_reset"))
 		{
 			vm->reset(true, true, true);

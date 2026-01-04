@@ -59,8 +59,8 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {{Op
                                                                              {OpCode::CALL, "CALL"},
                                                                              {OpCode::SYSTEM, "SYSTEM"},
                                                                              {OpCode::RETURN, "RETURN"},
-                                                                             {OpCode::TRUE, "TRUE"},
-                                                                             {OpCode::FALSE, "FALSE"},
+                                                                             {OpCode::TRUE_P, "TRUE"},
+                                                                             {OpCode::FALSE_P, "FALSE"},
                                                                              {OpCode::NULL_VAL, "NULL_VAL"},
                                                                              {OpCode::LEN, "LEN"},
                                                                              {OpCode::CHAR_AT, "CHAR_AT"},
@@ -142,8 +142,8 @@ int PhasorIR::getOperandCount(OpCode op)
 	case OpCode::READLINE:
 	case OpCode::HALT:
 	case OpCode::RETURN:
-	case OpCode::TRUE:
-	case OpCode::FALSE:
+	case OpCode::TRUE_P:
+	case OpCode::FALSE_P:
 	case OpCode::NULL_VAL:
 	case OpCode::LEN:
 	case OpCode::CHAR_AT:
@@ -399,6 +399,8 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			break;
 		case ValueType::String:
 			ss << "STRING \"" << escapeString(val.asString()) << "\"\n";
+			break;
+		case ValueType::Struct:
 			break;
 		}
 	}

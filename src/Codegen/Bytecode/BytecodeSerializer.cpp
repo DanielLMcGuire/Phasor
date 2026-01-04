@@ -154,6 +154,8 @@ void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
 			writeUInt8(4);
 			writeString(constant.asString());
 			break;
+		case ValueType::Struct:
+			break;
 		}
 	}
 }
@@ -203,8 +205,6 @@ std::vector<uint8_t> BytecodeSerializer::serialize(const Bytecode &bytecode)
 {
 	buffer.clear();
 
-	// Reserve space for header (we'll write it at the end)
-	size_t headerStartPos = buffer.size();
 	for (int i = 0; i < 16; i++)
 	{
 		buffer.push_back(0);

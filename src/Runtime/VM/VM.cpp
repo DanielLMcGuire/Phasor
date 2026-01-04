@@ -260,11 +260,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		push(it->second(args, this));
 		break;
 	}
-	case OpCode::TRUE:
+	case OpCode::TRUE_P:
 		push(Value(true));
 		break;
 
-	case OpCode::FALSE:
+	case OpCode::FALSE_P:
 		push(Value(false));
 		break;
 

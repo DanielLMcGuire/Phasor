@@ -1,5 +1,5 @@
 #pragma once
-#include "../../CodeGen/CodeGen.hpp"
+#include "../../Codegen/CodeGen.hpp"
 #include "../Value.hpp"
 #include <vector>
 #include <filesystem>

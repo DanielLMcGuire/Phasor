@@ -1,4 +1,4 @@
-// Port of echo.c, derived from code echo.c in Bash.
+// Port of GNU echo.
 // 'echo' print out program for Phasor.
 //   Copyright (C) 2025 Daniel McGuire.
 //

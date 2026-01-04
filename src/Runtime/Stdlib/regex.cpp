@@ -199,57 +199,41 @@ Value StdLib::regex_replace(const std::vector<Value> &args, VM *vm) {
             }
             // Flags that modify syntax options (case, multiline, nosubs, optimize, collate)
             if (flagsStr.find('i') != std::string::npos) {
-                syntax = static_cast<std::regex_constants::syntax_option_type>(
-                    static_cast<int>(syntax) | static_cast<int>(std::regex_constants::icase)
-                );
+                syntax = syntax | std::regex_constants::icase;
             }
             if (flagsStr.find('m') != std::string::npos) {
-                syntax = static_cast<std::regex_constants::syntax_option_type>(
-                    static_cast<int>(syntax) | static_cast<int>(std::regex_constants::multiline)
-                );
+                syntax = syntax | std::regex_constants::multiline;
             }
             if (flagsStr.find('n') != std::string::npos) {
-                syntax = static_cast<std::regex_constants::syntax_option_type>(
-                    static_cast<int>(syntax) | static_cast<int>(std::regex_constants::nosubs)
-                );
+                syntax = syntax | std::regex_constants::nosubs;
             }
             if (flagsStr.find('o') != std::string::npos) {
-                syntax = static_cast<std::regex_constants::syntax_option_type>(
-                    static_cast<int>(syntax) | static_cast<int>(std::regex_constants::optimize)
-                );
+                syntax = syntax | std::regex_constants::optimize;
             }
             if (flagsStr.find('c') != std::string::npos) {
-                syntax = static_cast<std::regex_constants::syntax_option_type>(
-                    static_cast<int>(syntax) | static_cast<int>(std::regex_constants::collate)
-                );
+                syntax = syntax | std::regex_constants::collate;
             }
 
             // Format flags for regex_replace
             if (flagsStr.find('f') != std::string::npos) {
-                format_flags = static_cast<std::regex_constants::match_flag_type>(
-                    static_cast<int>(format_flags) | static_cast<int>(std::regex_constants::format_sed)
-                );
+                format_flags = format_flags | std::regex_constants::format_sed;
             }
             if (flagsStr.find('r') != std::string::npos) {
-                format_flags = static_cast<std::regex_constants::match_flag_type>(
-                    static_cast<int>(format_flags) | static_cast<int>(std::regex_constants::format_no_copy)
-                );
+                format_flags = format_flags | std::regex_constants::format_no_copy;
             }
             if (flagsStr.find('d') != std::string::npos) {
-                format_flags = static_cast<std::regex_constants::match_flag_type>(
-                    static_cast<int>(format_flags) | static_cast<int>(std::regex_constants::format_first_only)
-                );
+                format_flags = format_flags | std::regex_constants::format_first_only;
             }
         }
         
         std::regex re(pattern, syntax);
-        // Combine match_flags and format_flags into a single match_flag_type value
-        int combined = static_cast<int>(match_flags) | static_cast<int>(format_flags);
+        // Combine match_flags and format_flags using bitwise OR on enum types
+        auto combined_flags = match_flags | format_flags;
         std::string result = std::regex_replace(
             text,
             re,
             replacement,
-            static_cast<std::regex_constants::match_flag_type>(combined)
+            combined_flags
         );
         
         return Value(result);
