@@ -17,12 +17,12 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG")
 
-    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DNOMINMAX /EHsc /fp:precise /fsanitize=address")
+    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DNOMINMAX /EHsc /fp:fast")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox /fp:precise /arch:AVX2")
-    set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /fp:precise /fsanitize=address")
+    set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /fp:fast")
 
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -fno-stack-protector -fno-rtti")
@@ -143,14 +143,6 @@ set(INTERPRETER_SOURCES
 set(INTERPRETER_HEADERS
     src/Backend/Lexer/Lexer.hpp
     src/Backend/Parser/Parser.hpp
-)
-
-set(CODEGEN_SOURCES
-    src/Codegen/CodeGen.cpp
-    src/Codegen/Bytecode/BytecodeSerializer.cpp
-    src/Codegen/Bytecode/BytecodeDeserializer.cpp
-    src/Codegen/IR/PhasorIR.cpp
-    src/Codegen/Cpp/CppCodeGenerator.cpp
 )
 
 set(CODEGEN_SOURCES
@@ -321,7 +313,7 @@ foreach(tgt ${TARGETS})
     )
 
     target_include_directories(${tgt} PRIVATE ${BIN_DIR})
-    set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
+    set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}")
     target_link_libraries(${tgt} phasor_native_runtime)
 
     install(TARGETS ${tgt}
