@@ -22,18 +22,9 @@ ScriptingRuntime::ScriptingRuntime(int argc, char *argv[], char *envp[])
 int ScriptingRuntime::run()
 {
 	if (m_args.inputFile.empty())
-	{
-		return runRepl();
-	}
+		return 0;
 
 	return runSource();
-}
-
-int ScriptingRuntime::runRepl()
-{
-	auto vm = createVm();
-	Frontend::runRepl(vm.get());
-	return 0;
 }
 
 int ScriptingRuntime::runSource()

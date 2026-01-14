@@ -28,7 +28,6 @@ class ScriptingRuntime
 	void parseArguments(int argc, char *argv[]);
 	void showHelp(const std::string &programName);
 
-	int  runRepl();
 	int  runSource();
 	void runSourceString(const std::string &source, VM &vm);
 
