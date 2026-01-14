@@ -73,13 +73,13 @@ Value StdLib::math_min(const std::vector<Value> &args, VM *vm)
 	{
 		int64_t ai = a.asInt();
 		int64_t bi = b.asInt();
-		return Value(ai < bi ? ai : bi);
+		return Value(asm_iless_than(ai, bi) ? ai : bi);
 	}
 	if (a.isNumber() && b.isNumber())
 	{
 		double af = a.asFloat();
 		double bf = b.asFloat();
-		return Value(af < bf ? af : bf);
+		return Value(asm_flless_than(af, bf) ? af : bf);
 	}
 	return a < b ? a : b;
 }

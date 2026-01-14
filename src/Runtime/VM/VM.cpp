@@ -39,38 +39,73 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		pop();
 		break;
 
-	case OpCode::ADD: {
+	case OpCode::IADD: {
 		Value b = pop();
 		Value a = pop();
-		push(asm_add(a.asInt(), b.asInt()));
+		push(asm_iadd(a.asInt(), b.asInt()));
 		break;
 	}
 
-	case OpCode::SUBTRACT: {
+	case OpCode::ISUBTRACT: {
 		Value b = pop();
 		Value a = pop();
-		push(asm_sub(a.asInt(), b.asInt()));
+		push(asm_isub(a.asInt(), b.asInt()));
 		break;
 	}
 
-	case OpCode::MULTIPLY: {
+	case OpCode::IMULTIPLY: {
 		Value b = pop();
 		Value a = pop();
-		push(asm_mul(a.asInt(), b.asInt()));
+		push(asm_imul(a.asInt(), b.asInt()));
 		break;
 	}
 
-	case OpCode::DIVIDE: {
+	case OpCode::IDIVIDE: {
 		Value b = pop();
 		Value a = pop();
-		push(asm_div(a.asInt(), b.asInt()));
+		push(asm_idiv(a.asInt(), b.asInt()));
 		break;
 	}
 
-	case OpCode::MODULO: {
+	case OpCode::IMODULO: {
 		Value b = pop();
 		Value a = pop();
-		push(asm_mod(a.asInt(), b.asInt()));
+		push(asm_imod(a.asInt(), b.asInt()));
+		break;
+	}
+
+	case OpCode::FLADD: {
+		Value b = pop();
+		Value a = pop();
+		push(asm_fladd(a.asFloat(), b.asFloat()));
+		break;
+	}
+
+	case OpCode::FLSUBTRACT: {
+		Value b = pop();
+		Value a = pop();
+		push(asm_flsub(a.asFloat(), b.asFloat()));
+		break;
+	}
+
+	case OpCode::FLMULTIPLY: {
+		Value b = pop();
+		Value a = pop();
+		push(asm_flmul(a.asFloat(), b.asFloat()));
+		break;
+	}
+
+	case OpCode::FLDIVIDE: {
+		Value b = pop();
+		Value a = pop();
+		push(asm_fldiv(a.asFloat(), b.asFloat()));
+		break;
+	}
+
+	case OpCode::FLMODULO: {
+		Value b = pop();
+		Value a = pop();
+		push(asm_flmod(a.asFloat(), b.asFloat()));
 		break;
 	}
 
@@ -118,66 +153,122 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::NEGATE:
-		push(asm_neg(pop().asInt()));
+		push(asm_flneg(pop().asFloat()));
 		break;
 
 	case OpCode::NOT:
-		push(Value(asm_not(pop().isTruthy() ? 1 : 0)));
+		push(Value(asm_flnot(pop().isTruthy() ? 1 : 0)));
 		break;
 
-	case OpCode::AND: {
+	case OpCode::IAND: {
 		Value b = pop();
 		Value a = pop();
-		push(Value(asm_and(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
-		break;
-	}
-
-	case OpCode::OR: {
-		Value b = pop();
-		Value a = pop();
-		push(Value(asm_or(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		push(Value(asm_iand(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
 		break;
 	}
 
-	case OpCode::EQUAL: {
+	case OpCode::IOR: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_equal(a.asInt(), b.asInt())) : Value(a == b));
+		push(Value(asm_ior(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
 		break;
 	}
 
-	case OpCode::NOT_EQUAL: {
+	case OpCode::IEQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_not_equal(a.asInt(), b.asInt())) : Value(a != b));
+		push(a.isInt() && b.isInt() ? Value(asm_iequal(a.asInt(), b.asInt())) : Value(a == b));
 		break;
 	}
 
-	case OpCode::LESS_THAN: {
+	case OpCode::INOT_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_less_than(a.asInt(), b.asInt())) : Value(a < b));
+		push(a.isInt() && b.isInt() ? Value(asm_inot_equal(a.asInt(), b.asInt())) : Value(a != b));
 		break;
 	}
 
-	case OpCode::GREATER_THAN: {
+	case OpCode::ILESS_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_greater_than(a.asInt(), b.asInt())) : Value(a > b));
+		push(a.isInt() && b.isInt() ? Value(asm_iless_than(a.asInt(), b.asInt())) : Value(a < b));
 		break;
 	}
 
-	case OpCode::LESS_EQUAL: {
+	case OpCode::IGREATER_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_less_equal(a.asInt(), b.asInt())) : Value(a <= b));
+		push(a.isInt() && b.isInt() ? Value(asm_igreater_than(a.asInt(), b.asInt())) : Value(a > b));
 		break;
 	}
 
-	case OpCode::GREATER_EQUAL: {
+	case OpCode::ILESS_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_greater_equal(a.asInt(), b.asInt())) : Value(a >= b));
+		push(a.isInt() && b.isInt() ? Value(asm_iless_equal(a.asInt(), b.asInt())) : Value(a <= b));
+		break;
+	}
+
+	case OpCode::IGREATER_EQUAL: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isInt() && b.isInt() ? Value(asm_igreater_equal(a.asInt(), b.asInt())) : Value(a >= b));
+		break;
+	}
+
+	case OpCode::FLAND: {
+		Value b = pop();
+		Value a = pop();
+		push(Value(asm_fland(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		break;
+	}
+
+	case OpCode::FLOR: {
+		Value b = pop();
+		Value a = pop();
+		push(Value(asm_flor(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		break;
+	}
+
+	case OpCode::FLEQUAL: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isFloat() && b.isFloat() ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b));
+		break;
+	}
+
+	case OpCode::FLNOT_EQUAL: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isFloat() && b.isFloat() ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
+		break;
+	}
+
+	case OpCode::FLLESS_THAN: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isFloat() && b.isFloat() ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
+		break;
+	}
+
+	case OpCode::FLGREATER_THAN: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isFloat() && b.isFloat() ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
+		break;
+	}
+
+	case OpCode::FLLESS_EQUAL: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isFloat() && b.isFloat() ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
+		break;
+	}
+
+	case OpCode::FLGREATER_EQUAL: {
+		Value b = pop();
+		Value a = pop();
+		push(a.isFloat() && b.isFloat() ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
 		break;
 	}
 
@@ -336,28 +427,53 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	// Register arithmetic (3-address code)
 	// Format: operand1=rA (dest), operand2=rB, operand3=rC
-	case OpCode::ADD_R: {
-		registers[rA] = Value(asm_add(registers[rB].asInt(), registers[rC].asInt()));
+	case OpCode::IADD_R: {
+		registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt()));
 		break;
 	}
 
-	case OpCode::SUB_R: {
-		registers[rA] = Value(asm_sub(registers[rB].asInt(), registers[rC].asInt()));
+	case OpCode::ISUB_R: {
+		registers[rA] = Value(asm_isub(registers[rB].asInt(), registers[rC].asInt()));
 		break;
 	}
 
-	case OpCode::MUL_R: {
-		registers[rA] = Value(asm_mul(registers[rB].asInt(), registers[rC].asInt()));
+	case OpCode::IMUL_R: {
+		registers[rA] = Value(asm_imul(registers[rB].asInt(), registers[rC].asInt()));
 		break;
 	}
 
-	case OpCode::DIV_R: {
-		registers[rA] = Value(asm_div(registers[rB].asInt(), registers[rC].asInt()));
+	case OpCode::IDIV_R: {
+		registers[rA] = Value(asm_idiv(registers[rB].asInt(), registers[rC].asInt()));
 		break;
 	}
 
-	case OpCode::MOD_R: {
-		registers[rA] = Value(asm_mod(registers[rB].asInt(), registers[rC].asInt()));
+	case OpCode::IMOD_R: {
+		registers[rA] = Value(asm_imod(registers[rB].asInt(), registers[rC].asInt()));
+		break;
+	}
+
+	case OpCode::FLADD_R: {
+		registers[rA] = Value(asm_fladd(registers[rB].asFloat(), registers[rC].asFloat()));
+		break;
+	}
+
+	case OpCode::FLSUB_R: {
+		registers[rA] = Value(asm_flsub(registers[rB].asFloat(), registers[rC].asFloat()));
+		break;
+	}
+
+	case OpCode::FLMUL_R: {
+		registers[rA] = Value(asm_flmul(registers[rB].asFloat(), registers[rC].asFloat()));
+		break;
+	}
+
+	case OpCode::FLDIV_R: {
+		registers[rA] = Value(asm_fldiv(registers[rB].asFloat(), registers[rC].asFloat()));
+		break;
+	}
+
+	case OpCode::FLMOD_R: {
+		registers[rA] = Value(asm_flmod(registers[rB].asFloat(), registers[rC].asFloat()));
 		break;
 	}
 
@@ -398,59 +514,115 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	// Register comparisons
 	// Format: operand1=rA (dest), operand2=rB, operand3=rC
-	case OpCode::EQ_R: {
+	case OpCode::IEQ_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_equal(b.asInt(), c.asInt())) : Value(b == c);
+		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_iequal(b.asInt(), c.asInt())) : Value(b == c);
 		break;
 	}
 
-	case OpCode::NE_R: {
+	case OpCode::INE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_not_equal(b.asInt(), c.asInt())) : Value(b != c);
+		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_inot_equal(b.asInt(), c.asInt())) : Value(b != c);
 		break;
 	}
 
-	case OpCode::LT_R: {
+	case OpCode::ILT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_less_than(b.asInt(), c.asInt())) : Value(b < c);
+		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_iless_than(b.asInt(), c.asInt())) : Value(b < c);
 		break;
 	}
 
-	case OpCode::GT_R: {
+	case OpCode::IGT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_greater_than(b.asInt(), c.asInt())) : Value(b > c);
+		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_igreater_than(b.asInt(), c.asInt())) : Value(b > c);
 		break;
 	}
 
-	case OpCode::LE_R: {
+	case OpCode::ILE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_less_equal(b.asInt(), c.asInt())) : Value(b <= c);
+		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_iless_equal(b.asInt(), c.asInt())) : Value(b <= c);
 		break;
 	}
 
-	case OpCode::GE_R: {
+	case OpCode::IGE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_greater_equal(b.asInt(), c.asInt())) : Value(b >= c);
+		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_igreater_equal(b.asInt(), c.asInt())) : Value(b >= c);
 		break;
 	}
 
-	case OpCode::AND_R: {
+	case OpCode::IAND_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = Value(asm_and(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		registers[rA] = Value(asm_iand(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
 		break;
 	}
 
-	case OpCode::OR_R: {
+	case OpCode::IOR_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = Value(asm_or(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		registers[rA] = Value(asm_ior(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		break;
+	}
+
+	case OpCode::FLEQ_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
+		break;
+	}
+
+	case OpCode::FLNE_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
+		break;
+	}
+
+	case OpCode::FLLT_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
+		break;
+	}
+
+	case OpCode::FLGT_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+		break;
+	}
+
+	case OpCode::FLLE_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+		break;
+	}
+
+	case OpCode::FLGE_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+		break;
+	}
+
+	case OpCode::FLAND_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = Value(asm_fland(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		break;
+	}
+
+	case OpCode::FLOR_R: {
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = Value(asm_flor(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
 		break;
 	}
 
@@ -480,13 +652,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	// Register unary operations
 	case OpCode::NEG_R: {
 		// NEG_R rA, rB - rA = -rB
-		registers[rA] = Value(asm_neg(registers[rB].asInt()));
+		registers[rA] = Value(asm_flneg(registers[rB].asFloat()));
 		break;
 	}
 
 	case OpCode::NOT_R: {
 		// NOT_R rA, rB - rA = !rB
-		registers[rA] = Value(asm_not(registers[rB].isTruthy() ? 1 : 0));
+		registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0));
 		break;
 	}
 
@@ -785,4 +957,18 @@ std::string VM::getInformation()
 	info += " | Current Program Counter: " + std::to_string(programCounter);
 	info += " | PC Stack Top: " + std::to_string(callStackTop);
 	return info;
+}
+
+void VM::log(const Value &msg)
+{
+	setRegister(Register::r0, msg);
+	operation(OpCode::PRINT_R, r0);
+	freeRegister(Register::r0);
+}
+
+void VM::logerr(const Value &msg)
+{
+	setRegister(Register::r0, msg);
+	operation(OpCode::PRINTERROR_R, r0);
+	freeRegister(Register::r0);
 }

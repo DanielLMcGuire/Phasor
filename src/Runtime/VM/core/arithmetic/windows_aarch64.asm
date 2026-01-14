@@ -3,12 +3,18 @@
 
     AREA    |.text|, CODE, READONLY, ALIGN=2
 
-    EXPORT  asm_add
-    EXPORT  asm_sub
-    EXPORT  asm_mul
-    EXPORT  asm_neg
-    EXPORT  asm_div
-    EXPORT  asm_mod
+    EXPORT  asm_iadd
+    EXPORT  asm_isub
+    EXPORT  asm_imul
+    EXPORT  asm_ineg
+    EXPORT  asm_idiv
+    EXPORT  asm_imod
+    EXPORT  asm_fladd
+    EXPORT  asm_flsub
+    EXPORT  asm_flmul
+    EXPORT  asm_flneg
+    EXPORT  asm_fldiv
+    EXPORT  asm_flmod
     EXPORT  asm_sqrt
     EXPORT  asm_pow
     EXPORT  asm_log
@@ -24,41 +30,80 @@
     IMPORT  cos
     IMPORT  tan
 
-; int64_t asm_add(int64_t a, int64_t b)
-; asm_add x0 a, x1 b
-asm_add
+; int64_t asm_iadd(int64_t a, int64_t b)
+; asm_iadd x0 a, x1 b
+asm_iadd
     add     x0, x0, x1       ; add a + b
     ret
 
-; int64_t asm_sub(int64_t a, int64_t b)
-; asm_sub x0 a, x1 b
-asm_sub
+; int64_t asm_isub(int64_t a, int64_t b)
+; asm_isub x0 a, x1 b
+asm_isub
     sub     x0, x0, x1       ; subtract b from a
     ret
 
-; int64_t asm_mul(int64_t a, int64_t b)
-; asm_mul x0 a, x1 b
-asm_mul
+; int64_t asm_imul(int64_t a, int64_t b)
+; asm_imul x0 a, x1 b
+asm_imul
     mul     x0, x0, x1       ; multiply a * b
     ret
 
-; int64_t asm_neg(int64_t a)
-; asm_neg x0 a
-asm_neg
+; int64_t asm_ineg(int64_t a)
+; asm_ineg x0 a
+asm_ineg
     neg     x0, x0           ; negate a
     ret
 
-; int64_t asm_div(int64_t a, int64_t b)
-; asm_div x0 a, x1 b
-asm_div
+; int64_t asm_idiv(int64_t a, int64_t b)
+; asm_idiv x0 a, x1 b
+asm_idiv
     sdiv    x0, x0, x1       ; signed division a / b
     ret
 
-; int64_t asm_mod(int64_t a, int64_t b)
-; asm_mod x0 a, x1 b
-asm_mod
+; int64_t asm_imod(int64_t a, int64_t b)
+; asm_imod x0 a, x1 b
+asm_imod
     sdiv    x2, x0, x1       ; x2 = a / b
     msub    x0, x2, x1, x0   ; x0 = a - (x2 * b) -> remainder
+    ret
+
+; double asm_fladd(double a, double b)
+; asm_fladd d0 a, d1 b
+asm_fladd
+    fadd    d0, d0, d1       ; a + b
+    ret
+
+; double asm_flsub(double a, double b)
+; asm_flsub d0 a, d1 b
+asm_flsub
+    fsub    d0, d0, d1       ; a - b
+    ret
+
+; double asm_flmul(double a, double b)
+; asm_flmul d0 a, d1 b
+asm_flmul
+    fmul    d0, d0, d1       ; a * b
+    ret
+
+; double asm_flneg(double a)
+; asm_flneg d0 a
+asm_flneg
+    fneg    d0, d0           ; -a
+    ret
+
+; double asm_fldiv(double a, double b)
+; asm_fldiv d0 a, d1 b
+asm_fldiv
+    fdiv    d0, d0, d1       ; a / b
+    ret
+
+; double asm_flmod(double a, double b)
+; asm_flmod d0 a, d1 b
+asm_flmod
+    fdiv    d2, d0, d1       ; d2 = a / b
+    frinta  d2, d2           ; truncate toward zero
+    fmul    d2, d2, d1       ; d2 = trunc(a/b) * b
+    fsub    d0, d0, d2       ; d0 = a - d2 -> remainder
     ret
 
 ; double asm_sqrt(double a)

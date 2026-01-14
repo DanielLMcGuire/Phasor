@@ -17,34 +17,47 @@ enum class OpCode : uint8_t
 	POP,        ///< Pop top of stack
 
 	// Arithmetic operations
-	ADD,      ///< Pop b, pop a, push a + b
-	SUBTRACT, ///< Pop b, pop a, push a - b
-	MULTIPLY, ///< Pop b, pop a, push a * b
-	DIVIDE,   ///< Pop b, pop a, push a / b
-	MODULO,   ///< Pop b, pop a, push a % b
-	SQRT,     ///< sqrt()
-	POW,      ///< pow()
-	LOG,      ///< log()
-	EXP,      ///< exp()
-	SIN,      ///< sin()
-	COS,      ///< cos()
-	TAN,      ///< tan()
+	IADD,        ///< Pop b, pop a, push a + b
+	ISUBTRACT,   ///< Pop b, pop a, push a - b
+	IMULTIPLY,   ///< Pop b, pop a, push a * b
+	IDIVIDE,     ///< Pop b, pop a, push a / b
+	IMODULO,     ///< Pop b, pop a, push a % b
+	FLADD,       ///< Pop b, pop a, push a + b
+	FLSUBTRACT, ///< Pop b, pop a, push a - b
+	FLMULTIPLY, ///< Pop b, pop a, push a * b
+	FLDIVIDE,   ///< Pop b, pop a, push a / b
+	FLMODULO,   ///< Pop b, pop a, push a % b
+	SQRT,       ///< sqrt()
+	POW,        ///< pow()
+	LOG,        ///< log()
+	EXP,        ///< exp()
+	SIN,        ///< sin()
+	COS,        ///< cos()
+	TAN,        ///< tan()
 
 	// Unary operations
 	NEGATE, ///< Pop a, push -a
 	NOT,    ///< Pop a, push !a
 
 	// Logical operations
-	AND, ///< Pop b, pop a, push a && b
-	OR,  ///< Pop b, pop a, push a || b
+	IAND, ///< Pop b, pop a, push a && b
+	IOR,  ///< Pop b, pop a, push a || b
+	FLAND, ///< Pop b, pop a, push a && b
+	FLOR,  ///< Pop b, pop a, push a || b
 
 	// Comparison operations
-	EQUAL,         ///< Pop b, pop a, push a == b
-	NOT_EQUAL,     ///< Pop b, pop a, push a != b
-	LESS_THAN,     ///< Pop b, pop a, push a < b
-	GREATER_THAN,  ///< Pop b, pop a, push a > b
-	LESS_EQUAL,    ///< Pop b, pop a, push a <= b
-	GREATER_EQUAL, ///< Pop b, pop a, push a >= b
+	IEQUAL,         ///< Pop b, pop a, push a == b
+	INOT_EQUAL,     ///< Pop b, pop a, push a != b
+	ILESS_THAN,     ///< Pop b, pop a, push a < b
+	IGREATER_THAN,  ///< Pop b, pop a, push a > b
+	ILESS_EQUAL,    ///< Pop b, pop a, push a <= b
+	IGREATER_EQUAL, ///< Pop b, pop a, push a >= b
+	FLEQUAL,         ///< Pop b, pop a, push a == b
+	FLNOT_EQUAL,     ///< Pop b, pop a, push a != b
+	FLLESS_THAN,     ///< Pop b, pop a, push a < b
+	FLGREATER_THAN,  ///< Pop b, pop a, push a > b
+	FLLESS_EQUAL,    ///< Pop b, pop a, push a <= b
+	FLGREATER_EQUAL, ///< Pop b, pop a, push a >= b
 
 	// Control flow
 	JUMP,          ///< Unconditional jump to offset
@@ -97,11 +110,16 @@ enum class OpCode : uint8_t
 	POP2_R,       ///< Pop 2 values from stack to registers: pop2(R[rA], R[rB])
 
 	// Register arithmetic (3-address code)
-	ADD_R,  ///< R[rA] = R[rB] + R[rC]
-	SUB_R,  ///< R[rA] = R[rB] - R[rC]
-	MUL_R,  ///< R[rA] = R[rB] * R[rC]
-	DIV_R,  ///< R[rA] = R[rB] / R[rC]
-	MOD_R,  ///< R[rA] = R[rB] % R[rC]
+	IADD_R,  ///< R[rA] = R[rB] + R[rC]
+	ISUB_R,  ///< R[rA] = R[rB] - R[rC]
+	IMUL_R,  ///< R[rA] = R[rB] * R[rC]
+	IDIV_R,  ///< R[rA] = R[rB] / R[rC]
+	IMOD_R,  ///< R[rA] = R[rB] % R[rC]
+	FLADD_R,  ///< R[rA] = R[rB] + R[rC]
+	FLSUB_R,  ///< R[rA] = R[rB] - R[rC]
+	FLMUL_R,  ///< R[rA] = R[rB] * R[rC]
+	FLDIV_R,  ///< R[rA] = R[rB] / R[rC]
+	FLMOD_R,  ///< R[rA] = R[rB] % R[rC]
 	SQRT_R, ///< R[rA] = sqrt(R[rB])
 	POW_R,  ///< R[rA] = pow(R[rB], R[rC])
 	LOG_R,  ///< R[rA] = log(R[rB])
@@ -111,14 +129,22 @@ enum class OpCode : uint8_t
 	TAN_R,  ///< R[rA] = tan(R[rB])
 
 	// Register comparisons
-	AND_R, ///< R[rA] = R[rB] && R[rC]
-	OR_R,  ///< R[rA] = R[rB] || R[rC]
-	EQ_R,  ///< R[rA] = R[rB] == R[rC]
-	NE_R,  ///< R[rA] = R[rB] != R[rC]
-	LT_R,  ///< R[rA] = R[rB] < R[rC]
-	GT_R,  ///< R[rA] = R[rB] > R[rC]
-	LE_R,  ///< R[rA] = R[rB] <= R[rC]
-	GE_R,  ///< R[rA] = R[rB] >= R[rC]
+	IAND_R, ///< R[rA] = R[rB] && R[rC]
+	IOR_R,  ///< R[rA] = R[rB] || R[rC]
+	IEQ_R,  ///< R[rA] = R[rB] == R[rC]
+	INE_R,  ///< R[rA] = R[rB] != R[rC]
+	ILT_R,  ///< R[rA] = R[rB] < R[rC]
+	IGT_R,  ///< R[rA] = R[rB] > R[rC]
+	ILE_R,  ///< R[rA] = R[rB] <= R[rC]
+	IGE_R,  ///< R[rA] = R[rB] >= R[rC]
+	FLAND_R, ///< R[rA] = R[rB] && R[rC]
+	FLOR_R,  ///< R[rA] = R[rB] || R[rC]
+	FLEQ_R,  ///< R[rA] = R[rB] == R[rC]
+	FLNE_R,  ///< R[rA] = R[rB] != R[rC]
+	FLLT_R,  ///< R[rA] = R[rB] < R[rC]
+	FLGT_R,  ///< R[rA] = R[rB] > R[rC]
+	FLLE_R,  ///< R[rA] = R[rB] <= R[rC]
+	FLGE_R,  ///< R[rA] = R[rB] >= R[rC]
 
 	// Register unary operations
 	NEG_R, ///< R[rA] = -R[rB]

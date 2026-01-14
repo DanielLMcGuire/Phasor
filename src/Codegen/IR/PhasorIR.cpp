@@ -22,11 +22,16 @@ const uint32_t VERSION_IR = 0x02000000;
 
 const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {{OpCode::PUSH_CONST, "PUSH_CONST"},
                                                                              {OpCode::POP, "POP"},
-                                                                             {OpCode::ADD, "ADD"},
-                                                                             {OpCode::SUBTRACT, "SUBTRACT"},
-                                                                             {OpCode::MULTIPLY, "MULTIPLY"},
-                                                                             {OpCode::DIVIDE, "DIVIDE"},
-                                                                             {OpCode::MODULO, "MODULO"},
+                                                                             {OpCode::IADD, "IADD"},
+                                                                             {OpCode::ISUBTRACT, "ISUBTRACT"},
+                                                                             {OpCode::IMULTIPLY, "IMULTIPLY"},
+                                                                             {OpCode::IDIVIDE, "IDIVIDE"},
+                                                                             {OpCode::IMODULO, "IMODULO"},
+                                                                             {OpCode::FLADD, "FLADD"},
+                                                                             {OpCode::FLSUBTRACT, "FLSUBTRACT"},
+                                                                             {OpCode::FLMULTIPLY, "FLMULTIPLY"},
+                                                                             {OpCode::FLDIVIDE, "FLDIVIDE"},
+                                                                             {OpCode::FLMODULO, "FLMODULO"},	
                                                                              {OpCode::SQRT, "SQRT"},
                                                                              {OpCode::POW, "POW"},
                                                                              {OpCode::LOG, "LOG"},
@@ -36,14 +41,22 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {{Op
                                                                              {OpCode::TAN, "TAN"},
                                                                              {OpCode::NEGATE, "NEGATE"},
                                                                              {OpCode::NOT, "NOT"},
-                                                                             {OpCode::AND, "AND"},
-                                                                             {OpCode::OR, "OR"},
-                                                                             {OpCode::EQUAL, "EQUAL"},
-                                                                             {OpCode::NOT_EQUAL, "NOT_EQUAL"},
-                                                                             {OpCode::LESS_THAN, "LESS_THAN"},
-                                                                             {OpCode::GREATER_THAN, "GREATER_THAN"},
-                                                                             {OpCode::LESS_EQUAL, "LESS_EQUAL"},
-                                                                             {OpCode::GREATER_EQUAL, "GREATER_EQUAL"},
+                                                                             {OpCode::IAND, "IAND"},
+                                                                             {OpCode::IOR, "IOR"},
+                                                                             {OpCode::IEQUAL, "IEQUAL"},
+                                                                             {OpCode::INOT_EQUAL, "INOT_EQUAL"},
+                                                                             {OpCode::ILESS_THAN, "ILESS_THAN"},
+                                                                             {OpCode::IGREATER_THAN, "IGREATER_THAN"},
+                                                                             {OpCode::ILESS_EQUAL, "ILESS_EQUAL"},
+                                                                             {OpCode::IGREATER_EQUAL, "IGREATER_EQUAL"},
+                                                                             {OpCode::FLAND, "FLAND"},
+                                                                             {OpCode::FLOR, "FLOR"},
+                                                                             {OpCode::FLEQUAL, "FLEQUAL"},
+                                                                             {OpCode::FLNOT_EQUAL, "FLNOT_EQUAL"},
+                                                                             {OpCode::FLLESS_THAN, "FLLESS_THAN"},
+                                                                             {OpCode::FLGREATER_THAN, "FLGREATER_THAN"},
+                                                                             {OpCode::FLLESS_EQUAL, "FLLESS_EQUAL"},
+                                                                             {OpCode::FLGREATER_EQUAL, "FLGREATER_EQUAL"},
                                                                              {OpCode::JUMP, "JUMP"},
                                                                              {OpCode::JUMP_IF_FALSE, "JUMP_IF_FALSE"},
                                                                              {OpCode::JUMP_IF_TRUE, "JUMP_IF_TRUE"},
@@ -69,11 +82,16 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {{Op
                                                                              {OpCode::LOAD_CONST_R, "LOAD_CONST_R"},
                                                                              {OpCode::LOAD_VAR_R, "LOAD_VAR_R"},
                                                                              {OpCode::STORE_VAR_R, "STORE_VAR_R"},
-                                                                             {OpCode::ADD_R, "ADD_R"},
-                                                                             {OpCode::SUB_R, "SUB_R"},
-                                                                             {OpCode::MUL_R, "MUL_R"},
-                                                                             {OpCode::DIV_R, "DIV_R"},
-                                                                             {OpCode::MOD_R, "MOD_R"},
+                                                                             {OpCode::IADD_R, "IADD_R"},
+                                                                             {OpCode::ISUB_R, "ISUB_R"},
+                                                                             {OpCode::IMUL_R, "IMUL_R"},
+                                                                             {OpCode::IDIV_R, "IDIV_R"},
+                                                                             {OpCode::IMOD_R, "IMOD_R"},
+																	    	 {OpCode::FLADD_R, "FLADD_R"},
+																			 {OpCode::FLSUB_R, "FLSUB_R"},
+																			 {OpCode::FLMUL_R, "FLMUL_R"},
+																			 {OpCode::FLDIV_R, "FLDIV_R"},
+																			 {OpCode::FLMOD_R, "FLMOD_R"},
                                                                              {OpCode::SQRT_R, "SQRT_R"},
                                                                              {OpCode::POW_R, "POW_R"},
                                                                              {OpCode::LOG_R, "LOG_R"},
@@ -81,14 +99,22 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {{Op
                                                                              {OpCode::SIN_R, "SIN_R"},
                                                                              {OpCode::COS_R, "COS_R"},
                                                                              {OpCode::TAN_R, "TAN_R"},
-																			 {OpCode::AND_R, "AND_R"},
-																			 {OpCode::OR_R, "OR_R"},
-                                                                             {OpCode::EQ_R, "EQ_R"},
-                                                                             {OpCode::NE_R, "NE_R"},
-                                                                             {OpCode::LT_R, "LT_R"},
-                                                                             {OpCode::GT_R, "GT_R"},
-                                                                             {OpCode::LE_R, "LE_R"},
-                                                                             {OpCode::GE_R, "GE_R"},
+																			 {OpCode::IAND_R, "IAND_R"},
+																			 {OpCode::IOR_R, "IOR_R"},
+                                                                             {OpCode::IEQ_R, "IEQ_R"},
+                                                                             {OpCode::INE_R, "INE_R"},
+                                                                             {OpCode::ILT_R, "ILT_R"},
+                                                                             {OpCode::IGT_R, "IGT_R"},
+                                                                             {OpCode::ILE_R, "ILE_R"},
+                                                                             {OpCode::IGE_R, "IGE_R"},
+																			 {OpCode::FLAND_R, "FLAND_R"},
+																			 {OpCode::FLOR_R, "FLOR_R"},
+																			 {OpCode::FLEQ_R, "FLEQ_R"},
+																			 {OpCode::FLNE_R, "FLNE_R"},
+																			 {OpCode::FLLT_R, "FLLT_R"},
+																			 {OpCode::FLGT_R, "FLGT_R"},
+																			 {OpCode::FLLE_R, "FLLE_R"},
+																			 {OpCode::FLGE_R, "FLGE_R"},
                                                                              {OpCode::PUSH_R, "PUSH_R"},
 																			 {OpCode::PUSH2_R, "PUSH2_R"},
                                                                              {OpCode::POP_R, "POP_R"},
@@ -115,11 +141,16 @@ int PhasorIR::getOperandCount(OpCode op)
 	{
 	// 0 operands
 	case OpCode::POP:
-	case OpCode::ADD:
-	case OpCode::SUBTRACT:
-	case OpCode::MULTIPLY:
-	case OpCode::DIVIDE:
-	case OpCode::MODULO:
+	case OpCode::IADD:
+	case OpCode::ISUBTRACT:
+	case OpCode::IMULTIPLY:
+	case OpCode::IDIVIDE:
+	case OpCode::IMODULO:
+	case OpCode::FLADD:
+	case OpCode::FLSUBTRACT:
+	case OpCode::FLMULTIPLY:
+	case OpCode::FLDIVIDE:
+	case OpCode::FLMODULO:
 	case OpCode::SQRT:
 	case OpCode::POW:
 	case OpCode::LOG:
@@ -129,14 +160,20 @@ int PhasorIR::getOperandCount(OpCode op)
 	case OpCode::TAN:
 	case OpCode::NEGATE:
 	case OpCode::NOT:
-	case OpCode::AND:
-	case OpCode::OR:
-	case OpCode::EQUAL:
-	case OpCode::NOT_EQUAL:
-	case OpCode::LESS_THAN:
-	case OpCode::GREATER_THAN:
-	case OpCode::LESS_EQUAL:
-	case OpCode::GREATER_EQUAL:
+	case OpCode::IAND:
+	case OpCode::IOR:
+	case OpCode::IEQUAL:
+	case OpCode::INOT_EQUAL:
+	case OpCode::ILESS_THAN:
+	case OpCode::IGREATER_THAN:
+	case OpCode::ILESS_EQUAL:
+	case OpCode::IGREATER_EQUAL:
+	case OpCode::FLEQUAL:
+	case OpCode::FLNOT_EQUAL:
+	case OpCode::FLLESS_THAN:
+	case OpCode::FLGREATER_THAN:
+	case OpCode::FLLESS_EQUAL:
+	case OpCode::FLGREATER_EQUAL:
 	case OpCode::PRINT:
 	case OpCode::PRINTERROR:
 	case OpCode::READLINE:
@@ -194,20 +231,33 @@ int PhasorIR::getOperandCount(OpCode op)
 		return 2;
 
 	// 3 operands
-	case OpCode::ADD_R:
-	case OpCode::SUB_R:
-	case OpCode::MUL_R:
-	case OpCode::DIV_R:
-	case OpCode::MOD_R:
+	case OpCode::IADD_R:
+	case OpCode::ISUB_R:
+	case OpCode::IMUL_R:
+	case OpCode::IDIV_R:
+	case OpCode::IMOD_R:
+	case OpCode::FLADD_R:
+	case OpCode::FLSUB_R:
+	case OpCode::FLMUL_R:
+	case OpCode::FLDIV_R:
+	case OpCode::FLMOD_R:
 	case OpCode::POW_R:
-	case OpCode::AND_R:
-	case OpCode::OR_R:
-	case OpCode::EQ_R:
-	case OpCode::NE_R:
-	case OpCode::LT_R:
-	case OpCode::GT_R:
-	case OpCode::LE_R:
-	case OpCode::GE_R:
+	case OpCode::IAND_R:
+	case OpCode::IOR_R:
+	case OpCode::IEQ_R:
+	case OpCode::INE_R:
+	case OpCode::ILT_R:
+	case OpCode::IGT_R:
+	case OpCode::ILE_R:
+	case OpCode::IGE_R:
+	case OpCode::FLAND_R:
+	case OpCode::FLOR_R:
+	case OpCode::FLEQ_R:
+	case OpCode::FLNE_R:
+	case OpCode::FLLT_R:
+	case OpCode::FLGT_R:
+	case OpCode::FLLE_R:
+	case OpCode::FLGE_R:
 		return 3;
 
 	default:

@@ -1,28 +1,52 @@
 #include "arithmetic.h"
 #include <math.h>
 
-int64_t asm_add(int64_t a, int64_t b) {
+int64_t asm_iadd(int64_t a, int64_t b) {
     return a + b;
 }
+double asm_fladd(double a, double b)
+{
+	return a + b;
+}
 
-int64_t asm_sub(int64_t a, int64_t b) {
+int64_t asm_isub(int64_t a, int64_t b) {
     return a - b;
 }
+double asm_flsub(double a, double b)
+{
+	return a - b;
+}
 
-int64_t asm_mul(int64_t a, int64_t b) {
+int64_t asm_imul(int64_t a, int64_t b) {
     return a * b;
 }
+double asm_flmul(double a, double b)
+{
+	return a * b;
+}
 
-int64_t asm_neg(int64_t a) {
+int64_t asm_ineg(int64_t a) {
     return -a;
 }
-
-int64_t asm_div(int64_t a, int64_t b) {
-    return a / b;
+double asm_flneg(double a)
+{
+	return -a;
 }
 
-int64_t asm_mod(int64_t a, int64_t b) {
+int64_t asm_idiv(int64_t a, int64_t b) {
+    return a / b;
+}
+double asm_fldiv(double a, double b)
+{
+	return a / b;
+}
+
+int64_t asm_imod(int64_t a, int64_t b) {
     return a % b;
+}
+double asm_flmod(double a, double b)
+{
+	return a % b;
 }
 
 double asm_sqrt(double a) {

@@ -59,9 +59,7 @@ asm_print_stderr PROC
 
     mov rcx, STD_ERROR_HANDLE
     call GetStdHandle         ; get handle to stdout
-    mov rbx, rax              ; save handle
-
-    mov rcx, rbx              ; handle
+    mov rcx, rax              ; save handle
     mov rdx, rsi              ; pointer to buffer
     mov r8, rdi               ; number of bytes
     lea r9, [rsp+40]          ; pointer to bytes written

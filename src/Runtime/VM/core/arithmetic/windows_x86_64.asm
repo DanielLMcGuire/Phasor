@@ -2,12 +2,12 @@
 ; Defines arithmetic operations used by the VM for x86_64 on Windows
 
 ; PUBLIC SYMBOLS
-PUBLIC asm_add
-PUBLIC asm_sub
-PUBLIC asm_mul
-PUBLIC asm_neg
-PUBLIC asm_div
-PUBLIC asm_mod
+PUBLIC asm_iadd
+PUBLIC asm_isub
+PUBLIC asm_imul
+PUBLIC asm_ineg
+PUBLIC asm_idiv
+PUBLIC asm_imod
 PUBLIC asm_sqrt
 PUBLIC asm_pow
 PUBLIC asm_log
@@ -26,57 +26,105 @@ EXTERN tan:PROC
 
 .CODE
 
-; int64_t asm_add(int64_t a, int64_t b)
-; asm_add rcx a, rdx b
-asm_add PROC
+; int64_t asm_iadd(int64_t a, int64_t b)
+; asm_iadd rcx a, rdx b
+asm_iadd PROC
     mov rax, rcx      ; copy first argument a into return register
     add rax, rdx      ; add second argument b
     ret
-asm_add ENDP
+asm_iadd ENDP
 
-; int64_t asm_sub(int64_t a, int64_t b)
-; asm_sub rcx a, rdx b
-asm_sub PROC
+; int64_t asm_isub(int64_t a, int64_t b)
+; asm_isub rcx a, rdx b
+asm_isub PROC
     mov rax, rcx      ; copy a
     sub rax, rdx      ; subtract b
     ret
-asm_sub ENDP
+asm_isub ENDP
 
-; int64_t asm_mul(int64_t a, int64_t b)
-; asm_mul rcx a, rdx b
-asm_mul PROC
+; int64_t asm_imul(int64_t a, int64_t b)
+; asm_imul rcx a, rdx b
+asm_imul PROC
     mov rax, rcx      ; copy a
     imul rax, rdx     ; multiply by b
     ret
-asm_mul ENDP
+asm_imul ENDP
 
-; int64_t asm_neg(int64_t a)
-asm_neg PROC
+; int64_t asm_ineg(int64_t a)
+; asm_ineg rcx a
+asm_ineg PROC
     mov rax, rcx      ; copy a
     neg rax           ; negate value
     ret
-asm_neg ENDP
+asm_ineg ENDP
 
-; int64_t asm_div(int64_t a, int64_t b)
-; asm_div rcx a, rdx b
-asm_div PROC
+; int64_t asm_idiv(int64_t a, int64_t b)
+; asm_idiv rcx a, rdx b
+asm_idiv PROC
     mov rax, rcx      ; copy dividend into rax
     mov r8, rdx       ; save divisor in r8 to avoid clobber from cqo
     cqo                ; sign-extend rax into rdx:rax
     idiv r8           ; divide by b
     ret
-asm_div ENDP
+asm_idiv ENDP
 
-; int64_t asm_mod(int64_t a, int64_t b)
-; asm_mod rcx a, rdx b
-asm_mod PROC
+; int64_t asm_imod(int64_t a, int64_t b)
+; asm_imod rcx a, rdx b
+asm_imod PROC
     mov rax, rcx      ; copy dividend
     mov r8, rdx       ; save divisor
     cqo
     idiv r8           ; divide, remainder in rdx
     mov rax, rdx      ; return remainder
     ret
-asm_mod ENDP
+asm_imod ENDP
+
+; double asm_fladd(double a, double b)
+; asm_fladd xmm0 a, xmm1 b
+asm_fladd PROC
+    addsd xmm0, xmm1       ; a + b
+    ret
+asm_fladd ENDP
+
+; double asm_flsub(double a, double b)
+; asm_flsub xmm0 a, xmm1 b
+asm_flsub PROC
+    subsd xmm0, xmm1       ; a - b
+    ret
+asm_flsub ENDP
+
+; double asm_flmul(double a, double b)
+; asm_flmul xmm0 a, xmm1 b
+asm_flmul PROC
+    mulsd xmm0, xmm1       ; a * b
+    ret
+asm_flmul ENDP
+
+; double asm_flneg(double a)
+; asm_flneg xmm0 a
+asm_flneg PROC
+    xorpd xmm1, xmm1       ; zero in xmm1
+    subsd xmm0, xmm1       ; 0 - a
+    ret
+asm_flneg ENDP
+
+; double asm_fldiv(double a, double b)
+; asm_fldiv xmm0 a, xmm1 b
+asm_fldiv PROC
+    divsd xmm0, xmm1       ; a / b
+    ret
+asm_fldiv ENDP
+
+; double asm_flmod(double a, double b)
+; asm_flmod xmm0 a, xmm1 b
+asm_flmod PROC
+    movapd xmm2, xmm0   ; xmm2 = a
+    divsd xmm2, xmm1    ; xmm2 = a / b
+    roundsd xmm2, xmm2, 3  ; truncate toward zero (SSE4.1)
+    mulsd xmm2, xmm1    ; xmm2 = trunc(a/b) * b
+    subsd xmm0, xmm2    ; xmm0 = a - xmm2
+    ret
+asm_flmod ENDP
 
 ; double asm_sqrt(double a)
 ; asm_sqrt xmm0 a

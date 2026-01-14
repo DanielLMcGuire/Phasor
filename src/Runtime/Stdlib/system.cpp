@@ -29,10 +29,10 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "time");
-	auto now = std::chrono::system_clock::now();
+	auto now = std::chrono::steady_clock::now();
 	auto duration = now.time_since_epoch();
-	auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-	return static_cast<int64_t>(millis);
+	double millis = std::chrono::duration<double, std::milli>(duration).count();
+	return millis;
 }
 
 Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *vm)
@@ -77,13 +77,15 @@ Value StdLib::sys_os(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
-	return Value("NT");
+	return Value("win32");
 #elif defined(__linux__)
 	return Value("Linux");
 #elif defined(__APPLE__)
 	return Value("Darwin");
 #elif defined(__FreeBSD__)
 	return Value("FreeBSD");
+#elif defined(__unix__)
+	return Value("UNIX");
 #else
 	return Value("Unknown");
 #endif

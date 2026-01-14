@@ -2,12 +2,12 @@
 // Defines arithmetic operations for VM on Linux AArch64
 
     .text
-    .global asm_add
-    .global asm_sub
-    .global asm_mul
-    .global asm_neg
-    .global asm_div
-    .global asm_mod
+    .global asm_iadd
+    .global asm_isub
+    .global asm_imul
+    .global asm_ineg
+    .global asm_idiv
+    .global asm_imod
     .global asm_sqrt
     .global asm_pow
     .global asm_log
@@ -23,35 +23,68 @@
     .extern cos
     .extern tan
 
-// int64_t asm_add(int64_t a, int64_t b)
-asm_add:
+// int64_t asm_iadd(int64_t a, int64_t b)
+asm_iadd:
     add x0, x0, x1
     ret
 
-// int64_t asm_sub(int64_t a, int64_t b)
-asm_sub:
+// int64_t asm_isub(int64_t a, int64_t b)
+asm_isub:
     sub x0, x0, x1
     ret
 
-// int64_t asm_mul(int64_t a, int64_t b)
-asm_mul:
+// int64_t asm_imul(int64_t a, int64_t b)
+asm_imul:
     mul x0, x0, x1
     ret
 
-// int64_t asm_neg(int64_t a)
-asm_neg:
+// int64_t asm_ineg(int64_t a)
+asm_ineg:
     neg x0, x0
     ret
 
-// int64_t asm_div(int64_t a, int64_t b)
-asm_div:
+// int64_t asm_idiv(int64_t a, int64_t b)
+asm_idiv:
     sdiv x0, x0, x1
     ret
 
-// int64_t asm_mod(int64_t a, int64_t b)
-asm_mod:
+// int64_t asm_imod(int64_t a, int64_t b)
+asm_imod:
     sdiv x2, x0, x1      // x2 = a / b
     msub x0, x2, x1, x0  // x0 = a - (x2 * b)
+    ret
+
+// double asm_fladd(double a, double b)
+asm_fladd:
+    fadd d0, d0, d1
+    ret
+
+// double asm_flsub(double a, double b)
+asm_flsub:
+    fsub d0, d0, d1
+    ret
+
+// double asm_flmul(double a, double b)
+asm_flmul:
+    fmul d0, d0, d1
+    ret
+
+// double asm_flneg(double a)
+asm_flneg:
+    fneg d0, d0
+    ret
+
+// double asm_fldiv(double a, double b)
+asm_fldiv:
+    fdiv d0, d0, d1
+    ret
+
+// double asm_flmod(double a, double b)
+asm_flmod:
+    fdiv d2, d0, d1          // d2 = a / b
+    frinta d2, d2             // truncate toward zero
+    fmul d2, d2, d1          // d2 = trunc(a/b) * b
+    fsub d0, d0, d2          // d0 = a - d2
     ret
 
 // double asm_sqrt(double a)

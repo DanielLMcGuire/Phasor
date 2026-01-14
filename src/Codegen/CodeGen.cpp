@@ -515,47 +515,93 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 		bytecode.emit(OpCode::POP_R, rRight);
 	}
 
-	switch (binExpr->op)
+	if (leftVal.isInt() || rightVal.isInt())
 	{
-	case BinaryOp::Add:
-		bytecode.emit(OpCode::ADD_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::Subtract:
-		bytecode.emit(OpCode::SUB_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::Multiply:
-		bytecode.emit(OpCode::MUL_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::Divide:
-		bytecode.emit(OpCode::DIV_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::Modulo:
-		bytecode.emit(OpCode::MOD_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::And:
-		bytecode.emit(OpCode::AND_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::Or:
-		bytecode.emit(OpCode::OR_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::Equal:
-		bytecode.emit(OpCode::EQ_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::NotEqual:
-		bytecode.emit(OpCode::NE_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::LessThan:
-		bytecode.emit(OpCode::LT_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::GreaterThan:
-		bytecode.emit(OpCode::GT_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::LessEqual:
-		bytecode.emit(OpCode::LE_R, rResult, rLeft, rRight);
-		break;
-	case BinaryOp::GreaterEqual:
-		bytecode.emit(OpCode::GE_R, rResult, rLeft, rRight);
-		break;
+		switch (binExpr->op)
+		{
+		case BinaryOp::Add:
+			bytecode.emit(OpCode::IADD_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Subtract:
+			bytecode.emit(OpCode::ISUB_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Multiply:
+			bytecode.emit(OpCode::IMUL_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Divide:
+			bytecode.emit(OpCode::IDIV_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Modulo:
+			bytecode.emit(OpCode::IMOD_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::And:
+			bytecode.emit(OpCode::IAND_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Or:
+			bytecode.emit(OpCode::IOR_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Equal:
+			bytecode.emit(OpCode::IEQ_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::NotEqual:
+			bytecode.emit(OpCode::INE_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::LessThan:
+			bytecode.emit(OpCode::ILT_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::GreaterThan:
+			bytecode.emit(OpCode::IGT_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::LessEqual:
+			bytecode.emit(OpCode::ILE_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::GreaterEqual:
+			bytecode.emit(OpCode::IGE_R, rResult, rLeft, rRight);
+			break;
+		}
+	}else{
+		switch (binExpr->op)
+		{
+		case BinaryOp::Add:
+			bytecode.emit(OpCode::FLADD_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Subtract:
+			bytecode.emit(OpCode::FLSUB_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Multiply:
+			bytecode.emit(OpCode::FLMUL_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Divide:
+			bytecode.emit(OpCode::FLDIV_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Modulo:
+			bytecode.emit(OpCode::FLMOD_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::And:
+			bytecode.emit(OpCode::FLAND_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Or:
+			bytecode.emit(OpCode::FLOR_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::Equal:
+			bytecode.emit(OpCode::FLEQ_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::NotEqual:
+			bytecode.emit(OpCode::FLNE_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::LessThan:
+			bytecode.emit(OpCode::FLLT_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::GreaterThan:
+			bytecode.emit(OpCode::FLGT_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::LessEqual:
+			bytecode.emit(OpCode::FLLE_R, rResult, rLeft, rRight);
+			break;
+		case BinaryOp::GreaterEqual:
+			bytecode.emit(OpCode::FLGE_R, rResult, rLeft, rRight);
+			break;
+		}
 	}
 
 	freeRegister(rLeft);
@@ -892,11 +938,11 @@ void CodeGenerator::generatePostfixExpr(const PostfixExpr *expr)
 	// Add or subtract
 	if (expr->op == PostfixOp::Increment)
 	{
-		bytecode.emit(OpCode::ADD);
+		bytecode.emit(OpCode::FLADD);
 	}
 	else
 	{
-		bytecode.emit(OpCode::SUBTRACT);
+		bytecode.emit(OpCode::FLSUBTRACT);
 	}
 	
 	// Store new value
@@ -956,7 +1002,7 @@ void CodeGenerator::generateSwitchStmt(const SwitchStmt *switchStmt)
 	
 	for (const auto& caseClause : switchStmt->cases) {
 		generateExpression(caseClause.value.get());
-		bytecode.emit(OpCode::EQUAL);
+		bytecode.emit(OpCode::FLEQUAL);
 		int jumpIndex = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
 		caseJumps.push_back(jumpIndex);

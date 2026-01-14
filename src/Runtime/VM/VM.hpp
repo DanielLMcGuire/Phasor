@@ -90,7 +90,7 @@ class VM
 		r22,
 		r23,
 		r24,
-		r25
+		r25 // If you are here to try adding more, step back and think about what got you here in the first place
 	};
 
 	/// @brief Execute a single operation
@@ -111,6 +111,10 @@ class VM
 
 	/// @brief Get VM information for debugging
 	std::string getInformation();
+
+    /// @brief Use the VM's logging via print opcode
+	void log(const Value &msg);
+	void logerr(const Value &msg);
 
   private:
 	/// @brief Import handler for loading modules
