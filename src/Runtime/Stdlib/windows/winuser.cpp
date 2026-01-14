@@ -11,7 +11,7 @@ Value winuser::registerFunctions(const std::vector<Value> &args, VM *vm)
 Value winuser::MessageBox_ours(const std::vector<Value> &args, VM *vm)
 {
     StdLib::checkArgCount(args, 2, "win_MessageBox", true);
-    HWND hWnd = win::asHWND(args[0]);
+    HWND hWnd = args[0].isNull() ? nullptr : win::asHWND(args[0]);
     
     std::string textStr = args[1].isNull() ? "" : args[1].asString();
     std::string captionStr = args[2].isNull() ? "" : args[2].asString();
