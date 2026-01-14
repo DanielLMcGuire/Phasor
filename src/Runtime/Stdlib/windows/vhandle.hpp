@@ -10,19 +10,35 @@
 #include <stdexcept>
 #include <cstdio>
 
-/// @brief Hash operator for GUID
-struct GUIDHash {
-    size_t operator()(const GUID &g) const {
-        const uint64_t *p = reinterpret_cast<const uint64_t*>(&g);
-        return std::hash<uint64_t>()(p[0]) ^ std::hash<uint64_t>()(p[1]);
-    }
+struct GUIDHash
+{
+	size_t operator()(const GUID &g) const noexcept
+	{
+		size_t h = 0;
+
+		auto mix = [&](size_t v) { h ^= v + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2); };
+
+		mix(std::hash<uint32_t>{}(g.Data1));
+		mix(std::hash<uint16_t>{}(g.Data2));
+		mix(std::hash<uint16_t>{}(g.Data3));
+
+		for (uint8_t b : g.Data4)
+		{
+			mix(std::hash<uint8_t>{}(b));
+		}
+
+		return h;
+	}
 };
-/// @brief Equality operator for GUID
-struct GUIDEqual {
-    bool operator()(const GUID &a, const GUID &b) const {
-        return memcmp(&a, &b, sizeof(GUID)) == 0;
-    }
+
+struct GUIDEqual
+{
+	bool operator()(const GUID &a, const GUID &b) const noexcept
+	{
+		return a.Data1 == b.Data1 && a.Data2 == b.Data2 && a.Data3 == b.Data3 && std::memcmp(a.Data4, b.Data4, 8) == 0;
+	}
 };
+
 
 /// @namespace vhandle
 /// @brief Phasor Sandboxed Windows Handle Management
