@@ -30,10 +30,10 @@ private:
     /// @brief Get the current process ID
     static Value GetCurrentProcessId(const std::vector<Value> &args, VM *vm);
     /// @brief Get the tick count since system start
-    static Value GetTickCount(const std::vector<Value> &args, VM *vm);
+    static Value GetTickCount64(const std::vector<Value> &args, VM *vm);
     /// @brief Get the Windows version
     /// @warning This function has been deprecated by Microsoft.
-    NOT_BUILD_WINDOWS_DEPRECATE static Value GetVersion(const std::vector<Value> &args, VM *vm);
+    static Value GetVersion(const std::vector<Value> &args, VM *vm);
     /// @brief Get the input code page used by the console
     static Value GetConsoleCP(const std::vector<Value> &args, VM *vm);
     /// @brief Get the output code page used by the console

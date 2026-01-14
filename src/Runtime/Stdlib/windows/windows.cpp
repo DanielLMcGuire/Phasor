@@ -10,7 +10,7 @@ Value windows::registerFunctions(const std::vector<Value> &args, VM *vm)
     vm->registerNativeFunction("win_SetLastError", SetLastError);
     vm->registerNativeFunction("win_GetCurrentThreadId", GetCurrentThreadId);
     vm->registerNativeFunction("win_GetCurrentProcessId", GetCurrentProcessId);
-    vm->registerNativeFunction("win_GetTickCount", GetTickCount);
+    vm->registerNativeFunction("win_GetTickCount", GetTickCount64);
     vm->registerNativeFunction("win_GetVersion", GetVersion);
     vm->registerNativeFunction("win_GetConsoleCP", GetConsoleCP);
     vm->registerNativeFunction("win_GetConsoleOutputCP", GetConsoleOutputCP);
@@ -51,10 +51,13 @@ WIN_NUMERAL_FN(GetCurrentThreadId)
 WIN_NUMERAL_FN(GetCurrentProcessId)
 
 // int<ULONGLONG> GetTickCount64();
-WIN_NUMERAL_FN(GetTickCount)
+WIN_NUMERAL_FN(GetTickCount64)
 
 // NOT_BUILD_WINDOWS_DEPRECATE int<DWORD> GetVersion();
-NOT_BUILD_WINDOWS_DEPRECATE WIN_NUMERAL_FN(GetVersion);
+#pragma warning(push)
+#pragma warning(disable: 4996)
+WIN_NUMERAL_FN(GetVersion);
+#pragma warning(pop)
 
 // int<UINT> WINAPI GetConsoleCP(void);
 WIN_NUMERAL_FN(GetConsoleCP)
