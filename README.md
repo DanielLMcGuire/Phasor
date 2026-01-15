@@ -17,7 +17,6 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Upcoming
 
-- JIT Execution instead of interpretation
 - Proposal based standard library updates (**Needs planning!**)
 - Microkernel-like architecture using native assembly to define all VM opcodes (**Nearly there!**)
 - C based standard library replacing remaining C++ parts (**Started**)
