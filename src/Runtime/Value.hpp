@@ -3,6 +3,7 @@
 #include <string>
 #include <variant>
 #include <unordered_map>
+#include <memory>
 
 /**
  * @brief Runtime value types for the VM
