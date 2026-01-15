@@ -14,9 +14,9 @@ const uint32_t MAGIC_NUMBER = 0x50485342;
 /**
  * @brief Version number
  *
- * '2.0.0.0' - Register-based VM
+ * '3.0.0.0'
  */
-const uint32_t VERSION = 0x02000000;
+const uint32_t VERSION = 0x03000000;
 
 // Section IDs
 const uint8_t SECTION_CONSTANTS = 0x01;    //< Constants Section

@@ -13,10 +13,9 @@ const uint32_t MAGIC_NUMBER = 0x50485342;
 /**
  * @brief Version number
  *
- * '2.0.0.0'
+ * '3.0.0.0'
  */
-const uint32_t VERSION = 0x02000000;
-const uint32_t VERSION_OLD = 0x01000000;
+const uint32_t VERSION = 0x03000000;
 
 // Section IDs
 const uint8_t SECTION_CONSTANTS = 0x01;    //< Constants Section
@@ -132,7 +131,7 @@ std::string BytecodeDeserializer::readString()
 void BytecodeDeserializer::readHeader(uint32_t &checksum)
 {
 	uint32_t magic = readUInt32();
-	if (magic != MAGIC_NUMBER && magic != VERSION_OLD)
+	if (magic != MAGIC_NUMBER)
 	{
 		throw std::runtime_error("Invalid bytecode file: incorrect magic number");
 	}

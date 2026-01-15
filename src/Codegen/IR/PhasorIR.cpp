@@ -16,9 +16,9 @@ const uint32_t MAGIC_NUMBER_IR = 0x50484952;
 /**
  * @brief Version number
  *
- * '2.0.0.0'
+ * '3.0.0.0'
  */
-const uint32_t VERSION_IR = 0x02000000;
+const uint32_t VERSION_IR = 0x03000000;
 
 const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {{OpCode::PUSH_CONST, "PUSH_CONST"},
                                                                              {OpCode::POP, "POP"},
