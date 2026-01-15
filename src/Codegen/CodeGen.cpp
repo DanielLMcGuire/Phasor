@@ -56,6 +56,32 @@ bool CodeGenerator::isLiteralExpression(const Expression *expr, Value &outValue)
 	return false;
 }
 
+ValueType CodeGenerator::inferExpressionType(const Expression *expr, bool &known)
+{
+	// If literal, we know the type immediately
+	Value lit;
+	if (isLiteralExpression(expr, lit))
+	{
+		known = true;
+		return lit.getType();
+	}
+
+	// If identifier and we've inferred its type previously, return that
+	if (auto ident = dynamic_cast<const IdentifierExpr *>(expr))
+	{
+		auto it = inferredTypes.find(ident->name);
+		if (it != inferredTypes.end())
+		{
+			known = true;
+			return it->second;
+		}
+	}
+
+	// Unknown
+	known = false;
+	return ValueType::Float; // default when unknown (not used unless known==true)
+}
+
 void CodeGenerator::generateStatement(const Statement *stmt)
 {
 	if (auto varDecl = dynamic_cast<const VarDecl *>(stmt))
@@ -182,7 +208,27 @@ void CodeGenerator::generateVarDecl(const VarDecl *varDecl)
 {
 	if (varDecl->initializer)
 	{
+		// Generate initializer code
 		generateExpression(varDecl->initializer.get());
+		// Try to infer type from initializer
+		Value initVal;
+		bool inferred = false;
+		if (isLiteralExpression(varDecl->initializer.get(), initVal))
+		{
+			inferredTypes[varDecl->name] = initVal.getType();
+			inferred = true;
+		}
+		else if (auto ident = dynamic_cast<const IdentifierExpr *>(varDecl->initializer.get()))
+		{
+			// propagate known type from another variable
+			auto it = inferredTypes.find(ident->name);
+			if (it != inferredTypes.end())
+			{
+				inferredTypes[varDecl->name] = it->second;
+				inferred = true;
+			}
+		}
+
 		int varIndex = bytecode.getOrCreateVar(varDecl->name);
 		bytecode.emit(OpCode::STORE_VAR, varIndex);
 	}
@@ -491,8 +537,10 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 	uint8_t rRight = allocateRegister();
 	uint8_t rResult = allocateRegister();
 
+	// Reuse literal detection done here to choose appropriate register opcodes.
 	Value leftLiteral;
-	if (isLiteralExpression(binExpr->left.get(), leftLiteral))
+	bool leftIsLiteral = isLiteralExpression(binExpr->left.get(), leftLiteral);
+	if (leftIsLiteral)
 	{
 		int constIndex = bytecode.addConstant(leftLiteral);
 		bytecode.emit(OpCode::LOAD_CONST_R, rLeft, constIndex);
@@ -504,7 +552,8 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 	}
 
 	Value rightLiteral;
-	if (isLiteralExpression(binExpr->right.get(), rightLiteral))
+	bool rightIsLiteral = isLiteralExpression(binExpr->right.get(), rightLiteral);
+	if (rightIsLiteral)
 	{
 		int constIndex = bytecode.addConstant(rightLiteral);
 		bytecode.emit(OpCode::LOAD_CONST_R, rRight, constIndex);
@@ -515,7 +564,25 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 		bytecode.emit(OpCode::POP_R, rRight);
 	}
 
-	if (leftVal.isInt() || rightVal.isInt())
+	// Conservative integer decision:
+	// treat operand as known-int if it's an integer literal or a variable previously inferred as Int.
+	auto exprIsKnownInt = [&](const Expression *e, bool isLiteral, const Value &lit) -> bool {
+		if (isLiteral)
+			return lit.isInt();
+		// variable case
+		if (auto ident = dynamic_cast<const IdentifierExpr *>(e))
+		{
+			auto it = inferredTypes.find(ident->name);
+			return it != inferredTypes.end() && it->second == ValueType::Int;
+		}
+		return false;
+	};
+
+	bool leftKnownInt = exprIsKnownInt(binExpr->left.get(), leftIsLiteral, leftLiteral);
+	bool rightKnownInt = exprIsKnownInt(binExpr->right.get(), rightIsLiteral, rightLiteral);
+
+	// Choose integer ops only when both operands are known ints.
+	if (leftKnownInt && rightKnownInt)
 	{
 		switch (binExpr->op)
 		{
@@ -559,7 +626,10 @@ void CodeGenerator::generateBinaryExpr(const BinaryExpr *binExpr)
 			bytecode.emit(OpCode::IGE_R, rResult, rLeft, rRight);
 			break;
 		}
-	}else{
+	}
+	else
+	{
+		// Fallback to float ops when we don't know both operands are integers.
 		switch (binExpr->op)
 		{
 		case BinaryOp::Add:
@@ -840,6 +910,19 @@ void CodeGenerator::generateAssignmentExpr(const AssignmentExpr *assignExpr)
 		// Variable assignment: a = value
 		// 1. Generate value (pushes value to stack)
 		generateExpression(assignExpr->value.get());
+		
+		// Try to infer and record type
+		Value val;
+		if (isLiteralExpression(assignExpr->value.get(), val))
+		{
+			inferredTypes[identExpr->name] = val.getType();
+		}
+		else if (auto identRhs = dynamic_cast<const IdentifierExpr *>(assignExpr->value.get()))
+		{
+			auto it = inferredTypes.find(identRhs->name);
+			if (it != inferredTypes.end())
+				inferredTypes[identExpr->name] = it->second;
+		}
 
 		// 2. Store in variable (pops value)
 		int varIndex = bytecode.getOrCreateVar(identExpr->name);
@@ -936,13 +1019,16 @@ void CodeGenerator::generatePostfixExpr(const PostfixExpr *expr)
 	bytecode.emit(OpCode::PUSH_CONST, oneIndex);
 	
 	// Add or subtract
+	// Prefer integer ops if we have inferred this variable is int
+	auto it = inferredTypes.find(identExpr->name);
+	bool varIsInt = (it != inferredTypes.end() && it->second == ValueType::Int);
 	if (expr->op == PostfixOp::Increment)
 	{
-		bytecode.emit(OpCode::FLADD);
+		bytecode.emit(varIsInt ? OpCode::IADD : OpCode::FLADD);
 	}
 	else
 	{
-		bytecode.emit(OpCode::FLSUBTRACT);
+		bytecode.emit(varIsInt ? OpCode::ISUBTRACT : OpCode::FLSUBTRACT);
 	}
 	
 	// Store new value
