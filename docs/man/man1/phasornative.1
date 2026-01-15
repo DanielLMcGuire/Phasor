@@ -1,0 +1,173 @@
+.TH PHASORNATIVE 1 "January 2026" "Phasor 2.0.0" "Phasor Manual"
+.SH NAME
+phasornative \- Phasor C++ code generator and native compiler
+.SH SYNOPSIS
+.B phasornative
+[\fIOPTIONS\fR]
+.I input.phs
+.SH DESCRIPTION
+.B phasornative
+generates C++ code from Phasor source files or intermediate representation and compiles it into native executables. It can generate header files containing embedded bytecode, compile them with a C++ compiler, and link them against the Phasor runtime library.
+.PP
+This tool enables the creation of standalone native executables from Phasor programs, offering maximum performance and simplified distribution without requiring the Phasor runtime to be separately installed.
+.SH OPTIONS
+.TP
+.BR \-o ", " \-\-output " " \fIFILE\fR
+Specify the output file path. Default is the module name with platform-specific executable extension (.exe on Windows).
+.TP
+.BR \-m ", " \-\-module " " \fINAME\fR
+Set the module name for generated code. Default is the input filename stem.
+.TP
+.BR \-c ", " \-\-compiler " " \fICOMPILER\fR
+Specify the C++ compiler to use. Supported values: g++, clang++, cl. Default is g++. The linker is automatically selected based on the compiler unless explicitly specified.
+.TP
+.BR \-l ", " \-\-linker " " \fILINKER\fR
+Specify the linker to use. Supported values: gcc, clang, ld, link. Default is determined by the compiler choice.
+.TP
+.BR \-s ", " \-\-source " " \fIFILE\fR
+Specify the main source file to compile with. Default locations:
+.RS
+.IP \(bu 2
+Windows: C:\\Program Files\\Phasor VM\\Development\\nativestub.cpp
+.IP \(bu 2
+Unix: /usr/local/share/phasor/dev/nativestub.cpp
+.RE
+.TP
+.BR \-H ", " \-\-header\-only
+Generate only the header file containing embedded bytecode. Does not compile or link.
+.TP
+.BR \-g ", " \-\-generate\-only
+Generate both header and source files but do not compile or link.
+.TP
+.BR \-O ", " \-\-object\-only
+Generate, compile to object file, but do not link. Useful for creating libraries or linking later.
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output showing detailed compilation steps and statistics.
+.TP
+.BR \-n ", " \-\-nologo
+Suppress the banner and copyright information.
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.SH INPUT FILES
+.TP
+.I *.phs
+Phasor source files
+.TP
+.I *.phir
+Phasor intermediate representation files
+.SH GENERATED FILES
+.TP
+.I <module>.h
+Generated header file containing embedded bytecode and runtime interface
+.TP
+.I <module>.cpp
+Generated C++ source file including the header and runtime stub
+.TP
+.I <module>.obj
+Compiled object file (on Windows or with -O option)
+.TP
+.I <module>.exe
+Final executable (Windows)
+.TP
+.I <module>
+Final executable (Unix-like systems)
+.SH COMPILATION PROCESS
+The native compilation process consists of four stages:
+.PP
+.B 1. Header Generation
+.RS
+Reads the Phasor source or IR file, generates bytecode if necessary, and creates a C++ header file with embedded bytecode arrays and runtime interface declarations.
+.RE
+.PP
+.B 2. Source Generation
+.RS
+Creates a C++ source file that includes the generated header and the native runtime stub, which initializes the VM and executes the embedded bytecode.
+.RE
+.PP
+.B 3. Compilation
+.RS
+Invokes the selected C++ compiler with optimization flags to compile the source file into an object file.
+.RE
+.PP
+.B 4. Linking
+.RS
+Links the object file against the Phasor runtime library to create the final executable.
+.RE
+.SH COMPILER FLAGS
+The tool automatically applies appropriate optimization flags for each compiler:
+.PP
+.B g++/clang++:
+.RS
+-std=c++20 -O3 -DNDEBUG -fPIC -flto -fno-function-sections -fno-stack-protector -fwhole-program
+.RE
+.PP
+.B cl (MSVC):
+.RS
+/std:c++20 /Ox /DNDEBUG /MD /GL /Gy- /GS- /Gw /EHsc
+.RE
+.SH EXAMPLES
+Compile a Phasor program to native executable:
+.PP
+.nf
+.RS
+phasornative program.phs
+.RE
+.fi
+.PP
+Use Clang compiler with LLD linker:
+.PP
+.nf
+.RS
+phasornative program.phs -c clang++ -l lld -o program
+.RE
+.fi
+.PP
+Generate only the header file:
+.PP
+.nf
+.RS
+phasornative -H program.phs -o program.hpp
+.RE
+.fi
+.PP
+Generate header and source without compiling:
+.PP
+.nf
+.RS
+phasornative -g program.phs -m mymodule
+.RE
+.fi
+.PP
+Compile to object file only:
+.PP
+.nf
+.RS
+phasornative -O program.phs -o program.obj -c clang++
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful generation, compilation, and linking
+.TP
+.B 1
+Error in any stage of the process
+.SH DIAGNOSTICS
+Each stage of compilation is clearly labeled in the output. Compiler and linker output is displayed directly, allowing for easy identification of build errors.
+.SH NOTES
+The native compiler requires a working C++20-compatible compiler toolchain and the Phasor runtime library to be installed on the system.
+.PP
+Generated executables are statically linked against the Phasor runtime where possible, reducing deployment dependencies.
+.SH SEE ALSO
+.BR phasorcompiler (1),
+.BR phasorjit (1),
+.BR phasorvm (1),
+.BR phasorrepl (1),
+.BR g++ (1),
+.BR clang++ (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

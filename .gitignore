@@ -687,6 +687,8 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudio,visualstudiocode,windows,macos,linux,c++,cmake
 
-/docs/man
+man3
 *.phir
 RC[a-z][0-9][0-9][0-9][0-9][0-9]
+*.md5
+*.pdf

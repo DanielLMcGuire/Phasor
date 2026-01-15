@@ -1,0 +1,107 @@
+.TH PHASORVM 1 "January 2026" "Phasor 2.0.0" "Phasor Manual"
+.SH NAME
+phasorvm \- Phasor virtual machine for executing compiled bytecode
+.SH SYNOPSIS
+.B phasorvm
+[\fIOPTIONS\fR]
+.I file.phsb
+[\fISCRIPT_ARGS\fR...]
+.SH DESCRIPTION
+.B phasorvm
+is the Phasor virtual machine that executes pre-compiled Phasor bytecode files. Unlike the JIT runtime, it does not perform lexing, parsing, or code generation, making it significantly faster for production deployments.
+.PP
+The VM loads serialized bytecode directly and begins execution immediately. This makes it the preferred choice for performance-critical applications and production environments where compilation overhead is undesirable.
+.SH OPTIONS
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output. Displays debugging information including bytecode statistics and execution details.
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.SH ARGUMENTS
+.TP
+.I file.phsb
+Required Phasor bytecode file to execute. Must be a valid compiled bytecode file created by phasorcompiler.
+.TP
+.I SCRIPT_ARGS
+Arguments passed to the bytecode program. These are accessible within the program through the standard library's argument handling functions.
+.SH FILES
+.TP
+.I *.phsb
+Phasor bytecode files (compiled by phasorcompiler)
+.SH VERBOSE OUTPUT
+When verbose mode is enabled, the following information is displayed:
+.RS
+.IP \(bu 2
+Bytecode loading status and file path
+.IP \(bu 2
+Number of instructions in the bytecode
+.IP \(bu 2
+Number of constants defined
+.IP \(bu 2
+Number of variables allocated
+.IP \(bu 2
+Execution start and completion notifications
+.RE
+.SH EXAMPLES
+Execute a compiled bytecode file:
+.PP
+.nf
+.RS
+phasorvm program.phsb
+.RE
+.fi
+.PP
+Execute with script arguments:
+.PP
+.nf
+.RS
+phasorvm program.phsb arg1 arg2 arg3
+.RE
+.fi
+.PP
+Execute with verbose output:
+.PP
+.nf
+.RS
+phasorvm --verbose program.phsb
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful execution
+.TP
+.B 1
+Runtime error, invalid bytecode, or file not found
+.SH DIAGNOSTICS
+Error messages are printed to standard error on Unix-like systems. On Windows, critical errors are displayed in a message box dialog for better visibility.
+.PP
+In verbose mode, detailed debugging information is printed to standard error throughout the execution process.
+.SH LIMITATIONS
+The current implementation does not support import statements in the VM runtime. Programs that require multiple modules should be linked together during compilation or use the JIT runtime.
+.SH PERFORMANCE
+The VM provides the fastest execution for Phasor programs because it:
+.RS
+.IP \(bu 2
+Skips lexical analysis and parsing
+.IP \(bu 2
+Avoids code generation overhead
+.IP \(bu 2
+Loads optimized bytecode directly
+.IP \(bu 2
+Starts execution immediately
+.RE
+.PP
+For production deployments, compile with phasorcompiler and execute with phasorvm for optimal performance.
+.SH NOTES
+Bytecode files are platform-independent and can be executed on any system with a compatible Phasor VM installation.
+.SH SEE ALSO
+.BR phasorcompiler (1),
+.BR phasorjit (1),
+.BR phasorrepl (1),
+.BR phasornative (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

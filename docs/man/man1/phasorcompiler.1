@@ -1,0 +1,87 @@
+.TH PHASORCOMPILER 1 "January 2026" "Phasor 2.0.0" "Phasor Manual"
+.SH NAME
+phasorcompiler \- Phasor source code compiler
+.SH SYNOPSIS
+.B phasorcompiler
+[\fIOPTIONS\fR]
+.I file.phs
+.SH DESCRIPTION
+.B phasorcompiler
+compiles Phasor source files (.phs) into bytecode (.phsb) or intermediate representation (.phir) format. The bytecode can be executed by the Phasor VM, while IR files can be used for analysis or further optimization.
+.PP
+The compiler performs lexical analysis, parsing, and code generation to transform high-level Phasor source code into executable bytecode or a human-readable intermediate representation.
+.SH OPTIONS
+.TP
+.BR \-o ", " \-\-output " " \fIFILE\fR
+Specify the output file path. If not provided, the output file will have the same base name as the input file with the appropriate extension (.phsb for bytecode, .phir for IR).
+.TP
+.BR \-i ", " \-\-ir
+Compile to intermediate representation (IR) format instead of bytecode. The output file will have a .phir extension.
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output during compilation. Shows detailed information about the compilation process.
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.SH FILES
+.TP
+.I *.phs
+Phasor source files
+.TP
+.I *.phsb
+Phasor bytecode files (compiled output)
+.TP
+.I *.phir
+Phasor intermediate representation files
+.SH EXAMPLES
+Compile a source file to bytecode:
+.PP
+.nf
+.RS
+phasorcompiler program.phs
+.RE
+.fi
+.PP
+Compile with a specific output file:
+.PP
+.nf
+.RS
+phasorcompiler program.phs -o output.phsb
+.RE
+.fi
+.PP
+Compile to IR format:
+.PP
+.nf
+.RS
+phasorcompiler --ir program.phs -o program.phir
+.RE
+.fi
+.PP
+Compile with verbose output:
+.PP
+.nf
+.RS
+phasorcompiler -v program.phs
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful compilation
+.TP
+.B 1
+Compilation error or invalid arguments
+.SH DIAGNOSTICS
+Compilation errors are reported to standard error with detailed information about syntax errors, semantic errors, or invalid input files.
+.SH NOTES
+The compiler will refuse to compile bytecode (.phsb) files or IR (.phir) files, as these are already compiled formats.
+.SH SEE ALSO
+.BR phasorrepl (1),
+.BR phasorvm (1),
+.BR phasorjit (1),
+.BR phasornative (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

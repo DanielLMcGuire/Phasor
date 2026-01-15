@@ -1,0 +1,139 @@
+.TH PHASORJIT 1 "January 2026" "Phasor 1.0" "Phasor Manual"
+.SH NAME
+phasorjit \- Phasor Just-In-Time scripting runtime
+.SH SYNOPSIS
+.B phasorjit
+[\fIOPTIONS\fR]
+[\fIfile.phs\fR]
+[\fISCRIPT_ARGS\fR...]
+.SH DESCRIPTION
+.B phasorjit
+is the Phasor Just-In-Time (JIT) scripting runtime that executes Phasor source files directly without requiring pre-compilation. It performs lexical analysis, parsing, and code generation on-the-fly, then immediately executes the resulting bytecode in the Phasor virtual machine.
+.PP
+The JIT runtime is ideal for rapid development, scripting tasks, and scenarios where compilation overhead is acceptable in exchange for development convenience. Unlike the VM, the JIT runtime fully supports import statements and dynamic module loading.
+.SH OPTIONS
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output. Prints the Abstract Syntax Tree (AST) before execution, useful for debugging and understanding program structure.
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.SH ARGUMENTS
+.TP
+.I file.phs
+Optional Phasor source file to execute. If omitted, the runtime exits immediately. Use
+.BR phasorrepl (1)
+for interactive execution.
+.TP
+.I SCRIPT_ARGS
+Arguments passed to the Phasor script. These are accessible within the script through the standard library's argument handling functions (argc, argv).
+.SH FEATURES
+The JIT runtime provides:
+.RS
+.IP \(bu 2
+Direct execution of Phasor source files
+.IP \(bu 2
+Full support for import statements and module loading
+.IP \(bu 2
+Access to command-line arguments through the standard library
+.IP \(bu 2
+Access to environment variables
+.IP \(bu 2
+Complete standard library functionality
+.IP \(bu 2
+AST visualization in verbose mode for debugging
+.RE
+.SH FILES
+.TP
+.I *.phs
+Phasor source files
+.SH ENVIRONMENT
+The runtime provides access to all environment variables from the parent process through the standard library. Scripts can query and use environment variables as needed.
+.SH EXAMPLES
+Execute a Phasor script:
+.PP
+.nf
+.RS
+phasorjit program.phs
+.RE
+.fi
+.PP
+Execute a script with arguments:
+.PP
+.nf
+.RS
+phasorjit script.phs arg1 arg2 arg3
+.RE
+.fi
+.PP
+Execute with verbose output to see the AST:
+.PP
+.nf
+.RS
+phasorjit -v program.phs
+.RE
+.fi
+.PP
+Execute a script that uses imports:
+.PP
+.nf
+.RS
+phasorjit main.phs
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful execution
+.TP
+.B 1
+Runtime error, parse error, or file not found
+.SH DIAGNOSTICS
+Error messages are printed to standard error on Unix-like systems. On Windows, critical errors are displayed in a message box dialog.
+.PP
+In verbose mode, the complete Abstract Syntax Tree is printed to standard output before execution begins, allowing developers to visualize the parsed structure of their program.
+.SH IMPORT HANDLING
+The JIT runtime fully supports import statements. When a script imports another module:
+.RS
+.IP 1. 3
+The runtime locates the imported file based on the import path
+.IP 2. 3
+The imported file is read and parsed
+.IP 3. 3
+Bytecode is generated for the imported module
+.IP 4. 3
+The imported module's code is executed in the same VM context
+.IP 5. 3
+Definitions from the imported module become available to the importing script
+.RE
+.SH PERFORMANCE CONSIDERATIONS
+The JIT runtime includes the overhead of:
+.RS
+.IP \(bu 2
+Lexical analysis (tokenization)
+.IP \(bu 2
+Syntax parsing and AST construction
+.IP \(bu 2
+Bytecode generation
+.RE
+.PP
+For production environments where startup time is critical, consider using
+.BR phasorcompiler (1)
+to pre-compile source files and
+.BR phasorvm (1)
+to execute them, or
+.BR phasornative (1)
+to create native executables.
+.SH NOTES
+Unlike
+.BR phasorvm (1),
+the JIT runtime can execute source files directly and supports the full import system. This makes it the most flexible runtime option for development and scripting.
+.SH SEE ALSO
+.BR phasorcompiler (1),
+.BR phasorvm (1),
+.BR phasorrepl (1),
+.BR phasornative (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2025 Daniel McGuire

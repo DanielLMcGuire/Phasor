@@ -1,0 +1,80 @@
+.TH PHASORREPL 1 "January 2026" "Phasor 2.0.0" "Phasor Manual"
+.SH NAME
+phasorrepl \- Phasor interactive Read-Eval-Print Loop
+.SH SYNOPSIS
+.B phasorrepl
+.SH DESCRIPTION
+.B phasorrepl
+provides an interactive Read-Eval-Print Loop (REPL) environment for the Phasor programming language. It allows users to execute Phasor code interactively, experiment with language features, test code snippets, and explore the standard library in real-time.
+.PP
+The REPL lexes, parses, generates bytecode, and executes each line or expression immediately, displaying results and maintaining state across multiple inputs. This makes it ideal for learning, prototyping, and rapid development.
+.SH FEATURES
+The REPL provides:
+.RS
+.IP \(bu 2
+Line-by-line code execution with immediate feedback
+.IP \(bu 2
+Expression evaluation and result display
+.IP \(bu 2
+Persistent state across multiple inputs
+.IP \(bu 2
+Variable and function definitions that remain in scope
+.IP \(bu 2
+Access to all standard library functions
+.IP \(bu 2
+Import statement support for loading modules
+.IP \(bu 2
+Full access to environment variables
+.RE
+.SH USAGE
+Simply invoke
+.B phasorrepl
+without any arguments to start the interactive session. The REPL will display a prompt where you can enter Phasor expressions, statements, or function definitions.
+.PP
+To exit the REPL, use the appropriate exit command or keyboard interrupt (typically Ctrl+C or Ctrl+D).
+.SH EXAMPLES
+Start the REPL:
+.PP
+.nf
+.RS
+phasorrepl
+.RE
+.fi
+.PP
+Example REPL session:
+.PP
+.nf
+.RS
+> let x = 42
+> let y = x + 8
+> y
+50
+> fn double(n) { return n * 2 }
+> double(y)
+100
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Normal exit from REPL
+.TP
+.B 1
+Initialization error or runtime failure
+.SH ENVIRONMENT
+The REPL has access to all environment variables from the parent process through the standard library.
+.SH DIAGNOSTICS
+Errors are displayed immediately after the input that caused them, allowing for quick identification and correction of issues.
+.SH NOTES
+Unlike the scripting runtime, the REPL does not accept a source file as input. Use
+.BR phasorjit (1)
+to execute source files directly.
+.SH SEE ALSO
+.BR phasorcompiler (1),
+.BR phasorjit (1),
+.BR phasorvm (1),
+.BR phasornative (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
