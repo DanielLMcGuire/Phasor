@@ -281,7 +281,7 @@ void CodeGenerator::generateUnaryExpr(const UnaryExpr *unaryExpr)
 	case UnaryOp::AddressOf:
 	// Not implemented
 	//	bytecode.emit(OpCode::ADROF);
-		__fallthrough; // for now
+		[[fallthrough]]; // for now
 	case UnaryOp::Dereference:
 	//	bytecode.emit(OpCode::DREF);
 		break;
