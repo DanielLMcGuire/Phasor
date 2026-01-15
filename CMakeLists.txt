@@ -181,6 +181,7 @@ add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADER
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
 add_library(PhasorFrontend STATIC ${FRONTEND_SOURCES} ${FRONTEND_HEADERS})
+target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen)
 
 # JIT Powered REPL
 add_executable(phasor_repl
@@ -189,7 +190,7 @@ add_executable(phasor_repl
     src/CLI/Repl/Repl.cpp
     src/CLI/Repl/Repl.hpp
 )
-target_link_libraries(phasor_repl PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_repl PhasorRuntime PhasorInterpreter PhasorFrontend)
 set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
 
 # Script to bytecode binary compiler
