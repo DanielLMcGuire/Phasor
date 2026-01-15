@@ -28,7 +28,7 @@ double asm_flmul(double a, double b)
 int64_t asm_ineg(int64_t a) {
     return -a;
 }
-double asm_flneg(double a)
+int64_t asm_flneg(double a)
 {
 	return -a;
 }
@@ -46,7 +46,7 @@ int64_t asm_imod(int64_t a, int64_t b) {
 }
 double asm_flmod(double a, double b)
 {
-	return a % b;
+	return fmod(a, b);
 }
 
 double asm_sqrt(double a) {
