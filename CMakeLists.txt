@@ -256,7 +256,7 @@ set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 # CLI Shell
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
-    COMMAND phasornative ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp -H --nologo
+    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp -H --nologo
     DEPENDS ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs phasor_cpp_compiler
     COMMENT "Building PHS object src/CLI/utils/Shell.phs"
 )
@@ -297,7 +297,7 @@ foreach(tgt ${TARGETS})
 
     add_custom_command(
         OUTPUT ${HEADER}
-        COMMAND phasornative ${PHS} -o ${HEADER} -H --nologo
+        COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${PHS} -o ${HEADER} -H --nologo
         DEPENDS ${PHS} phasor_cpp_compiler
         COMMENT "Building PHS header ${HEADER}"
     )
