@@ -5,6 +5,13 @@
 #include <filesystem>
 #include <iostream>
 
+#ifdef _WIN32
+#include <Windows.h>
+#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
+#else 
+#define error(msg) std::cerr << "Error: " << msg << std::endl
+#endif
+
 namespace Phasor
 {
 
@@ -43,8 +50,6 @@ int BinaryRuntime::run()
 		StdLib::argc = m_args.scriptArgc;
 		StdLib::envp = m_args.envp;
 
-		// Binary runtime doesn't typically support source imports unless we also link the frontend
-		// But for now, let's leave the import handler empty
 		vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});
@@ -61,7 +66,7 @@ int BinaryRuntime::run()
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Runtime Error: " << e.what() << "\n";
+		error(e.what());
 		return 1;
 	}
 }

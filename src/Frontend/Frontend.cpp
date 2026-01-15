@@ -10,6 +10,13 @@
 #include <string>
 #include "../sscanf.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
+#else
+#define error(msg) std::cerr << "Error: " << msg << std::endl
+#endif
+
 bool startsWith(const std::string &input, const std::string &prefix)
 {
 	if (input.size() >= prefix.size() && input.compare(0, prefix.size(), prefix) == 0)
@@ -157,7 +164,8 @@ void Frontend::runRepl(VM *vm)
 		}
 		catch (const std::exception &e)
 		{
-			std::cerr << "Error: " << e.what() << "\n";
+			std::string errorMsg = std::string(e.what()) + " | " + vm->getInformation() + "\n";
+			error(errorMsg);
 		}
 	}
 	if (ownVM)

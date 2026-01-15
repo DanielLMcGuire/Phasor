@@ -10,6 +10,13 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef _WIN32
+#include <Windows.h>
+#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
+#else
+#define error(msg) std::cerr << "Error: " << msg << std::endl
+#endif
+
 namespace Phasor
 {
 
@@ -47,7 +54,8 @@ int ScriptingRuntime::runSource()
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Runtime Error: " << e.what() << "\n";
+		std::string errorMsg = std::string(e.what()) + "\n";
+		error(errorMsg);
 		return 1;
 	}
 

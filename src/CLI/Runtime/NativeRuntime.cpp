@@ -10,6 +10,13 @@
 #include <filesystem>
 #include <iostream>
 
+#ifdef _WIN32
+#include <Windows.h>
+#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
+#else
+#define error(msg) std::cerr << "Error: " << msg << std::endl
+#endif
+
 namespace Phasor
 {
 
@@ -76,7 +83,8 @@ int NativeRuntime::run()
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "VM Runtime Error: " << e.what() << " | " << m_vm->getInformation() << "\n";
+		std::string errorMsg = std::string(e.what()) + " | " + m_vm->getInformation() + "\n";
+		error(errorMsg);
 		return 1;
 	}
 	return 0;
