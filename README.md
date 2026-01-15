@@ -19,9 +19,8 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 - JIT Execution instead of interpretation
 - Proposal based standard library updates (**Needs planning!**)
-- Micro operation architecture using native assembly to define all VM opcodes (**Nearly there!**)
+- Microkernel-like architecture using native assembly to define all VM opcodes (**Nearly there!**)
 - C based standard library replacing remaining C++ parts (**Started**)
-- Minimal CSTD99 subset/implementation inside the VM to bootstrap native library features (**Needs planning!**)
 - Custom unix style environment for system level work (**Started**)
 
 ---
