@@ -27,6 +27,7 @@ static std::vector<size_t>      sbFreeIndices;
 
 Value StdLib::sb_new(const std::vector<Value> &args, VM *vm)
 {
+	StdLib::checkArgCount(args, 0, "sb_new");
 	size_t idx;
 	if (!sbFreeIndices.empty())
 	{
@@ -66,8 +67,10 @@ Value StdLib::sb_to_string(const std::vector<Value> &args, VM *vm)
 Value StdLib::sb_free(const std::vector<Value> &args, VM *vm)
 {
 	StdLib::checkArgCount(args, 1, "sb_free");
-	return static_cast<int64_t>(args[0].asString().length());
-	throw std::runtime_error("len() expects a string");
+	size_t idx = args[0].asInt();
+	std::string value = sbPool[idx];
+	sbFreeIndices.push_back(idx);
+	return value;
 }
 
 Value StdLib::str_char_at(const std::vector<Value> &args, VM *vm)
