@@ -38,7 +38,6 @@ class StdLib
 
   private:
 	static int         dupenv(std::string &out, const char *name, char *const argp[]);
-	static std::string fixEscapeSequences(const std::string &s);
 
 	static Value registerMathFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerStringFunctions(const std::vector<Value> &args, VM *vm);
@@ -65,17 +64,17 @@ class StdLib
 	static Value math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
 
 	// File IO
-	static Value file_read(const std::vector<Value> &args, VM *vm);   ///< Read file
-	static Value file_write(const std::vector<Value> &args, VM *vm);  ///< Write to file
-	static Value file_exists(const std::vector<Value> &args, VM *vm); ///< Check if file exists
-	static Value file_read_line(const std::vector<Value> &args, VM *vm);   ///< Read a line from file
-	static Value file_write_line(const std::vector<Value> &args, VM *vm);  ///< Write a line to file
-	static Value file_append(const std::vector<Value> &args, VM *vm);      ///< Append to file
-	static Value file_delete(const std::vector<Value> &args, VM *vm);      ///< Delete file
-	static Value file_rename(const std::vector<Value> &args, VM *vm);      ///< Rename file
+	static Value file_read(const std::vector<Value> &args, VM *vm);               ///< Read file
+	static Value file_write(const std::vector<Value> &args, VM *vm);              ///< Write to file
+	static Value file_exists(const std::vector<Value> &args, VM *vm);             ///< Check if file exists
+	static Value file_read_line(const std::vector<Value> &args, VM *vm);          ///< Read a line from file
+	static Value file_write_line(const std::vector<Value> &args, VM *vm);         ///< Write a line to file
+	static Value file_append(const std::vector<Value> &args, VM *vm);             ///< Append to file
+	static Value file_delete(const std::vector<Value> &args, VM *vm);             ///< Delete file
+	static Value file_rename(const std::vector<Value> &args, VM *vm);             ///< Rename file
 	static Value file_current_directory(const std::vector<Value> &args, VM *vm);  ///< Get/set working directory
-	static Value file_copy(const std::vector<Value> &args, VM *vm);  ///< Copy file
-	static Value file_move(const std::vector<Value> &args, VM *vm);   ///< Move file
+	static Value file_copy(const std::vector<Value> &args, VM *vm);               ///< Copy file
+	static Value file_move(const std::vector<Value> &args, VM *vm);               ///< Move file
 	static Value file_property_edit(const std::vector<Value> &args, VM *vm);
 	static Value file_property_get(const std::vector<Value> &args, VM *vm);
 	static Value file_create(const std::vector<Value> &args, VM *vm);
@@ -85,19 +84,20 @@ class StdLib
 	static Value file_remove_directory(const std::vector<Value> &args, VM *vm);
 
 	// System (meaning VM/CRT more than actual system)
-	static Value sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
-	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
-	static Value sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
-	static Value sys_clear(const std::vector<Value> &args, VM *vm);          ///< Clear the console
-	static Value sys_os(const std::vector<Value> &args, VM *vm);             ///< Get the current OS
-	static Value sys_env(const std::vector<Value> &args, VM *vm);            ///< Get the current environment variables
-	static Value sys_argv(const std::vector<Value> &args, VM *vm);           ///< Get the current command line arguments
-	static Value sys_argc(const std::vector<Value> &args, VM *vm);           ///< Get the current number of command line arguments
-	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm); ///< Wait for input
-	static Value sys_exec(const std::vector<Value> &args, VM *vm);           ///< Run a shell command
-	static Value sys_crash(const std::vector<Value> &args, VM *vm);          ///< Crash the VM / Program
-	static Value sys_reset(const std::vector<Value> &args, VM *vm);          ///< Reset the VM
-	static Value sys_shutdown(const std::vector<Value> &args, VM *vm);       ///< Shutdown the VM
+	static Value sys_time(const std::vector<Value> &args, VM *vm);                ///< Current time
+	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm);      ///< Current time formatted
+	static Value sys_sleep(const std::vector<Value> &args, VM *vm);               ///< Sleep for a specified amount of time
+	static Value sys_clear(const std::vector<Value> &args, VM *vm);               ///< Clear the console
+	static Value sys_os(const std::vector<Value> &args, VM *vm);                  ///< Get the current OS
+	static Value sys_env(const std::vector<Value> &args, VM *vm);                 ///< Get the current environment variables
+	static Value sys_argv(const std::vector<Value> &args, VM *vm);                ///< Get the current command line arguments
+	static Value system_get_free_memory(const std::vector<Value> &args, VM *vm);  ///< Get current free memory
+	static Value sys_argc(const std::vector<Value> &args, VM *vm);                ///< Get the current number of command line arguments
+	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm);      ///< Wait for input
+	static Value sys_exec(const std::vector<Value> &args, VM *vm);                ///< Run a shell command
+	static Value sys_crash(const std::vector<Value> &args, VM *vm);               ///< Crash the VM / Program
+	static Value sys_reset(const std::vector<Value> &args, VM *vm);               ///< Reset the VM
+	static Value sys_shutdown(const std::vector<Value> &args, VM *vm);            ///< Shutdown the VM
 
 	// Type conversion functions
 	static Value to_int(const std::vector<Value> &args, VM *vm);       ///< Convert to integer
@@ -118,20 +118,18 @@ class StdLib
 	static Value sb_new(const std::vector<Value> &args, VM *vm);               ///< Create new string builder
 	static Value sb_append(const std::vector<Value> &args, VM *vm);            ///< Append to string builder
 	static Value sb_to_string(const std::vector<Value> &args, VM *vm);         ///< Convert string builder to string
+	static Value sb_clear(const std::vector<Value> &args, VM *vm);             ///< Clear string builder
 	static Value sb_free(const std::vector<Value> &args, VM *vm);              ///< Free string builder
 
 	// IO
-	static Value io_c_format(const std::vector<Value> &args, VM *vm); ///< Format string
-	static Value io_prints(const std::vector<Value> &args, VM *vm);   ///< Print string without newline
-	static Value io_printf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string
-	static Value io_puts(const std::vector<Value> &args, VM *vm);     ///< Print string with newline
-	static Value io_putf(const std::vector<Value> &args, VM *vm);     /// Print formatted string with newline
-	static Value io_gets(const std::vector<Value> &args, VM *vm);     ///< Get string
-	static Value io_putf_error(const std::vector<Value> &args,
-	                           VM                       *vm); ///< Print formatted string with newline to error output
+	static Value io_c_format(const std::vector<Value> &args, VM *vm);    ///< Format string
+	static Value io_prints(const std::vector<Value> &args, VM *vm);      ///< Print string without newline
+	static Value io_printf(const std::vector<Value> &args, VM *vm);      ///< Print formatted string
+	static Value io_puts(const std::vector<Value> &args, VM *vm);        ///< Print string with newline
+	static Value io_putf(const std::vector<Value> &args, VM *vm);        ///< Print formatted string with newline
+	static Value io_gets(const std::vector<Value> &args, VM *vm);        ///< Get string
+	static Value io_putf_error(const std::vector<Value> &args, VM *vm);  ///< Print formatted string with newline to error output
 	static Value io_puts_error(const std::vector<Value> &args, VM *vm);  ///< Print string with newline to error output
-	static Value io_message_box(const std::vector<Value> &args, VM *vm); ///< Show message box
-	static Value io_message_box_error(const std::vector<Value> &args, VM *vm); ///< Show message box error
 
 	// Regex
 	static Value regex_match(const std::vector<Value> &args, VM *vm);        ///< Check if regex matches
@@ -139,5 +137,4 @@ class StdLib
 	static Value regex_findall(const std::vector<Value> &args, VM *vm);      ///< Find all regex matches
 	static Value regex_split(const std::vector<Value> &args, VM *vm);        ///< Split string by regex matches
 	static Value regex_replace(const std::vector<Value> &args, VM *vm);      ///< Replace regex matches
-	
 };

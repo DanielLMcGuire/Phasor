@@ -6,6 +6,7 @@
 #include <vcruntime_startup.h>
 #endif
 
+#include "core/system.h"
 
 Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 {
@@ -18,6 +19,7 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
+	vm->registerNativeFunction("sys_get_memory", StdLib::system_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_execute", StdLib::sys_exec);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
@@ -129,6 +131,12 @@ Value StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
 	return argc;
 }
 
+Value StdLib::system_get_free_memory(const std::vector<Value>& args, VM* vm)
+{
+	checkArgCount(args, 0, "sys_get_memory");
+	return static_cast<int64_t>(getAvailableMemory());
+}
+
 Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "wait_for_input");
@@ -154,7 +162,6 @@ Value StdLib::sys_reset(const std::vector <Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "reset");
 	vm->reset();
-	// NOTE: Will cause crash if not used properly!
 	return Value();
 }
 

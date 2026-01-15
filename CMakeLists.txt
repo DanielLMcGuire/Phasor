@@ -96,6 +96,7 @@ endif()
 
 set(STDLIB_SOURCES
     src/Runtime/Stdlib/core/file_properties.c
+    src/Runtime/Stdlib/core/system.c
     src/Runtime/Stdlib/StdLib.cpp
     src/Runtime/Stdlib/file.cpp
     src/Runtime/Stdlib/io.cpp
@@ -108,6 +109,7 @@ set(STDLIB_SOURCES
 
 set(STDLIB_HEADERS
     src/Runtime/Stdlib/core/file_properties.h
+    src/Runtime/Stdlib/core/system.h
     src/Runtime/Stdlib/StdLib.hpp
 )
 
@@ -267,7 +269,7 @@ add_executable(phasor_shell
 )
 target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/utils)
 target_link_libraries(phasor_shell phasor_native_runtime)
-set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME shell)
+set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
 install(TARGETS phasor_compiler phasor_cpp_compiler phasor_runtime_exe phasor_native_runtime phasor_native_runtime_static phasor_repl phasor_interpreter phasor_shell
     RUNTIME DESTINATION "bin"
@@ -315,7 +317,7 @@ foreach(tgt ${TARGETS})
     )
 
     target_include_directories(${tgt} PRIVATE ${BIN_DIR})
-    set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}")
+    set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
     target_link_libraries(${tgt} phasor_native_runtime)
 
     install(TARGETS ${tgt}
