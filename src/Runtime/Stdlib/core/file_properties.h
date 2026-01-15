@@ -1,3 +1,6 @@
+#ifndef FILE_PROPERTIES_H
+#define FILE_PROPERTIES_H
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -58,5 +61,7 @@ extern "C"
 	 */
     bool file_get_owner_id(const char* path, uid_t* uid, gid_t* gid);
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif
+
+#endif // FILE_PROPERTIES_H

@@ -11,8 +11,6 @@ Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("gets", StdLib::io_gets);
 	vm->registerNativeFunction("puts_error", StdLib::io_puts_error);
 	vm->registerNativeFunction("putf_error", StdLib::io_putf_error);
-	vm->registerNativeFunction("msgbox", StdLib::io_message_box);
-	vm->registerNativeFunction("msgbox_err", StdLib::io_message_box_error);
 	return true;
 }
 
@@ -78,7 +76,6 @@ Value StdLib::io_puts(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts", true);
 	std::string input = args[0].toString();
-	input = fixEscapeSequences(input);
 	vm->setRegister(VM::Register::r1, input + "\n");  // Load string into r1
 	vm->operation(OpCode::PRINT_R, VM::Register::r1); // Print register r1
 	return Value("");
@@ -88,7 +85,7 @@ Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 {
     checkArgCount(args, 1, "putf", true);
     std::vector<Value> formatArgs(args.begin(), args.end());
-    std::string input = fixEscapeSequences(io_c_format(formatArgs, vm).toString());
+    std::string input = io_c_format(formatArgs, vm).toString();
     vm->setRegister(VM::Register::r1, input + "\n");  // Load string into r1
     vm->operation(OpCode::PRINT_R, VM::Register::r1); // Print register r1
     return Value("");
@@ -99,14 +96,13 @@ Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 0, "gets");
 	vm->operation(OpCode::READLINE_R, VM::Register::r1);
 	std::string ret = vm->getRegister(VM::Register::r1).toString();
-	return fixEscapeSequences(ret);
+	return ret;
 }
 
 Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts_error", true);
 	std::string input = args[0].toString();
-	input = fixEscapeSequences(input);
 	vm->setRegister(VM::Register::r1, input + "\n");              // Load string into r1
 	return vm->operation(OpCode::PRINTERROR_R, VM::Register::r1); // Print register r1
 }
@@ -115,43 +111,7 @@ Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	std::string input = fixEscapeSequences(io_c_format(formatArgs, vm).toString());
+	std::string input = io_c_format(formatArgs, vm).toString();
 	vm->setRegister(VM::Register::r1, input + "\n");
 	return vm->operation(OpCode::PRINTERROR_R, VM::Register::r1);
-}
-
-Value StdLib::io_message_box(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 2, "msgbox");
-	std::string title = args[0].asString();
-	if (title.empty())
-		title = "Phasor Virtual Machine";
-	else
-		title += " - PVM";
-	std::string message = args[1].asString();
-#ifdef _WIN32
-	return Value(MessageBoxA(NULL, fixEscapeSequences(message).c_str(), title.c_str(), MB_OK));
-#else
-	std::cerr << "msgbox not implemented on this platform:";
-	std::cout << ' ' << title << ": " << message << '\n';
-	return Value("");
-#endif
-}
-
-Value StdLib::io_message_box_error(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 2, "msgbox_err");
-	std::string title = args[0].asString();
-	if (title.empty())
-		title = "Phasor Virtual Machine";
-	else
-		title += " - PVM";
-	std::string message = args[1].asString();
-#ifdef _WIN32
-	return Value(MessageBoxA(NULL, fixEscapeSequences(message).c_str(), title.c_str(), MB_ICONERROR | MB_OK));
-#else
-	std::cerr << "msgbox not implemented on this platform:";
-	std::cout << ' ' << title << ": " << message << '\n';
-	return Value("");
-#endif
 }

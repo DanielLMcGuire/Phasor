@@ -688,29 +688,42 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::LEN: {
 		Value v = pop();
-		if (v.isString())
-			push(Value(static_cast<int64_t>(v.asString().length())));
-		else
-			throw std::runtime_error("len() expects a string");
+		push(Value(static_cast<int64_t>(v.asString().length())));
 		break;
 	}
 
 	case OpCode::CHAR_AT: {
 		Value idxVal = pop();
 		Value strVal = pop();
-		if (strVal.isString() && idxVal.isInt())
+
+		std::string s;
+		if (strVal.isString())
+			s = strVal.asString();
+		else
+			s = strVal.toString();
+
+		int64_t idx = 0;
+		if (idxVal.isInt())
+			idx = idxVal.asInt();
+		else if (idxVal.isFloat())
+			idx = static_cast<int64_t>(idxVal.asFloat());
+		else if (idxVal.isString())
 		{
-			const std::string &s = strVal.asString();
-			int64_t            idx = idxVal.asInt();
-			if (idx < 0 || idx >= static_cast<int64_t>(s.length()))
-				push(Value(""));
-			else
-				push(Value(std::string(1, s[idx])));
+			// Try to parse numeric string
+			try {
+				idx = std::stoll(idxVal.asString());
+			}
+			catch (...) {
+				throw std::runtime_error("char_at() expects index convertible to integer");
+			}
 		}
 		else
-		{
 			throw std::runtime_error("char_at() expects string and integer");
-		}
+
+		if (idx < 0 || idx >= static_cast<int64_t>(s.length()))
+			push(Value(""));
+		else
+			push(Value(std::string(1, s[static_cast<size_t>(idx)])));
 		break;
 	}
 

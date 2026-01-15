@@ -51,52 +51,6 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	return 0;
 }
 
-std::string StdLib::fixEscapeSequences(const std::string &s)
-{
-	std::string out;
-	out.reserve(s.size());
-	for (size_t i = 0; i < s.size(); ++i)
-	{
-		if (s[i] == '\\' && i + 1 < s.size())
-		{
-			char esc = s[i + 1];
-			switch (esc)
-			{
-			case 'n':
-				out.push_back('\n');
-				break;
-			case 't':
-				out.push_back('\t');
-				break;
-			case 'r':
-				out.push_back('\r');
-				break;
-			case '\\':
-				out.push_back('\\');
-				break;
-			case '"':
-				out.push_back('"');
-				break;
-			case '\'':
-				out.push_back('\'');
-				break;
-			case '0':
-				out.push_back('\0');
-				break;
-			default:
-				out.push_back(esc);
-				break;
-			}
-			++i; // skip the escaped character
-		}
-		else
-		{
-			out.push_back(s[i]);
-		}
-	}
-	return out;
-}
-
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name, bool allowMoreArguments)
 {
 	if (args.size() < minimumArguments)

@@ -1,5 +1,7 @@
 #include "Lexer.hpp"
 #include <cctype>
+#include <sstream>
+#include <stdexcept>
 
 Lexer::Lexer(const std::string &source) : source(source)
 {
@@ -48,7 +50,7 @@ void Lexer::skipWhitespace()
 	while (!isAtEnd())
 	{
 		char c = peek();
-		if (std::isspace(c))
+		if (std::isspace(static_cast<unsigned char>(c)))
 		{
 			advance();
 		}
@@ -70,9 +72,9 @@ void Lexer::skipWhitespace()
 Token Lexer::scanToken()
 {
     char c = peek();
-    if (std::isalpha(c))
+    if (std::isalpha(static_cast<unsigned char>(c)))
         return identifier();
-    if (std::isdigit(c))
+    if (std::isdigit(static_cast<unsigned char>(c)))
         return number();
     if (c == '"')
         return string();
@@ -147,7 +149,7 @@ Token Lexer::scanToken()
 Token Lexer::identifier()
 {
     int start = position;
-    while (std::isalnum(peek()) || peek() == '_')
+    while (std::isalnum(static_cast<unsigned char>(peek())) || peek() == '_')
         advance();
     std::string text = source.substr(start, position - start);
 
@@ -173,30 +175,93 @@ Token Lexer::identifier()
 Token Lexer::number()
 {
 	int start = position;
-	while (std::isdigit(peek()))
+	while (std::isdigit(static_cast<unsigned char>(peek())))
 		advance();
-	if (peek() == '.' && std::isdigit(source[position + 1]))
+	if (peek() == '.' && position + 1 < source.length() && std::isdigit(static_cast<unsigned char>(source[position + 1])))
 	{
 		advance();
-		while (std::isdigit(peek()))
+		while (std::isdigit(static_cast<unsigned char>(peek())))
 			advance();
 	}
 	return {TokenType::Number, source.substr(start, position - start), line, column};
 }
 
+static int hexValue(char c)
+{
+	if (c >= '0' && c <= '9') return c - '0';
+	if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+	if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+	return -1;
+}
+
 Token Lexer::string()
 {
-	int start = position;
+	int tokenLine = line;
+	int tokenColumn = column;
+	std::ostringstream out;
 	advance(); // Skip opening quote
-	while (peek() != '"' && !isAtEnd())
+
+	while (!isAtEnd())
 	{
-		advance();
+		char c = advance();
+
+		// Raw newline inside a string is treated as unterminated/error.
+		if (c == '\n')
+		{
+			// Unterminated string literal
+			return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+		}
+
+		if (c == '\\')
+		{
+			if (isAtEnd())
+			{
+				// Unterminated escape at end of file
+				return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+			}
+			char esc = advance();
+			switch (esc)
+			{
+				case 'n': out << '\n'; break;
+				case 't': out << '\t'; break;
+				case 'r': out << '\r'; break;
+				case '\\': out << '\\'; break;
+				case '"': out << '"'; break;
+				case '\'': out << '\''; break;
+				case '0': out << '\0'; break;
+				case 'b': out << '\b'; break;
+				case 'f': out << '\f'; break;
+				case 'v': out << '\v'; break;
+				case 'x': {
+					// Hex escape sequence: \xHH
+					if (isAtEnd()) return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					char h1 = advance();
+					if (isAtEnd()) return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					char h2 = advance();
+					int v1 = hexValue(h1), v2 = hexValue(h2);
+					if (v1 < 0 || v2 < 0)
+						return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					char value = static_cast<char>((v1 << 4) | v2);
+					out << value;
+					break;
+				}
+				default:
+					// Unknown escape: be permissive and append the escaped character as-is.
+					out << esc;
+					break;
+			}
+		}
+		else if (c == '"')
+		{
+			// Closing quote
+			return {TokenType::String, out.str(), tokenLine, tokenColumn};
+		}
+		else
+		{
+			out << c;
+		}
 	}
-	if (isAtEnd())
-	{
-		// Error: Unterminated string
-		return {TokenType::Unknown, source.substr(start, position - start), line, column};
-	}
-	advance(); // Skip closing quote
-	return {TokenType::String, source.substr(start + 1, position - start - 2), line, column};
+
+	// If we get here, string was unterminated
+	return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 }

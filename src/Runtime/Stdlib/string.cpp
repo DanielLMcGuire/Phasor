@@ -18,6 +18,7 @@ Value StdLib::registerStringFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("sb_append", StdLib::sb_append);
 	vm->registerNativeFunction("sb_to_string", StdLib::sb_to_string);
 	vm->registerNativeFunction("sb_free", StdLib::sb_free);
+	vm->registerNativeFunction("sb_clear", StdLib::sb_clear);
 	return true;
 }
 
@@ -73,6 +74,16 @@ Value StdLib::sb_free(const std::vector<Value> &args, VM *vm)
 	return value;
 }
 
+Value StdLib::sb_clear(const std::vector<Value> &args, VM *vm)
+{
+	StdLib::checkArgCount(args, 1, "sb_clear");
+	size_t idx = args[0].asInt();
+	if (idx < 0 || idx >= sbPool.size())
+		throw std::runtime_error("Invalid StringBuilder handle");
+	sbPool[idx].clear();
+	return args[0]; // Return handle for chaining
+}
+
 Value StdLib::str_char_at(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 2, "char_at");
@@ -120,10 +131,8 @@ Value StdLib::str_concat(const std::vector<Value> &args, VM *vm)
 Value StdLib::str_len(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "len");
-	if (!args[0].isString()) {
-		throw std::runtime_error("len() expects a string argument");
-	}
-	return static_cast<int64_t>(args[0].asString().length());
+	std::string s = args[0].toString();
+	return static_cast<int64_t>(s.length());
 }
 
 Value StdLib::str_upper(const std::vector<Value> &args, VM *vm)
