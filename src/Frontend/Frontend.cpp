@@ -60,7 +60,7 @@ void Frontend::runScript(const std::string &source, VM *vm)
 
 void Frontend::runRepl(VM *vm)
 {
-	std::cout << "Phasor v1.1.0 REPL\n(C) 2025 Daniel McGuire\n\n";
+	std::cout << "Phasor v2.0.0 REPL\n(C) 2025 Daniel McGuire\n\n";
 	std::cout << "Type 'exit;' to quit. Function declarations will not work.\n";
 
 	bool ownVM = false;
