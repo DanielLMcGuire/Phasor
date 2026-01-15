@@ -39,11 +39,11 @@ int CppCompiler::run()
 	}
 
 	if (m_args.mainFile.empty() && !m_args.headerOnly)
-	#ifdef _WIN32
+#ifdef _WIN32
 		m_args.mainFile = "C:\\Program Files\\Phasor VM\\Development\\nativestub.cpp";
-	#else
-		m_args.mainFile = "/usr/local/share/phasor/dev/nativestub.cpp"
-	#endif
+#else
+		m_args.mainFile = "/usr/local/share/phasor/dev/nativestub.cpp";
+#endif
 
 	if (m_args.moduleName.empty())
 	{
