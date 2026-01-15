@@ -117,7 +117,10 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 
 	checkArgCount(args, 1, "sys_argv");
 	int64_t index = args[0].asInt();
-	return argv[index];
+	if (argv != nullptr)
+		return argv[index];
+	else
+		return Value();
 }
 
 Value StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
