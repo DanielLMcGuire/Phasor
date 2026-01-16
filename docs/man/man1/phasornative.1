@@ -53,10 +53,10 @@ Display help information and exit.
 .SH INPUT FILES
 .TP
 .I *.phs
-Phasor source files
+Phasor source files \fBPHS(5)\fR
 .TP
 .I *.phir
-Phasor intermediate representation files
+Phasor intermediate representation files \fBPHIR(5)\fR
 .SH GENERATED FILES
 .TP
 .I <module>.h
@@ -161,6 +161,7 @@ The native compiler requires a working C++20-compatible compiler toolchain and t
 .PP
 Generated executables are statically linked against the Phasor runtime where possible, reducing deployment dependencies.
 .SH SEE ALSO
+.BR PHS (5),
 .BR CppCompiler (3),
 .BR phasorcompiler (1),
 .BR phasorjit (1),

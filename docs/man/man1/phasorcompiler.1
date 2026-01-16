@@ -7,7 +7,7 @@ phasorcompiler \- Phasor source code compiler
 .I file.phs
 .SH DESCRIPTION
 .B phasorcompiler
-compiles Phasor source files (.phs) into bytecode (.phsb) or intermediate representation (.phir) format. The bytecode can be executed by the Phasor VM, while IR files can be used for analysis or further optimization.
+compiles Phasor source files (.phs) into bytecode (.phsb) or intermediate representation (.phir) format. The bytecode can be executed by the Phasor VM, while IR files can be used for analysis.
 .PP
 The compiler performs lexical analysis, parsing, and code generation to transform high-level Phasor source code into executable bytecode or a human-readable intermediate representation.
 .SH OPTIONS
@@ -26,13 +26,13 @@ Display help information and exit.
 .SH FILES
 .TP
 .I *.phs
-Phasor source files
+Phasor source files \fBPHS(5)\fR
 .TP
 .I *.phsb
-Phasor bytecode files (compiled output)
+Phasor bytecode files (compiled output) \fBPHSB(5)\fR
 .TP
 .I *.phir
-Phasor intermediate representation files
+Phasor intermediate representation files \fBPHIR(5)\fR
 .SH EXAMPLES
 Compile a source file to bytecode:
 .PP
@@ -77,6 +77,9 @@ Compilation errors are reported to standard error with detailed information abou
 .SH NOTES
 The compiler will refuse to compile bytecode (.phsb) files or IR (.phir) files, as these are already compiled formats.
 .SH SEE ALSO
+.BR PHS (5),
+.BR PHSB (5),
+.BR PHIR (5),
 .BR Compiler (3),
 .BR phasorrepl (1),
 .BR phasorvm (1),
