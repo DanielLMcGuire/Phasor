@@ -1,0 +1,52 @@
+Windows Registry Editor Version 5.00
+
+
+[HKEY_CURRENT_USER\Software\Classes\.phir]
+@="PhasorIR"
+
+
+
+[HKEY_CURRENT_USER\Software\Classes\.phs]
+@="PhasorScript"
+
+
+
+[HKEY_CURRENT_USER\Software\Classes\.phsb]
+@="PhasorBinary"
+
+
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorBinary]
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorBinary\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorBinary\shell\open]
+"Icon"="\"C:\\Program Files\\Phasor Programming Language\\bin\\phasorvm.exe\""
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorBinary\shell\open\command]
+@="\"C:\\Program Files\\Phasor Programming Language\\bin\\phasorvm.exe\" \"%1\" %*
+"
+
+
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorIR]
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorIR\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorIR\shell\open]
+"Icon"="\"C:\\Program Files\\Phasor Programming Language\\bin\\phasorjit.exe\""
+
+
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorScript]
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorScript\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorScript\shell\open]
+"Icon"="\"C:\\Program Files\\Phasor Programming Language\\bin\\phasorjit.exe\""
+
+[HKEY_CURRENT_USER\Software\Classes\PhasorScript\shell\open\command]
+@="\"C:\\Program Files\\Phasor Programming Language\\bin\\phasorjit.exe\" \"%1\" %*
+"
+
+
