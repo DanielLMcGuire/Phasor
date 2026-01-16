@@ -1,0 +1,270 @@
+.TH PHSB 5 "January 2026" "Phasor 1.0" "Phasor File Formats"
+.SH NAME
+phsb \- Phasor Binary bytecode format
+.SH DESCRIPTION
+The
+.B .phsb
+file format is a compact binary representation of compiled Phasor bytecode. It is the standard compiled format for Phasor programs, designed for efficient loading and execution by the Phasor virtual machine.
+.PP
+PHSB files contain serialized bytecode instructions, constant values, variable mappings, function entry points, and struct definitions, all stored in a platform-independent binary format with checksums for integrity verification.
+.SH FILE STRUCTURE
+A PHSB file consists of a header followed by multiple data sections. All multi-byte integers are stored in little-endian byte order.
+.PP
+.B File Header (16 bytes)
+.RS
+.TP
+.B Offset 0-3: Magic Number
+4-byte magic number: 0x50485342 (ASCII: "PHSB")
+.TP
+.B Offset 4-7: Version
+4-byte version number: 0x03000000 (version 3.0.0.0)
+.TP
+.B Offset 8-11: Flags
+4-byte flags field (reserved for future use, currently 0)
+.TP
+.B Offset 12-15: Checksum
+4-byte CRC32 checksum of all data following the header
+.RE
+.PP
+.B Data Sections
+.RS
+Following the header are four sections, each with a section identifier byte:
+.IP \(bu 2
+.B 0x01
+- Constants section
+.IP \(bu 2
+.B 0x02
+- Variables section
+.IP \(bu 2
+.B 0x04
+- Functions section
+.IP \(bu 2
+.B 0x03
+- Instructions section
+.RE
+.SH CONSTANTS SECTION
+The constants section stores all literal values used in the program.
+.PP
+.B Format:
+.RS
+.IP \(bu 2
+Section ID: 0x01 (1 byte)
+.IP \(bu 2
+Count: Number of constants (4 bytes, uint32)
+.IP \(bu 2
+For each constant:
+.RS
+.IP \(bu 2
+Type tag (1 byte):
+.RS
+.IP \- 2
+.B 0x00
+- Null
+.IP \- 2
+.B 0x01
+- Boolean (followed by 1 byte: 0=false, 1=true)
+.IP \- 2
+.B 0x02
+- Integer (followed by 8 bytes, int64, little-endian)
+.IP \- 2
+.B 0x03
+- Float (followed by 8 bytes, IEEE 754 double, little-endian)
+.IP \- 2
+.B 0x04
+- String (followed by 2-byte length, then UTF-8 bytes)
+.RE
+.RE
+.RE
+.SH VARIABLES SECTION
+The variables section maps variable names to their runtime indices.
+.PP
+.B Format:
+.RS
+.IP \(bu 2
+Section ID: 0x02 (1 byte)
+.IP \(bu 2
+Count: Number of variables (4 bytes, uint32)
+.IP \(bu 2
+Next index: Next available variable index (4 bytes, int32)
+.IP \(bu 2
+For each variable:
+.RS
+.IP \(bu 2
+Name: String (2-byte length + UTF-8 bytes)
+.IP \(bu 2
+Index: Variable index (4 bytes, int32)
+.RE
+.RE
+.SH FUNCTIONS SECTION
+The functions section maps function names to their entry point addresses in the instruction array.
+.PP
+.B Format:
+.RS
+.IP \(bu 2
+Section ID: 0x04 (1 byte)
+.IP \(bu 2
+Count: Number of functions (4 bytes, uint32)
+.IP \(bu 2
+For each function:
+.RS
+.IP \(bu 2
+Name: String (2-byte length + UTF-8 bytes)
+.IP \(bu 2
+Address: Instruction index (4 bytes, int32)
+.RE
+.RE
+.SH INSTRUCTIONS SECTION
+The instructions section contains the actual bytecode program.
+.PP
+.B Format:
+.RS
+.IP \(bu 2
+Section ID: 0x03 (1 byte)
+.IP \(bu 2
+Count: Number of instructions (4 bytes, uint32)
+.IP \(bu 2
+For each instruction:
+.RS
+.IP \(bu 2
+Opcode: Operation code (1 byte, uint8)
+.IP \(bu 2
+Operand 1: First operand (4 bytes, int32)
+.IP \(bu 2
+Operand 2: Second operand (4 bytes, int32)
+.IP \(bu 2
+Operand 3: Third operand (4 bytes, int32)
+.IP \(bu 2
+Operand 4: Fourth operand (4 bytes, int32)
+.IP \(bu 2
+Operand 5: Fifth operand (4 bytes, int32)
+.RE
+.PP
+Total instruction size: 21 bytes
+.RE
+.SH INTEGRITY VERIFICATION
+The PHSB format includes integrity checking through CRC32 checksums:
+.RS
+.IP 1. 3
+The checksum in the header covers all bytes following the 16-byte header
+.IP 2. 3
+The checksum uses the standard CRC32 algorithm with polynomial 0xEDB88320
+.IP 3. 3
+On loading, the runtime recalculates the checksum and compares it
+.IP 4. 3
+Mismatched checksums indicate file corruption or tampering
+.RE
+.SH BYTE ORDER
+All multi-byte values in PHSB files use little-endian byte order, ensuring platform independence across x86, x86-64, ARM, and other little-endian architectures. Big-endian systems must perform byte swapping during deserialization.
+.SH PLATFORM INDEPENDENCE
+PHSB files are platform-independent:
+.RS
+.IP \(bu 2
+No platform-specific data structures
+.IP \(bu 2
+Consistent byte ordering (little-endian)
+.IP \(bu 2
+No pointer storage or memory addresses
+.IP \(bu 2
+Fixed-size data types with explicit widths
+.IP \(bu 2
+UTF-8 encoding for all text data
+.RE
+.PP
+A PHSB file compiled on one platform can be executed on any other platform with a compatible Phasor VM.
+.SH VERSION COMPATIBILITY
+The version number in the header (currently 3.0.0.0) determines compatibility:
+.RS
+.IP \(bu 2
+The VM checks the version before loading
+.IP \(bu 2
+Incompatible versions are rejected with an error
+.IP \(bu 2
+Future versions may provide backward compatibility
+.RE
+.SH SIZE LIMITS
+The PHSB format has the following limits:
+.RS
+.IP \(bu 2
+Maximum constants: 4,294,967,295 (uint32 max)
+.IP \(bu 2
+Maximum variables: 4,294,967,295 (uint32 max)
+.IP \(bu 2
+Maximum functions: 4,294,967,295 (uint32 max)
+.IP \(bu 2
+Maximum instructions: 4,294,967,295 (uint32 max)
+.IP \(bu 2
+Maximum string length: 65,535 bytes (uint16 max)
+.RE
+.PP
+In practice, these limits are far beyond typical program requirements.
+.SH USAGE
+PHSB files are:
+.RS
+.IP \(bu 2
+Generated by
+.BR phasorcompiler (1)
+from Phasor source files
+.IP \(bu 2
+Executed by
+.BR phasorvm (1)
+for optimal performance
+.IP \(bu 2
+Used as distribution format for compiled programs
+.IP \(bu 2
+Suitable for embedded systems and constrained environments
+.RE
+.SH ADVANTAGES
+The binary format provides:
+.RS
+.IP \(bu 2
+.B Compact size
+- Significantly smaller than text-based formats
+.IP \(bu 2
+.B Fast loading
+- No parsing required, direct deserialization
+.IP \(bu 2
+.B Integrity checking
+- CRC32 checksums detect corruption
+.IP \(bu 2
+.B Platform independence
+- Runs on any system with Phasor VM
+.IP \(bu 2
+.B Security
+- Magic numbers prevent accidental execution of non-bytecode files
+.RE
+.SH COMPARISON WITH PHIR
+.TS
+center;
+cb cb
+l l.
+Feature	PHSB vs PHIR
+_
+Human-readable	No vs Yes
+File size	Smaller vs Larger
+Loading speed	Faster vs Slower
+Editability	No vs Yes
+Integrity check	Yes vs No
+Comments	No vs Yes
+Platform binary	No vs No
+.TE
+.SH SECURITY CONSIDERATIONS
+While PHSB files include integrity checking, they should be treated with caution:
+.RS
+.IP \(bu 2
+CRC32 is not cryptographically secure
+.IP \(bu 2
+Checksums detect corruption, not malicious modification
+.IP \(bu 2
+Bytecode execution can perform arbitrary operations
+.IP \(bu 2
+Only execute PHSB files from trusted sources
+.RE
+.SH SEE ALSO
+.BR phasorcompiler (1),
+.BR phasorvm (1),
+.BR phir (5),
+.BR phs (5)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2025 Daniel McGuire
