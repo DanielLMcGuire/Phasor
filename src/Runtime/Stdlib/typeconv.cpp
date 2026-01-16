@@ -1,5 +1,8 @@
 #include "StdLib.hpp"
 
+namespace Phasor
+{
+
 Value StdLib::registerTypeConvFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdtype");
@@ -56,3 +59,5 @@ Value StdLib::to_bool(const std::vector<Value> &args, VM *vm)
 		return !args[0].asString().empty();
 	return false;
 }
+
+} // namespace Phasor

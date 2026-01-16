@@ -1,5 +1,8 @@
 #include "StdLib.hpp"
 
+namespace Phasor
+{  
+
 Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdio");
@@ -115,3 +118,4 @@ Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 	vm->setRegister(VM::Register::r1, input + "\n");
 	return vm->operation(OpCode::PRINTERROR_R, VM::Register::r1);
 }
+} // namespace Phasor

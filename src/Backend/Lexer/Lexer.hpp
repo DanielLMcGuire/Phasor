@@ -3,6 +3,9 @@
 #include <vector>
 #include <iostream>
 
+namespace Phasor
+{
+
 enum class TokenType
 {
 	Identifier,
@@ -43,3 +46,4 @@ class Lexer
 	Token number();
 	Token string();
 };
+} // namespace Phasor

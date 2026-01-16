@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace Phasor
+{
 /**
  * @class OpCode
  * @brief Expanded opcode set for Phasor VM
@@ -17,12 +19,12 @@ enum class OpCode : uint8_t
 	POP,        ///< Pop top of stack
 
 	// Arithmetic operations
-	IADD,        ///< Pop b, pop a, push a + b
-	ISUBTRACT,   ///< Pop b, pop a, push a - b
-	IMULTIPLY,   ///< Pop b, pop a, push a * b
-	IDIVIDE,     ///< Pop b, pop a, push a / b
-	IMODULO,     ///< Pop b, pop a, push a % b
-	FLADD,       ///< Pop b, pop a, push a + b
+	IADD,       ///< Pop b, pop a, push a + b
+	ISUBTRACT,  ///< Pop b, pop a, push a - b
+	IMULTIPLY,  ///< Pop b, pop a, push a * b
+	IDIVIDE,    ///< Pop b, pop a, push a / b
+	IMODULO,    ///< Pop b, pop a, push a % b
+	FLADD,      ///< Pop b, pop a, push a + b
 	FLSUBTRACT, ///< Pop b, pop a, push a - b
 	FLMULTIPLY, ///< Pop b, pop a, push a * b
 	FLDIVIDE,   ///< Pop b, pop a, push a / b
@@ -40,18 +42,18 @@ enum class OpCode : uint8_t
 	NOT,    ///< Pop a, push !a
 
 	// Logical operations
-	IAND, ///< Pop b, pop a, push a && b
-	IOR,  ///< Pop b, pop a, push a || b
+	IAND,  ///< Pop b, pop a, push a && b
+	IOR,   ///< Pop b, pop a, push a || b
 	FLAND, ///< Pop b, pop a, push a && b
 	FLOR,  ///< Pop b, pop a, push a || b
 
 	// Comparison operations
-	IEQUAL,         ///< Pop b, pop a, push a == b
-	INOT_EQUAL,     ///< Pop b, pop a, push a != b
-	ILESS_THAN,     ///< Pop b, pop a, push a < b
-	IGREATER_THAN,  ///< Pop b, pop a, push a > b
-	ILESS_EQUAL,    ///< Pop b, pop a, push a <= b
-	IGREATER_EQUAL, ///< Pop b, pop a, push a >= b
+	IEQUAL,          ///< Pop b, pop a, push a == b
+	INOT_EQUAL,      ///< Pop b, pop a, push a != b
+	ILESS_THAN,      ///< Pop b, pop a, push a < b
+	IGREATER_THAN,   ///< Pop b, pop a, push a > b
+	ILESS_EQUAL,     ///< Pop b, pop a, push a <= b
+	IGREATER_EQUAL,  ///< Pop b, pop a, push a >= b
 	FLEQUAL,         ///< Pop b, pop a, push a == b
 	FLNOT_EQUAL,     ///< Pop b, pop a, push a != b
 	FLLESS_THAN,     ///< Pop b, pop a, push a < b
@@ -81,8 +83,8 @@ enum class OpCode : uint8_t
 	RETURN,      ///< Return from function
 
 	// Literal values
-	TRUE_P,     ///< Push true
-	FALSE_P,    ///< Push false
+	TRUE_P,   ///< Push true
+	FALSE_P,  ///< Push false
 	NULL_VAL, ///< Push null
 
 	// String operatoins
@@ -90,13 +92,13 @@ enum class OpCode : uint8_t
 	CHAR_AT, ///< Pop index, pop s, push s[index]
 	SUBSTR,  ///< Pop len, pop start, pop s, push s.substr(start, len)
 
-	NEW_STRUCT,      ///< Create new struct: operand is index of struct name in constants
-    GET_FIELD,       ///< Pop struct, pop field name, push field value
-    SET_FIELD,       ///< Pop struct, pop field name, pop value, set field value
+	NEW_STRUCT, ///< Create new struct: operand is index of struct name in constants
+	GET_FIELD,  ///< Pop struct, pop field name, push field value
+	SET_FIELD,  ///< Pop struct, pop field name, pop value, set field value
 
-    NEW_STRUCT_INSTANCE_STATIC, ///< Create new struct instance using struct section metadata (structIndex)
-    GET_FIELD_STATIC,           ///< Pop struct instance, push field by static offset (structIndex, fieldOffset)
-    SET_FIELD_STATIC,           ///< Pop value and struct instance, set field by static offset
+	NEW_STRUCT_INSTANCE_STATIC, ///< Create new struct instance using struct section metadata (structIndex)
+	GET_FIELD_STATIC,           ///< Pop struct instance, push field by static offset (structIndex, fieldOffset)
+	SET_FIELD_STATIC,           ///< Pop value and struct instance, set field by static offset
 
 	// Register-based operations (v2.0)
 	// Data movement
@@ -115,28 +117,28 @@ enum class OpCode : uint8_t
 	IMUL_R,  ///< R[rA] = R[rB] * R[rC]
 	IDIV_R,  ///< R[rA] = R[rB] / R[rC]
 	IMOD_R,  ///< R[rA] = R[rB] % R[rC]
-	FLADD_R,  ///< R[rA] = R[rB] + R[rC]
-	FLSUB_R,  ///< R[rA] = R[rB] - R[rC]
-	FLMUL_R,  ///< R[rA] = R[rB] * R[rC]
-	FLDIV_R,  ///< R[rA] = R[rB] / R[rC]
-	FLMOD_R,  ///< R[rA] = R[rB] % R[rC]
-	SQRT_R, ///< R[rA] = sqrt(R[rB])
-	POW_R,  ///< R[rA] = pow(R[rB], R[rC])
-	LOG_R,  ///< R[rA] = log(R[rB])
-	EXP_R,  ///< R[rA] = exp(R[rB])
-	SIN_R,  ///< R[rA] = sin(R[rB])
-	COS_R,  ///< R[rA] = cos(R[rB])
-	TAN_R,  ///< R[rA] = tan(R[rB])
+	FLADD_R, ///< R[rA] = R[rB] + R[rC]
+	FLSUB_R, ///< R[rA] = R[rB] - R[rC]
+	FLMUL_R, ///< R[rA] = R[rB] * R[rC]
+	FLDIV_R, ///< R[rA] = R[rB] / R[rC]
+	FLMOD_R, ///< R[rA] = R[rB] % R[rC]
+	SQRT_R,  ///< R[rA] = sqrt(R[rB])
+	POW_R,   ///< R[rA] = pow(R[rB], R[rC])
+	LOG_R,   ///< R[rA] = log(R[rB])
+	EXP_R,   ///< R[rA] = exp(R[rB])
+	SIN_R,   ///< R[rA] = sin(R[rB])
+	COS_R,   ///< R[rA] = cos(R[rB])
+	TAN_R,   ///< R[rA] = tan(R[rB])
 
 	// Register comparisons
-	IAND_R, ///< R[rA] = R[rB] && R[rC]
-	IOR_R,  ///< R[rA] = R[rB] || R[rC]
-	IEQ_R,  ///< R[rA] = R[rB] == R[rC]
-	INE_R,  ///< R[rA] = R[rB] != R[rC]
-	ILT_R,  ///< R[rA] = R[rB] < R[rC]
-	IGT_R,  ///< R[rA] = R[rB] > R[rC]
-	ILE_R,  ///< R[rA] = R[rB] <= R[rC]
-	IGE_R,  ///< R[rA] = R[rB] >= R[rC]
+	IAND_R,  ///< R[rA] = R[rB] && R[rC]
+	IOR_R,   ///< R[rA] = R[rB] || R[rC]
+	IEQ_R,   ///< R[rA] = R[rB] == R[rC]
+	INE_R,   ///< R[rA] = R[rB] != R[rC]
+	ILT_R,   ///< R[rA] = R[rB] < R[rC]
+	IGT_R,   ///< R[rA] = R[rB] > R[rC]
+	ILE_R,   ///< R[rA] = R[rB] <= R[rC]
+	IGE_R,   ///< R[rA] = R[rB] >= R[rC]
 	FLAND_R, ///< R[rA] = R[rB] && R[rC]
 	FLOR_R,  ///< R[rA] = R[rB] || R[rC]
 	FLEQ_R,  ///< R[rA] = R[rB] == R[rC]
@@ -184,10 +186,10 @@ struct Instruction
 /// @brief Struct metadata stored alongside bytecode (struct section)
 struct StructInfo
 {
-	std::string              name;           ///< Struct name
-	int                      firstConstIndex;///< Index into constants for the first default value
-	int                      fieldCount;     ///< Number of fields in this struct
-	std::vector<std::string> fieldNames;     ///< Field names in declaration order
+	std::string              name;            ///< Struct name
+	int                      firstConstIndex; ///< Index into constants for the first default value
+	int                      fieldCount;      ///< Number of fields in this struct
+	std::vector<std::string> fieldNames;      ///< Field names in declaration order
 };
 
 /// @brief Complete bytecode structure
@@ -200,8 +202,8 @@ struct Bytecode
 	int                        nextVarIndex = 0; ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
-	std::vector<StructInfo>          structs;        ///< List of struct descriptors
-	std::map<std::string, int>       structEntries;  ///< Struct name -> index in structs
+	std::vector<StructInfo>    structs;       ///< List of struct descriptors
+	std::map<std::string, int> structEntries; ///< Struct name -> index in structs
 
 	/// @brief Add a constant to the pool and return its index
 	int addConstant(const Value &value)
@@ -245,7 +247,7 @@ class CodeGenerator
 	 * @param replMode REPL mode
 	 * @return Bytecode Generated bytecode
 	 */
-	Bytecode generate(const Program &program, const std::map<std::string, int> &existingVars = {}, int nextVarIdx = 0,
+	Bytecode generate(const AST::Program &program, const std::map<std::string, int> &existingVars = {}, int nextVarIdx = 0,
 	                  bool replMode = false);
 
   private:
@@ -293,47 +295,50 @@ class CodeGenerator
 	}
 
 	/// @brief Check if expression is a compile-time literal
-	bool isLiteralExpression(const Expression *expr, Value &outValue);
+	bool isLiteralExpression(const AST::Expression *expr, Value &outValue);
 
 	/// @brief Simple expression type inference (conservative)
 	/// @param expr expression to inspect
 	/// @param known set to true when a type is known
 	/// @return inferred ValueType (valid only when known == true)
-	ValueType inferExpressionType(const Expression *expr, bool &known);
+	ValueType inferExpressionType(const AST::Expression *expr, bool &known);
 
-	void generateStatement(const Statement *stmt);                   ///< Generate bytecode from Statement
-	void generateExpression(const Expression *expr);                 ///< Generate bytecode from Expression
-	void generateVarDecl(const VarDecl *varDecl);                    ///< Generate bytecode from Variable Declaration
-	void generateExpressionStmt(const ExpressionStmt *exprStmt);     ///< Generate bytecode from Expression Statement
-	void generatePrintStmt(const PrintStmt *printStmt);              ///< Generate bytecode from Print Statement
-	void generateImportStmt(const ImportStmt *importStmt);           ///< Generate bytecode from Import Statement
-	void generateExportStmt(const ExportStmt *exportStmt);           ///< Generate bytecode from Export Statement
-	void generateNumberExpr(const NumberExpr *numExpr);              ///< Generate bytecode from Numeral Expression
-	void generateStringExpr(const StringExpr *strExpr);              ///< Generate bytecode from String Expression
-	void generateIdentifierExpr(const IdentifierExpr *identExpr);    ///< Generate bytecode from Identifier Expression
-	void generateUnaryExpr(const UnaryExpr *unaryExpr);              ///< Generate bytecode from Unary Expression
-	void generateCallExpr(const CallExpr *callExpr);                 ///< Generate bytecode from Call Expression
-	void generateBinaryExpr(const BinaryExpr *binExpr);              ///< Generate bytecode from Binary Expression
-	void generateBlockStmt(const BlockStmt *blockStmt);              ///< Generate bytecode from Block Statement
-	void generateIfStmt(const IfStmt *ifStmt);                       ///< Generate bytecode from If Statement
-	void generateWhileStmt(const WhileStmt *whileStmt);              ///< Generate bytecode from While Statement
-	void generateForStmt(const ForStmt *forStmt);                    ///< Generate bytecode from For Statement
-	void generateReturnStmt(const ReturnStmt *returnStmt);           ///< Generate bytecode from Return Statement
-	void generateUnsafeBlockStmt(const UnsafeBlockStmt *unsafeStmt); ///< Generate bytecode from Unsafe Block Statement
-	void generateFunctionDecl(const FunctionDecl *funcDecl);         ///< Generate bytecode from Function Declaration
-	void generateBooleanExpr(const BooleanExpr *boolExpr);           ///< Generate bytecode from Boolean Expression
-	void generateNullExpr(const NullExpr *nullExpr);                 ///< Generate bytecode from Null Expression
-	void generateAssignmentExpr(const AssignmentExpr *assignExpr);   ///< Generate bytecode from Assignment Expression
-	void generateStructDecl(const StructDecl* decl);
-    void generateStructInstanceExpr(const StructInstanceExpr* expr);
-    void generateFieldAccessExpr(const FieldAccessExpr* expr);
-	void generatePostfixExpr(const PostfixExpr* expr);
+	void generateStatement(const AST::Statement *stmt);              ///< Generate bytecode from Statement
+	void generateExpression(const AST::Expression *expr);            ///< Generate bytecode from Expression
+	void generateVarDecl(const AST::VarDecl *varDecl);               ///< Generate bytecode from Variable Declaration
+	void generateExpressionStmt(const AST::ExpressionStmt *exprStmt); ///< Generate bytecode from Expression Statement
+	void generatePrintStmt(const AST::PrintStmt *printStmt);          ///< Generate bytecode from Print Statement
+	void generateImportStmt(const AST::ImportStmt *importStmt);       ///< Generate bytecode from Import Statement
+	void generateExportStmt(const AST::ExportStmt *exportStmt);       ///< Generate bytecode from Export Statement
+	void generateNumberExpr(const AST::NumberExpr *numExpr);          ///< Generate bytecode from Numeral Expression
+	void generateStringExpr(const AST::StringExpr *strExpr);          ///< Generate bytecode from String Expression
+	void generateIdentifierExpr(const AST::IdentifierExpr *identExpr); ///< Generate bytecode from Identifier Expression
+	void generateUnaryExpr(const AST::UnaryExpr *unaryExpr);           ///< Generate bytecode from Unary Expression
+	void generateCallExpr(const AST::CallExpr *callExpr);              ///< Generate bytecode from Call Expression
+	void generateBinaryExpr(const AST::BinaryExpr *binExpr);           ///< Generate bytecode from Binary Expression
+	void generateBlockStmt(const AST::BlockStmt *blockStmt);           ///< Generate bytecode from Block Statement
+	void generateIfStmt(const AST::IfStmt *ifStmt);                    ///< Generate bytecode from If Statement
+	void generateWhileStmt(const AST::WhileStmt *whileStmt);           ///< Generate bytecode from While Statement
+	void generateForStmt(const AST::ForStmt *forStmt);                 ///< Generate bytecode from For Statement
+	void generateReturnStmt(const AST::ReturnStmt *returnStmt);        ///< Generate bytecode from Return Statement
+	void generateUnsafeBlockStmt(
+	    const AST::UnsafeBlockStmt *unsafeStmt);                     ///< Generate bytecode from Unsafe Block Statement
+	void generateFunctionDecl(const AST::FunctionDecl *funcDecl);    ///< Generate bytecode from Function Declaration
+	void generateBooleanExpr(const AST::BooleanExpr *boolExpr);      ///< Generate bytecode from Boolean Expression
+	void generateNullExpr(const AST::NullExpr *nullExpr);            ///< Generate bytecode from Null Expression
+	void generateAssignmentExpr(const AST::AssignmentExpr *assignExpr);   ///< Generate bytecode from Assignment Expression
+	void generateStructDecl(const AST::StructDecl *decl);
+	void generateStructInstanceExpr(const AST::StructInstanceExpr *expr);
+	void generateFieldAccessExpr(const AST::FieldAccessExpr *expr);
+	void generatePostfixExpr(const AST::PostfixExpr *expr);
 	void generateBreakStmt();
 	void generateContinueStmt();
-	void generateSwitchStmt(const SwitchStmt* switchStmt);
+	void generateSwitchStmt(const AST::SwitchStmt *switchStmt);
 
 	// Loop context for break/continue
-	std::vector<int> loopStartStack;  // Stack of loop start positions
-	std::vector<std::vector<int>> breakJumpsStack;  // Stack of break jump positions to patch
-	std::vector<std::vector<int>> continueJumpsStack;  // Stack of continue jump positions to patch
+	std::vector<int>              loopStartStack;     // Stack of loop start positions
+	std::vector<std::vector<int>> breakJumpsStack;    // Stack of break jump positions to patch
+	std::vector<std::vector<int>> continueJumpsStack; // Stack of continue jump positions to patch
 };
+
+} // namespace Phasor

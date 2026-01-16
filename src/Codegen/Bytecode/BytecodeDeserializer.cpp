@@ -47,6 +47,10 @@ void init_crc32_table_deserializer()
 	}
 	crc32_table_initialized = true;
 }
+
+namespace Phasor
+{
+
 uint32_t BytecodeDeserializer::calculateCRC32(const uint8_t *data, size_t size)
 {
 	if (!crc32_table_initialized)
@@ -309,3 +313,4 @@ Bytecode BytecodeDeserializer::loadFromFile(const std::filesystem::path &filenam
 
 	return deserialize(buffer);
 }
+} // namespace Phasor

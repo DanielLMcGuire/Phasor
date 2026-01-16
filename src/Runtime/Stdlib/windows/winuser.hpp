@@ -7,12 +7,16 @@
 
 #include "vhandle.hpp"   // For Virtual Handles
 #include "winType.hpp"   // For Win32 Types
+namespace Phasor
+{
+class winuser
+{
+  public:
+	/// @brief Register Windows API User functions
+	static Value registerFunctions(const std::vector<Value> &args, VM *vm);
 
-class winuser {
-public:
-    /// @brief Register Windows API User functions
-    static Value registerFunctions(const std::vector<Value> &args, VM *vm);
-private:
-    /// @brief Show a message box
-    static Value MessageBox_ours(const std::vector<Value> &args, VM *vm);
+  private:
+	/// @brief Show a message box
+	static Value MessageBox_ours(const std::vector<Value> &args, VM *vm);
 };
+} // namespace Phasor

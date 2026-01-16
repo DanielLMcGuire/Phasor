@@ -49,6 +49,9 @@ void init_crc32_table()
 	crc32_table_initialized = true;
 }
 
+namespace Phasor
+{
+
 uint32_t BytecodeSerializer::calculateCRC32(const std::vector<uint8_t> &data)
 {
 	if (!crc32_table_initialized)
@@ -254,3 +257,4 @@ bool BytecodeSerializer::saveToFile(const Bytecode &bytecode, const std::filesys
 		return false;
 	}
 }
+} // namespace Phasor

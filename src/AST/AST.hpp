@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+namespace Phasor
+{
+namespace AST
+{
+
 // Forward declarations
 struct Node;
 struct Expression;
@@ -145,8 +150,8 @@ enum class BinaryOp
 /// @brief Postfix operator types
 enum class PostfixOp
 {
-	Increment,  // x++
-	Decrement   // x--
+	Increment, // x++
+	Decrement  // x--
 };
 
 /// @brief Postfix Expression Node
@@ -499,10 +504,9 @@ struct ForStmt : public Statement
 	std::unique_ptr<Expression> increment;
 	std::unique_ptr<Statement>  body;
 
-	ForStmt(std::unique_ptr<Statement> init, std::unique_ptr<Expression> cond,
-	        std::unique_ptr<Expression> incr, std::unique_ptr<Statement> b)
-	    : initializer(std::move(init)), condition(std::move(cond)),
-	      increment(std::move(incr)), body(std::move(b))
+	ForStmt(std::unique_ptr<Statement> init, std::unique_ptr<Expression> cond, std::unique_ptr<Expression> incr,
+	        std::unique_ptr<Statement> b)
+	    : initializer(std::move(init)), condition(std::move(cond)), increment(std::move(incr)), body(std::move(b))
 	{
 	}
 
@@ -575,8 +579,7 @@ struct StructField
 	std::string               name;
 	std::unique_ptr<TypeNode> type;
 
-	StructField(std::string n, std::unique_ptr<TypeNode> t)
-	    : name(std::move(n)), type(std::move(t))
+	StructField(std::string n, std::unique_ptr<TypeNode> t) : name(std::move(n)), type(std::move(t))
 	{
 	}
 };
@@ -584,11 +587,10 @@ struct StructField
 /// @brief Struct Declaration Node
 struct StructDecl : public Statement
 {
-	std::string            name;
+	std::string              name;
 	std::vector<StructField> fields;
 
-	StructDecl(std::string n, std::vector<StructField> f)
-	    : name(std::move(n)), fields(std::move(f))
+	StructDecl(std::string n, std::vector<StructField> f) : name(std::move(n)), fields(std::move(f))
 	{
 	}
 
@@ -606,11 +608,10 @@ struct StructDecl : public Statement
 /// @brief Struct Instance Expression Node
 struct StructInstanceExpr : public Expression
 {
-	std::string                                                    structName;
+	std::string                                                      structName;
 	std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fieldValues;
 
-	StructInstanceExpr(std::string name,
-	                   std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fields)
+	StructInstanceExpr(std::string name, std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fields)
 	    : structName(std::move(name)), fieldValues(std::move(fields))
 	{
 	}
@@ -647,7 +648,7 @@ struct FieldAccessExpr : public Expression
 /// @brief Case Clause Node
 struct CaseClause
 {
-	std::unique_ptr<Expression>              value;
+	std::unique_ptr<Expression>             value;
 	std::vector<std::unique_ptr<Statement>> statements;
 
 	CaseClause(std::unique_ptr<Expression> v, std::vector<std::unique_ptr<Statement>> stmts)
@@ -659,12 +660,11 @@ struct CaseClause
 /// @brief Switch Statement Node
 struct SwitchStmt : public Statement
 {
-	std::unique_ptr<Expression>              expr;
-	std::vector<CaseClause>                  cases;
+	std::unique_ptr<Expression>             expr;
+	std::vector<CaseClause>                 cases;
 	std::vector<std::unique_ptr<Statement>> defaultStmts;
 
-	SwitchStmt(std::unique_ptr<Expression> e, std::vector<CaseClause> c,
-	           std::vector<std::unique_ptr<Statement>> d)
+	SwitchStmt(std::unique_ptr<Expression> e, std::vector<CaseClause> c, std::vector<std::unique_ptr<Statement>> d)
 	    : expr(std::move(e)), cases(std::move(c)), defaultStmts(std::move(d))
 	{
 	}
@@ -692,3 +692,5 @@ struct SwitchStmt : public Statement
 		}
 	}
 };
+} // namespace AST
+} // namespace Phasor

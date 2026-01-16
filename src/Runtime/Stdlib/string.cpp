@@ -1,6 +1,9 @@
 #include "StdLib.hpp"
 #include <string>
 
+namespace Phasor
+{
+
 Value StdLib::registerStringFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdstr");
@@ -68,7 +71,7 @@ Value StdLib::sb_to_string(const std::vector<Value> &args, VM *vm)
 Value StdLib::sb_free(const std::vector<Value> &args, VM *vm)
 {
 	StdLib::checkArgCount(args, 1, "sb_free");
-	size_t idx = args[0].asInt();
+	size_t      idx = args[0].asInt();
 	std::string value = sbPool[idx];
 	sbFreeIndices.push_back(idx);
 	return value;
@@ -174,3 +177,4 @@ Value StdLib::str_ends_with(const std::vector<Value> &args, VM *vm)
 	}
 	return Value(false);
 }
+} // namespace Phasor

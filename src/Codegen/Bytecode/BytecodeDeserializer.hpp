@@ -6,6 +6,9 @@
 #include <vector>
 #include <filesystem>
 
+namespace Phasor
+{
+
 /**
  *  @class BytecodeDeserializer
  *  @brief Bytecode binary format deserializer
@@ -44,3 +47,4 @@ class BytecodeDeserializer
 	/// @brief Calculate CRC32 checksum
 	uint32_t calculateCRC32(const uint8_t *data, size_t size);
 };
+} // namespace Phasor

@@ -101,7 +101,7 @@ extern "C"
 			return;
 		}
 
-		VM *phasorVM = (VM *)vm;
+		Phasor::VM *phasorVM = (Phasor::VM *)vm;
 		Phasor::NativeRuntime::eval(phasorVM, script);
 	}
 }

@@ -4,11 +4,14 @@
 #include <memory>
 #include <vector>
 
+namespace Phasor
+{
+
 class Parser
 {
   public:
 	Parser(const std::vector<Token> &tokens);
-	std::unique_ptr<Program> parse();
+	std::unique_ptr<AST::Program> parse();
 
   private:
 	std::vector<Token> tokens;
@@ -25,38 +28,39 @@ class Parser
 	bool  match(TokenType type, std::string lexeme);
 	Token consume(TokenType type, std::string message);
 	Token consume(TokenType type, std::string lexeme, std::string message);
-	Token expect(TokenType type, const std::string& message);
+	Token expect(TokenType type, const std::string &message);
 
-	std::unique_ptr<Statement>  declaration();
-	std::unique_ptr<Statement>  varDeclaration();
-	std::unique_ptr<Statement>  functionDeclaration();
-	std::unique_ptr<Statement>  statement();
-	std::unique_ptr<Statement>  printStatement();
-	std::unique_ptr<Statement>  readLineStatement();
-	std::unique_ptr<Statement>  ifStatement();
-	std::unique_ptr<Statement>  whileStatement();
-	std::unique_ptr<Statement>  forStatement();
-	std::unique_ptr<Statement>  switchStatement();
-	std::unique_ptr<Statement>  returnStatement();
-	std::unique_ptr<Statement>  unsafeStatement();
-	std::unique_ptr<BlockStmt>  block();
-	std::unique_ptr<Statement>  importStatement();
-	std::unique_ptr<Statement>  exportStatement();
-	std::unique_ptr<Statement>  expressionStatement();
-	std::unique_ptr<TypeNode>   parseType();
-	std::unique_ptr<Expression> expression();
-	std::unique_ptr<Expression> assignment();
-	std::unique_ptr<Expression> logicalOr();
-	std::unique_ptr<Expression> logicalAnd();
-	std::unique_ptr<Expression> equality();
-	std::unique_ptr<Expression> comparison();
-	std::unique_ptr<Expression> term();
-	std::unique_ptr<Expression> factor();
-	std::unique_ptr<Expression> unary();
-	std::unique_ptr<Expression> call();
-	std::unique_ptr<Expression> finishCall(std::unique_ptr<Expression> callee);
-	std::unique_ptr<Expression> primary();
-	std::unique_ptr<StructDecl> structDecl();
-	std::unique_ptr<StructInstanceExpr> structInstance();
-	std::unique_ptr<Expression> fieldAccess(std::unique_ptr<Expression> object);
+	std::unique_ptr<AST::Statement>     declaration();
+	std::unique_ptr<AST::Statement>     varDeclaration();
+	std::unique_ptr<AST::Statement>     functionDeclaration();
+	std::unique_ptr<AST::Statement>     statement();
+	std::unique_ptr<AST::Statement>     printStatement();
+	std::unique_ptr<AST::Statement>     readLineStatement();
+	std::unique_ptr<AST::Statement>     ifStatement();
+	std::unique_ptr<AST::Statement>     whileStatement();
+	std::unique_ptr<AST::Statement>     forStatement();
+	std::unique_ptr<AST::Statement>     switchStatement();
+	std::unique_ptr<AST::Statement>     returnStatement();
+	std::unique_ptr<AST::Statement>     unsafeStatement();
+	std::unique_ptr<AST::BlockStmt>          block();
+	std::unique_ptr<AST::Statement>          importStatement();
+	std::unique_ptr<AST::Statement>          exportStatement();
+	std::unique_ptr<AST::Statement>          expressionStatement();
+	std::unique_ptr<AST::TypeNode>           parseType();
+	std::unique_ptr<AST::Expression>         expression();
+	std::unique_ptr<AST::Expression>         assignment();
+	std::unique_ptr<AST::Expression>         logicalOr();
+	std::unique_ptr<AST::Expression>         logicalAnd();
+	std::unique_ptr<AST::Expression>         equality();
+	std::unique_ptr<AST::Expression>         comparison();
+	std::unique_ptr<AST::Expression>         term();
+	std::unique_ptr<AST::Expression>         factor();
+	std::unique_ptr<AST::Expression>         unary();
+	std::unique_ptr<AST::Expression>         call();
+	std::unique_ptr<AST::Expression>         finishCall(std::unique_ptr<AST::Expression> callee);
+	std::unique_ptr<AST::Expression>         primary();
+	std::unique_ptr<AST::StructDecl>         structDecl();
+	std::unique_ptr<AST::StructInstanceExpr> structInstance();
+	std::unique_ptr<AST::Expression>         fieldAccess(std::unique_ptr<AST::Expression> object);
 };
+} // namespace Phasor

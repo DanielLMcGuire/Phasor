@@ -1,5 +1,8 @@
 #include "winuser.hpp"
 
+namespace Phasor
+{  
+
 Value winuser::registerFunctions(const std::vector<Value> &args, VM *vm)
 {
     StdLib::checkArgCount(args, 0, "win_registerFunctions");
@@ -22,3 +25,4 @@ Value winuser::MessageBox_ours(const std::vector<Value> &args, VM *vm)
     int result = ::MessageBoxA(hWnd, lpText, lpCaption, uType);
     return result;
 }
+} 

@@ -8,6 +8,9 @@
 #include <array>
 #include "core/core.h"
 
+namespace Phasor
+{
+
 /// @class VM
 /// @brief Virtual Machine
 class VM
@@ -112,7 +115,7 @@ class VM
 	/// @brief Get VM information for debugging
 	std::string getInformation();
 
-    /// @brief Use the VM's logging via print opcode
+	/// @brief Use the VM's logging via print opcode
 	void log(const Value &msg);
 	void logerr(const Value &msg);
 
@@ -135,12 +138,10 @@ class VM
 	/// @brief Bytecode to execute
 	const Bytecode *bytecode;
 
-	/// @brief Operand stack for safe register operations
-	std::vector<Value> operandStack;
-
 	/// @brief Program counter
 	size_t pc = 0;
 
 	/// @brief Native function registry
 	std::map<std::string, NativeFunction> nativeFunctions;
 };
+} // namespace Phasor

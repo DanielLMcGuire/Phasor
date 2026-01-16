@@ -4,6 +4,9 @@
 #include "windows/windows.hpp"
 #endif
 
+namespace Phasor
+{
+
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
@@ -17,9 +20,9 @@ void StdLib::registerFunctions(VM &vm)
 	vm.registerNativeFunction("include_stdtype", registerTypeConvFunctions);
 	vm.registerNativeFunction("include_stdfile", registerFileFunctions);
 	vm.registerNativeFunction("include_stdregex", registerRegexFunctions);
-	#ifdef _WIN32
+#ifdef _WIN32
 	vm.registerNativeFunction("include_win32api", windows::registerFunctions);
-	#endif
+#endif
 }
 
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
@@ -51,7 +54,8 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	return 0;
 }
 
-void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name, bool allowMoreArguments)
+void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+                           bool allowMoreArguments)
 {
 	if (args.size() < minimumArguments)
 	{
@@ -64,3 +68,5 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 		                         " arguments, but got " + std::to_string(args.size()));
 	}
 }
+
+} // namespace Phasor

@@ -1,6 +1,11 @@
 #include "Parser.hpp"
 #include <iostream>
 
+namespace Phasor
+{
+
+using namespace AST;
+
 Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens)
 {
 }
@@ -189,7 +194,7 @@ std::unique_ptr<Statement> Parser::whileStatement()
 std::unique_ptr<Statement> Parser::forStatement()
 {
 	consume(TokenType::Symbol, "(", "Expect '(' after 'for'.");
-	
+
 	std::unique_ptr<Statement> initializer = nullptr;
 	if (!check(TokenType::Symbol) || peek().lexeme != ";")
 	{
@@ -207,24 +212,24 @@ std::unique_ptr<Statement> Parser::forStatement()
 	{
 		consume(TokenType::Symbol, ";", "Expect ';'.");
 	}
-	
+
 	std::unique_ptr<Expression> condition = nullptr;
 	if (!check(TokenType::Symbol) || peek().lexeme != ";")
 	{
 		condition = expression();
 	}
 	consume(TokenType::Symbol, ";", "Expect ';' after loop condition.");
-	
+
 	std::unique_ptr<Expression> increment = nullptr;
 	if (!check(TokenType::Symbol) || peek().lexeme != ")")
 	{
 		increment = expression();
 	}
 	consume(TokenType::Symbol, ")", "Expect ')' after for clauses.");
-	
+
 	auto body = statement();
-	return std::make_unique<ForStmt>(std::move(initializer), std::move(condition),
-	                                  std::move(increment), std::move(body));
+	return std::make_unique<ForStmt>(std::move(initializer), std::move(condition), std::move(increment),
+	                                 std::move(body));
 }
 
 std::unique_ptr<Statement> Parser::switchStatement()
@@ -234,7 +239,7 @@ std::unique_ptr<Statement> Parser::switchStatement()
 	consume(TokenType::Symbol, ")", "Expect ')' after switch expression.");
 	consume(TokenType::Symbol, "{", "Expect '{' after switch.");
 
-	std::vector<CaseClause> cases;
+	std::vector<CaseClause>                 cases;
 	std::vector<std::unique_ptr<Statement>> defaultStmts;
 
 	while (!check(TokenType::Symbol) || peek().lexeme != "}")
@@ -250,7 +255,7 @@ std::unique_ptr<Statement> Parser::switchStatement()
 
 			std::vector<std::unique_ptr<Statement>> stmts;
 			while ((!check(TokenType::Keyword) || (peek().lexeme != "case" && peek().lexeme != "default")) &&
-				   (!check(TokenType::Symbol) || peek().lexeme != "}"))
+			       (!check(TokenType::Symbol) || peek().lexeme != "}"))
 			{
 				if (isAtEnd())
 					throw std::runtime_error("Unterminated case clause.");
@@ -264,7 +269,7 @@ std::unique_ptr<Statement> Parser::switchStatement()
 			consume(TokenType::Symbol, ":", "Expect ':' after default.");
 
 			while ((!check(TokenType::Keyword) || (peek().lexeme != "case" && peek().lexeme != "default")) &&
-				   (!check(TokenType::Symbol) || peek().lexeme != "}"))
+			       (!check(TokenType::Symbol) || peek().lexeme != "}"))
 			{
 				if (isAtEnd())
 					throw std::runtime_error("Unterminated default clause.");
@@ -742,9 +747,12 @@ Token Parser::consume(TokenType type, std::string lexeme, std::string message)
 	throw std::runtime_error(message);
 }
 
-Token Parser::expect(TokenType type, const std::string& message) {
-    if (check(type)) {
-        return advance();
-    }
-    throw std::runtime_error(message);
+Token Parser::expect(TokenType type, const std::string &message)
+{
+	if (check(type))
+	{
+		return advance();
+	}
+	throw std::runtime_error(message);
 }
+} // namespace Phasor

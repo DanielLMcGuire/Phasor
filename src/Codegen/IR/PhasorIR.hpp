@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
+namespace Phasor
+{
+
 /**
  * @class PhasorIR
  * @brief Phasor IR Serializer/Deserializer
@@ -54,3 +57,5 @@ class PhasorIR
 	static const std::unordered_map<OpCode, std::string> opCodeToStringMap;
 	static const std::unordered_map<std::string, OpCode> stringToOpCodeMap;
 };
+
+} // namespace Phasor

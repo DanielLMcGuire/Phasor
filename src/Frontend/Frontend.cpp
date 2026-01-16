@@ -26,7 +26,7 @@ bool startsWith(const std::string &input, const std::string &prefix)
 	return false;
 }
 
-void Frontend::runScript(const std::string &source, VM *vm)
+void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 {
 	Lexer lexer(source);
 	auto  tokens = lexer.tokenize();
@@ -65,7 +65,7 @@ void Frontend::runScript(const std::string &source, VM *vm)
 	}
 }
 
-void Frontend::runRepl(VM *vm)
+void Phasor::Frontend::runRepl(VM *vm)
 {
 	std::cout << "Phasor v2.0.0 REPL\n(C) 2025 Daniel McGuire\n\n";
 	std::cout << "Type 'exit;' to quit. Function declarations will not work.\n";
@@ -96,58 +96,58 @@ void Frontend::runRepl(VM *vm)
 	std::string line;
 	while (true)
 	{
-		std::cout << "\n> ";
-		if (!std::getline(std::cin, line))
-			break;
-		if (startsWith(line, "vm_pop"))
-		{
-			line = "let popx = " + vm->pop().toString();
-			continue;
-		}
-		if (startsWith(line, "vm_push"))
-		{
-			vm->push(line.substr(4));
-			continue;
-		}
-		if (startsWith(line, "vm_peek"))
-		{
-			line = "let peekx = " + vm->peek().toString();
-		}
-		if (startsWith(line, "vm_op"))
-		{
-			char         instruction[64];
-			unsigned int operand;
-			sscanf(line.c_str(), "vm_op %63s %d", instruction, &operand);
-			vm->operation(PhasorIR::stringToOpCode(std::string(instruction)), operand);
-			continue;
-		}
-		if (startsWith(line, "vm_getvar"))
-		{
-			int index;
-			sscanf(line.c_str(), "vm_getvar %d", &index);
-			line = "let getvarx = " + vm->getVariable(index).toString();
-		}
-		if (startsWith(line, "vm_setvar"))
-		{
-			char value[64];
-			sscanf(line.c_str(), "vm_setvar %63s", value);
-			line = "var setvarx = " + std::to_string(vm->addVariable(value));
-		}
-		if (startsWith(line, "vm_reset"))
-		{
-			vm->reset(true, true, true);
-			continue;
-		}
-		if (startsWith(line, "exit"))
-			break;
-		if (line.empty())
-		{
-			std::cerr << "Empty line\n";
-			continue;
-		}
-
 		try
 		{
+			std::cout << "\n> ";
+			if (!std::getline(std::cin, line))
+				break;
+			if (startsWith(line, "vm_pop"))
+			{
+				line = "let popx = " + vm->pop().toString();
+				continue;
+			}
+			if (startsWith(line, "vm_push"))
+			{
+				vm->push(line.substr(4));
+				continue;
+			}
+			if (startsWith(line, "vm_peek"))
+			{
+				line = "let peekx = " + vm->peek().toString();
+			}
+			if (startsWith(line, "vm_op"))
+			{
+				char         instruction[64];
+				unsigned int operand;
+				sscanf(line.c_str(), "vm_op %63s %d", instruction, &operand);
+				vm->operation(PhasorIR::stringToOpCode(std::string(instruction)), operand);
+				continue;
+			}
+			if (startsWith(line, "vm_getvar"))
+			{
+				int index;
+				sscanf(line.c_str(), "vm_getvar %d", &index);
+				line = "let getvarx = " + vm->getVariable(index).toString();
+			}
+			if (startsWith(line, "vm_setvar"))
+			{
+				char value[64];
+				sscanf(line.c_str(), "vm_setvar %63s", value);
+				line = "var setvarx = " + std::to_string(vm->addVariable(value));
+			}
+			if (startsWith(line, "vm_reset"))
+			{
+				vm->reset(true, true, true);
+				continue;
+			}
+			if (startsWith(line, "exit"))
+				break;
+			if (line.empty())
+			{
+				std::cerr << "Empty line\n";
+				continue;
+			}
+
 			Lexer lexer(line);
 			auto  tokens = lexer.tokenize();
 

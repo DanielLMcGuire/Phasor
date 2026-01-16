@@ -3,13 +3,15 @@
 #include <stdexcept>
 #include "core/core.h"
 
+namespace Phasor
+{
+
 void VM::run(const Bytecode &bc)
 {
 	this->bytecode = &bc;
 	pc = 0;
 	stack.clear();
 	callStack.clear();
-	operandStack.clear();
 
 	registers.fill(Value());
 	variables.resize(bytecode->nextVarIndex);
@@ -594,21 +596,24 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::FLGT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+		registers[rA] =
+		    (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
 		break;
 	}
 
 	case OpCode::FLLE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+		registers[rA] =
+		    (b.isFloat() && c.isFloat()) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
 		break;
 	}
 
 	case OpCode::FLGE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+		registers[rA] =
+		    (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
 		break;
 	}
 
@@ -670,7 +675,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::PRINTERROR_R: {
-		asm_print_stderr(registers[rA].c_str(), registers[rA].toString().length());
+		std::string s = registers[rA].toString();
+		asm_print_stderr(s.c_str(), s.length());
 		break;
 	}
 
@@ -710,10 +716,12 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		else if (idxVal.isString())
 		{
 			// Try to parse numeric string
-			try {
+			try
+			{
 				idx = std::stoll(idxVal.asString());
 			}
-			catch (...) {
+			catch (...)
+			{
 				throw std::runtime_error("char_at() expects index convertible to integer");
 			}
 		}
@@ -767,7 +775,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			int constIndex = info.firstConstIndex + i;
 			if (constIndex < 0 || constIndex >= static_cast<int>(bytecode->constants.size()))
 				throw std::runtime_error("Invalid default constant index for struct field");
-			const Value &defVal = bytecode->constants[constIndex];
+			const Value       &defVal = bytecode->constants[constIndex];
 			const std::string &fieldName = info.fieldNames[i];
 			instance.setField(fieldName, defVal);
 		}
@@ -780,11 +788,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
 		const StructInfo &info = bytecode->structs[operand1];
-		int fieldOffset = operand2;
+		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
-		Value obj = pop();
+		Value              obj = pop();
 		push(obj.getField(fieldName));
 		break;
 	}
@@ -794,12 +802,12 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
 		const StructInfo &info = bytecode->structs[operand1];
-		int fieldOffset = operand2;
+		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
-		Value value = pop();
-		Value obj = pop();
+		Value              value = pop();
+		Value              obj = pop();
 		obj.setField(fieldName, value);
 		push(obj);
 		break;
@@ -808,7 +816,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::NEW_STRUCT: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for NEW_STRUCT");
-		Value nameVal = bytecode->constants[operand1];
+		Value       nameVal = bytecode->constants[operand1];
 		std::string structName = nameVal.asString();
 		push(Value::createStruct(structName));
 		break;
@@ -818,8 +826,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for SET_FIELD");
 		std::string fieldName = bytecode->constants[operand1].asString();
-		Value value = pop();
-		Value obj = pop();
+		Value       value = pop();
+		Value       obj = pop();
 		obj.setField(fieldName, value);
 		push(obj);
 		break;
@@ -829,7 +837,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for GET_FIELD");
 		std::string fieldName = bytecode->constants[operand1].asString();
-		Value obj = pop();
+		Value       obj = pop();
 		push(obj.getField(fieldName));
 		break;
 	}
@@ -881,7 +889,6 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 	{
 		stack.clear();
 		callStack.clear();
-		operandStack.clear();
 	}
 	if (resetFunctions)
 	{
@@ -974,14 +981,13 @@ std::string VM::getInformation()
 
 void VM::log(const Value &msg)
 {
-	setRegister(Register::r0, msg);
-	operation(OpCode::PRINT_R, r0);
-	freeRegister(Register::r0);
+	std::string s = msg.toString();
+	asm_print_stdout(s.c_str(), s.length());
 }
 
 void VM::logerr(const Value &msg)
 {
-	setRegister(Register::r0, msg);
-	operation(OpCode::PRINTERROR_R, r0);
-	freeRegister(Register::r0);
+	std::string s = msg.toString();
+	asm_print_stderr(s.c_str(), s.length());
 }
+} // namespace Phasor

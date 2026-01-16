@@ -1,6 +1,9 @@
 #include "Runtime/Value.hpp"
 #include "StdLib.hpp"
 
+namespace Phasor
+{
+
 Value StdLib::registerMathFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdmath");
@@ -133,3 +136,4 @@ Value StdLib::math_tan(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "math_tan");
 	return Value(asm_tan(args[0].asFloat()));
 }
+} // namespace Phasor

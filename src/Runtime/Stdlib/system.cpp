@@ -8,6 +8,9 @@
 
 #include "core/system.h"
 
+namespace Phasor
+{
+
 Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdsys");
@@ -31,8 +34,8 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "time");
-	auto now = std::chrono::steady_clock::now();
-	auto duration = now.time_since_epoch();
+	auto   now = std::chrono::steady_clock::now();
+	auto   duration = now.time_since_epoch();
 	double millis = std::chrono::duration<double, std::milli>(duration).count();
 	return millis;
 }
@@ -105,15 +108,15 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 {
-	if (args.size() == 0) 
+	if (args.size() == 0)
 	{
 		auto l_argv = std::make_shared<Value::StructInstance>();
-		
+
 		for (size_t i = 0; i < argc; i++)
 		{
 			l_argv->fields["arg" + std::to_string(i)] = Value(argv[i]);
 		}
-		
+
 		return Value(l_argv);
 	}
 
@@ -131,7 +134,7 @@ Value StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
 	return argc;
 }
 
-Value StdLib::system_get_free_memory(const std::vector<Value>& args, VM* vm)
+Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_get_memory");
 	return static_cast<int64_t>(getAvailableMemory());
@@ -151,21 +154,21 @@ Value StdLib::sys_exec(const std::vector<Value> &args, VM *vm)
 	return vm->operation(OpCode::SYSTEM_R, VM::Register::r1);
 }
 
-Value StdLib::sys_crash(const std::vector <Value> &args, VM *vm)
+Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "error");
 	throw std::runtime_error(args[0].asString());
 	vm->reset();
 }
 
-Value StdLib::sys_reset(const std::vector <Value> &args, VM *vm)
+Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "reset");
 	vm->reset();
 	return Value();
 }
 
-Value StdLib::sys_shutdown(const std::vector <Value> &args, VM *vm)
+Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "shutdown");
 	vm->reset();
@@ -173,3 +176,5 @@ Value StdLib::sys_shutdown(const std::vector <Value> &args, VM *vm)
 	std::exit(ret);
 	return Value(ret);
 }
+
+} // namespace Phasor
