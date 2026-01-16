@@ -81,7 +81,7 @@ phasornative -c, --compiler clang++ -l, --linker lld -s, --source main.cpp input
 
 ```javascript
 include_stdio();
-include_stdstr();
+include_stdtype();
 
 fn factorial(n: int) -> int {
     if (n <= 1) return 1;
