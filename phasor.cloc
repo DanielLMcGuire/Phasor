@@ -1,11 +1,8 @@
 Phasor
-    filter rm_comments_in_strings " /* */
-    filter rm_comments_in_strings " // 
-    filter call_regexp_common C++
+    filter remove_inline //.*$
     extension phs
-    3rd_gen_scale 1.50
-PhasorIR
-    filter rm_comments_in_strings " ;
+    3rd_gen_scale 2.50
+Phasor_IR
+    filter remove_inline ;.*$
     extension phir
-    3rd_gen_scale 1.50
-    
+    3rd_gen_scale 1.00
