@@ -1,0 +1,47 @@
+/**
+ * @brief A simple interactive shell implementation for the Phasor VM.
+ * * This script provides a basic Command Line Interface (CLI) that allows users 
+ * to execute system commands, navigate the file system, and interact with the 
+ * Phasor environment. It demonstrates the use of standard library modules 
+ * for I/O, string manipulation, and system execution.
+ */
+
+/**
+ * @brief Removes leading and trailing whitespace from a string.
+ * * Iterates through the input string to strip space characters (' ') from both
+ * the beginning and the end of the text.
+ * * @param s The input string to be trimmed.
+ * @return string A new string with whitespace removed.
+ */
+fn trim(s: string) -> string { ... }
+
+/**
+ * @brief Checks if a string starts with a specific prefix.
+ * * Performs a length-guarded comparison of the beginning of the input string
+ * against the provided prefix string.
+ * * @param input The string to search within.
+ * @param prefix The substring to look for at the start.
+ * @return bool True if input starts with prefix, false otherwise.
+ */
+fn starts_with(input: string, prefix: string) -> bool { ... }
+
+/**
+ * @brief The main execution loop of the Phasor Shell.
+ * * 
+ * * The main function performs the following steps in an infinite loop:
+ * 1. Displays a prompt containing the current working directory (@ref fcd).
+ * 2. Reads user input from standard input (@ref gets).
+ * 3. Trims the input and checks for the "exit" command.
+ * 4. Dispatches the command to the underlying operating system (@ref sys_execute).
+ * * @return int Returns 0 on successful termination via 'exit'.
+ */
+fn main() { ... }
+
+/**
+ * @section stdlib_imports Standard Library Dependencies
+ * * The shell relies on the following Phasor STDLIB modules:
+ * - @b stdio: Provides puts(), printf(), and gets().
+ * - @b stdstr: Provides len(), substr(), and concat().
+ * - @b stdsys: Provides sys_execute().
+ * - @b stdfile: Provides fcd() for directory tracking.
+ */
