@@ -25,6 +25,7 @@ struct Token
 	int         column;
 };
 
+/// @brief Lexer
 class Lexer
 {
   public:

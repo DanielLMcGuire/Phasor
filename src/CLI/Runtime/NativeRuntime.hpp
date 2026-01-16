@@ -9,6 +9,12 @@
 namespace Phasor
 {
 
+/**
+ * @class NativeRuntime
+ * @brief CLI wrapper for running Phasor scripts and bytecode in-process
+ *
+ * Allows embedding and running Phasor scripts and bytecode within a native application.
+ */
 class NativeRuntime
 {
   public:

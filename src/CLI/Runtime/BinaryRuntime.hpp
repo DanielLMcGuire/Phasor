@@ -6,6 +6,12 @@
 namespace Phasor
 {
 
+/**
+ * @class BinaryRuntime
+ * @brief CLI wrapper for running Phasor bytecode binaries
+ *
+ * Loads and executes Phasor bytecode binaries (.phsb files).
+ */
 class BinaryRuntime
 {
   public:

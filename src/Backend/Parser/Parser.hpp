@@ -7,6 +7,7 @@
 namespace Phasor
 {
 
+/// @brief Parser
 class Parser
 {
   public:

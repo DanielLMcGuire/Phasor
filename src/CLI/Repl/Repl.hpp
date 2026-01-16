@@ -20,6 +20,10 @@ struct AppArgs
 	char **envp = nullptr;
 };
 
+/**
+ * @class Repl
+ * @brief Read-Eval-Print Loop for Phasor Programming Language
+ */
 class Repl
 {
   public:

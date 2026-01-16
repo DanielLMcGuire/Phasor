@@ -8,6 +8,7 @@
 #include "vhandle.hpp"   // For Virtual Handles
 namespace Phasor
 {
+/// @brief Windows specific type conversions
 namespace win
 {
 // ============================================================

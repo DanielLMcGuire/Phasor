@@ -9,6 +9,7 @@
 #include "winType.hpp"   // For Win32 Types
 namespace Phasor
 {
+/// @brief Windows User API functions
 class winuser
 {
   public:

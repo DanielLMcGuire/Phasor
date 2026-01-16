@@ -42,10 +42,7 @@ struct GUIDEqual
 namespace Phasor
 {
 
-/// @namespace vhandle
 /// @brief Phasor Sandboxed Windows Handle Management
-/// This namespace provides functionality to create and manage virtual handles (vhandles)
-/// that map to real Windows HANDLEs. This allows safe management of Windows resources
 namespace vhandle
 {
 /// @brief Virtual Handle (GUID)

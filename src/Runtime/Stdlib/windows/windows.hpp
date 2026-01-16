@@ -17,6 +17,7 @@
 
 namespace Phasor
 {
+/// @brief Windows API functions
 class windows
 {
   public:

@@ -8,6 +8,7 @@
 #include <array>
 #include "core/core.h"
 
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

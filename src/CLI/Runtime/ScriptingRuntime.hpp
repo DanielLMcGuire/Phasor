@@ -4,13 +4,17 @@
 #include <string>
 #include <vector>
 
-/* Forward-declare Phasor::VM so this header refers to the single VM type
-   defined in src/Runtime/VM/VM.hpp. */
 namespace Phasor { class VM; }
 
 namespace Phasor
 {
 
+/**
+ * @class ScriptingRuntime
+ * @brief CLI wrapper for running Phasor scripts
+ *
+ * Loads and executes Phasor source files (.phs files).
+ */
 class ScriptingRuntime
 {
   public:

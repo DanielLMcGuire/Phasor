@@ -6,6 +6,7 @@
 
 namespace Phasor
 {
+/// @brief Abstract Syntax Tree (AST) namespace
 namespace AST
 {
 

@@ -4,11 +4,7 @@
 namespace Phasor
 {
 
-/**
- * @namespace Frontend
- * @brief Frontend namespace
- * @details Contains all the frontend functions
- */
+/// @brief Frontend namespace
 namespace Frontend
 {
 /**
