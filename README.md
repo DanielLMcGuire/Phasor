@@ -149,7 +149,7 @@ putf("%d! = %d\n", num, result);
 
 ```bash
 cmake -S . -B build
-cmake --build build --config Release (-DASSEMBLY=[ON,OFF] (Off is recommended! The Assembly Operation set is experimental.))
+cmake --build build --config Release (-DASSEMBLY=[ON,OFF] (Only supported on Windows-AMD64))
 cmake --install build --prefix install
 ````
 
