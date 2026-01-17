@@ -1,0 +1,125 @@
+.TH PHASOR-ISA 7 "January 2026" "Phasor 2.0.0" "Phasor Instruction Set"
+.SH NAME
+phasor-isa \- overview of the Phasor virtual machine instruction set architecture
+
+.SH DESCRIPTION
+The Phasor Instruction Set is a hybrid architecture supporting both stack-based (v1.0) and register-based (v2.0) execution models. 
+
+The virtual machine maintains:
+.IP \(bu 2
+A primary data \fBstack\fR for temporary values.
+.IP \(bu 2
+A \fBcall stack\fR for function return addresses.
+.IP \(bu 2
+256 virtual \fBregisters\fR (\fBr0\fR through \fBr255\fR).
+.IP \(bu 2
+A global \fBvariable table\fR.
+
+.SH STACK-BASED INSTRUCTIONS
+These instructions manipulate the top of the data stack. For binary operations, the VM pops the second operand (\fIb\fR), then the first (\fIa\fR), and pushes the result.
+
+.SS Data Movement
+.TP
+.B PUSH_CONST \fIindex\fR
+Pushes the constant at pool \fIindex\fR onto the stack.
+.TP
+.B POP
+Removes the top value from the stack.
+.TP
+.B TRUE_P, FALSE_P, NULL_VAL
+Pushes literal \fBtrue\fR, \fBfalse\fR, or \fBnull\fR.
+
+.SS Arithmetic
+.IP \(bu 2
+\fBIADD, ISUBTRACT, IMULTIPLY, IDIVIDE, IMODULO\fR: Integer operations.
+.IP \(bu 2
+\fBFLADD, FLSUBTRACT, FLMULTIPLY, FLDIVIDE, FLMODULO\fR: Float operations.
+.IP \(bu 2
+\fBSQRT, POW, LOG, EXP, SIN, COS, TAN\fR: Math functions.
+.IP \(bu 2
+\fBNEGATE\fR: Unary negation.
+
+.SS Comparison and Logic
+.IP \(bu 2
+\fBIEQUAL, INOT_EQUAL, ILESS_THAN, IGREATER_THAN\fR: Integer comparisons.
+.IP \(bu 2
+\fBFLEQUAL, FLNOT_EQUAL, FLLESS_THAN, FLGREATER_THAN\fR: Float comparisons.
+.IP \(bu 2
+\fBIAND, IOR, NOT\fR: Logical operations.
+
+.SH REGISTER-BASED INSTRUCTIONS (v2.0)
+Register instructions operate on \fBr0-r255\fR. These are used for 3-address code optimizations.
+
+.SS 3-Address Arithmetic
+Format: \fBOP rA, rB, rC\fR (result \fBrA = rB op rC\fR).
+.IP \(bu 2
+\fBIADD_R, ISUB_R, IMUL_R, IDIV_R, IMOD_R\fR: Integer math.
+.IP \(bu 2
+\fBFLADD_R, FLSUB_R, FLMUL_R, FLDIV_R, FLMOD_R\fR: Float math.
+
+.SS Register Data Movement
+.TP
+.B MOV \fIrA, rB\fR
+Copy value from register \fBrB\fR to \fBrA\fR.
+.TP
+.B LOAD_CONST_R \fIrA, index\fR
+Load constant pool \fIindex\fR into register \fBrA\fR.
+.TP
+.B LOAD_VAR_R \fIrA, index\fR
+Load global variable at \fIindex\fR into \fBrA\fR.
+.TP
+.B STORE_VAR_R \fIrA, index\fR
+Store value from \fBrA\fR into variable table at \fIindex\fR.
+
+.SH CONTROL FLOW
+.TP
+.B JUMP \fIaddress\fR
+Unconditional jump to instruction at \fIaddress\fR.
+.TP
+.B JUMP_IF_FALSE \fIaddress\fR
+Pops value; jumps if value is \fBfalse\fR or \fBnull\fR.
+.TP
+.B JUMP_IF_TRUE \fIaddress\fR
+Pops value; jumps if value is \fBtrue\fR.
+.TP
+.B CALL \fIindex\fR
+Pushes return address and jumps to function defined at constant \fIindex\fR.
+.TP
+.B RETURN
+Pops return address from call stack and resumes.
+
+.SH OBJECTS AND STRUCTS
+.TP
+.B NEW_STRUCT \fIindex\fR
+Creates an instance of the struct definition at constant \fIindex\fR.
+.TP
+.B GET_FIELD, SET_FIELD
+Dynamic field access (uses stack for object and field name).
+.TP
+.B GET_FIELD_STATIC \fIindex, offset\fR
+Optimized access using constant \fIindex\fR and pre-calculated \fIoffset\fR.
+
+.SH SYSTEM AND I/O
+.TP
+.B PRINT
+Pops value and prints to \fBstdout\fR.
+.TP
+.B PRINTERROR
+Pops value and prints to \fBstderr\fR.
+.TP
+.B READLINE
+Reads a line from \fBstdin\fR and pushes the string result.
+.TP
+.B SYSTEM
+Pops a command string and executes it via the host shell.
+.TP
+.B HALT
+Terminates the virtual machine execution.
+
+.SH SEE ALSO
+.BR phasor (3),
+.BR phir (5)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
