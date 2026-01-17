@@ -1,5 +1,5 @@
 pkgname=phasor
-pkgver=0.0.0
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
@@ -12,8 +12,15 @@ sha256sums=('SKIP')
 
 pkgver() {
     cd "$srcdir/Phasor"
-    printf "0.0.0.r%s" "$(git rev-list --count HEAD)"
+    tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+    commits_since_tag=$(git rev-list "${tag}"..HEAD --count 2>/dev/null || echo 0)
+    if [ "$commits_since_tag" -eq 0 ]; then
+        echo "$tag"
+    else
+        echo "${tag}.r${commits_since_tag}"
+    fi
 }
+
 
 build() {
 	cd "$srcdir/Phasor"
