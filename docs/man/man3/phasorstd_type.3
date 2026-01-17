@@ -1,0 +1,317 @@
+.TH PHASORSTD_TYPE 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_type \- Phasor type conversion functions
+.SH SYNOPSIS
+.nf
+.B include_stdtype();
+.PP
+.B to_int(value)
+.B to_float(value)
+.B to_string(value)
+.B to_bool(value)
+.fi
+.SH DESCRIPTION
+The
+.B include_stdtype()
+function registers type conversion functions for the Phasor runtime, enabling explicit conversion between different data types.
+.SH FUNCTIONS
+.TP
+.BR to_int (value)
+Convert a value to an integer.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Value to convert (any type)
+.RE
+.PP
+.B Conversion Rules:
+.RS
+.IP \(bu 2
+Integer: Returns unchanged
+.IP \(bu 2
+Float: Truncates to integer (rounds toward zero)
+.IP \(bu 2
+String: Parses as integer, returns 0 if invalid
+.IP \(bu 2
+Boolean: true → 1, false → 0
+.IP \(bu 2
+Other: Returns 0
+.RE
+.PP
+.B Returns:
+64-bit signed integer (int64)
+.RE
+.PP
+.TP
+.BR to_float (value)
+Convert a value to a floating-point number.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Value to convert (any type)
+.RE
+.PP
+.B Conversion Rules:
+.RS
+.IP \(bu 2
+Float: Returns unchanged
+.IP \(bu 2
+Integer: Converts to float
+.IP \(bu 2
+String: Parses as float
+.IP \(bu 2
+Boolean: true → 1.0, false → 0.0
+.IP \(bu 2
+Other: Implementation-defined
+.RE
+.PP
+.B Returns:
+64-bit floating-point number (double)
+.RE
+.PP
+.TP
+.BR to_string (value)
+Convert a value to a string representation.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Value to convert (any type)
+.RE
+.PP
+.B Conversion Rules:
+.RS
+.IP \(bu 2
+String: Returns unchanged
+.IP \(bu 2
+Integer: Decimal representation
+.IP \(bu 2
+Float: Decimal representation with precision
+.IP \(bu 2
+Boolean: "true" or "false"
+.IP \(bu 2
+Null: "null"
+.IP \(bu 2
+Struct: String representation of struct
+.RE
+.PP
+.B Returns:
+String representation of the value
+.RE
+.PP
+.TP
+.BR to_bool (value)
+Convert a value to a boolean.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Value to convert (any type)
+.RE
+.PP
+.B Conversion Rules:
+.RS
+.IP \(bu 2
+Boolean: Returns unchanged
+.IP \(bu 2
+Integer: 0 → false, non-zero → true
+.IP \(bu 2
+Float: 0.0 → false, non-zero → true
+.IP \(bu 2
+String: empty → false, non-empty → true
+.IP \(bu 2
+Null: false
+.IP \(bu 2
+Other: Implementation-defined
+.RE
+.PP
+.B Returns:
+Boolean true or false
+.RE
+.SH EXAMPLES
+.B Integer Conversion
+.PP
+.nf
+.RS
+include_stdtype();
+
+puts(to_int(42));        // 42
+puts(to_int(3.14));      // 3
+puts(to_int(3.99));      // 3 (truncates)
+puts(to_int("123"));     // 123
+puts(to_int("abc"));     // 0 (invalid)
+puts(to_int(true));      // 1
+puts(to_int(false));     // 0
+.RE
+.fi
+.PP
+.B Float Conversion
+.PP
+.nf
+.RS
+puts(to_float(42));      // 42.0
+puts(to_float(3.14));    // 3.14
+puts(to_float("2.718")); // 2.718
+puts(to_float(true));    // 1.0
+.RE
+.fi
+.PP
+.B String Conversion
+.PP
+.nf
+.RS
+puts(to_string(42));     // "42"
+puts(to_string(3.14));   // "3.14" or "3.140000"
+puts(to_string(true));   // "true"
+puts(to_string(false));  // "false"
+puts(to_string(null));   // "null"
+
+var x = 100;
+var msg = concat("Value: ", to_string(x));
+puts(msg);  // "Value: 100"
+.RE
+.fi
+.PP
+.B Boolean Conversion
+.PP
+.nf
+.RS
+puts(to_bool(1));        // true
+puts(to_bool(0));        // false
+puts(to_bool(-5));       // true
+puts(to_bool(0.0));      // false
+puts(to_bool(0.1));      // true
+puts(to_bool(""));       // false
+puts(to_bool("hello"));  // true
+puts(to_bool("0"));      // true (non-empty string)
+.RE
+.fi
+.PP
+.B Parsing User Input
+.PP
+.nf
+.RS
+include_stdio();
+include_stdtype();
+
+puts("Enter a number:");
+var input = gets();
+var number = to_int(input);
+
+if (number == 0 && input != "0") {
+    puts("Invalid number entered");
+} else {
+    putf("You entered: %d", number);
+}
+.RE
+.fi
+.PP
+.B Type-Safe Calculations
+.PP
+.nf
+.RS
+fn safe_divide(a, b) {
+    var dividend = to_float(a);
+    var divisor = to_float(b);
+    
+    if (divisor == 0.0) {
+        error("Division by zero");
+    }
+    
+    return dividend / divisor;
+}
+
+var result = safe_divide("10", "3");
+puts(result);  // 3.333...
+.RE
+.fi
+.PP
+.B Configuration Parsing
+.PP
+.nf
+.RS
+fn parse_config(config_string) {
+    // Parse "key=value" format
+    var parts = regex_split(null, config_string, "=");
+    var key = parts.0;
+    var value_str = parts.1;
+    
+    // Try to convert to appropriate type
+    var int_val = to_int(value_str);
+    if (to_string(int_val) == value_str) {
+        return int_val;  // It's an integer
+    }
+    
+    var float_val = to_float(value_str);
+    if (to_string(float_val) == value_str) {
+        return float_val;  // It's a float
+    }
+    
+    if (value_str == "true" || value_str == "false") {
+        return to_bool(value_str);
+    }
+    
+    return value_str;  // Keep as string
+}
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+Integer conversion truncates floating-point values (does not round)
+.IP \(bu 2
+String-to-number conversion returns 0 for invalid strings
+.IP \(bu 2
+Boolean conversion of strings only checks if empty, not content
+.IP \(bu 2
+Type conversion functions never throw errors
+.IP \(bu 2
+Float precision may vary in string conversion
+.IP \(bu 2
+Very large integers may lose precision when converted to float
+.SH TYPE SYSTEM
+Phasor supports the following types:
+.RS
+.IP \(bu 2
+.B null
+- Null/undefined value
+.IP \(bu 2
+.B bool
+- Boolean (true/false)
+.IP \(bu 2
+.B int
+- 64-bit signed integer
+.IP \(bu 2
+.B float
+- 64-bit floating-point (IEEE 754 double)
+.IP \(bu 2
+.B string
+- UTF-8 text string
+.IP \(bu 2
+.B struct
+- User-defined composite type
+.RE
+.SH BEST PRACTICES
+.IP \(bu 2
+Always validate converted values when parsing user input
+.IP \(bu 2
+Use
+.B to_string()
+to concatenate non-string values
+.IP \(bu 2
+Be aware of precision loss when converting large integers to float
+.IP \(bu 2
+Check for zero before division when converting strings to numbers
+.IP \(bu 2
+Use explicit conversion rather than relying on implicit coercion
+.SH SEE ALSO
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

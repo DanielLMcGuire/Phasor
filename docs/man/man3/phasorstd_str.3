@@ -1,0 +1,313 @@
+.TH PHASORSTD_STR 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_str \- Phasor string manipulation functions
+.SH SYNOPSIS
+.nf
+.B include_stdstr();
+.PP
+.B len(string)
+.B char_at(string, index)
+.B substr(string, start[, length])
+.B concat(string1, string2, ...)
+.B to_upper(string)
+.B to_lower(string)
+.B starts_with(string, prefix)
+.B ends_with(string, suffix)
+.PP
+.B sb_new()
+.B sb_append(handle, string)
+.B sb_to_string(handle)
+.B sb_clear(handle)
+.B sb_free(handle)
+.fi
+.SH DESCRIPTION
+The
+.B include_stdstr()
+function registers string manipulation and StringBuilder functions for the Phasor runtime.
+.SH STRING FUNCTIONS
+.TP
+.BR len (string)
+Get the length of a string in characters.
+.RS
+.PP
+.B Returns:
+Integer length of the string
+.RE
+.PP
+.TP
+.BR char_at (string, index)
+Get the character at a specific index in a string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+Input string
+.IP \fBindex\fR 12
+Zero-based character index
+.RE
+.PP
+.B Returns:
+Single-character string, or empty string if index is out of bounds
+.RE
+.PP
+.TP
+.BR substr (string, start[, length])
+Extract a substring from a string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+Input string
+.IP \fBstart\fR 12
+Starting index (zero-based)
+.IP \fBlength\fR 12
+Number of characters to extract (optional, defaults to end of string)
+.RE
+.PP
+.B Returns:
+Extracted substring, or empty string if start is out of bounds
+.RE
+.PP
+.TP
+.BR concat (string1, string2, ...)
+Concatenate multiple strings together.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring...\fR 12
+Two or more strings to concatenate (variadic)
+.RE
+.PP
+.B Returns:
+Concatenated string
+.RE
+.PP
+.TP
+.BR to_upper (string)
+Convert a string to uppercase.
+.RS
+.PP
+.B Returns:
+Uppercase version of the string
+.RE
+.PP
+.TP
+.BR to_lower (string)
+Convert a string to lowercase.
+.RS
+.PP
+.B Returns:
+Lowercase version of the string
+.RE
+.PP
+.TP
+.BR starts_with (string, prefix)
+Check if a string starts with a given prefix.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+String to check
+.IP \fBprefix\fR 12
+Prefix to match
+.RE
+.PP
+.B Returns:
+Boolean true if string starts with prefix, false otherwise
+.RE
+.PP
+.TP
+.BR ends_with (string, suffix)
+Check if a string ends with a given suffix.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+String to check
+.IP \fBsuffix\fR 12
+Suffix to match
+.RE
+.PP
+.B Returns:
+Boolean true if string ends with suffix, false otherwise
+.RE
+.SH STRINGBUILDER FUNCTIONS
+StringBuilder provides efficient string concatenation for building large strings incrementally.
+.TP
+.BR sb_new ()
+Create a new StringBuilder instance.
+.RS
+.PP
+.B Returns:
+Integer handle representing the StringBuilder
+.RE
+.PP
+.TP
+.BR sb_append (handle, string)
+Append a string to a StringBuilder.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+StringBuilder handle from sb_new()
+.IP \fBstring\fR 12
+String to append
+.RE
+.PP
+.B Returns:
+The handle (for method chaining)
+.RE
+.PP
+.TP
+.BR sb_to_string (handle)
+Convert a StringBuilder to a string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+StringBuilder handle
+.RE
+.PP
+.B Returns:
+The complete string
+.RE
+.PP
+.TP
+.BR sb_clear (handle)
+Clear the contents of a StringBuilder without freeing it.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+StringBuilder handle
+.RE
+.PP
+.B Returns:
+The handle (for method chaining)
+.RE
+.PP
+.TP
+.BR sb_free (handle)
+Free a StringBuilder and return its contents.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+StringBuilder handle
+.RE
+.PP
+.B Returns:
+The final string value
+.RE
+.SH EXAMPLES
+.B Basic String Operations
+.PP
+.nf
+.RS
+include_stdstr();
+
+var text = "Hello, World!";
+puts(len(text));              // 13
+puts(char_at(text, 0));        // "H"
+puts(substr(text, 7, 5));      // "World"
+puts(to_upper(text));          // "HELLO, WORLD!"
+puts(to_lower(text));          // "hello, world!"
+.RE
+.fi
+.PP
+.B String Checking
+.PP
+.nf
+.RS
+var filename = "document.txt";
+
+if (ends_with(filename, ".txt")) {
+    puts("Text file detected");
+}
+
+if (starts_with(filename, "doc")) {
+    puts("Starts with 'doc'");
+}
+.RE
+.fi
+.PP
+.B String Concatenation
+.PP
+.nf
+.RS
+var first = "Hello";
+var last = "World";
+var result = concat(first, ", ", last, "!");
+puts(result);  // "Hello, World!"
+.RE
+.fi
+.PP
+.B StringBuilder Usage
+.PP
+.nf
+.RS
+var sb = sb_new();
+sb_append(sb, "Line 1\\n");
+sb_append(sb, "Line 2\\n");
+sb_append(sb, "Line 3\\n");
+
+var result = sb_to_string(sb);
+puts(result);
+sb_free(sb);
+.RE
+.fi
+.PP
+.B StringBuilder Chaining
+.PP
+.nf
+.RS
+var sb = sb_new();
+sb_append(sb_append(sb_append(sb, "A"), "B"), "C");
+puts(sb_to_string(sb));  // "ABC"
+sb_free(sb);
+.RE
+.fi
+.PP
+.B Building Large Strings
+.PP
+.nf
+.RS
+var sb = sb_new();
+for (var i = 0; i < 1000; i++) {
+    sb_append(sb, to_string(i));
+    sb_append(sb, "\\n");
+}
+var output = sb_free(sb);
+fwrite("numbers.txt", output);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+String indices are zero-based
+.IP \(bu 2
+Out-of-bounds access returns empty strings rather than throwing errors
+.IP \(bu 2
+StringBuilder is more efficient than repeated string concatenation
+.IP \(bu 2
+Always free StringBuilders with
+.B sb_free()
+when done to avoid memory leaks
+.IP \(bu 2
+StringBuilder handles are integers and can be stored in variables
+.IP \(bu 2
+Case conversion functions use standard C locale rules
+.SH SEE ALSO
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

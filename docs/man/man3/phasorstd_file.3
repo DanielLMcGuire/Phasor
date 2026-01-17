@@ -1,0 +1,443 @@
+.TH PHASORSTD_FILE 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_file \- Phasor file system functions
+.SH SYNOPSIS
+.nf
+.B include_stdfile();
+.PP
+.B fread(path)
+.B fwrite(path, content)
+.B fexists(path)
+.B freadln(path, line_number)
+.B fwriteln(path, line_number, content)
+.B fappend(path, content)
+.B frm(path)
+.B frn(old_path, new_path)
+.B fcd([path])
+.B fcp(source, dest[, overwrite])
+.B fmv(source, dest)
+.B fpropset(path, property, value)
+.B fpropget(path, property)
+.B fmk(path)
+.B fmkdir(path)
+.B frmdir(path)
+.B freaddir(path)
+.B fstat(path)
+.fi
+.SH DESCRIPTION
+The
+.B include_stdfile()
+function registers file system manipulation functions for the Phasor runtime, providing comprehensive file I/O, directory operations, and file metadata management.
+.SH FILE I/O FUNCTIONS
+.TP
+.BR fread (path)
+Read the entire contents of a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+String containing file contents, or null if file cannot be opened
+.RE
+.PP
+.TP
+.BR fwrite (path, content)
+Write content to a file, overwriting existing content.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.IP \fBcontent\fR 12
+String to write
+.RE
+.PP
+.B Returns:
+Boolean true on success
+.PP
+.B Throws:
+Runtime error if file cannot be opened
+.RE
+.PP
+.TP
+.BR fappend (path, content)
+Append content to the end of a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.IP \fBcontent\fR 12
+String to append
+.RE
+.PP
+.B Returns:
+Boolean true on success
+.PP
+.B Throws:
+Runtime error if file cannot be opened
+.RE
+.PP
+.TP
+.BR freadln (path, line_number)
+Read a specific line from a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.IP \fBline_number\fR 12
+Zero-based line index
+.RE
+.PP
+.B Returns:
+String containing the line content
+.PP
+.B Throws:
+Runtime error if file cannot be opened
+.RE
+.PP
+.TP
+.BR fwriteln (path, line_number, content)
+Write content to a specific line in a file, expanding the file if necessary.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.IP \fBline_number\fR 12
+Zero-based line index
+.IP \fBcontent\fR 12
+New line content
+.RE
+.PP
+.B Returns:
+Boolean true on success
+.PP
+.B Throws:
+Runtime error if file cannot be opened
+.RE
+.SH FILE OPERATIONS
+.TP
+.BR fexists (path)
+Check if a file or directory exists.
+.RS
+.PP
+.B Returns:
+Boolean true if path exists, false otherwise
+.RE
+.PP
+.TP
+.BR fmk (path)
+Create a new empty file.
+.RS
+.PP
+.B Returns:
+Boolean true on success
+.PP
+.B Throws:
+Runtime error if file cannot be created
+.RE
+.PP
+.TP
+.BR frm (path)
+Remove (delete) a file.
+.RS
+.PP
+.B Returns:
+Boolean true if file was deleted, false if file didn't exist
+.RE
+.PP
+.TP
+.BR frn (old_path, new_path)
+Rename a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBold_path\fR 12
+Current file path
+.IP \fBnew_path\fR 12
+New file path
+.RE
+.PP
+.B Returns:
+Boolean true if renamed, false if source didn't exist
+.RE
+.PP
+.TP
+.BR fcp (source, dest[, overwrite])
+Copy a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBsource\fR 12
+Source file path
+.IP \fBdest\fR 12
+Destination file path
+.IP \fBoverwrite\fR 12
+Boolean to allow overwriting (optional, default false)
+.RE
+.PP
+.B Returns:
+Boolean true on success, false on failure
+.RE
+.PP
+.TP
+.BR fmv (source, dest)
+Move a file (copy then delete source).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBsource\fR 12
+Source file path
+.IP \fBdest\fR 12
+Destination file path
+.RE
+.PP
+.B Returns:
+Null value
+.RE
+.SH DIRECTORY OPERATIONS
+.TP
+.BR fcd ([path])
+Get or set the current working directory.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+New working directory (optional)
+.RE
+.PP
+.B Returns:
+Current working directory path. If path argument provided, changes to that directory first
+.RE
+.PP
+.TP
+.BR fmkdir (path)
+Create a new directory.
+.RS
+.PP
+.B Returns:
+Boolean true if created, false if directory already exists
+.RE
+.PP
+.TP
+.BR frmdir (path)
+Remove an empty directory.
+.RS
+.PP
+.B Returns:
+Boolean true on success
+.RE
+.PP
+.TP
+.BR freaddir (path)
+List contents of a directory.
+.RS
+.PP
+.B Returns:
+String with filenames separated by newlines, or error message on failure
+.RE
+.SH FILE METADATA
+.TP
+.BR fpropset (path, property, value)
+Set a file property (timestamp).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+File path
+.IP \fBproperty\fR 12
+Property character ('a'=access, 'm'=modify)
+.IP \fBvalue\fR 12
+Unix timestamp (epoch seconds)
+.RE
+.PP
+.B Returns:
+Result of property set operation
+.PP
+.B Throws:
+Runtime error if epoch is negative
+.RE
+.PP
+.TP
+.BR fpropget (path, property)
+Get a file property (timestamp).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+File path
+.IP \fBproperty\fR 12
+Property character ('a'=access, 'm'=modify)
+.RE
+.PP
+.B Returns:
+Property value
+.RE
+.PP
+.TP
+.BR fstat (path)
+Get detailed file statistics.
+.RS
+.PP
+.B Returns:
+Struct containing:
+.RS
+.IP \fBmode\fR 12
+File mode and permissions
+.IP \fBnlink\fR 12
+Number of hard links
+.IP \fBuid\fR 12
+User ID of owner
+.IP \fBgid\fR 12
+Group ID of owner
+.IP \fBsize\fR 12
+File size in bytes
+.RE
+.PP
+Returns null on error
+.RE
+.SH EXAMPLES
+.B Basic File I/O
+.PP
+.nf
+.RS
+include_stdfile();
+
+// Write to file
+fwrite("data.txt", "Hello, World!");
+
+// Read from file
+var content = fread("data.txt");
+puts(content);
+
+// Append to file
+fappend("data.txt", "\\nNew line");
+.RE
+.fi
+.PP
+.B Line-Based Operations
+.PP
+.nf
+.RS
+// Read specific line
+var line = freadln("config.txt", 0);
+
+// Update specific line
+fwriteln("config.txt", 2, "new_setting=value");
+.RE
+.fi
+.PP
+.B File Management
+.PP
+.nf
+.RS
+// Check existence
+if (fexists("old.txt")) {
+    // Rename file
+    frn("old.txt", "new.txt");
+}
+
+// Copy with overwrite
+fcp("source.txt", "backup.txt", true);
+
+// Move file
+fmv("temp.txt", "archive/temp.txt");
+
+// Delete file
+frm("unwanted.txt");
+.RE
+.fi
+.PP
+.B Directory Operations
+.PP
+.nf
+.RS
+// Get current directory
+var cwd = fcd();
+puts(cwd);
+
+// Change directory
+fcd("/home/user/projects");
+
+// Create directory
+fmkdir("new_folder");
+
+// List directory
+var files = freaddir(".");
+puts(files);
+
+// Remove directory
+frmdir("empty_folder");
+.RE
+.fi
+.PP
+.B File Statistics
+.PP
+.nf
+.RS
+var stat = fstat("document.txt");
+if (stat != null) {
+    putf("Size: %d bytes", stat.size);
+    putf("Owner UID: %d", stat.uid);
+    putf("Permissions: %d", stat.mode);
+    putf("Hard links: %d", stat.nlink);
+}
+.RE
+.fi
+.PP
+.B File Properties
+.PP
+.nf
+.RS
+// Get modification time
+var mtime = fpropget("file.txt", 'm');
+puts(mtime);
+
+// Set access time
+var now = time();
+fpropset("file.txt", 'a', now);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+File paths can be relative or absolute
+.IP \(bu 2
+Line numbers in
+.B freadln()
+and
+.B fwriteln()
+are zero-based
+.IP \(bu 2
+.B fwriteln()
+expands the file with empty lines if necessary
+.IP \(bu 2
+.B fmv()
+is implemented as copy + delete, not an atomic move
+.IP \(bu 2
+Directory removal only works on empty directories
+.IP \(bu 2
+File statistics struct uses Unix-style permissions
+.IP \(bu 2
+Property characters: 'a' for access time, 'm' for modification time
+.SH SEE ALSO
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

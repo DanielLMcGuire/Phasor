@@ -1,0 +1,243 @@
+.TH PHASORSTD_IO 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_io \- Phasor standard I/O functions
+.SH SYNOPSIS
+.nf
+.B include_stdio();
+.PP
+.B c_fmt(format, ...)
+.B prints(string)
+.B printf(format, ...)
+.B puts(string)
+.B putf(format, ...)
+.B gets()
+.B puts_error(string)
+.B putf_error(format, ...)
+.fi
+.SH DESCRIPTION
+The
+.B include_stdio()
+function registers a set of standard input/output functions for the Phasor runtime. These functions provide formatted output, string printing, and user input capabilities.
+.SH FUNCTIONS
+.TP
+.BR c_fmt (format, ...)
+Format a string using C-style format specifiers. Returns the formatted string without printing.
+.RS
+.PP
+.B Format Specifiers:
+.RS
+.IP \fB%s\fR 8
+String
+.IP \fB%d\fR 8
+Integer (decimal)
+.IP \fB%f\fR 8
+Float
+.IP \fB%%\fR 8
+Literal percent sign
+.RE
+.PP
+.B Arguments:
+.RS
+.IP \fBformat\fR 12
+Format string with specifiers
+.IP \fB...\fR 12
+Values to format (variadic)
+.RE
+.PP
+.B Returns:
+Formatted string
+.RE
+.PP
+.TP
+.BR prints (string)
+Print a string to stdout without adding a newline.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+String to print
+.RE
+.PP
+.B Returns:
+Empty string
+.RE
+.PP
+.TP
+.BR printf (format, ...)
+Print a formatted string to stdout without adding a newline. Equivalent to
+.B c_fmt()
+followed by
+.BR prints() .
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBformat\fR 12
+Format string with specifiers
+.IP \fB...\fR 12
+Values to format (variadic)
+.RE
+.PP
+.B Returns:
+Empty string
+.RE
+.PP
+.TP
+.BR puts (string)
+Print a string to stdout followed by a newline character.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+String to print
+.RE
+.PP
+.B Returns:
+Empty string
+.RE
+.PP
+.TP
+.BR putf (format, ...)
+Print a formatted string to stdout followed by a newline. Equivalent to
+.B c_fmt()
+followed by
+.BR puts() .
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBformat\fR 12
+Format string with specifiers
+.IP \fB...\fR 12
+Values to format (variadic)
+.RE
+.PP
+.B Returns:
+Empty string
+.RE
+.PP
+.TP
+.BR gets ()
+Read a line of input from stdin.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+String containing the input line
+.RE
+.PP
+.TP
+.BR puts_error (string)
+Print a string to stderr followed by a newline character.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+String to print to stderr
+.RE
+.PP
+.B Returns:
+Empty string or error value
+.RE
+.PP
+.TP
+.BR putf_error (format, ...)
+Print a formatted string to stderr followed by a newline.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBformat\fR 12
+Format string with specifiers
+.IP \fB...\fR 12
+Values to format (variadic)
+.RE
+.PP
+.B Returns:
+Empty string or error value
+.RE
+.SH EXAMPLES
+.B Basic Output
+.PP
+.nf
+.RS
+include_stdio();
+
+puts("Hello, World!");
+prints("No newline");
+.RE
+.fi
+.PP
+.B Formatted Output
+.PP
+.nf
+.RS
+var name = "Alice";
+var age = 30;
+var score = 95.5;
+
+putf("Name: %s", name);
+putf("Age: %d", age);
+putf("Score: %f", score);
+printf("Result: %s got %f%%", name, score);
+.RE
+.fi
+.PP
+.B User Input
+.PP
+.nf
+.RS
+puts("Enter your name:");
+var name = gets();
+putf("Hello, %s!", name);
+.RE
+.fi
+.PP
+.B Error Output
+.PP
+.nf
+.RS
+if (error_condition) {
+    puts_error("An error occurred!");
+    putf_error("Error code: %d", error_code);
+}
+.RE
+.fi
+.PP
+.B String Formatting
+.PP
+.nf
+.RS
+var message = c_fmt("User %s (ID: %d)", username, user_id);
+puts(message);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+All print functions flush output immediately
+.IP \(bu 2
+The
+.B gets()
+function reads until a newline character is encountered
+.IP \(bu 2
+Format strings are processed at runtime, not compile time
+.IP \(bu 2
+Unknown format specifiers are included literally in the output
+.IP \(bu 2
+The
+.B c_fmt()
+function is useful for building strings without immediate output
+.SH SEE ALSO
+.BR phasorstd_str (3),
+.BR phasorstd_file (3),
+.BR phasorstd_sys (3),
+.BR phasorjit (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

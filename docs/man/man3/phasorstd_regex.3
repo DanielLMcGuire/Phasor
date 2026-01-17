@@ -1,0 +1,374 @@
+.TH PHASORSTD_REGEX 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_regex \- Phasor regular expression functions
+.SH SYNOPSIS
+.nf
+.B include_stdregex();
+.PP
+.B regex_match(pattern, text)
+.B regex_search(pattern, text[, start[, end]])
+.B regex_findall(pattern, text)
+.B regex_split(pattern, text[, max_split])
+.B regex_replace(pattern, text, replacement[, flags])
+.fi
+.SH DESCRIPTION
+The
+.B include_stdregex()
+function registers regular expression functions for the Phasor runtime, providing pattern matching, searching, and text manipulation capabilities using ECMAScript regex syntax.
+.SH FUNCTIONS
+.TP
+.BR regex_match (pattern, text)
+Check if the entire text matches a regular expression pattern.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpattern\fR 12
+Regular expression pattern string
+.IP \fBtext\fR 12
+Text to match against
+.RE
+.PP
+.B Returns:
+Boolean true if entire text matches pattern, false otherwise
+.PP
+.B Throws:
+Runtime error on invalid regex pattern
+.RE
+.PP
+.TP
+.BR regex_search (pattern, text[, start[, end]])
+Search for a pattern within text and return the first match.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpattern\fR 12
+Regular expression pattern string
+.IP \fBtext\fR 12
+Text to search
+.IP \fBstart\fR 12
+Starting position (optional, default 0)
+.IP \fBend\fR 12
+Ending position (optional, default end of text)
+.RE
+.PP
+.B Returns:
+String containing the first match, or empty string if no match
+.PP
+.B Throws:
+Runtime error on invalid regex or out-of-range positions
+.RE
+.PP
+.TP
+.BR regex_findall (pattern, text)
+Find all occurrences of a pattern in text.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpattern\fR 12
+Regular expression pattern string
+.IP \fBtext\fR 12
+Text to search
+.RE
+.PP
+.B Returns:
+Struct containing:
+.RS
+.IP \fBcount\fR 12
+Number of matches
+.IP \fB0, 1, 2...\fR 12
+Match structs with fields:
+.RS
+.IP \(bu 2
+.B text
+- Matched text
+.IP \(bu 2
+.B position
+- Match position in original text
+.RE
+.RE
+.PP
+.B Throws:
+Runtime error on invalid regex pattern
+.RE
+.PP
+.TP
+.BR regex_split (pattern, text[, max_split])
+Split text by regex pattern matches.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpattern\fR 12
+Regular expression pattern for splitting
+.IP \fBtext\fR 12
+Text to split
+.IP \fBmax_split\fR 12
+Maximum number of splits (optional, -1 for unlimited)
+.RE
+.PP
+.B Returns:
+Struct containing:
+.RS
+.IP \fBcount\fR 12
+Number of parts
+.IP \fB0, 1, 2...\fR 12
+String parts
+.RE
+.PP
+.B Throws:
+Runtime error on invalid regex pattern
+.RE
+.PP
+.TP
+.BR regex_replace (pattern, text, replacement[, flags])
+Replace pattern matches with replacement text.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpattern\fR 12
+Regular expression pattern
+.IP \fBtext\fR 12
+Text to process
+.IP \fBreplacement\fR 12
+Replacement string
+.IP \fBflags\fR 12
+Optional flags string:
+.RS
+.IP \fBi\fR 8
+Case-insensitive
+.IP \fBm\fR 8
+Multiline mode
+.IP \fBe\fR 8
+ECMAScript syntax (default)
+.IP \fBa\fR 8
+AWK syntax
+.IP \fBg\fR 8
+grep syntax
+.IP \fBp\fR 8
+egrep syntax
+.IP \fBn\fR 8
+No submatch
+.IP \fBo\fR 8
+Optimize
+.IP \fBc\fR 8
+Collate
+.IP \fBf\fR 8
+sed format
+.IP \fBr\fR 8
+No copy (only replacements)
+.IP \fBd\fR 8
+First only
+.RE
+.RE
+.PP
+.B Returns:
+String with replacements applied
+.PP
+.B Throws:
+Runtime error on invalid regex pattern
+.RE
+.SH EXAMPLES
+.B Pattern Matching
+.PP
+.nf
+.RS
+include_stdregex();
+
+var text = "Hello123";
+var is_alphanumeric = regex_match(null, "[A-Za-z0-9]+", text);
+puts(is_alphanumeric);  // true
+
+var is_numeric = regex_match(null, "[0-9]+", text);
+puts(is_numeric);  // false
+.RE
+.fi
+.PP
+.B Searching
+.PP
+.nf
+.RS
+var text = "The year 2026 is here";
+var year = regex_search(null, "[0-9]{4}", text);
+puts(year);  // "2026"
+
+// Search in range
+var partial = regex_search(null, "[0-9]+", text, 10, 15);
+puts(partial);  // "20"
+.RE
+.fi
+.PP
+.B Finding All Matches
+.PP
+.nf
+.RS
+var text = "Emails: alice@example.com, bob@test.org";
+var pattern = "[a-z]+@[a-z]+\\.[a-z]+";
+var matches = regex_findall(null, pattern, text);
+
+putf("Found %d emails:", matches.count);
+for (var i = 0; i < matches.count; i++) {
+    var match = matches.(to_string(i));
+    putf("  %s at position %d", match.text, match.position);
+}
+.RE
+.fi
+.PP
+.B Splitting Text
+.PP
+.nf
+.RS
+var csv = "apple,banana,cherry,date";
+var parts = regex_split(null, ",", csv);
+
+putf("Parts: %d", parts.count);
+for (var i = 0; i < parts.count; i++) {
+    puts(parts.(to_string(i)));
+}
+
+// Limited split
+var limited = regex_split(null, ",", csv, 2);
+// Results in: ["apple", "banana", "cherry,date"]
+.RE
+.fi
+.PP
+.B Text Replacement
+.PP
+.nf
+.RS
+var text = "Hello World! Hello Universe!";
+
+// Replace all "Hello"
+var result = regex_replace(null, "Hello", text, "Hi");
+puts(result);  // "Hi World! Hi Universe!"
+
+// Case-insensitive replacement
+var text2 = "hello HELLO Hello";
+var result2 = regex_replace(null, "hello", text2, "hi", "i");
+puts(result2);  // "hi hi hi"
+
+// Replace first only
+var result3 = regex_replace(null, "Hello", text, "Hi", "d");
+puts(result3);  // "Hi World! Hello Universe!"
+.RE
+.fi
+.PP
+.B Email Validation
+.PP
+.nf
+.RS
+fn is_valid_email(email) {
+    var pattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    return regex_match(null, pattern, email);
+}
+
+puts(is_valid_email("user@example.com"));  // true
+puts(is_valid_email("invalid.email"));     // false
+.RE
+.fi
+.PP
+.B Phone Number Extraction
+.PP
+.nf
+.RS
+var text = "Call us at 555-1234 or 555-5678";
+var pattern = "[0-9]{3}-[0-9]{4}";
+var phones = regex_findall(null, pattern, text);
+
+putf("Found %d phone numbers", phones.count);
+.RE
+.fi
+.PP
+.B HTML Tag Removal
+.PP
+.nf
+.RS
+var html = "<p>Hello <b>World</b>!</p>";
+var clean = regex_replace(null, "<[^>]+>", html, "");
+puts(clean);  // "Hello World!"
+.RE
+.fi
+.PP
+.B Whitespace Normalization
+.PP
+.nf
+.RS
+var text = "Too    many     spaces";
+var normalized = regex_replace(null, " +", text, " ");
+puts(normalized);  // "Too many spaces"
+.RE
+.fi
+.SH REGEX SYNTAX
+Phasor uses ECMAScript regex syntax by default. Common patterns:
+.PP
+.B Character Classes
+.RS
+.IP \fB.\fR 8
+Any character except newline
+.IP \fB\\d\fR 8
+Digit [0-9]
+.IP \fB\\w\fR 8
+Word character [A-Za-z0-9_]
+.IP \fB\\s\fR 8
+Whitespace
+.IP \fB[abc]\fR 8
+Character set
+.IP \fB[^abc]\fR 8
+Negated set
+.RE
+.PP
+.B Quantifiers
+.RS
+.IP \fB*\fR 8
+0 or more
+.IP \fB+\fR 8
+1 or more
+.IP \fB?\fR 8
+0 or 1
+.IP \fB{n}\fR 8
+Exactly n
+.IP \fB{n,}\fR 8
+n or more
+.IP \fB{n,m}\fR 8
+Between n and m
+.RE
+.PP
+.B Anchors
+.RS
+.IP \fB^\fR 8
+Start of string
+.IP \fB$\fR 8
+End of string
+.IP \fB\\b\fR 8
+Word boundary
+.RE
+.SH NOTES
+.IP \(bu 2
+Patterns must be valid ECMAScript regular expressions
+.IP \(bu 2
+First argument to functions is typically null (reserved for future use)
+.IP \(bu 2
+Backslashes in patterns must be escaped in strings: "\\\\d" for \\d
+.IP \(bu 2
+Case-sensitive by default unless 'i' flag is used
+.IP \(bu 2
+Complex patterns may impact performance
+.IP \(bu 2
+Result structs use numeric string keys ("0", "1", etc.)
+.SH ERROR HANDLING
+All regex functions throw runtime errors on:
+.IP \(bu 2
+Invalid regex syntax
+.IP \(bu 2
+Out-of-range positions in regex_search
+.IP \(bu 2
+Invalid flags in regex_replace
+.SH SEE ALSO
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

@@ -1,0 +1,375 @@
+.TH PHASORSTD_SYS 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_sys \- Phasor system and runtime functions
+.SH SYNOPSIS
+.nf
+.B include_stdsys();
+.PP
+.B time()
+.B timef(format)
+.B sleep(milliseconds)
+.B clear()
+.B sys_os()
+.B sys_env(name)
+.B sys_argv([index])
+.B sys_argc()
+.B sys_get_memory()
+.B wait_for_input()
+.B sys_execute(command)
+.B error(message)
+.B reset()
+.B shutdown(exit_code)
+.fi
+.SH DESCRIPTION
+The
+.B include_stdsys()
+function registers system, runtime, and environment functions for the Phasor runtime.
+.SH TIME FUNCTIONS
+.TP
+.BR time ()
+Get the current time in milliseconds since an arbitrary epoch.
+.RS
+.PP
+.B Returns:
+Float representing milliseconds
+.RE
+.PP
+.TP
+.BR timef (format)
+Get the current time formatted according to a format string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBformat\fR 12
+Format string using strftime specifiers
+.RE
+.PP
+.B Returns:
+Formatted time string
+.PP
+.B Format Specifiers:
+.RS
+.IP \fB%Y\fR 8
+Year (4 digits)
+.IP \fB%m\fR 8
+Month (01-12)
+.IP \fB%d\fR 8
+Day (01-31)
+.IP \fB%H\fR 8
+Hour (00-23)
+.IP \fB%M\fR 8
+Minute (00-59)
+.IP \fB%S\fR 8
+Second (00-59)
+.IP \fB%A\fR 8
+Full weekday name
+.IP \fB%B\fR 8
+Full month name
+.RE
+.RE
+.PP
+.TP
+.BR sleep (milliseconds)
+Pause execution for a specified duration.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBmilliseconds\fR 12
+Number of milliseconds to sleep
+.RE
+.PP
+.B Returns:
+Space character string
+.RE
+.SH SYSTEM INFORMATION
+.TP
+.BR sys_os ()
+Get the current operating system name.
+.RS
+.PP
+.B Returns:
+String: "win32", "Linux", "Darwin", "FreeBSD", "UNIX", or "Unknown"
+.RE
+.PP
+.TP
+.BR sys_get_memory ()
+Get the available system memory in bytes.
+.RS
+.PP
+.B Returns:
+Integer bytes of available memory
+.RE
+.SH ENVIRONMENT AND ARGUMENTS
+.TP
+.BR sys_env (name)
+Get an environment variable value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBname\fR 12
+Environment variable name
+.RE
+.PP
+.B Returns:
+String value of the environment variable, or empty string if not found
+.RE
+.PP
+.TP
+.BR sys_argv ([index])
+Get command-line arguments.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBindex\fR 12
+Argument index (optional)
+.RE
+.PP
+.B Returns:
+If no index provided, returns a struct with fields "arg0", "arg1", etc.
+If index provided, returns the argument at that index
+.RE
+.PP
+.TP
+.BR sys_argc ()
+Get the number of command-line arguments.
+.RS
+.PP
+.B Returns:
+Integer count of arguments
+.RE
+.SH CONSOLE FUNCTIONS
+.TP
+.BR clear ()
+Clear the console screen using ANSI escape codes.
+.RS
+.PP
+.B Returns:
+Empty string
+.RE
+.PP
+.TP
+.BR wait_for_input ()
+Wait for user to press Enter.
+.RS
+.PP
+.B Returns:
+Empty string
+.RE
+.SH PROCESS CONTROL
+.TP
+.BR sys_execute (command)
+Execute a shell command.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcommand\fR 12
+Shell command to execute
+.RE
+.PP
+.B Returns:
+Command exit code
+.RE
+.PP
+.TP
+.BR error (message)
+Throw a runtime error and reset the VM.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBmessage\fR 12
+Error message string
+.RE
+.PP
+.B Throws:
+Runtime error with the provided message
+.RE
+.PP
+.TP
+.BR reset ()
+Reset the virtual machine state.
+.RS
+.PP
+.B Returns:
+Null value
+.RE
+.PP
+.TP
+.BR shutdown (exit_code)
+Shutdown the VM and exit the program.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBexit_code\fR 12
+Exit code to return to the operating system
+.RE
+.PP
+.B Returns:
+Does not return (exits program)
+.RE
+.SH EXAMPLES
+.B Time Operations
+.PP
+.nf
+.RS
+include_stdsys();
+
+// Get timestamp
+var start = time();
+// ... do work ...
+var elapsed = time() - start;
+putf("Elapsed: %f ms", elapsed);
+
+// Formatted time
+var timestamp = timef("%Y-%m-%d %H:%M:%S");
+puts(timestamp);  // "2026-01-16 14:30:45"
+
+// Sleep
+puts("Waiting...");
+sleep(1000);  // Wait 1 second
+puts("Done!");
+.RE
+.fi
+.PP
+.B System Information
+.PP
+.nf
+.RS
+puts(sys_os());  // "Linux" or "win32" etc.
+
+var mem = sys_get_memory();
+putf("Available memory: %d bytes", mem);
+.RE
+.fi
+.PP
+.B Environment Variables
+.PP
+.nf
+.RS
+var home = sys_env("HOME");
+putf("Home directory: %s", home);
+
+var path = sys_env("PATH");
+if (len(path) > 0) {
+    puts("PATH is set");
+}
+.RE
+.fi
+.PP
+.B Command-Line Arguments
+.PP
+.nf
+.RS
+var argc = sys_argc();
+putf("Argument count: %d", argc);
+
+// Access all arguments
+var args = sys_argv();
+for (var i = 0; i < argc; i++) {
+    var key = concat("arg", to_string(i));
+    puts(args.(key));
+}
+
+// Access specific argument
+if (argc > 1) {
+    var first_arg = sys_argv(1);
+    putf("First argument: %s", first_arg);
+}
+.RE
+.fi
+.PP
+.B Console Control
+.PP
+.nf
+.RS
+clear();  // Clear screen
+puts("Screen cleared!");
+
+puts("Press Enter to continue...");
+wait_for_input();
+.RE
+.fi
+.PP
+.B Process Control
+.PP
+.nf
+.RS
+// Execute shell command
+var result = sys_execute("ls -la");
+putf("Command exit code: %d", result);
+
+// Controlled error
+if (invalid_condition) {
+    error("Invalid state detected!");
+}
+
+// Exit program
+if (should_exit) {
+    shutdown(0);  // Exit with code 0
+}
+.RE
+.fi
+.PP
+.B Benchmarking
+.PP
+.nf
+.RS
+fn benchmark(name, func) {
+    var start = time();
+    func();
+    var elapsed = time() - start;
+    putf("%s took %f ms", name, elapsed);
+}
+
+benchmark("sorting", fn() {
+    // ... sorting code ...
+});
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+.B time()
+returns milliseconds as a float for precision
+.IP \(bu 2
+.B timef()
+uses system localtime for formatting
+.IP \(bu 2
+.B sleep()
+is not guaranteed to be precise on all systems
+.IP \(bu 2
+.B clear()
+uses ANSI escape codes (may not work in all terminals)
+.IP \(bu 2
+.B sys_execute()
+runs commands through the system shell
+.IP \(bu 2
+.B error()
+will terminate current execution and reset the VM
+.IP \(bu 2
+.B shutdown()
+immediately exits the program
+.IP \(bu 2
+Command-line arguments include the program name at index 0
+.SH SECURITY CONSIDERATIONS
+.IP \(bu 2
+.B sys_execute()
+can run arbitrary shell commands - validate input carefully
+.IP \(bu 2
+Environment variables may contain sensitive information
+.IP \(bu 2
+.B error()
+and
+.B shutdown()
+can be used for denial of service
+.SH SEE ALSO
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

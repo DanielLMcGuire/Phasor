@@ -1,0 +1,368 @@
+.TH PHASORSTD_MATH 3 "January 2026" "Phasor 2.0.0" "Phasor Standard Library"
+.SH NAME
+phasorstd_math \- Phasor mathematical functions
+.SH SYNOPSIS
+.nf
+.B include_stdmath();
+.PP
+.B math_sqrt(x)
+.B math_pow(base, exponent)
+.B math_abs(x)
+.B math_floor(x)
+.B math_ceil(x)
+.B math_round(x)
+.B math_min(a, b)
+.B math_max(a, b)
+.B math_log(x)
+.B math_exp(x)
+.B math_sin(x)
+.B math_cos(x)
+.B math_tan(x)
+.fi
+.SH DESCRIPTION
+The
+.B include_stdmath()
+function registers mathematical functions for the Phasor runtime, including trigonometric, exponential, logarithmic, and rounding operations.
+.SH FUNCTIONS
+.SS Basic Functions
+.TP
+.BR math_sqrt (x)
+Calculate the square root of a number.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Number (converted to float)
+.RE
+.PP
+.B Returns:
+Square root as a float
+.RE
+.PP
+.TP
+.BR math_pow (base, exponent)
+Raise a number to a power.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBbase\fR 12
+Base number (converted to float)
+.IP \fBexponent\fR 12
+Exponent (converted to float)
+.RE
+.PP
+.B Returns:
+base^exponent as a float
+.RE
+.PP
+.TP
+.BR math_abs (x)
+Calculate the absolute value of a number.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Number (int or float)
+.RE
+.PP
+.B Returns:
+Absolute value (preserves type: int returns int, float returns float)
+.RE
+.PP
+.SS Rounding Functions
+.TP
+.BR math_floor (x)
+Round down to the nearest integer.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Number (converted to float)
+.RE
+.PP
+.B Returns:
+Largest integer less than or equal to x (as int64)
+.RE
+.PP
+.TP
+.BR math_ceil (x)
+Round up to the nearest integer.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Number (converted to float)
+.RE
+.PP
+.B Returns:
+Smallest integer greater than or equal to x (as int64)
+.RE
+.PP
+.TP
+.BR math_round (x)
+Round to the nearest integer.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Number (converted to float)
+.RE
+.PP
+.B Returns:
+Nearest integer to x (as int64)
+.RE
+.PP
+.SS Comparison Functions
+.TP
+.BR math_min (a, b)
+Return the smaller of two numbers.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBa\fR 12
+First number
+.IP \fBb\fR 12
+Second number
+.RE
+.PP
+.B Returns:
+The smaller value (preserves type when both are same type)
+.RE
+.PP
+.TP
+.BR math_max (a, b)
+Return the larger of two numbers.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBa\fR 12
+First number
+.IP \fBb\fR 12
+Second number
+.RE
+.PP
+.B Returns:
+The larger value (preserves type when both are same type)
+.RE
+.PP
+.SS Exponential and Logarithmic Functions
+.TP
+.BR math_log (x)
+Calculate the natural logarithm (base e).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Number (converted to float, must be positive)
+.RE
+.PP
+.B Returns:
+Natural logarithm of x as a float
+.RE
+.PP
+.TP
+.BR math_exp (x)
+Calculate e raised to a power.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Exponent (converted to float)
+.RE
+.PP
+.B Returns:
+e^x as a float
+.RE
+.PP
+.SS Trigonometric Functions
+.TP
+.BR math_sin (x)
+Calculate the sine of an angle.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Angle in radians (converted to float)
+.RE
+.PP
+.B Returns:
+Sine of x as a float
+.RE
+.PP
+.TP
+.BR math_cos (x)
+Calculate the cosine of an angle.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Angle in radians (converted to float)
+.RE
+.PP
+.B Returns:
+Cosine of x as a float
+.RE
+.PP
+.TP
+.BR math_tan (x)
+Calculate the tangent of an angle.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBx\fR 12
+Angle in radians (converted to float)
+.RE
+.PP
+.B Returns:
+Tangent of x as a float
+.RE
+.SH EXAMPLES
+.B Basic Arithmetic
+.PP
+.nf
+.RS
+include_stdmath();
+
+var x = 16.0;
+puts(math_sqrt(x));        // 4.0
+puts(math_pow(2, 8));      // 256.0
+puts(math_abs(-42));       // 42
+.RE
+.fi
+.PP
+.B Rounding Operations
+.PP
+.nf
+.RS
+var pi = 3.14159;
+
+puts(math_floor(pi));      // 3
+puts(math_ceil(pi));       // 4
+puts(math_round(pi));      // 3
+
+puts(math_round(2.5));     // 2 or 3 (banker's rounding)
+.RE
+.fi
+.PP
+.B Min/Max Operations
+.PP
+.nf
+.RS
+var a = 10;
+var b = 20;
+
+puts(math_min(a, b));      // 10
+puts(math_max(a, b));      // 20
+
+// Works with floats too
+puts(math_min(3.14, 2.71)); // 2.71
+.RE
+.fi
+.PP
+.B Exponential and Logarithmic
+.PP
+.nf
+.RS
+puts(math_exp(1));         // e ≈ 2.71828
+puts(math_log(math_exp(1))); // 1.0
+
+var x = 100;
+puts(math_log(x));         // Natural log of 100
+.RE
+.fi
+.PP
+.B Trigonometry
+.PP
+.nf
+.RS
+var pi = 3.14159265;
+
+puts(math_sin(0));         // 0.0
+puts(math_cos(0));         // 1.0
+puts(math_tan(pi / 4));    // ≈ 1.0 (45 degrees)
+
+// Convert degrees to radians
+fn deg_to_rad(degrees) {
+    return degrees * pi / 180;
+}
+
+puts(math_sin(deg_to_rad(90))); // ≈ 1.0
+.RE
+.fi
+.PP
+.B Distance Calculation
+.PP
+.nf
+.RS
+fn distance(x1, y1, x2, y2) {
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    return math_sqrt(dx * dx + dy * dy);
+}
+
+var dist = distance(0, 0, 3, 4);
+puts(dist);  // 5.0
+.RE
+.fi
+.PP
+.B Circle Calculations
+.PP
+.nf
+.RS
+fn circle_area(radius) {
+    var pi = 3.14159265;
+    return pi * math_pow(radius, 2);
+}
+
+fn circle_circumference(radius) {
+    var pi = 3.14159265;
+    return 2 * pi * radius;
+}
+
+puts(circle_area(5));           // ≈ 78.54
+puts(circle_circumference(5));  // ≈ 31.42
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+All trigonometric functions use radians, not degrees
+.IP \(bu 2
+Math functions are implemented using optimized assembly routines where available
+.IP \(bu 2
+.B math_log()
+calculates the natural logarithm (base e), not base 10
+.IP \(bu 2
+Division by zero or invalid operations may result in infinity or NaN
+.IP \(bu 2
+Type preservation: integer operations return integers when possible
+.IP \(bu 2
+Most functions convert arguments to float for calculation
+.SH CONSTANTS
+Phasor does not provide built-in mathematical constants. Define them as needed:
+.PP
+.nf
+.RS
+var PI = 3.14159265358979323846;
+var E = 2.71828182845904523536;
+var SQRT2 = 1.41421356237309504880;
+.RE
+.fi
+.SH SEE ALSO
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
