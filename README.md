@@ -140,6 +140,8 @@ putf("%d! = %d\n", num, result);
 
 ## Building
 
+<sub>Using Arch BTW? Grab the PKGBUILD</sub>
+
 ### Prerequisites
 
 - CMake 3.10+
