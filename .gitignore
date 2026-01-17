@@ -693,3 +693,4 @@ RC[a-z][0-9][0-9][0-9][0-9][0-9]
 *.md5
 *.pdf
 clocf
+linuxdeploy-x86_64.AppImage
