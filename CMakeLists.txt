@@ -264,7 +264,7 @@ add_custom_command(
 )
 add_executable(phasor_shell
     ${CMAKE_SOURCE_DIR}/src/App/utils/Shell.rc
-    ${CMAKE_SOURCE_DIR}/src/App/utils/Shell_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/App/utils/shell_main.cpp
     ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
 )
 target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/utils)
