@@ -1,2 +1,5 @@
+[attr]phasor text eol=lf whitespace=tab-in-indent,trailing-space,tabwidth=4
+
+*.phs phasor
 *.ts linguist-detectable=false
 *.tsx linguist-detectable=false
