@@ -5,8 +5,8 @@
 !define COPYRIGHT "(C) 2025 Daniel McGuire"
 !define LICENSE_TXT "license.txt"
 !define DESCRIPTION "Functional VM Compiled Programming Language"
-!define INSTALLER_NAME "phasor-x.x.x_setup_sse2.exe"
-!define MAIN_APP_EXE "phasorvm.exe"
+!define INSTALLER_NAME "phasor-2.0.0_setup.exe"
+!define MAIN_APP_EXE "bin\phasorvm.exe"
 !define INSTALL_TYPE "SetShellVarContext all"
 !define REG_ROOT "HKLM"
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
@@ -77,7 +77,8 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-file /r "..\install\legacy\bin"
+file /r "..\install\bin"
+file "..\assets\phasor.ico"
 
 
 SectionEnd
@@ -92,7 +93,7 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "UninstallString" "$INSTDIR\uninstall.exe"
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayIcon" "$INSTDIR\${MAIN_APP_EXE}"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayIcon" "$INSTDIR\phasor.ico"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayVersion" "${VERSION}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 
@@ -127,6 +128,21 @@ DownloadVC:
 
 EndVC:
 
+; .phir -> PhasorIR
+WriteRegStr HKCU "Software\Classes\.phir" "" "PhasorIR"
+; .phs -> PhasorScript
+WriteRegStr HKCU "Software\Classes\.phs" "" "PhasorScript"
+; .phsb -> PhasorBinary
+WriteRegStr HKCU "Software\Classes\.phsb" "" "PhasorBinary"
+
+; PhasorBinary
+WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open" "Icon" "$INSTDIR\${MAIN_APP_EXE}"
+WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open\command" "" '"$INSTDIR\${MAIN_APP_EXE}" "%1" %*'
+; PhasorIR
+WriteRegStr HKCU "Software\Classes\PhasorIR\shell\open" "Icon" "$INSTDIR\bin\phasorcompiler.exe"
+; PhasorScript
+WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open" "Icon" "$INSTDIR\bin\phasorjit.exe"
+WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
 
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
@@ -140,6 +156,28 @@ RmDir /r "$INSTDIR"
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
+
+; Remove type associations
+DeleteRegKey HKCU "Software\Classes\.phir"
+DeleteRegKey HKCU "Software\Classes\.phs"
+DeleteRegKey HKCU "Software\Classes\.phsb"
+
+; Remove PhasorBinary
+DeleteRegKey HKCU "Software\Classes\PhasorBinary\shell\open\command"
+DeleteRegKey HKCU "Software\Classes\PhasorBinary\shell\open"
+DeleteRegKey HKCU "Software\Classes\PhasorBinary\shell"
+DeleteRegKey HKCU "Software\Classes\PhasorBinary"
+
+; Remove PhasorIR
+DeleteRegKey HKCU "Software\Classes\PhasorIR\shell\open"
+DeleteRegKey HKCU "Software\Classes\PhasorIR\shell"
+DeleteRegKey HKCU "Software\Classes\PhasorIR"
+
+; Remove PhasorScript
+DeleteRegKey HKCU "Software\Classes\PhasorScript\shell\open\command"
+DeleteRegKey HKCU "Software\Classes\PhasorScript\shell\open"
+DeleteRegKey HKCU "Software\Classes\PhasorScript\shell"
+DeleteRegKey HKCU "Software\Classes\PhasorScript"
 
 SectionEnd
 
