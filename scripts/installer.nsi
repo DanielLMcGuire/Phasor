@@ -144,6 +144,9 @@ WriteRegStr HKCU "Software\Classes\PhasorIR\shell\open" "Icon" "$INSTDIR\bin\pha
 WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open" "Icon" "$INSTDIR\bin\phasorjit.exe"
 WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
 
+EnVar::SetHKLM
+EnVar::AddValue "PATH" "$INSTDIR\bin"
+
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
 
@@ -179,6 +182,10 @@ DeleteRegKey HKCU "Software\Classes\PhasorScript\shell\open"
 DeleteRegKey HKCU "Software\Classes\PhasorScript\shell"
 DeleteRegKey HKCU "Software\Classes\PhasorScript"
 
+EnVar::SetHKLM
+EnVar::DeleteValue "PATH" "$INSTDIR\bin"
+
+System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
 
 ######################################################################
