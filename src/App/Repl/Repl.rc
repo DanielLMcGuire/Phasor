@@ -5,8 +5,8 @@
 
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 2,0,1,0
+ PRODUCTVERSION 2,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -23,12 +23,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Daniel McGuire"
             VALUE "FileDescription", "Phasor VM REPL"
-            VALUE "FileVersion", "2.0.0.0"
+            VALUE "FileVersion", "2.0.1.0"
             VALUE "InternalName", "phasorrepl.exe"
             VALUE "LegalCopyright", "© 2025 Daniel McGuire"
             VALUE "OriginalFilename", "phasorrepl.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "2.0.1.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -38,3 +38,4 @@ BEGIN
 END
 
 IDI_APP_ICON ICON "..\\assets\\Repl.ico"
+

@@ -1,11 +1,11 @@
 !include "x64.nsh"
 !define APP_NAME "Phasor Programming Language"
 !define COMP_NAME "Daniel McGuire"
-!define VERSION "2.0.0.0"
+!define VERSION "2.0.1.0"
 !define COPYRIGHT "(C) 2025 Daniel McGuire"
 !define LICENSE_TXT "license.txt"
 !define DESCRIPTION "Functional VM Compiled Programming Language"
-!define INSTALLER_NAME "phasor-2.0.0_setup.exe"
+!define INSTALLER_NAME "phasor-2.0.1_setup.exe"
 !define MAIN_APP_EXE "bin\phasorvm.exe"
 !define INSTALL_TYPE "SetShellVarContext all"
 !define REG_ROOT "HKLM"
@@ -189,3 +189,4 @@ System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
 
 ######################################################################
+

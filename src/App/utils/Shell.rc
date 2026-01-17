@@ -7,7 +7,7 @@
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,2,0,0
- PRODUCTVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG 
  FILEFLAGS VS_FF_DEBUG
@@ -29,7 +29,7 @@ BEGIN
             VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
             VALUE "OriginalFilename", "shell.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "2.0.1.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -37,3 +37,5 @@ BEGIN
         VALUE "Translation", 0x0409, 1200
     END
 END
+
+
