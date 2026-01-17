@@ -77,7 +77,7 @@ endif()
 
 # Source files
 set(RUNTIME_SOURCES
-    src/Runtime/VM/VM.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp
 )
 
 if(ASSEMBLY)
@@ -88,88 +88,88 @@ if(ASSEMBLY)
     )
 else()
     list(APPEND RUNTIME_SOURCES
-        src/Runtime/VM/core/arithmetic/crt.c
-        src/Runtime/VM/core/logical/crt.c
-        src/Runtime/VM/core/IO/crt.c
+        ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/arithmetic/crt.c
+        ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/logical/crt.c
+        ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/crt.c
     )
 endif()
 
 set(STDLIB_SOURCES
-    src/Runtime/Stdlib/core/file_properties.c
-    src/Runtime/Stdlib/core/system.c
-    src/Runtime/Stdlib/StdLib.cpp
-    src/Runtime/Stdlib/file.cpp
-    src/Runtime/Stdlib/io.cpp
-    src/Runtime/Stdlib/regex.cpp
-    src/Runtime/Stdlib/math.cpp
-    src/Runtime/Stdlib/string.cpp
-    src/Runtime/Stdlib/system.cpp
-    src/Runtime/Stdlib/typeconv.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/core/file_properties.c
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/core/system.c
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/StdLib.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/file.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/io.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/regex.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/math.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/string.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/system.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/typeconv.cpp
 )
 
 set(STDLIB_HEADERS
-    src/Runtime/Stdlib/core/file_properties.h
-    src/Runtime/Stdlib/core/system.h
-    src/Runtime/Stdlib/StdLib.hpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/core/file_properties.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/core/system.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/StdLib.hpp
 )
 
 if(WIN32)
     list(APPEND STDLIB_SOURCES
-        src/Runtime/Stdlib/windows/windows.cpp
-        src/Runtime/Stdlib/windows/vhandle.cpp
-        src/Runtime/Stdlib/windows/winType.cpp
-        src/Runtime/Stdlib/windows/winuser.cpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/windows.cpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/vhandle.cpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winType.cpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winuser.cpp
     )
     list(APPEND STDLIB_HEADERS
-        src/Runtime/Stdlib/windows/windows.hpp
-        src/Runtime/Stdlib/windows/vhandle.hpp
-        src/Runtime/Stdlib/windows/winType.hpp
-        src/Runtime/Stdlib/windows/winuser.hpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/windows.hpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/vhandle.hpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winType.hpp
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winuser.hpp
     )
 endif()
 
 set(RUNTIME_HEADERS
-    src/Runtime/Value.hpp
-    src/Runtime/VM/VM.hpp
-    "src/Runtime/VM/core/core.h"
-    src/Runtime/VM/core/arithmetic/arithmetic.h
-    src/Runtime/VM/core/logical/logical.h
-    src/Runtime/VM/core/IO/IO.h
-    src/sscanf.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Value.hpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.hpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/core.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/arithmetic/arithmetic.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/logical/logical.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/IO.h
+    ${CMAKE_SOURCE_DIR}/src/sscanf.h
 )
 
 set(INTERPRETER_SOURCES
-    src/Backend/Lexer/Lexer.cpp
-    src/Backend/Parser/Parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.cpp
+    ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.cpp
 )
 
 set(INTERPRETER_HEADERS
-    src/Backend/Lexer/Lexer.hpp
-    src/Backend/Parser/Parser.hpp
+    ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.hpp
+    ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.hpp
 )
 
 set(CODEGEN_SOURCES
-    src/Codegen/CodeGen.cpp
-    src/Codegen/Bytecode/BytecodeSerializer.cpp
-    src/Codegen/Bytecode/BytecodeDeserializer.cpp
-    src/Codegen/IR/PhasorIR.cpp
-    src/Codegen/Cpp/CppCodeGenerator.cpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/CodeGen.cpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/Bytecode/BytecodeSerializer.cpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/Bytecode/BytecodeDeserializer.cpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/IR/PhasorIR.cpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/Cpp/CppCodeGenerator.cpp
 )
 
 set(CODEGEN_HEADERS
-    src/Codegen/CodeGen.hpp
-    src/Codegen/Bytecode/BytecodeSerializer.hpp
-    src/Codegen/Bytecode/BytecodeDeserializer.hpp
-    src/Codegen/IR/PhasorIR.hpp
-    src/Codegen/Cpp/CppCodeGenerator.hpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/CodeGen.hpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/Bytecode/BytecodeSerializer.hpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/Bytecode/BytecodeDeserializer.hpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/IR/PhasorIR.hpp
+    ${CMAKE_SOURCE_DIR}/src/Codegen/Cpp/CppCodeGenerator.hpp
 )
 
 set(FRONTEND_SOURCES
-    src/Frontend/Frontend.cpp
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp
 )
 
 set(FRONTEND_HEADERS
-    src/Frontend/Frontend.hpp
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp
 )
 
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS} ${STDLIB_SOURCES} ${STDLIB_HEADERS})
@@ -187,50 +187,50 @@ target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen)
 
 # JIT Powered REPL
 add_executable(phasor_repl
-    src/App/Repl/Repl.rc
-    src/App/Repl/Repl_main.cpp
-    src/CLI/Repl/Repl.cpp
-    src/CLI/Repl/Repl.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.hpp
 )
 target_link_libraries(phasor_repl PhasorRuntime PhasorInterpreter PhasorFrontend)
 set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
 
 # Script to bytecode binary compiler
 add_executable(phasor_compiler  
-    src/App/Compiler/Compiler.rc
-    src/App/Compiler/Compiler_main.cpp
-    src/CLI/Compiler/Compiler.cpp
-    src/CLI/Compiler/Compiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Compiler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Compiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Compiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Compiler.hpp
 )
 target_link_libraries(phasor_compiler PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
 
 # Script to C++ code compiler
 add_executable(phasor_cpp_compiler
-    src/App/Compiler/CppCompiler.rc
-    src/App/Compiler/CppCompiler_main.cpp
-    src/CLI/Compiler/CppCompiler.cpp
-    src/CLI/Compiler/CppCompiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Compiler/CppCompiler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Compiler/CppCompiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/CppCompiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/CppCompiler.hpp
 )
 target_link_libraries(phasor_cpp_compiler PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_cpp_compiler PROPERTIES OUTPUT_NAME phasornative)
 
 # Execution engine for bytecode binaries
 add_executable(phasor_runtime_exe
-    src/App/Runtime/BinaryRuntime.rc
-    src/App/Runtime/BinaryRuntime_main.cpp
-    src/CLI/Runtime/BinaryRuntime.cpp
-    src/CLI/Runtime/BinaryRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/BinaryRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/BinaryRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.hpp
 )
 target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
 # DLL Execution engine for bytecode embedded native binaries
 add_library(phasor_native_runtime SHARED 
-    src/App/Runtime/NativeRuntimeDll.rc
-    src/App/Runtime/NativeRuntime_library.cpp
-    src/CLI/Runtime/NativeRuntime.cpp
-    src/CLI/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntimeDll.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
 )
 target_link_libraries(phasor_native_runtime PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
@@ -238,19 +238,19 @@ target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 
 # DLL Execution engine for bytecode embedded native binaries
 add_library(phasor_native_runtime_static STATIC 
-    src/App/Runtime/NativeRuntime_library.cpp
-    src/CLI/Runtime/NativeRuntime.cpp
-    src/CLI/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
 )
 target_link_libraries(phasor_native_runtime_static PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
 # JIT execution engine for scripts
 add_executable(phasor_interpreter
-    src/App/Runtime/ScriptingRuntime.rc
-    src/App/Runtime/ScriptingRuntime_main.cpp
-    src/CLI/Runtime/ScriptingRuntime.cpp
-    src/CLI/Runtime/ScriptingRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/ScriptingRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/ScriptingRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.hpp
 )
 target_link_libraries(phasor_interpreter PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
@@ -263,8 +263,8 @@ add_custom_command(
     COMMENT "Building PHS object src/CLI/utils/Shell.phs"
 )
 add_executable(phasor_shell
-    src/App/utils/Shell.rc
-    src/App/utils/Shell_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/App/utils/Shell.rc
+    ${CMAKE_SOURCE_DIR}/src/App/utils/Shell_main.cpp
     ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
 )
 target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/utils)
