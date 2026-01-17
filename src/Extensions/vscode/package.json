@@ -3,45 +3,109 @@
   "publisher": "phasor",
   "displayName": "Phasor Programming Language",
   "description": "Function VM Based Programming Language",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "icon": "logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/DanielLMcGuire/phasor"
   },
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.108.0"
   },
   "categories": [
     "Programming Languages"
   ],
+  "main": "./extension.js",
   "scripts": {
     "build": "vsce package"
   },
   "contributes": {
-    "languages": [{
-      "id": "phasor",
-      "aliases": ["Phasor", "phasor"],
-      "extensions": ["phs"],
-      "configuration": "./language-configuration.json"
-    },
-    {
-      "id": "phasor-ir",
-      "aliases": ["PhasorIR", "phasor-ir"],
-      "extensions": ["phir"],
-      "configuration": "./language-configuration-ir.json"
-    }
+    "languages": [
+      {
+        "id": "phasor",
+        "aliases": [
+          "Phasor",
+          "phasor"
+        ],
+        "extensions": [
+          "phs"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "phasor-ir",
+        "aliases": [
+          "PhasorIR",
+          "phasor-ir"
+        ],
+        "extensions": [
+          "phir"
+        ],
+        "configuration": "./language-configuration-ir.json"
+      }
     ],
-    "grammars": [{
-      "language": "phasor",
-      "scopeName": "source.phasor",
-      "path": "./syntaxes/phasor.tmLanguage.json"
+    "grammars": [
+      {
+        "language": "phasor",
+        "scopeName": "source.phasor",
+        "path": "./syntaxes/phasor.tmLanguage.json"
+      },
+      {
+        "language": "phasor-ir",
+        "scopeName": "source.phasor-ir",
+        "path": "./syntaxes/phasor-ir.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "phasor.run",
+        "title": "Run Phasor File",
+        "icon": "$(play)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "phasor.run",
+          "when": "resourceLangId == phasor",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "phasor.run",
+          "when": "resourceLangId == phasor",
+          "group": "navigation"
+        }
+      ]
     },
-    {
-      "language": "phasor-ir",
-      "scopeName": "source.phasor-ir",
-      "path": "./syntaxes/phasor-ir.tmLanguage.json"
+    "configuration": {
+      "title": "Phasor",
+      "properties": {
+        "phasor.jitPath": {
+          "type": "string",
+          "default": "phasorjit",
+          "description": "Path to the Phasor JIT executable. Use 'phasorjit' if it's in your PATH, or provide the full path to the executable."
+        },
+        "phasor.jitArgs": {
+          "type": "array",
+          "default": [],
+          "description": "Additional arguments to pass to the Phasor JIT executable.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phasor.clearOutputBeforeRun": {
+          "type": "boolean",
+          "default": true,
+          "description": "Clear the output panel before running a file."
+        }
+      }
     }
-    ]
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@types/vscode": "^1.108.1",
+    "typescript": "^5.9.3"
   }
 }
