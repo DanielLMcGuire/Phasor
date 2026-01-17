@@ -694,3 +694,4 @@ RC[a-z][0-9][0-9][0-9][0-9][0-9]
 *.pdf
 clocf
 linuxdeploy-x86_64.AppImage
+src/Extensions/vscode/package-lock.json
