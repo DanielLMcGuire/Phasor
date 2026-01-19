@@ -1,6 +1,6 @@
 #include "StdLib.hpp"
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_PHASOR_WINAPI)
 #include "windows/windows.hpp"
 #endif
 
@@ -20,7 +20,7 @@ void StdLib::registerFunctions(VM &vm)
 	vm.registerNativeFunction("include_stdtype", registerTypeConvFunctions);
 	vm.registerNativeFunction("include_stdfile", registerFileFunctions);
 	vm.registerNativeFunction("include_stdregex", registerRegexFunctions);
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_PHASOR_WINAPI)
 	vm.registerNativeFunction("include_win32api", windows::registerFunctions);
 #endif
 }

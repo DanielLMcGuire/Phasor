@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_PHASOR_WINAPI)
 #include <Windows.h>
 #include <winuser.h>
 #endif

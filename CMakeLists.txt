@@ -12,6 +12,11 @@ include_directories(src)
 # Set flags
 
 option(ASSEMBLY "Enable assembly for core code" ON)
+if(WIN32)
+option(WINAPI "Enable experimental windows api" ON)
+else()
+option(WINAPI "Enable experimental windows api" OFF)
+endif()
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /DNOMINMAX /EHsc /fp:precise /arch:AVX2")
@@ -53,6 +58,7 @@ if(MSVC)
 
 elseif(APPLE OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
     # FreeBSD
+    enable_language(ASM)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/darwin_bsd_aarch64.s)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/darwin_bsd_aarch64.s)
@@ -63,6 +69,7 @@ elseif(APPLE OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
         set(IO_ASM src/Runtime/VM/core/IO/darwin_bsd_x86_64.s)
     endif()
 elseif(UNIX)
+    enable_language(ASM)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/linux_aarch64.s)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/linux_aarch64.s)
@@ -113,7 +120,7 @@ set(STDLIB_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/StdLib.hpp
 )
 
-if(WIN32)
+if(WIN32 AND WINAPI)
     list(APPEND STDLIB_SOURCES
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/windows.cpp
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/vhandle.cpp
@@ -174,7 +181,8 @@ set(FRONTEND_HEADERS
 
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS} ${STDLIB_SOURCES} ${STDLIB_HEADERS})
 
-if(WIN32)
+if(WIN32 AND WINAPI)
+	target_compile_definitions(PhasorRuntime PRIVATE _PHASOR_WINAPI)
     target_link_libraries(PhasorRuntime ws2_32)
 endif()
 
