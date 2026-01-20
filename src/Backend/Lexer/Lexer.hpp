@@ -46,5 +46,6 @@ class Lexer
 	Token identifier();
 	Token number();
 	Token string();
+	Token complexString();
 };
 } // namespace Phasor

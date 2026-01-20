@@ -81,6 +81,8 @@ Token Lexer::scanToken()
 		return number();
 	if (c == '"')
 		return string();
+	if (c == '`')
+		return complexString();
 
 	// Multi-character operators
 	if (c == '+' && position + 1 < source.length() && source[position + 1] == '+')
@@ -282,6 +284,34 @@ Token Lexer::string()
 		else if (c == '"')
 		{
 			// Closing quote
+			return {TokenType::String, out.str(), tokenLine, tokenColumn};
+		}
+		else
+		{
+			out << c;
+		}
+	}
+
+	// If we get here, string was unterminated
+	return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+}
+
+Token Lexer::complexString()
+{
+	int                tokenLine = line;
+	int                tokenColumn = column;
+	std::ostringstream out;
+	advance(); // Skip opening backtick
+
+	// Not even attempting ${} syntax for now. Just read as a raw string.
+
+	while (!isAtEnd())
+	{
+		char c = advance();
+
+		if (c == '`')
+		{
+			// Closing backtick
 			return {TokenType::String, out.str(), tokenLine, tokenColumn};
 		}
 		else
