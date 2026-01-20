@@ -7,6 +7,7 @@
 #include "../../Codegen/Cpp/CppCodeGenerator.hpp"
 #include "../../Runtime/VM/VM.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
+#include "../../Runtime/FFI/ffi.hpp"
 #include <filesystem>
 #include <iostream>
 
@@ -74,7 +75,7 @@ int NativeRuntime::run()
 	try
 	{
 		StdLib::registerFunctions(*m_vm);
-
+		FFI ffi("plugins", m_vm.get());
 		m_vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});

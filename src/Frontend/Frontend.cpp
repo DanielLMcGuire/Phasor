@@ -1,14 +1,16 @@
-#include "Frontend.hpp"
 #include "../Backend/Lexer/Lexer.hpp"
 #include "../Backend/Parser/Parser.hpp"
+#include "../Codegen/IR/PhasorIR.hpp"
 #include "../Runtime/Stdlib/StdLib.hpp"
 #include "../Runtime/VM/VM.hpp"
-#include "../Codegen/IR/PhasorIR.hpp"
+#include "Frontend.hpp"
+
+#include "../Runtime/FFI/ffi.hpp"
+#include "../sscanf.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "../sscanf.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -46,6 +48,8 @@ void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 		StdLib::registerFunctions(*vm);
 	}
 
+	FFI ffi("plugins", vm);
+
 	vm->setImportHandler([](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
@@ -77,6 +81,8 @@ void Phasor::Frontend::runRepl(VM *vm)
 		VM *vm = new VM();
 		StdLib::registerFunctions(*vm);
 	}
+
+	FFI ffi("plugins", vm);
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
 		std::ifstream file(path);

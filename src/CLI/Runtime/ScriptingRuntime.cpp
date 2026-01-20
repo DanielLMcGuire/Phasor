@@ -5,6 +5,7 @@
 #include "../../Frontend/Frontend.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
+#include "../../Runtime/FFI/ffi.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -89,6 +90,8 @@ std::unique_ptr<VM> ScriptingRuntime::createVm()
 	StdLib::argv = m_args.scriptArgv;
 	StdLib::argc = m_args.scriptArgc;
 	StdLib::envp = m_args.envp;
+
+	FFI ffi("plugins", vm.get());
 
 	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {
 		std::ifstream file(path);

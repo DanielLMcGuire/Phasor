@@ -4,6 +4,7 @@
 #include "../../Runtime/VM/VM.hpp"
 #include <filesystem>
 #include <iostream>
+#include "../../Runtime/FFI/ffi.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -50,6 +51,8 @@ int BinaryRuntime::run()
 		StdLib::argc = m_args.scriptArgc;
 		StdLib::envp = m_args.envp;
 
+		FFI ffi("plugins", vm.get());
+		
 		vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});
