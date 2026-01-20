@@ -81,7 +81,7 @@ elseif(UNIX)
     endif()
 endif()
 
-set(RUNTIME_SOURCES ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp)
+set(RUNTIME_SOURCES ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp  ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.cpp)
 if(ASSEMBLY)
     list(APPEND RUNTIME_SOURCES ${ARITHMETIC_ASM} ${LOGICAL_ASM} ${IO_ASM})
 else()
@@ -100,6 +100,7 @@ set(RUNTIME_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/logical/logical.h
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/IO.h
     ${CMAKE_SOURCE_DIR}/src/sscanf.h
+    ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.hpp
 )
 
 set(STDLIB_SOURCES
