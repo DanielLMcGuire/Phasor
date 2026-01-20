@@ -1,0 +1,86 @@
+.TH PHASOR-FFI 7 "January 2026" "Phasor 2.0.1" "Phasor Foreign Function Interface"
+.SH NAME
+phasor-ffi \- overview of the Phasor native plugin and foreign function interface
+
+.SH DESCRIPTION
+The Phasor Foreign Function Interface (FFI) allows developers to extend the virtual machine's capabilities by loading external shared libraries (.so, .dll, or .dylib). It provides a stable, C-compatible bridge for registering native functions that can be called directly from Phasor scripts.
+
+.SH PLUGIN ENTRY POINT
+Every Phasor-compatible plugin must export a single C-linkage entry point that the VM calls upon loading.
+
+.TP
+.B void phasor_plugin_entry(const PhasorAPI* \fIapi\fR, PhasorVM* \fIvm\fR)
+This function is responsible for registering native functions using the provided \fIapi\fR pointer. The \fIvm\fR pointer is an opaque handle that must be passed back to API functions.
+
+.SH DATA TYPES
+The FFI uses the \fBPhasorValue\fR struct, a tagged union representing the VM's internal types.
+
+.SS Supported Types
+.IP \(bu 2
+\fBPHASOR_TYPE_NULL\fR: Represents a null value.
+.IP \(bu 2
+\fBPHASOR_TYPE_BOOL\fR: Boolean (\fBtrue\fR/\fBfalse\fR).
+.IP \(bu 2
+\fBPHASOR_TYPE_INT\fR: 64-bit signed integer.
+.IP \(bu 2
+\fBPHASOR_TYPE_FLOAT\fR: Double-precision floating point.
+.IP \(bu 2
+\fBPHASOR_TYPE_STRING\fR: C-style null-terminated string (\fBconst char*\fR).
+
+.SH REGISTERING FUNCTIONS
+To expose a C function to the VM, use the \fBregister_function\fR hook provided in the \fIPhasorAPI\fR struct.
+
+.SS Native Function Signature
+Native functions must match this prototype:
+.IP
+\fBPhasorValue func(PhasorVM* vm, int argc, const PhasorValue* argv);\fR
+
+.SS Registration Example
+.IP
+.nf
+void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm) {
+    api->register_function(vm, "my_native_func", my_native_func);
+}
+.fi
+
+.SH HELPER MACROS
+The \fBPhasorFFI.hpp\fR header provides inline helpers for creating and inspecting values:
+
+.TP
+.B phasor_make_int(\fIval\fR), phasor_make_float(\fIval\fR), ...
+Wraps a raw C type into a \fBPhasorValue\fR for return to the VM.
+.TP
+.B phasor_is_int(\fIval\fR), phasor_is_string(\fIval\fR), ...
+Checks the type tag of an incoming argument.
+.TP
+.B phasor_to_int(\fIval\fR), phasor_to_string(\fIval\fR), ...
+Extracts the raw C value from a \fBPhasorValue\fR.
+
+.SH MEMORY MANAGEMENT
+.IP \(bu 2
+\fBStrings from VM\fR: Strings passed as arguments to native functions are managed by the VM and remain valid for the duration of the function call.
+.IP \(bu 2
+\fBStrings to VM\fR: When a native function returns a string or passes one to the VM, the VM creates its own internal copy. The plugin remains responsible for any memory it allocated for the original string.
+.IP \(bu 2
+\fBStructs\fR: Complex objects and structs are not currently supported directly via the FFI.
+
+.SH DEPLOYMENT
+Plugins are scanned from the configured \fBplugin\fR directory. The VM looks for files with the following extensions:
+.IP \(bu 2
+\fB.so\fR (Linux/Unix)
+.IP \(bu 2
+\fB.dll\fR (Windows)
+.IP \(bu 2
+\fB.dylib\fR (macOS)
+.IP \(bu 2
+\fB.phsp\fR (Same as the rest, not universal)
+
+.SH SEE ALSO
+.BR Phasor_FFI (3),
+.BR phasor-isa (7)
+
+.SH AUTHOR
+Daniel McGuire
+
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
