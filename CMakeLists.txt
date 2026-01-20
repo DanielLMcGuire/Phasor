@@ -151,7 +151,7 @@ add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 set(FRONTEND_SOURCES ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp)
 set(FRONTEND_HEADERS ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp)
 add_library(PhasorFrontend STATIC ${FRONTEND_SOURCES} ${FRONTEND_HEADERS})
-target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen)
+target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen PhasorRuntime)
 
 add_executable(phasor_repl
     ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl.rc

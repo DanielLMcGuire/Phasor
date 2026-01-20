@@ -248,4 +248,25 @@ void FFI::unloadAll()
 	plugins_.clear();
 }
 
+FFI::FFI(const std::string &pluginFolder, VM *vm) : pluginFolder_(pluginFolder)
+{
+    auto plugins = scanPlugins(pluginFolder_);
+    for (const auto &pluginPath : plugins)
+    {
+        try
+        {
+            loadPlugin(pluginPath, vm);
+        }
+        catch (const std::runtime_error &e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+    }
+}
+
+FFI::~FFI()
+{
+    unloadAll();
+}
+
 } // namespace Phasor
