@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <memory>
 
+namespace Phasor
+{
+
 /**
  * @brief Runtime value types for the VM
  */
@@ -26,9 +29,9 @@ enum class ValueType
 class Value
 {
   public:
-  struct StructInstance 
+	struct StructInstance
 	{
-		std::string structName;
+		std::string                            structName;
 		std::unordered_map<std::string, Value> fields;
 	};
 
@@ -38,7 +41,6 @@ class Value
 	DataType data;
 
   public:
-
 	/// @brief Default constructor
 	Value() : data(std::monostate{})
 	{
@@ -342,48 +344,55 @@ class Value
 		return os;
 	}
 
-	Value(std::shared_ptr<StructInstance> s) : data(std::move(s)) {}
-    
-    bool isStruct() const {
-        return std::holds_alternative<std::shared_ptr<StructInstance>>(data);
-    }
-    
-    std::shared_ptr<StructInstance> asStruct() {
-        return std::get<std::shared_ptr<StructInstance>>(data);
-    }
-    
-    const std::shared_ptr<const StructInstance> asStruct() const {
-        return std::get<std::shared_ptr<StructInstance>>(data);
-    }
-    
-    static Value createStruct(const std::string& name) {
-        return Value(std::make_shared<StructInstance>(StructInstance{name}));
-    }
+	Value(std::shared_ptr<StructInstance> s) : data(std::move(s))
+	{
+	}
 
-    Value getField(const std::string &name) const
-    {
-        if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
-            throw std::runtime_error("getField() called on non-struct value");
-        auto s = std::get<std::shared_ptr<StructInstance>>(data);
-        auto it = s->fields.find(name);
-        if (it == s->fields.end())
-            return Value();
-        return it->second;
-    }
+	bool isStruct() const
+	{
+		return std::holds_alternative<std::shared_ptr<StructInstance>>(data);
+	}
 
-    void setField(const std::string &name, Value value)
-    {
-        if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
-            throw std::runtime_error("setField() called on non-struct value");
-        auto s = std::get<std::shared_ptr<StructInstance>>(data);
-        s->fields[name] = std::move(value);
-    }
+	std::shared_ptr<StructInstance> asStruct()
+	{
+		return std::get<std::shared_ptr<StructInstance>>(data);
+	}
 
-    bool hasField(const std::string &name) const
-    {
-        if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
-            return false;
-        auto s = std::get<std::shared_ptr<StructInstance>>(data);
-        return s->fields.find(name) != s->fields.end();
-    }
+	const std::shared_ptr<const StructInstance> asStruct() const
+	{
+		return std::get<std::shared_ptr<StructInstance>>(data);
+	}
+
+	static Value createStruct(const std::string &name)
+	{
+		return Value(std::make_shared<StructInstance>(StructInstance{name}));
+	}
+
+	Value getField(const std::string &name) const
+	{
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			throw std::runtime_error("getField() called on non-struct value");
+		auto s = std::get<std::shared_ptr<StructInstance>>(data);
+		auto it = s->fields.find(name);
+		if (it == s->fields.end())
+			return Value();
+		return it->second;
+	}
+
+	void setField(const std::string &name, Value value)
+	{
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			throw std::runtime_error("setField() called on non-struct value");
+		auto s = std::get<std::shared_ptr<StructInstance>>(data);
+		s->fields[name] = std::move(value);
+	}
+
+	bool hasField(const std::string &name) const
+	{
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			return false;
+		auto s = std::get<std::shared_ptr<StructInstance>>(data);
+		return s->fields.find(name) != s->fields.end();
+	}
 };
+} // namespace Phasor
