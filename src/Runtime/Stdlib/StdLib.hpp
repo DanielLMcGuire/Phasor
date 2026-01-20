@@ -12,11 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_WIN32) && defined(_PHASOR_WINAPI)
-#include <Windows.h>
-#include <winuser.h>
-#endif
-
 namespace Phasor
 {
 

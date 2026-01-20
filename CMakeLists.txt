@@ -9,11 +9,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include_directories(include src)
 
 option(ASSEMBLY "Enable assembly for core code" ON)
-if(WIN32)
-    option(WINAPI "Enable experimental windows api" ON)
-else()
-    option(WINAPI "Enable experimental windows api" OFF)
-endif()
 
 if(MSVC)
     enable_language(RC)
@@ -122,28 +117,10 @@ set(STDLIB_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/StdLib.hpp
 )
 
-if(WIN32 AND WINAPI)
-    list(APPEND STDLIB_SOURCES
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/windows.cpp
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/vhandle.cpp
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winType.cpp
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winuser.cpp
-    )
-    list(APPEND STDLIB_HEADERS
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/windows.hpp
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/vhandle.hpp
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winType.hpp
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/windows/winuser.hpp
-    )
-endif()
-
 add_library(PhasorStdlib STATIC ${STDLIB_SOURCES} ${STDLIB_HEADERS})
+
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
 target_link_libraries(PhasorRuntime PUBLIC PhasorStdlib)
-if(WIN32 AND WINAPI)
-    target_compile_definitions(PhasorRuntime PRIVATE _PHASOR_WINAPI)
-    target_link_libraries(PhasorRuntime PRIVATE ws2_32)
-endif()
 
 set(INTERPRETER_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.cpp
