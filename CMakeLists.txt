@@ -229,7 +229,29 @@ set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 add_executable(phasor_winapi_gen
     ${CMAKE_SOURCE_DIR}/src/tools/windows/bindings.cpp
 )
-set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
+set_target_properties(phasor_winapi_gen PROPERTIES 
+    OUTPUT_NAME winapi-gen-phs
+)
+
+if(WIN32)
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi.cpp
+    COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.txt
+    DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.txt phasor_winapi_gen
+    COMMENT "Building scripts/winapi.txt"
+)
+add_library(phasor_winapi_bindings SHARED
+    ${CMAKE_BINARY_DIR}/phasor_winapi.cpp
+)
+set_target_properties(phasor_winapi_bindings PROPERTIES 
+    OUTPUT_NAME winapi_phs
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
+)
+
+install(TARGETS phasor_winapi_bindings
+    RUNTIME DESTINATION bin/plugins
+)
+endif()
 
 install(TARGETS
     phasor_compiler phasor_cpp_compiler phasor_runtime_exe
@@ -240,6 +262,9 @@ install(TARGETS
     ARCHIVE DESTINATION lib
     FRAMEWORK DESTINATION frameworks
 )
+
+add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf.c)
+set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 set(TARGETS cat cp echo ls mv rm touch)
 set(BIN_DIR "${CMAKE_BINARY_DIR}/src/CLI/utils/coreutils")

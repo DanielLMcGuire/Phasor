@@ -13,11 +13,11 @@ UINT GetACP(void);
 UINT GetOEMCP(void);
 UINT GetConsoleCP(void);
 UINT GetConsoleOutputCP(void);
-ULONG MulDiv(ULONG nNumber, ULONG nNumerator, ULONG nDenominator);
-int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-int MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
-int MessageBoxTimeoutA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
-int MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
+ULONG MulDiv(ULONG nNumber, ULONG nNumerator, ULONG nDenominator); 
+int MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType); // Handles not implemented yet
+int MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType); // Handles not implemented yet
+int MessageBoxTimeoutA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds); // Handles not implemented yet
+int MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds); // Handles not implemented yet
 BOOL SetCursorPos(int X, int Y);
-BOOL GetCursorPos(LPPOINT lpPoint);
+BOOL GetCursorPos(LPPOINT lpPoint); // Will have to convert to BOOL GetCursorPos(int X, int Y);
 int GetSystemMetrics(int nIndex);
