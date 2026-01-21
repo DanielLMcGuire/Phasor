@@ -10,4 +10,4 @@ include_directories(../include)
 # Build the shared library (plugin) from the source file.
 # No linking is needed here because the Phasor API symbols will be
 # resolved by the host application when it loads the plugin.
-add_library(phasor_ffi_example SHARED ffi.cpp)
+add_library(phasor_ffi_example SHARED src/ffi.cpp)

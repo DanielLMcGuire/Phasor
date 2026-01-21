@@ -697,4 +697,4 @@ clocf
 package-lock.json
 *.js
 *.js.map
-/examples/build
+build/
