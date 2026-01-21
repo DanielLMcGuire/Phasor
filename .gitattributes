@@ -3,3 +3,4 @@
 *.phs phasor
 *.ts linguist-detectable=false
 *.tsx linguist-detectable=false
+*.zig linguist-detectable=false
