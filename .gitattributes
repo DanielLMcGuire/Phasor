@@ -4,3 +4,5 @@
 *.ts linguist-detectable=false
 *.tsx linguist-detectable=false
 *.zig linguist-detectable=false
+*.nsi linguist-detectable=false
+*.sh linguist-detectable=false
