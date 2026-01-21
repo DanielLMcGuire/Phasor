@@ -261,7 +261,7 @@ foreach(tgt ${TARGETS})
         OUTPUT ${HEADER}
         COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${PHS} -o ${HEADER} -H --nologo
         DEPENDS ${PHS} phasor_cpp_compiler
-        COMMENT "Building PHS header ${HEADER}"
+        COMMENT "Building PHS object ${PHS}"
     )
 
     configure_file(
