@@ -4,6 +4,8 @@
 #include <variant>
 #include <unordered_map>
 #include <memory>
+#include <vector>
+
 
 namespace Phasor
 {
