@@ -38,6 +38,17 @@ static Phasor::Value from_c_value(const PhasorValue& c_value)
             return Phasor::Value(c_value.as.s);
         }
         return Phasor::Value("");
+    case PHASOR_TYPE_ARRAY:
+    {
+        std::vector<Phasor::Value> cpp_elements;
+        if (c_value.as.a.elements && c_value.as.a.count > 0) {
+            cpp_elements.reserve(c_value.as.a.count);
+            for (size_t i = 0; i < c_value.as.a.count; ++i) {
+                cpp_elements.push_back(from_c_value(c_value.as.a.elements[i]));
+            }
+        }
+        return Phasor::Value::createArray(std::move(cpp_elements));
+    }
     default:
         return Phasor::Value();
     }
@@ -52,7 +63,8 @@ static Phasor::Value from_c_value(const PhasorValue& c_value)
  * @return The equivalent C-style value for the plugin.
  */
 static PhasorValue to_c_value(const Phasor::Value& cpp_value,
-                              std::vector<std::unique_ptr<char[]>>& string_arena)
+                              std::vector<std::unique_ptr<char[]>>& string_arena,
+                              std::vector<std::unique_ptr<PhasorValue[]>>& array_arena)
 {
     switch (cpp_value.getType())
     {
@@ -72,6 +84,23 @@ static PhasorValue to_c_value(const Phasor::Value& cpp_value,
         c_str[str.length()] = '\0';
         PhasorValue val = phasor_make_string(c_str.get());
         string_arena.push_back(std::move(c_str));
+        return val;
+    }
+    case ValueType::Array:
+    {
+        const auto& cpp_array = *cpp_value.asArray();
+        size_t count = cpp_array.size();
+        if (count == 0) {
+            return phasor_make_array(nullptr, 0);
+        }
+
+        auto c_array = std::make_unique<PhasorValue[]>(count);
+        for (size_t i = 0; i < count; ++i) {
+            c_array[i] = to_c_value(cpp_array[i], string_arena, array_arena);
+        }
+
+        PhasorValue val = phasor_make_array(c_array.get(), count);
+        array_arena.push_back(std::move(c_array));
         return val;
     }
     default:
@@ -95,12 +124,13 @@ static PhasorValue to_c_value(const Phasor::Value& cpp_value,
 static Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM* vm, const std::vector<Phasor::Value>& args)
 {
     std::vector<std::unique_ptr<char[]>> string_arena;
+    std::vector<std::unique_ptr<PhasorValue[]>> array_arena;
 
     std::vector<PhasorValue> c_args;
     c_args.reserve(args.size());
     for (const auto& arg : args)
     {
-        c_args.push_back(to_c_value(arg, string_arena));
+        c_args.push_back(to_c_value(arg, string_arena, array_arena));
     }
 
     PhasorValue c_result = c_func(reinterpret_cast<PhasorVM*>(vm), (int)c_args.size(), c_args.data());

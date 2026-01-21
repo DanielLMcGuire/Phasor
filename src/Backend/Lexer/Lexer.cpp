@@ -141,7 +141,7 @@ Token Lexer::scanToken()
 	}
 
 	// Single-character symbols (parentheses, operators, punctuation, etc.)
-	if (std::string("()+-*/%<>=!&|.{}:;,").find(c) != std::string::npos)
+	if (std::string("()+-*/%<>=!&|.{}:;,[]").find(c) != std::string::npos)
 	{
 		advance();
 		return {TokenType::Symbol, std::string(1, c), line, column};

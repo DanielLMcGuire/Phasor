@@ -42,22 +42,30 @@ typedef enum {
     PHASOR_TYPE_INT,
     PHASOR_TYPE_FLOAT,
     PHASOR_TYPE_STRING,
+    PHASOR_TYPE_ARRAY,
     // Note: Structs are not directly supported in this version of the FFI
     // for simplicity, but can be added in the future.
 } PhasorValueType;
 
+// Forward declare for self-reference in the union
+typedef struct PhasorValue PhasorValue;
+
 // Represents a value in the Phasor VM.
 // It's a tagged union holding one of several possible types.
-typedef struct {
+struct PhasorValue {
     PhasorValueType type;
     union {
         bool     b;
         int64_t  i;
         double   f;
         const char* s; // Note: For strings returned from the VM, this is valid.
-                       // For strings passed to the VM, the VM makes a copy.
+        // For strings passed to the VM, the VM makes a copy.
+        struct {
+            const PhasorValue* elements;
+            size_t count;
+        } a;
     } as;
-} PhasorValue;
+};
 
 // -----------------------------------------------------------------------------
 // Value Manipulation Functions (static inline for self-containment)
@@ -98,12 +106,21 @@ static inline PhasorValue phasor_make_string(const char* s) {
     return val;
 }
 
+static inline PhasorValue phasor_make_array(const PhasorValue* elements, size_t count) {
+    PhasorValue val;
+    val.type = PHASOR_TYPE_ARRAY;
+    val.as.a.elements = elements;
+    val.as.a.count = count;
+    return val;
+}
+
 // Helper functions to check the type of a PhasorValue.
 static inline bool phasor_is_null(PhasorValue val) { return val.type == PHASOR_TYPE_NULL; }
 static inline bool phasor_is_bool(PhasorValue val) { return val.type == PHASOR_TYPE_BOOL; }
 static inline bool phasor_is_int(PhasorValue val) { return val.type == PHASOR_TYPE_INT; }
 static inline bool phasor_is_float(PhasorValue val) { return val.type == PHASOR_TYPE_FLOAT; }
 static inline bool phasor_is_string(PhasorValue val) { return val.type == PHASOR_TYPE_STRING; }
+static inline bool phasor_is_array(PhasorValue val) { return val.type == PHASOR_TYPE_ARRAY; }
 static inline bool phasor_is_number(PhasorValue val) { return phasor_is_int(val) || phasor_is_float(val); }
 
 // Helper functions to get the underlying value from a PhasorValue.

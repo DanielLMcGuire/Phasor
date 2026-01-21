@@ -18,7 +18,8 @@ enum class ValueType
 	Int,
 	Float,
 	String,
-	Struct
+	Struct,
+	Array
 };
 
 /**
@@ -34,9 +35,11 @@ class Value
 		std::string                            structName;
 		std::unordered_map<std::string, Value> fields;
 	};
+	using ArrayInstance = std::vector<Value>;
 
   private:
-	using DataType = std::variant<std::monostate, bool, int64_t, double, std::string, std::shared_ptr<StructInstance>>;
+	using DataType = std::variant<std::monostate, bool, int64_t, double, std::string,
+	                              std::shared_ptr<StructInstance>, std::shared_ptr<ArrayInstance>>;
 
 	DataType data;
 
@@ -69,6 +72,14 @@ class Value
 	Value(const char *s) : data(std::string(s))
 	{
 	}
+	/// @brief Struct constructor
+	Value(std::shared_ptr<StructInstance> s) : data(std::move(s))
+	{
+	}
+	/// @brief Array constructor
+	Value(std::shared_ptr<ArrayInstance> a) : data(std::move(a))
+	{
+	}
 
 	/// @brief Get the type of the value
 	ValueType getType() const
@@ -83,7 +94,11 @@ class Value
 			return ValueType::Float;
 		if (std::holds_alternative<std::string>(data))
 			return ValueType::String;
-		return ValueType::Struct;
+		if (std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			return ValueType::Struct;
+		if (std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
+			return ValueType::Array;
+		return ValueType::Null; // Should not be reached if default constructed
 	}
 
 	/// @brief Check if the value is null
@@ -116,6 +131,11 @@ class Value
 	{
 		return isInt() || isFloat();
 	}
+	/// @brief Check if the value is an array
+	bool isArray() const
+	{
+		return std::holds_alternative<std::shared_ptr<ArrayInstance>>(data);
+	}
 
 	/// @brief Get the value as a boolean
 	bool asBool() const
@@ -146,6 +166,17 @@ class Value
 		if (isString())
 			return std::get<std::string>(data);
 		return toString();
+	}
+	/// @brief Get the value as an array
+	std::shared_ptr<ArrayInstance> asArray()
+	{
+		return std::get<std::shared_ptr<ArrayInstance>>(data);
+	}
+
+	/// @brief Get the value as an array (const)
+	const std::shared_ptr<const ArrayInstance> asArray() const
+	{
+		return std::get<std::shared_ptr<ArrayInstance>>(data);
 	}
 
 	/// @brief Add two values
@@ -269,6 +300,13 @@ class Value
 			return asFloat() == other.asFloat();
 		if (isString())
 			return asString() == other.asString();
+		if (isArray())
+		{
+			if (!other.isArray()) return false;
+			const auto &self_arr = *asArray();
+			const auto &other_arr = *other.asArray();
+			return self_arr == other_arr;
+		}
 		return false;
 	}
 
@@ -326,6 +364,21 @@ class Value
 			return std::to_string(asFloat());
 		if (isString())
 			return asString();
+		if (isArray())
+		{
+			std::string result = "[";
+			const auto &arr = *asArray();
+			for (size_t i = 0; i < arr.size(); ++i)
+			{
+				result += arr[i].toString();
+				if (i < arr.size() - 1)
+				{
+					result += ", ";
+				}
+			}
+			result += "]";
+			return result;
+		}
 		return "unknown";
 	}
 
@@ -342,10 +395,6 @@ class Value
 	{
 		os << v.toString();
 		return os;
-	}
-
-	Value(std::shared_ptr<StructInstance> s) : data(std::move(s))
-	{
 	}
 
 	bool isStruct() const
@@ -366,6 +415,11 @@ class Value
 	static Value createStruct(const std::string &name)
 	{
 		return Value(std::make_shared<StructInstance>(StructInstance{name}));
+	}
+
+	static Value createArray(std::vector<Value> elements = {})
+	{
+		return Value(std::make_shared<ArrayInstance>(std::move(elements)));
 	}
 
 	Value getField(const std::string &name) const

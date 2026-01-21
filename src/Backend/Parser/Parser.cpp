@@ -94,8 +94,14 @@ std::unique_ptr<TypeNode> Parser::parseType()
 		isPointer = true;
 	}
 	Token typeName = consume(TokenType::Identifier, "Expect type name.");
-	// Handle generics later if needed, for now just basic types
-	return std::make_unique<TypeNode>(typeName.lexeme, isPointer);
+	
+	std::vector<int> dims;
+	while (match(TokenType::Symbol, "[")) {
+		Token size = consume(TokenType::Number, "Expect array size in type declaration.");
+		dims.push_back(std::stoi(size.lexeme));
+		consume(TokenType::Symbol, "]", "Expect ']' after array size.");
+	}
+	return std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
 }
 
 std::unique_ptr<Statement> Parser::varDeclaration()
@@ -511,6 +517,12 @@ std::unique_ptr<Expression> Parser::call()
 		{
 			expr = std::make_unique<PostfixExpr>(PostfixOp::Decrement, std::move(expr));
 		}
+		else if (match(TokenType::Symbol, "["))
+		{
+			auto index = expression();
+			consume(TokenType::Symbol, "]", "Expect ']' after index.");
+			expr = std::make_unique<ArrayAccessExpr>(std::move(expr), std::move(index));
+		}
 		else
 		{
 			break;
@@ -569,6 +581,17 @@ std::unique_ptr<Expression> Parser::primary()
 		}
 		advance();
 		return std::make_unique<IdentifierExpr>(identTok.lexeme);
+	}
+	if (match(TokenType::Symbol, "["))
+	{
+		std::vector<std::unique_ptr<Expression>> elements;
+		if (!check(TokenType::Symbol) || peek().lexeme != "]") {
+			do {
+				elements.push_back(expression());
+			} while (match(TokenType::Symbol, ","));
+		}
+		consume(TokenType::Symbol, "]", "Expect ']' after array elements.");
+		return std::make_unique<ArrayLiteralExpr>(std::move(elements));
 	}
 	if (match(TokenType::Keyword, "true"))
 	{
