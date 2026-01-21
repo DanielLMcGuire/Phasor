@@ -2,6 +2,7 @@
 #include "../../Backend/Lexer/Lexer.hpp"
 #include "../../Backend/Parser/Parser.hpp"
 #include "../../AST/AST.hpp"
+#include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../Codegen/Cpp/CppCodeGenerator.hpp"
@@ -21,14 +22,15 @@
 namespace Phasor
 {
 
-NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData) : m_bytecodeData(bytecodeData)
+NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv)
+    : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
 	BytecodeDeserializer deserializer;
 	m_bytecode = deserializer.deserialize(m_bytecodeData);
 	m_vm = std::make_unique<VM>();
 }
 
-NativeRuntime::NativeRuntime(const std::string &script) : m_script(script)
+NativeRuntime::NativeRuntime(const std::string &script, const int argc, char **argv) : m_script(script), m_argc(argc), m_argv(argv)
 {
 	Lexer lexer(m_script);
 	auto  tokens = lexer.tokenize();
@@ -74,6 +76,8 @@ int NativeRuntime::run()
 
 	try
 	{
+		StdLib::argc = m_argc;
+		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 		FFI ffi("plugins", m_vm.get());
 		m_vm->setImportHandler([](const std::filesystem::path &path) {

@@ -35,12 +35,12 @@ std::vector<std::string> splits(const std::string &input)
 extern "C"
 {
 	DLLEXPORT void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,
-	                    const void *nativeFunctionsVector)
+	                    const void *nativeFunctionsVector, const int argc, const char** argv)
 	{
 		try
 		{
 			std::vector<uint8_t>  bytecodeData(embeddedBytecode, embeddedBytecode + embeddedBytecodeSize);
-			Phasor::NativeRuntime NativeRT(bytecodeData);
+			Phasor::NativeRuntime NativeRT(bytecodeData, argc, argv);
 
 			if (nativeFunctionsVector != nullptr)
 			{
@@ -69,7 +69,7 @@ extern "C"
 	{
 		try
 		{
-			Phasor::NativeRuntime NativeRT(script);
+			Phasor::NativeRuntime NativeRT(script, 0, nullptr);
 
 			if (nativeFunctionsVector != nullptr)
 			{

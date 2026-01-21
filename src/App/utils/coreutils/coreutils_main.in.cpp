@@ -30,7 +30,7 @@
 
 // Forward declare native runtime entry points (linked in from the runtime library)
 extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize,
-	                   const char *moduleName, const void *nativeFunctionsVector = nullptr);
+	                   const char *moduleName, const void *nativeFunctionsVector, const int argc, char **argv);
 
 // Main entry point
 int main(int argc, char *argv[], char *envp[])
@@ -39,7 +39,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	try
 	{
-		exec(embeddedBytecode, embeddedBytecodeSize, moduleName.c_str());
+		exec(embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), nullptr, argc, argv);
 		exitCode = 0;
 	}
 	catch (const std::exception &e)

@@ -18,8 +18,8 @@ namespace Phasor
 class NativeRuntime
 {
   public:
-	NativeRuntime(const std::vector<uint8_t> &bytecodeData);
-	NativeRuntime(const std::string &script);
+	NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);
+	NativeRuntime(const std::string &script, int argc, char **argv);
 	~NativeRuntime();
 	int  run();
 	void addNativeFunction(const std::string &name, void *function);
@@ -31,6 +31,8 @@ class NativeRuntime
 	std::vector<uint8_t> m_bytecodeData;
 	std::string          m_script;
 	std::unique_ptr<VM>  m_vm;
+	int                  m_argc;
+	char                 **m_argv;
 };
 
 } // namespace Phasor
