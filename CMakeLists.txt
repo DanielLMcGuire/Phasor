@@ -232,6 +232,11 @@ target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/util
 target_link_libraries(phasor_shell phasor_native_runtime)
 set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
+add_executable(phasor_winapi_gen
+    ${CMAKE_SOURCE_DIR}/src/tools/windows/bindings.cpp
+)
+set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
+
 install(TARGETS
     phasor_compiler phasor_cpp_compiler phasor_runtime_exe
     phasor_native_runtime phasor_native_runtime_static
