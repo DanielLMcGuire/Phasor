@@ -119,10 +119,14 @@ void generateWrapper(const Function &f, std::ostream &out)
 			conv = "(" + p.type + ")phasor_to_int(argv[" + std::to_string(i) + "])";
 		else if (p.type == "float" || p.type == "double")
 			conv = "(" + p.type + ")phasor_to_float(argv[" + std::to_string(i) + "])";
-		else if (p.type == "LPCSTR" || p.type == "LPSTR" || p.type == "constchar*")
+		else if (p.type == "LPCSTR" || p.type == "constchar*")
 			conv = "(const char*)phasor_to_string(argv[" + std::to_string(i) + "])";
-		else // LPCWSTR, LPWSTR, constwchar_t*
+		else if (p.type == "LPSTR")
+			conv = "(char*)phasor_to_string(argv[" + std::to_string(i) + "])";
+		else if (p.type == "LPCWSTR" || p.type == "constwchar_t*")
 			conv = "(const wchar_t*)phasor_to_string(argv[" + std::to_string(i) + "])";
+		else // LPWSTR
+			conv = "(wchar_t*)phasor_to_string(argv[" + std::to_string(i) + "])";
 		out << "    " << p.type << " " << p.name << " = " << conv << ";\n";
 	}
 
@@ -156,7 +160,7 @@ int main(int argc, char **argv)
 	std::ifstream infile(inputFile);
 	std::ofstream outfile(outputFile);
 
-	outfile << "#define PHASOR_FFI_BUILD_DLL\n#include <phasor_ffi.hpp>\n#include <Windows.h>\n\n";
+	outfile << "#define PHASOR_FFI_BUILD_DLL\n#include <PhasorFFI.hpp>\n#include <windows.h>\n\n";
 
 	std::string           line;
 	int                   lineNumber = 0;
