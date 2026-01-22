@@ -1,22 +1,29 @@
 #include "system.h"
 
 size_t getAvailableMemory()
-#ifdef _WIN32
 {
-	// WIN32
+#ifdef _WIN32
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof(statex);
 	if (!GlobalMemoryStatusEx(&statex))
 		return 0;
 	return (size_t)statex.ullAvailPhys;
-}
+#elif defined(__APPLE__)
+	mach_msg_type_number_t count = HOST_VM_INFO_COUNT;
+	vm_statistics_data_t   vmstat;
+	if (host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&vmstat, &count) != KERN_SUCCESS)
+		return 0;
+
+	natural_t available_pages = vmstat.free_count + vmstat.inactive_count;
+	vm_size_t page_size;
+	host_page_size(mach_host_self(), &page_size);
+
+	return (size_t)available_pages * (size_t)page_size;
 #else
-{
-	// POSIX
 	long pages = sysconf(_SC_AVPHYS_PAGES);
 	long page_size = sysconf(_SC_PAGESIZE);
 	if (pages == -1 || page_size == -1)
 		return 0;
 	return (size_t)pages * (size_t)page_size;
-}
 #endif
+}

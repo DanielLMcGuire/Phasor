@@ -1,8 +1,10 @@
 #ifndef CORE_SYSTEM_H
 #define CORE_SYSTEM_H	
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <windows.h>
+#elif defined(__APPLE__)
+#include <mach/mach.h>
 #else
 #include <unistd.h>
 #endif
