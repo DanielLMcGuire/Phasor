@@ -32,9 +32,13 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: microsoft/setup-msbuild@v1
       
+    - name: Set up MSVC environment
+      if: matrix.os == 'windows-latest' 
+      uses: ilammy/msvc-dev-cmd@v1
+    
     - name: Configure
       shell: bash
-      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release -G Ninja
+      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release
                 
     - name: Build
       shell: bash
