@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 	outfile << "PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm) {\n";
 	for (const auto &f : funcs)
 	{
-		outfile << "    api->register_function(vm, \"" << f.name << "\", win32_" << f.name << ");\n";
+		outfile << "    api->register_function(vm, \"" << "win32_" << f.name << "\", win32_" << f.name << ");\n";
 	}
 	outfile << "}\n";
 }
