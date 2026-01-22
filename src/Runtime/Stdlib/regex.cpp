@@ -235,7 +235,7 @@ Value StdLib::regex_replace(const std::vector<Value> &args, VM *vm)
 			{
 				syntax = syntax | std::regex_constants::icase;
 			}
-#if (defined(__GNUC__) && __cplusplus >= 201703L) || (defined(_MSC_VER) && _MSC_VER >= 1940)
+#if (defined(__GNUC__) && __cplusplus >= 201703L) || (defined(_MSC_VER) && _MSC_VER >= 1950)
 			if (flagsStr.find('m') != std::string::npos)
 			{
 			    syntax = syntax | std::regex_constants::multiline;
