@@ -8,10 +8,11 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Language Features
 
-- **Dynamic typing** with integers, floats, strings, booleans, and of the least for last: null.
-- **Functions** with optional type annotations
-- **Structs** with static field access, with the benefit of being mostly untested!
-- **Control flow**: if/else, while, for, switch/case, break/continue
+- **Dynamic typing** with integers, floats, strings, booleans, and of the least for last: null. ```var x = 21; // int```
+- **Functions** with forced type annotations ```fn func(input: string) -> void { ... }```
+- **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
+- **Arrays** are being tested with C syntax ```var arrayName[arraySize];```
+- **C-style Control flow**: if/else, while, for, switch/case, break/continue
 - **Comprehensive standard library**: without anything smart to put here for appeal
 - **Hybrid VM** supporting both stack-based and primarily register-based execution
 
@@ -26,9 +27,9 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Q/A
 
-> **Q** - Why does the code look horrible?
+> **Q** - Are you just ripping off the best from every language
 >
-> **A** - I let an AI agent go loose to *find* (not fix) issues, and it fixed almost 200K tokens worth of "issues" that weren't there.
+> **A** - My inspiration came from a few places, TS, C99, Zig, Rust, etc 
 >
 > **Q** - What is this? Why would I even need this?
 >
@@ -37,18 +38,6 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 > **Q** - Is this better than 'Java' or '.NET'?
 >
 > **A** - I have not tested Phasor against other languages, runtimes, VMs, etc.
->
-> **Q** - This feels too much like 'JavaScript', is this intentional?
->
-> **A** - No, in fact my goal was the opposite. I would have been better at that goal had I actually known JS when I wrote this. Instead I was forced to learn JS to make the website afterwards and noticed.
->
-> **Q** - How to declare a constant?
->
-> **A** - Everything is technically a constant, a variable is an technically in some way an extension of said constant. (TL;DR They are automatic)
->
-> **Q** - How can I learn more?
->
-> **A** - The following *might* be helpful:
 
 ## Quick Start
 
