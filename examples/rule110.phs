@@ -1,0 +1,89 @@
+include_stdio();
+include_stdstr();
+include_stdtype();
+include_stdsys();
+include_stdfile();
+
+var logfile = "log.txt";
+
+fn msToSeconds(milli: float) -> float {
+    return milli / 1000;
+}
+
+fn rule110(width: int, generations: int, stdout: bool) -> int {
+    if (!stdout) puts(concat("Output at ", logfile));
+    frm(logfile);
+    var start = time();
+
+    var board_sb = sb_new();
+    var i = 0;
+    while (i < width - 1) {
+        sb_append(board_sb, " ");
+        i = i + 1;
+    }
+    sb_append(board_sb, "#");
+
+    var board = sb_to_string(board_sb);
+    sb_free(board_sb);
+
+    var next_board = sb_new();
+    var file_buffer = sb_new(); 
+    var g = 0;
+
+    if (!stdout) putf("Generation 0 done in %f seconds", msToSeconds(time() - start));
+    var l_start = time();
+    while (g <= generations) {
+        if (stdout) { 
+            puts(board);
+        } 
+    
+        sb_append(file_buffer, board);
+        sb_append(file_buffer, "\n");
+
+        next_board = sb_new();
+
+        var k = 0;
+        while (k < width) {
+                    var l = " ";
+        if (k > 0)
+            l = char_at(board, k - 1);
+        var c = char_at(board, k);
+        var r = " ";
+        if (k < width - 1)
+            r = char_at(board, k + 1);
+        var next_val = " ";
+        if ((c == "#" && r == " ") || (c == " " && r == "#") || (l == " " && c == "#" && r == "#"))
+            next_val = "#";
+
+        sb_append(next_board, next_val);
+            k = k + 1;
+        }
+
+        if (g != 0 && (g % 500 == 0)) {
+            var chunk = sb_to_string(file_buffer);
+            fappend(logfile, chunk);
+            sb_free(file_buffer);
+            file_buffer = sb_new();
+
+            if (!stdout) {
+                var now = time();
+            putf("Generation %d-%d done in %f seconds, total %f seconds", (g - 499), g, msToSeconds(now - l_start), msToSeconds(now - start));
+            l_start = now; 
+            }
+        }
+
+        board = sb_to_string(next_board);
+        sb_free(next_board);
+        g = g + 1;
+    }
+
+    var final_chunk = sb_to_string(file_buffer);
+    fappend(logfile, final_chunk);
+    sb_free(file_buffer);
+
+    sb_free(next_board);
+    putf("Time = %f seconds", msToSeconds(time() - start));
+    return 0;
+}
+
+shutdown(rule110(to_int(sys_argv(1)), to_int(sys_argv(2)), to_int(sys_argv(3))));
