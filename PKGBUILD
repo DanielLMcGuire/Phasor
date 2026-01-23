@@ -30,7 +30,7 @@ build() {
 
 package() {
     cd "$srcdir/Phasor/build"
-    cmake --install . --prefix="$pkgdir/usr/local"
+    cmake --install . --prefix="$pkgdir/usr"
 
     for section in 1 3 5; do
         src="$srcdir/Phasor/docs/man/man$section"
