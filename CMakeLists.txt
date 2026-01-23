@@ -246,6 +246,7 @@ add_custom_command(
 )
 add_library(phasor_winapi_bindings SHARED
     ${CMAKE_BINARY_DIR}/phasor_winapi.cpp
+    ${CMAKE_SOURCE_DIR}/src/tools/windows/handle.hpp
 )
 set_target_properties(phasor_winapi_bindings PROPERTIES 
     OUTPUT_NAME winapi_phs
