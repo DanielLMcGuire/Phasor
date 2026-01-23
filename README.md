@@ -17,10 +17,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Upcoming
 
-- Proposal based standard library updates (**Needs planning!**)
-- Microkernel-like architecture using native assembly to define all VM opcodes (**Nearly there!**)
 - C based standard library replacing remaining C++ parts (**Started**)
-- Custom unix style environment for system level work (**Started**)
 
 ---
 
