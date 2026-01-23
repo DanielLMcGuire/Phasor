@@ -429,7 +429,11 @@ bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const s
 	}
 
 	command += " " + sourcePath.string();
-	std::system(command.c_str());
+	if (std::system(command.c_str()) != 0)
+	{
+		std::cerr << "Error: Compilation failed\n";
+		return false;
+	}
 
 	return true;
 }
