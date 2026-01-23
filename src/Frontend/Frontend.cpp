@@ -49,11 +49,11 @@ void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm.get());
+	FFI ffi("plugins", vm);
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm.get());
+	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
@@ -89,11 +89,11 @@ void Phasor::Frontend::runRepl(VM *vm)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm.get());
+	FFI ffi("plugins", vm);
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm));
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm.get());
+	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
