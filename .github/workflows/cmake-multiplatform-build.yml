@@ -36,10 +36,15 @@ jobs:
       if: matrix.os == 'windows-latest' 
       uses: ilammy/msvc-dev-cmd@v1
     
-    - name: Configure
+    - name: Configure (macOS)
+      if: matrix.os == 'macos-latest'
       shell: bash
       run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release
-                
+
+    - name: Configure 
+      if: matrix.os != 'macos-latest'
+      shell: bash
+      run: cmake -S . -G Ninja -B build -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release
     - name: Build
       shell: bash
       run: cmake --build build --config Release

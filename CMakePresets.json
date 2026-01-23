@@ -56,7 +56,6 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
@@ -74,7 +73,6 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
@@ -202,7 +200,6 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
@@ -220,7 +217,6 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },

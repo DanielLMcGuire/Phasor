@@ -24,7 +24,7 @@ pkgver() {
 
 build() {
 	cd "$srcdir/Phasor"
-    cmake -S "$srcdir/Phasor" -B "$srcdir/Phasor/build" -G Ninja -DASSEMBLY=OFF
+    cmake -S "$srcdir/Phasor" -B "$srcdir/Phasor/build" -G Ninja
     cmake --build "$srcdir/Phasor/build"
 }
 

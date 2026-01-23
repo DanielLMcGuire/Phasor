@@ -6,7 +6,7 @@ if [ ! -f "linuxdeploy-x86_64.AppImage" ]; then
     chmod +x linuxdeploy-x86_64.AppImage
 fi
 
-cmake -S . -B build -G Ninja -DASSEMBLY=OFF
+cmake -S . -B build -G Ninja
 cmake --build build --target phasor_compiler
 cmake --build build --target phasor_repl
 cmake --build build --target phasor_runtime_exe
