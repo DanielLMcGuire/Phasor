@@ -79,7 +79,7 @@ Error messages are printed to standard error on Unix-like systems. On Windows, c
 .PP
 In verbose mode, detailed debugging information is printed to standard error throughout the execution process.
 .SH LIMITATIONS
-The current implementation does not support import statements in the VM runtime. Programs that require multiple modules should be linked together during compilation or use the JIT runtime.
+The current implementation does not support import statements in the VM runtime. Programs that require multiple modules should be linked together during compilation (not yet supported) or use the JIT runtime.
 .SH PERFORMANCE
 The VM provides the fastest execution for Phasor programs because it:
 .RS
