@@ -18,9 +18,9 @@
 include_stdsys();
 include_stdio();
 
-for (i = 1; i < argc; i = i + 1) {
+for (var i = 1; i < sys_argc(); i = i + 1) {
     if (i > 1) {
         puts(" ");
     }
-    puts(argv[i]);
+    puts(sys_argv(i));
 }
