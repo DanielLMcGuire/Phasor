@@ -14,10 +14,12 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - **Arrays** are being tested with C syntax ```var arrayName[arraySize];```
 - **C-style Control flow**: if/else, while, for, switch/case, break/continue
 - **Comprehensive standard library**
+- **Windows API Bindings**
 
 ## Upcoming
 
 - C based standard library replacing remaining C++ parts (**Started**)
+- **POSIX API Bindings**
 
 ---
 
