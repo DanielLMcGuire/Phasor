@@ -1,4 +1,4 @@
-ndows.h>
+#include <windows.h>
 #include <winver.h>
 
 #define IDI_APP_ICON 101
@@ -24,7 +24,7 @@ BEGIN
             VALUE "FileDescription", "Phasor VM Runtime"
             VALUE "FileVersion", "2.1.0.0"
             VALUE "InternalName", "phasorvm.exe"
-           VALUE "LegalCopyright", "© 2026 Daniel McGuire"
+           VALUE "LegalCopyright", "Â© 2026 Daniel McGuire"
             VALUE "OriginalFilename", "phasorvm.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
             VALUE "ProductVersion", "2.1.0.0"
