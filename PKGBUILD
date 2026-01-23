@@ -34,7 +34,7 @@ package() {
 
     for section in 1 3 5 7; do
         src="$srcdir/Phasor/docs/man/man$section"
-        dest="$pkgdir/usr/local/share/man/man$section"
+        dest="$pkgdir/usr/share/man/man$section"
         mkdir -p "$dest"
         for file in "$src"/*."$section"; do
             [ -f "$file" ] && install -Dm644 "$file" "$dest"/
