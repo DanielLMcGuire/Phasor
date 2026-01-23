@@ -16,4 +16,11 @@
 //   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 include_stdsys();
-print sys_argv(1);
+include_stdio();
+
+for (i = 1; i < argc; i = i + 1) {
+    if (i > 1) {
+        puts(" ");
+    }
+    puts(argv[i]);
+}
