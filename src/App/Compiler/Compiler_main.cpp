@@ -4,7 +4,6 @@
 
 int main(int argc, char *argv[], char *envp[])
 {
-	std::cout << "Phasor Compiler\n(C) 2025 Daniel McGuire\n\n";
 	try
 	{
 		Phasor::Compiler compiler(argc, argv, envp);

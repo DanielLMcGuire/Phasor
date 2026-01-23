@@ -22,7 +22,7 @@ int CppCompiler::run()
 	if (!m_args.noLogo)
 	{
 		std::cout << "Phasor C++ Code Generator\n";
-		std::cout << "Copyright (c) 2025 Daniel McGuire\n";
+		std::cout << "Copyright (c) 2026 Daniel McGuire\n";
 		std::cout << "\n";
 	}
 	if (m_args.showHelp)

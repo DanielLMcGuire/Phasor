@@ -4,7 +4,6 @@
 
 int main(int argc, char *argv[], char *envp[])
 {
-	std::cout << "Phasor VM Runtime\n(C) 2025 Daniel McGuire\n\n";
 	try
 	{
 		Phasor::BinaryRuntime BinRT(argc, argv, envp);

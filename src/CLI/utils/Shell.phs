@@ -1,5 +1,5 @@
 // Simple Shell
-// (C) 2025 Daniel McGuire
+// (C) 2026 Daniel McGuire
 // This file is licensed under the MIT License
 
 include_stdio();
@@ -7,7 +7,7 @@ include_stdstr();
 include_stdsys();
 include_stdfile();
 
-puts("Phasor Shell\n(C) 2025 Daniel McGuire\n");
+puts("Phasor Shell\n(C) 2026 Daniel McGuire\n");
 
 fn trim(s: string) -> string {
     var out = "";

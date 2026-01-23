@@ -20,6 +20,7 @@ Compiler::Compiler(int argc, char *argv[], char *envp[])
 
 int Compiler::run()
 {
+	std::cout << "Phasor Compiler\n(C) 2026 Daniel McGuire\n\n";
 	if (m_args.inputFile.empty())
 	{
 		std::cerr << "Error: No input file provided\n";

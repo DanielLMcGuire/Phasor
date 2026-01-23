@@ -2,8 +2,8 @@
 #include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,1,0
- PRODUCTVERSION 2,0,1,0
+ FILEVERSION 2,1,0,0
+ PRODUCTVERSION 2,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -18,13 +18,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0" // Language: US English, Codepage: Unicode
         BEGIN
-            VALUE "CompanyName", "Daniel McGuire"
+            VALUE "CompanyName", "Phasor"
             VALUE "FileDescription", "Phasor VM Native Runtime"
-            VALUE "FileVersion", "2.0.1.0"
+            VALUE "FileVersion", "2.1.0.0"
             VALUE "InternalName", "phasorrt.dll"
-            VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
+            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "2.0.1.0"
+            VALUE "ProductVersion", "2.1.0.0"
         END
     END
     BLOCK "VarFileInfo"

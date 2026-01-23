@@ -1,6 +1,6 @@
 // Port of 'ls' directory listing program for GNU.
 // 'ls' directory listing program for Phasor.
-//   Copyright (C) 2025 Daniel McGuire.
+//   Copyright (C) 2026 Daniel McGuire.
 //
 //   This program is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ fn show_help() -> void {
 
 fn show_version() -> void {
     puts("ls (Phasor coreutils) 0.1");
-    puts("Copyright (C) 2025 Daniel McGuire");
     puts("License GPLv3+: GNU GPL version 3 or later");
     puts("This is free software: you are free to change and redistribute it.");
     puts("There is NO WARRANTY, to the extent permitted by law.");

@@ -419,7 +419,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 	std::stringstream ss;
 
 	// Write Header
-	ss << ".PHIR 2.0.0" << "\n";
+	ss << ".PHIR 3.0.0" << "\n";
 
 	// Build reverse lookup maps for inline comments
 	std::map<int, std::string> indexToVarName;

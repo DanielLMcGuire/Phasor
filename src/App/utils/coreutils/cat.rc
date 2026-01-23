@@ -1,6 +1,6 @@
 // Port of 'cat' - concatenate files and print on the standard output for GNU.
 // 'cat' file concatenation program for Phasor.
-//   Copyright (C) 2025 Daniel McGuire.
+//   Copyright (C) 2026 Daniel McGuire.
 //
 //   This program is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -35,11 +35,10 @@ BEGIN
     BEGIN
         BLOCK "040904b0"   // US English, Unicode
         BEGIN
-            VALUE "CompanyName", "Daniel McGuire"
+            VALUE "CompanyName", "Phasor"
             VALUE "FileDescription", "concatenate files and print on the standard output"
             VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "cat.exe"
-            VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
             VALUE "OriginalFilename", "cat.exe"
             VALUE "ProductName", "GNU Phasor 'cat'"
             VALUE "ProductVersion", "9.9.0.0"

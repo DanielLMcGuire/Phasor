@@ -1,6 +1,6 @@
 // Port of echo.c, derived from code echo.c in Bash.
 // 'echo' print out program for Phasor.
-//   Copyright (C) 2025 Daniel McGuire.
+//   Copyright (C) 2026 Daniel McGuire.
 //
 //   This program is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -35,10 +35,9 @@ BEGIN
     BEGIN
         BLOCK "040904b0"   // US English, Unicode
         BEGIN
-            VALUE "CompanyName", "Daniel McGuire"
+            VALUE "CompanyName", "Phasor"
             VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "echo.exe"
-            VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
             VALUE "OriginalFilename", "echo.exe"
             VALUE "ProductName", "GNU Phasor 'echo'"
             VALUE "ProductVersion", "9.9.0.0"

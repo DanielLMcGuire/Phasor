@@ -1,7 +1,7 @@
 //   coreutils_main -- wrapper to compile phs coreutils as native applications.
 //   Implementation of '@tgt@'
 //
-//   Copyright (C) 2025 Daniel McGuire.
+//   Copyright (C) 2026 Daniel McGuire.
 //
 //   This program is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by

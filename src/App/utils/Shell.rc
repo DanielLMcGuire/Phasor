@@ -2,12 +2,12 @@
 #include <winver.h>
 
 // Simple Shell
-// (C) 2025 Daniel McGuire
+// (C) 2026 Daniel McGuire
 // This file is licensed under the MIT License
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,0,0
- PRODUCTVERSION 2,0,1,0
+ FILEVERSION 1,2,1,0
+ PRODUCTVERSION 2,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG 
  FILEFLAGS VS_FF_DEBUG
@@ -22,14 +22,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0" // Language: US English, Codepage: Unicode
         BEGIN
-            VALUE "CompanyName", "Daniel McGuire"
-            VALUE "FileDescription", "Simple Shell"
+            VALUE "CompanyName", "Phasor"
+            VALUE "FileDescription", "Phasor Shell"
             VALUE "FileVersion", "1.2.0.0"
             VALUE "InternalName", "shell.exe"
-            VALUE "LegalCopyright", "(C) 2025 Daniel McGuire"
+            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
             VALUE "OriginalFilename", "shell.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "2.0.1.0"
+            VALUE "ProductVersion", "2.1.0.0"
         END
     END
     BLOCK "VarFileInfo"

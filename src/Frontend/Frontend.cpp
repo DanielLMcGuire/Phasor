@@ -71,8 +71,8 @@ void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 
 void Phasor::Frontend::runRepl(VM *vm)
 {
-	std::cout << "Phasor v2.0.1 REPL\n(C) 2025 Daniel McGuire\n\n";
-	std::cout << "Type 'exit;' to quit. Function declarations will not work.\n";
+	std::cout << "Phasor v2.1.0 REPL\n(C) 2026 Daniel McGuire\n\n";
+	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
 
 	bool ownVM = false;
 	if (vm == nullptr)
