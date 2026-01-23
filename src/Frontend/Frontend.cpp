@@ -48,7 +48,13 @@ void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 		StdLib::registerFunctions(*vm);
 	}
 
-	FFI ffi("plugins", vm);
+#if defined(_WIN32)
+	FFI ffi("plugins", vm.get());
+#elif defined(__APPLE__)
+	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+#elif defined(__linux__)
+	FFI ffi("/opt/Phasor/plugins", vm.get());
+#endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
 		std::ifstream file(path);
@@ -82,7 +88,13 @@ void Phasor::Frontend::runRepl(VM *vm)
 		StdLib::registerFunctions(*vm);
 	}
 
-	FFI ffi("plugins", vm);
+#if defined(_WIN32)
+	FFI ffi("plugins", vm.get());
+#elif defined(__APPLE__)
+	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+#elif defined(__linux__)
+	FFI ffi("/opt/Phasor/plugins", vm.get());
+#endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
 		std::ifstream file(path);

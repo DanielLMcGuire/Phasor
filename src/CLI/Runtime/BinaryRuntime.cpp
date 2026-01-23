@@ -51,7 +51,13 @@ int BinaryRuntime::run()
 		StdLib::argc = m_args.scriptArgc;
 		StdLib::envp = m_args.envp;
 
+#if defined(_WIN32)
 		FFI ffi("plugins", vm.get());
+#elif defined(__APPLE__)
+		FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+#elif defined(__linux__)
+		FFI ffi("/opt/Phasor/plugins", vm.get());
+#endif
 		
 		vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
