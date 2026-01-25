@@ -12,6 +12,10 @@
 #include <unistd.h>
 #endif
 
+#define INSTANCED_FFI(fn) [this](const std::vector<Value> &args, VM *vm) { return this->fn(args, vm); }
+
+#define VM_PRINT(str) vm->setRegister(VM::r0, str); vm->operation(OpCode::PRINT_R, VM::r0);
+
 namespace Phasor
 {
 /**
@@ -204,10 +208,15 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 	return true;
 }
 
+bool FFI::addPlugin(const std::filesystem::path &pluginPath)
+{
+    return loadPlugin(pluginPath, vm_);
+}
+
 /**
  * @brief Scans configured plugin directories for shared libraries.
  */
-std::vector<std::string> FFI::scanPlugins(const std::string &folder)
+std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 {
 	if (folder.empty()) return {};
 
@@ -278,8 +287,9 @@ void FFI::unloadAll()
 	plugins_.clear();
 }
 
-FFI::FFI(const std::string &pluginFolder, VM *vm) : pluginFolder_(pluginFolder)
+FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(pluginFolder), vm_(vm)
 {
+	vm->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
     auto plugins = scanPlugins(pluginFolder_);
     for (const auto &pluginPath : plugins)
     {
@@ -299,4 +309,17 @@ FFI::~FFI()
     unloadAll();
 }
 
+Value FFI::native_add_plugin(const std::vector<Value> &args, VM *vm)
+{
+	if (args.size() != 1)
+    {
+        throw std::runtime_error("load_plugin expects exactly 1 argument: the plugin path.");
+    }
+	std::filesystem::path pluginPath = args[0].asString();
+    if (!std::filesystem::exists(pluginPath))
+    {
+        throw std::runtime_error("Plugin file does not exist: " + pluginPath.string());
+	}
+    return addPlugin(pluginPath);
+}
 } // namespace Phasor

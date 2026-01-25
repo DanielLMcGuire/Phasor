@@ -13,7 +13,7 @@
 #include <dlfcn.h>
 #endif
 
-#include <PhasorFFI.hpp>
+#include <PhasorFFI.h>
 
 typedef void (*FFIFunction)(const PhasorAPI *api, PhasorVM *vm);
 
@@ -52,12 +52,24 @@ class FFI
 	 * @param pluginFolder Path to the folder containing plugins.
 	 * @param vm Pointer to the Phasor VM instance to register plugin functions with.
 	 */
-	explicit FFI(const std::string &pluginFolder, VM *vm);
+	explicit FFI(const std::filesystem::path &pluginFolder, VM *vm);
 
 	/**
 	 * @brief Destructor. Unloads all loaded plugins.
 	 */
 	~FFI();
+
+	/**
+	 * @brief Adds a single plugin from the specified path.
+	 * @param pluginPath Path to the plugin file.
+	 * @return True if the plugin was added successfully, false otherwise.
+	 */
+	bool addPlugin(const std::filesystem::path &pluginPath);
+
+	/**
+	 * @brief Native function to load a plugin at runtime.
+	 */
+	Value native_add_plugin(const std::vector<Value> &args, VM *vm);
 
   private:
 	/**
@@ -73,15 +85,16 @@ class FFI
 	 * @param folder Path to the folder to scan.
 	 * @return A vector of plugin file paths.
 	 */
-	std::vector<std::string> scanPlugins(const std::string &folder);
+	std::vector<std::string> scanPlugins(const std::filesystem::path &folder);
 
 	/**
 	 * @brief Unloads all currently loaded plugins and clears internal state.
 	 */
 	void unloadAll();
 
-	std::vector<Plugin> plugins_;      ///< Loaded plugins
-	std::string         pluginFolder_; ///< Plugin search folder
+	std::vector<Plugin>   plugins_;      ///< Loaded plugins
+	std::filesystem::path pluginFolder_; ///< Plugin search folder
+	VM                    *vm_;           ///< Pointer to the Phasor VM
 };
 
 } // namespace Phasor
