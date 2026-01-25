@@ -9,19 +9,23 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include_directories(include src)
 
 option(ASSEMBLY "Enable assembly for core code" ON)
+
+
 if(MSVC)
     enable_language(RC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /DNOMINMAX /EHsc /fp:precise /arch:AVX2 /Oi /Ot /GL /Gy /Qspectre-")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox /fp:precise /arch:AVX2 /Oi /Ot /GL /Gy /Qspectre-")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG /OPT:REF /OPT:ICF")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG /OPT:REF /OPT:ICF")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox /fp:precise /arch:AVX2 /Oi /Ot /GL /Gy /Qspectre-")
+    
     set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DNOMINMAX /EHsc /fp:strict")
+    set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /fp:strict")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
-    set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /fp:strict")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -flto -ffast-math -funroll-loops -fomit-frame-pointer -frtti -fexceptions")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native -flto -ffast-math -funroll-loops -fomit-frame-pointer -fexceptions")
+    
     if(APPLE)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip")
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-dead_strip")
@@ -29,9 +33,11 @@ else()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections")
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections")
     endif()
+    
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer -frtti -fexceptions")
     set(CMAKE_C_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer -fexceptions")
 endif()
+
 
 if(MSVC)
     if(ASSEMBLY)
@@ -74,7 +80,11 @@ elseif(UNIX)
     endif()
 endif()
 
-set(RUNTIME_SOURCES ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp  ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.cpp)
+
+set(RUNTIME_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.cpp
+)
 if(ASSEMBLY)
     list(APPEND RUNTIME_SOURCES ${ARITHMETIC_ASM} ${LOGICAL_ASM} ${IO_ASM})
 else()
@@ -94,6 +104,7 @@ set(RUNTIME_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/IO.h
     ${CMAKE_SOURCE_DIR}/src/sscanf.h
     ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.hpp
+    ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
 )
 
 set(STDLIB_SOURCES
@@ -115,20 +126,15 @@ set(STDLIB_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/StdLib.hpp
 )
 
-add_library(PhasorStdlib STATIC ${STDLIB_SOURCES} ${STDLIB_HEADERS})
-
-add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
-target_link_libraries(PhasorRuntime PUBLIC PhasorStdlib)
-
 set(INTERPRETER_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.cpp
     ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.cpp
 )
+
 set(INTERPRETER_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.hpp
     ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.hpp
 )
-add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADERS})
 
 set(CODEGEN_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Codegen/CodeGen.cpp
@@ -137,6 +143,7 @@ set(CODEGEN_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Codegen/IR/PhasorIR.cpp
     ${CMAKE_SOURCE_DIR}/src/Codegen/Cpp/CppCodeGenerator.cpp
 )
+
 set(CODEGEN_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Codegen/CodeGen.hpp
     ${CMAKE_SOURCE_DIR}/src/Codegen/Bytecode/BytecodeSerializer.hpp
@@ -144,12 +151,39 @@ set(CODEGEN_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Codegen/IR/PhasorIR.hpp
     ${CMAKE_SOURCE_DIR}/src/Codegen/Cpp/CppCodeGenerator.hpp
 )
+
+add_library(PhasorStdlib STATIC ${STDLIB_SOURCES} ${STDLIB_HEADERS})
+
+add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
+target_link_libraries(PhasorRuntime PUBLIC PhasorStdlib)
+
+add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADERS})
+
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
-set(FRONTEND_SOURCES ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp)
-set(FRONTEND_HEADERS ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp)
-add_library(PhasorFrontend STATIC ${FRONTEND_SOURCES} ${FRONTEND_HEADERS})
+add_library(PhasorFrontend STATIC ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp)
 target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen PhasorRuntime)
+
+add_library(phasor_native_runtime SHARED
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntimeDll.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+)
+target_link_libraries(phasor_native_runtime PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
+set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
+
+add_library(phasor_native_runtime_static STATIC
+    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+)
+target_link_libraries(phasor_native_runtime_static PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
+
 
 add_executable(phasor_repl
     ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl.rc
@@ -187,24 +221,6 @@ add_executable(phasor_runtime_exe
 target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
-add_library(phasor_native_runtime SHARED
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntimeDll.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
-)
-target_link_libraries(phasor_native_runtime PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
-set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
-target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
-
-add_library(phasor_native_runtime_static STATIC
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
-)
-target_link_libraries(phasor_native_runtime_static PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
-set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
-
 add_executable(phasor_interpreter
     ${CMAKE_SOURCE_DIR}/src/App/Runtime/ScriptingRuntime.rc
     ${CMAKE_SOURCE_DIR}/src/App/Runtime/ScriptingRuntime_main.cpp
@@ -220,57 +236,43 @@ add_custom_command(
     DEPENDS ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs phasor_cpp_compiler
     COMMENT "Building PHS object src/CLI/utils/Shell.phs"
 )
+
 add_executable(phasor_shell
     ${CMAKE_SOURCE_DIR}/src/App/utils/Shell.rc
     ${CMAKE_SOURCE_DIR}/src/App/utils/shell_main.cpp
     ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
-	${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs
+    ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs
 )
 target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/utils)
 target_link_libraries(phasor_shell phasor_native_runtime)
 set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
 if(WIN32)
-add_executable(phasor_winapi_gen
-    ${CMAKE_SOURCE_DIR}/src/tools/windows/bindings.cpp
-)
-set_target_properties(phasor_winapi_gen PROPERTIES 
-    OUTPUT_NAME winapi-gen-phs
-)
+    add_executable(phasor_winapi_gen
+        ${CMAKE_SOURCE_DIR}/src/tools/windows/bindings.cpp
+    )
+    set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
-add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
-    COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
-    DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
-    COMMENT "Building scripts/winapi.h"
-)
-add_library(phasor_winapi_bindings SHARED
-    ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
-    ${CMAKE_SOURCE_DIR}/src/tools/windows/handle.hpp
-    ${CMAKE_SOURCE_DIR}/scripts/winapi.h
-)
-set_target_properties(phasor_winapi_bindings PROPERTIES 
-    OUTPUT_NAME winapi_phs
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
-)
+    add_custom_command(
+        OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
+        COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
+        DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
+        COMMENT "Building scripts/winapi.h"
+    )
 
-install(TARGETS phasor_winapi_bindings
-    RUNTIME DESTINATION bin/plugins
-)
+    add_library(phasor_winapi_bindings SHARED
+        ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
+        ${CMAKE_SOURCE_DIR}/src/tools/windows/handle.hpp
+        ${CMAKE_SOURCE_DIR}/scripts/winapi.h
+    )
+    set_target_properties(phasor_winapi_bindings PROPERTIES 
+        OUTPUT_NAME winapi_phs
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
+    )
+
+    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION bin/plugins)
 endif()
 
-install(TARGETS
-    phasor_compiler phasor_cpp_compiler phasor_runtime_exe
-    phasor_native_runtime phasor_native_runtime_static
-    phasor_repl phasor_interpreter phasor_shell
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    FRAMEWORK DESTINATION frameworks
-)
-
-add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf.c)
-set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 set(TARGETS cat cp echo ls mv rm touch)
 set(BIN_DIR "${CMAKE_BINARY_DIR}/src/CLI/utils/coreutils")
@@ -299,11 +301,11 @@ foreach(tgt ${TARGETS})
         ${GEN_CPP}
         src/App/utils/coreutils/${tgt}.rc
         ${HEADER}
-		${PHS}
+        ${PHS}
     )
     target_include_directories(${tgt} PRIVATE ${BIN_DIR})
-    set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
     target_link_libraries(${tgt} phasor_native_runtime)
+    set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
 
     install(TARGETS ${tgt}
         RUNTIME DESTINATION bin
@@ -312,3 +314,29 @@ foreach(tgt ${TARGETS})
         FRAMEWORK DESTINATION frameworks
     )
 endforeach()
+
+
+add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf.c)
+set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
+
+install(TARGETS
+    phasor_compiler
+    phasor_cpp_compiler
+    phasor_runtime_exe
+    phasor_native_runtime
+    phasor_native_runtime_static
+    phasor_repl
+    phasor_interpreter
+    phasor_shell
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    FRAMEWORK DESTINATION frameworks
+)
+
+install(FILES
+    ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
+    ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    DESTINATION include
+)
