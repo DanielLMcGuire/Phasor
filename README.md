@@ -25,9 +25,9 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Q/A
 
-> **Q** - Are you just ripping off the best from every language
+> **Q** - Are you just ripping off the best from every language?
 >
-> **A** - My inspiration came from a few places, TS, C99, Zig, Rust, etc 
+> **A** - No, some inspiration came from a few places, TS, C99, Zig, Rust, etc 
 >
 > **Q** - What is this? Why would I even need this?
 >
@@ -36,6 +36,10 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 > **Q** - Is this better than 'Java' or '.NET'?
 >
 > **A** - I have not tested Phasor against other languages, runtimes, VMs, etc.
+>
+> **Q** - How is it fast without JIT?
+>
+> **A** - Easy! Just pray the entire core end up into L1/L2, then just let the CPU handle it! (I hate that this works)
 
 ## Quick Start
 
