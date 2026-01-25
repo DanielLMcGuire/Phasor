@@ -340,3 +340,9 @@ install(FILES
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
     DESTINATION include
 )
+
+if(WIN32)
+install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
+        DESTINATION bin 
+        FILES_MATCHING PATTERN "*.pdb")
+endif()
