@@ -1,135 +1,193 @@
 .intel_syntax noprefix
 .text
+.global _asm_inot
+.global _asm_iand
+.global _asm_ior
+.global _asm_ixor
+.global _asm_iequal
+.global _asm_inot_equal
+.global _asm_iless_than
+.global _asm_igreater_than
+.global _asm_iless_equal
+.global _asm_igreater_equal
+.global _asm_flnot
+.global _asm_fland
+.global _asm_flor
+.global _asm_flxor
+.global _asm_flequal
+.global _asm_flnot_equal
+.global _asm_flless_than
+.global _asm_flgreater_than
+.global _asm_flless_equal
+.global _asm_flgreater_equal
 
-.global _asm_iadd
-.global _asm_isub
-.global _asm_imul
-.global _asm_ineg
-.global _asm_idiv
-.global _asm_imod
-.global _asm_fladd
-.global _asm_flsub
-.global _asm_flmul
-.global _asm_flneg
-.global _asm_fldiv
-.global _asm_flmod
-.global _asm_sqrt
-.global _asm_pow
-.global _asm_log
-.global _asm_exp
-.global _asm_sin
-.global _asm_cos
-.global _asm_tan
-
-.extern _sqrt
-.extern _pow
-.extern _log
-.extern _exp
-.extern _sin
-.extern _cos
-.extern _tan
-
-_asm_iadd:
-    mov rax, rdi
-    add rax, rsi
+# int64_t asm_inot(int64_t a)
+# rdi = a
+_asm_inot:
+    xor rax, rax
+    test rdi, rdi
+    setz al
     ret
 
-_asm_isub:
-    mov rax, rdi
-    sub rax, rsi
+# int64_t asm_iand(int64_t a, int64_t b)
+# rdi = a, rsi = b
+_asm_iand:
+    xor rax, rax
+    test rdi, rdi
+    jz L_and_done
+    test rsi, rsi
+    jz L_and_done
+    mov rax, 1
+L_and_done:
     ret
 
-_asm_imul:
-    mov rax, rdi
-    imul rax, rsi
+# int64_t asm_ior(int64_t a, int64_t b)
+_asm_ior:
+    xor rax, rax
+    test rdi, rdi
+    jnz L_or_true
+    test rsi, rsi
+    jz L_or_done
+L_or_true:
+    mov rax, 1
+L_or_done:
     ret
 
-_asm_ineg:
-    mov rax, rdi
-    neg rax
+# int64_t asm_ixor(int64_t a, int64_t b)
+_asm_ixor:
+    xor rax, rax
+    test rdi, rdi
+    setnz al
+    mov rcx, rax
+    xor rax, rax
+    test rsi, rsi
+    setnz al
+    xor rax, rcx
     ret
 
-_asm_idiv:
-    mov rax, rdi
-    cqo
-    idiv rsi
+# int64_t asm_iequal(int64_t a, int64_t b)
+_asm_iequal:
+    xor rax, rax
+    cmp rdi, rsi
+    sete al
     ret
 
-_asm_imod:
-    mov rax, rdi
-    cqo
-    idiv rsi
-    mov rax, rdx
+# int64_t asm_inot_equal(int64_t a, int64_t b)
+_asm_inot_equal:
+    xor rax, rax
+    cmp rdi, rsi
+    setne al
     ret
 
-_asm_fladd:
-    addsd xmm0, xmm1
+# int64_t asm_iless_than(int64_t a, int64_t b)
+_asm_iless_than:
+    xor rax, rax
+    cmp rdi, rsi
+    setl al
     ret
 
-_asm_flsub:
-    subsd xmm0, xmm1
+# int64_t asm_igreater_than(int64_t a, int64_t b)
+_asm_igreater_than:
+    xor rax, rax
+    cmp rdi, rsi
+    setg al
     ret
 
-_asm_flmul:
-    mulsd xmm0, xmm1
+# int64_t asm_iless_equal(int64_t a, int64_t b)
+_asm_iless_equal:
+    xor rax, rax
+    cmp rdi, rsi
+    setle al
     ret
 
-_asm_flneg:
+# int64_t asm_igreater_equal(int64_t a, int64_t b)
+_asm_igreater_equal:
+    xor rax, rax
+    cmp rdi, rsi
+    setge al
+    ret
+
+# int64_t asm_flnot(double a)
+# xmm0 = a
+_asm_flnot:
+    xor rax, rax
     xorpd xmm1, xmm1
-    subsd xmm1, xmm0
-    movapd xmm0, xmm1
+    ucomisd xmm0, xmm1
+    sete al
     ret
 
-_asm_fldiv:
-    divsd xmm0, xmm1
+# int64_t asm_fland(double a, double b)
+# xmm0 = a, xmm1 = b
+_asm_fland:
+    xor rax, rax
+    xorpd xmm2, xmm2
+    ucomisd xmm0, xmm2
+    setne al
+    ucomisd xmm1, xmm2
+    setne cl
+    and al, cl
     ret
 
-_asm_flmod:
-    movapd xmm2, xmm0
-    divsd xmm2, xmm1
-    roundsd xmm2, xmm2, 3
-    mulsd xmm2, xmm1
-    subsd xmm0, xmm2
+# int64_t asm_flor(double a, double b)
+_asm_flor:
+    xor rax, rax
+    xorpd xmm2, xmm2
+    ucomisd xmm0, xmm2
+    setne al
+    ucomisd xmm1, xmm2
+    setne cl
+    or al, cl
     ret
 
-_asm_sqrt:
-    sub rsp, 8
-    call _sqrt
-    add rsp, 8
+# int64_t asm_flxor(double a, double b)
+_asm_flxor:
+    xor rax, rax
+    xorpd xmm2, xmm2
+    ucomisd xmm0, xmm2
+    setne al
+    ucomisd xmm1, xmm2
+    setne cl
+    xor al, cl
     ret
 
-_asm_pow:
-    sub rsp, 8
-    call _pow
-    add rsp, 8
+# int64_t asm_flequal(double a, double b)
+_asm_flequal:
+    xor rax, rax
+    ucomisd xmm0, xmm1
+    sete al
     ret
 
-_asm_log:
-    sub rsp, 8
-    call _log
-    add rsp, 8
+# int64_t asm_flnot_equal(double a, double b)
+_asm_flnot_equal:
+    xor rax, rax
+    ucomisd xmm0, xmm1
+    setne al
     ret
 
-_asm_exp:
-    sub rsp, 8
-    call _exp
-    add rsp, 8
+# int64_t asm_flless_than(double a, double b)
+_asm_flless_than:
+    xor rax, rax
+    ucomisd xmm0, xmm1
+    setb al
     ret
 
-_asm_sin:
-    sub rsp, 8
-    call _sin
-    add rsp, 8
+# int64_t asm_flgreater_than(double a, double b)
+_asm_flgreater_than:
+    xor rax, rax
+    ucomisd xmm0, xmm1
+    seta al
     ret
 
-_asm_cos:
-    sub rsp, 8
-    call _cos
-    add rsp, 8
+# int64_t asm_flless_equal(double a, double b)
+_asm_flless_equal:
+    xor rax, rax
+    ucomisd xmm0, xmm1
+    setbe al
     ret
 
-_asm_tan:
-    sub rsp, 8
-    call _tan
-    add rsp, 8
+# int64_t asm_flgreater_equal(double a, double b)
+_asm_flgreater_equal:
+    xor rax, rax
+    ucomisd xmm0, xmm1
+    setae al
     ret
