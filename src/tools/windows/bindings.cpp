@@ -166,7 +166,7 @@ void generateWrapper(const Function& f, std::ostream& out)
 
 int main(int argc, char** argv)
 {
-	std::string inputFile = "winapi.txt";
+	std::string inputFile = "winapi.h";
 	std::string outputFile = "phasor_winapi.cpp";
 
 	if (argc >= 2)
