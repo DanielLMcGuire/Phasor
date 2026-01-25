@@ -17,7 +17,7 @@ struct Function
 	std::string        name;
 	std::vector<Param> params;
 	std::string        rawLine;
-	int                lineNumber;
+	int                lineNumber = 0;
 };
 
 bool isHandleType(const std::string& type)
