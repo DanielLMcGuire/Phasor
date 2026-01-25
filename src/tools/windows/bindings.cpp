@@ -178,7 +178,7 @@ int main(int argc, char** argv)
 	std::ofstream outfile(outputFile);
 
 	outfile << "#define PHASOR_FFI_BUILD_DLL\n";
-	outfile << "#include <PhasorFFI.hpp>\n";
+	outfile << "#include <PhasorFFI.h>\n";
 	outfile << "#include <windows.h>\n";
 	outfile << "#include \"../src/tools/windows/handle.hpp\"\n\n";
 
