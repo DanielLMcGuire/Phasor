@@ -239,13 +239,13 @@ set_target_properties(phasor_winapi_gen PROPERTIES
 )
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi.cpp
-    COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h
+    OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
+    COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
     DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
     COMMENT "Building scripts/winapi.h"
 )
 add_library(phasor_winapi_bindings SHARED
-    ${CMAKE_BINARY_DIR}/phasor_winapi.cpp
+    ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
     ${CMAKE_SOURCE_DIR}/src/tools/windows/handle.hpp
     ${CMAKE_SOURCE_DIR}/scripts/winapi.h
 )
