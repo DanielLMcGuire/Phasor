@@ -77,7 +77,7 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-file /r "..\install\bin"
+file /r "..\install\"
 file "..\assets\phasor.ico"
 
 
