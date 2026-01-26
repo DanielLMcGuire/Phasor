@@ -154,3 +154,5 @@ asm_tan:
     call tan
     add rsp, 8
     ret
+
+.section .note.GNU-stack,"",@progbits

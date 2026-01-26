@@ -192,3 +192,5 @@ asm_flgreater_equal:
     ucomisd xmm0, xmm1
     setae al
     ret
+
+.section .note.GNU-stack,"",@progbits

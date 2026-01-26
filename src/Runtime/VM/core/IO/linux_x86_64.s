@@ -34,3 +34,5 @@ asm_system:
     call system
     add rsp, 8
     ret
+
+.section .note.GNU-stack,"",@progbits
