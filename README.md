@@ -10,14 +10,14 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
 - **Functions** with forced type annotations ```fn func(input: string) -> void { ... }```
-- **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
-- **Arrays** are being tested with C syntax ```var arrayName[arraySize];```
 - **C-style Control flow**: if/else, while, for, switch/case, break/continue
 - **Comprehensive standard library**
 - **Windows API Bindings**
 
 ## Upcoming
 
+- **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
+- **Arrays** are being tested with C syntax ```var arrayName[arraySize];``` 
 - C based standard library replacing remaining C++ parts (**Started**)
 - **POSIX API Bindings**
 
