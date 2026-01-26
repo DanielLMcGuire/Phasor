@@ -84,7 +84,7 @@ void Phasor::Frontend::runRepl(VM *vm)
 	if (vm == nullptr)
 	{
 		ownVM = true;
-		VM *vm = new VM();
+		vm = new VM();
 		StdLib::registerFunctions(*vm);
 	}
 

@@ -23,7 +23,7 @@ class BytecodeDeserializer
 	Bytecode loadFromFile(const std::filesystem::path &filename);
 
   private:
-	const uint8_t *data;
+	const uint8_t *_data;
 	size_t         position;
 	size_t         dataSize;
 

@@ -72,7 +72,7 @@ uint8_t BytecodeDeserializer::readUInt8()
 	{
 		throw std::runtime_error("Unexpected end of bytecode data");
 	}
-	return data[position++];
+	return _data[position++];
 }
 
 uint16_t BytecodeDeserializer::readUInt16()
@@ -264,7 +264,7 @@ void BytecodeDeserializer::readFunctionEntries(Bytecode &bytecode)
 
 Bytecode BytecodeDeserializer::deserialize(const std::vector<uint8_t> &buffer)
 {
-	data = buffer.data();
+	_data = buffer.data();
 	dataSize = buffer.size();
 	position = 0;
 
@@ -276,7 +276,7 @@ Bytecode BytecodeDeserializer::deserialize(const std::vector<uint8_t> &buffer)
 
 	// Calculate checksum of data section
 	size_t   dataStart = position;
-	uint32_t actualChecksum = calculateCRC32(data + dataStart, dataSize - dataStart);
+	uint32_t actualChecksum = calculateCRC32(_data + dataStart, dataSize - dataStart);
 
 	if (actualChecksum != expectedChecksum)
 	{
