@@ -282,12 +282,13 @@ class Value
 			return asInt() != 0;
 		if (isFloat())
 			return asFloat() != 0.0;
-		if (isString())
-			if (asString() == "true" || asString() == "1")
+		if (isString()) {
+			if (asString() == "true" || asString() == "1") 
 				return true;
 			else if (asString() == "false" || asString() == "0")
 				return false;
 			return !asString().empty();
+		}
 		return false;
 	}
 
