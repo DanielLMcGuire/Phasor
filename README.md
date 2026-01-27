@@ -2,7 +2,7 @@
 
 A dynamically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for performance and flexibility.
 
-Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation needs a ton of work.
+Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a HUGE amount of work. Although it's perfectly stable now, at least enough for me to query SQL databases (check out the [SQLITE bindings](https://github.com/DanielLMcGuire/SQLite-Phasor)).
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
@@ -14,7 +14,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - **Comprehensive standard library**
 - **Windows API Bindings**
 
-## Upcoming
+## Upcoming (Some may appear to work before actual implementation)
 
 - **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
 - **Arrays** are being tested with C syntax ```var arrayName[arraySize];``` 
