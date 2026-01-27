@@ -455,7 +455,12 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			ss << "STRING \"" << escapeString(val.asString()) << "\"\n";
 			break;
 		case ValueType::Struct:
+#warning "Structs not implemented!"
+			throw std::runtime_error("Structs not implemented!");
 			break;
+		case ValueType::Array:
+#warning "Arrays not implemented!"
+			throw std::runtime_error("Arrays not implemented!");
 		}
 	}
 

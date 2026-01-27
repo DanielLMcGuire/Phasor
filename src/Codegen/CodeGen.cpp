@@ -213,11 +213,9 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 		generateExpression(varDecl->initializer.get());
 		// Try to infer type from initializer
 		Value initVal;
-		bool inferred = false;
 		if (isLiteralExpression(varDecl->initializer.get(), initVal))
 		{
 			inferredTypes[varDecl->name] = initVal.getType();
-			inferred = true;
 		}
 		else if (auto ident = dynamic_cast<const AST::IdentifierExpr *>(varDecl->initializer.get()))
 		{
@@ -226,7 +224,6 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 			if (it != inferredTypes.end())
 			{
 				inferredTypes[varDecl->name] = it->second;
-				inferred = true;
 			}
 		}
 
@@ -1085,7 +1082,6 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 	generateExpression(switchStmt->expr.get());
 	
 	std::vector<int> caseJumps;
-	int defaultJump = -1;
 	
 	for (const auto& caseClause : switchStmt->cases) {
 		generateExpression(caseClause.value.get());

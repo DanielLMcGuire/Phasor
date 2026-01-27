@@ -112,7 +112,7 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 	{
 		auto l_argv = std::make_shared<Value::StructInstance>();
 
-		for (size_t i = 0; i < argc; i++)
+		for (size_t i = 0; i < static_cast<size_t>(argc); i++)
 		{
 			l_argv->fields["arg" + std::to_string(i)] = Value(argv[i]);
 		}

@@ -204,8 +204,8 @@ static int hexValue(char c)
 
 Token Lexer::string()
 {
-	int                tokenLine = line;
-	int                tokenColumn = column;
+	size_t             tokenLine = line;
+	size_t             tokenColumn = column;
 	std::ostringstream out;
 	advance(); // Skip opening quote
 
@@ -298,8 +298,8 @@ Token Lexer::string()
 
 Token Lexer::complexString()
 {
-	int                tokenLine = line;
-	int                tokenColumn = column;
+	size_t                tokenLine = line;
+	size_t                tokenColumn = column;
 	std::ostringstream out;
 	advance(); // Skip opening backtick
 

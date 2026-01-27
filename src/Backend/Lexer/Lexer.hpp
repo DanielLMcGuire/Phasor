@@ -19,10 +19,10 @@ enum class TokenType
 
 struct Token
 {
-	TokenType   type;
-	std::string lexeme;
-	int         line;
-	int         column;
+	TokenType      type;
+	std::string    lexeme;
+	size_t         line;
+	size_t         column;
 };
 
 /// @brief Lexer
@@ -33,10 +33,10 @@ class Lexer
 	std::vector<Token> tokenize();
 
   private:
-	std::string source;
-	int         position = 0;
-	int         line = 1;
-	int         column = 1;
+	std::string    source;
+	size_t         position = 0;
+	size_t         line = 1;
+	size_t         column = 1;
 
 	char  peek();
 	char  advance();
