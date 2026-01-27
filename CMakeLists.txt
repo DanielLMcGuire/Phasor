@@ -46,11 +46,9 @@ if(MSVC)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/crt.c)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/crt.c)
-        set(IO_ASM src/Runtime/VM/core/IO/crt.c)
     else()
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/windows_x86_64.asm)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/windows_x86_64.asm)
-        set(IO_ASM src/Runtime/VM/core/IO/windows_x86_64.asm)
     endif()
 elseif(APPLE OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
     if(ASSEMBLY)
@@ -59,11 +57,9 @@ elseif(APPLE OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/crt.c)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/crt.c)
-        set(IO_ASM src/Runtime/VM/core/IO/crt.c)
     else()
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/bsd_x86_64.s)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/bsd_x86_64.s)
-        set(IO_ASM src/Runtime/VM/core/IO/bsd_x86_64.s)
     endif()
 elseif(UNIX)
     if(ASSEMBLY)
@@ -72,11 +68,9 @@ elseif(UNIX)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/crt.c)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/crt.c)
-        set(IO_ASM src/Runtime/VM/core/IO/crt.c)
     else()
         set(ARITHMETIC_ASM src/Runtime/VM/core/arithmetic/linux_x86_64.s)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/linux_x86_64.s)
-        set(IO_ASM src/Runtime/VM/core/IO/linux_x86_64.s)
     endif()
 endif()
 
@@ -84,14 +78,14 @@ endif()
 set(RUNTIME_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/IO.c
 )
 if(ASSEMBLY)
-    list(APPEND RUNTIME_SOURCES ${ARITHMETIC_ASM} ${LOGICAL_ASM} ${IO_ASM})
+    list(APPEND RUNTIME_SOURCES ${ARITHMETIC_ASM} ${LOGICAL_ASM})
 else()
     list(APPEND RUNTIME_SOURCES
         ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/arithmetic/crt.c
         ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/logical/crt.c
-        ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/crt.c
     )
 endif()
 
@@ -316,7 +310,7 @@ foreach(tgt ${TARGETS})
 endforeach()
 
 
-add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf.c)
+add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf/clocf.c)
 set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 

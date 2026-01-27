@@ -10,6 +10,10 @@ extern "C"
 	void asm_print_stderr(const char *s, int64_t len);
 	/// @brief CRT system call
 	int64_t asm_system(const char *cmd);
+	/// @brief CRT system call, get out
+	char *asm_system_out(const char *cmd);
+	/// @brief CRT system call, get err
+	char *asm_system_err(const char *cmd);
 #ifdef __cplusplus
 }
 #endif
