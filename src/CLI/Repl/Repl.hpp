@@ -6,8 +6,7 @@
 #include <string>
 #include <vector>
 
-/* Forward-declare Phasor::VM so this header refers to the single VM type
-   defined in src/Runtime/VM/VM.hpp. */
+/* Forward-declare Phasor::VM so the C++ gods are pleased with me */
 namespace Phasor { class VM; }
 
 namespace Phasor
