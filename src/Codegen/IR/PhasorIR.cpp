@@ -6,20 +6,6 @@
 #include <sstream>
 #include <stdexcept>
 
-/**
- * @brief Magic number
- *
- * 'PHSB'
- */
-const uint32_t MAGIC_NUMBER_IR = 0x50484952;
-
-/**
- * @brief Version number
- *
- * '3.0.0.0'
- */
-const uint32_t VERSION_IR = 0x03000000;
-
 namespace Phasor
 {
 
@@ -455,11 +441,11 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			ss << "STRING \"" << escapeString(val.asString()) << "\"\n";
 			break;
 		case ValueType::Struct:
-#warning "Structs not implemented!"
+#warning "Structs have not been fully implemented!"
 			throw std::runtime_error("Structs not implemented!");
 			break;
 		case ValueType::Array:
-#warning "Arrays not implemented!"
+#warning "Arrays have not been implemented!"
 			throw std::runtime_error("Arrays not implemented!");
 		}
 	}
