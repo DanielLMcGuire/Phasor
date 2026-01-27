@@ -163,8 +163,7 @@ Binaries are available in the `install` directory:
 
 This project is licensed under the following agreements, which may be updated at any time, with or without notice, upon a new non-patch release of the language.
 
-- Phasor Language / VM / Toolchain | [Phasor Restrictive License 1.3](https://phasor.pages.dev/document.html?file=content%2Flegal%2Fphasorprl.txt&name=Phasor%20Restrictive%20License%201.3)
-- Phasor Standard Library | [Phasor Open License 1.0](https://phasor.pages.dev/document?file=content%2Flegal%2Fphasorpol.txt&name=Phasor%20Open%20License%201.0)
+- Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
 - Phasor binary releases | [Phasor Binary EULA](https://phasor.pages.dev/document?file=content%2Flegal%2Fphasorbineula.txt&name=Phasor%20Binary%20EULA)
