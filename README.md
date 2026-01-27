@@ -161,8 +161,6 @@ Binaries are available in the `install` directory:
 
 **Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
 
-This project is licensed under the following agreements, which may be updated at any time, with or without notice, upon a new non-patch release of the language.
-
 - Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
