@@ -158,11 +158,19 @@ void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
 			writeString(constant.asString());
 			break;
 		case ValueType::Struct:
+#ifdef _MSC_VER
+#pragma message("Structs have not been implemented!")
+#else 
 #warning "Structs have not been implemented!"
+#endif
 			throw std::runtime_error("Structs have not been implemented!");
 			break;
 		case ValueType::Array:
+#ifdef _MSC_VER
+#pragma message("Arrays have not been implemented!")
+#else 
 #warning "Arrays have not been implemented!"
+#endif
 			throw std::runtime_error("Arrays have not been implemented!");
 			break;
 		}
