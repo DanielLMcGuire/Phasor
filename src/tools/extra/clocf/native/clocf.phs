@@ -1,0 +1,147 @@
+include_stdsys();
+include_stdio();
+include_stdstr();
+include_stdtype();
+
+fn print_help() -> void{
+    var sb = sb_new();
+    sb_append(sb, "clocf - cloc formatter\n\n");
+    sb_append(sb, "Usage:\n");
+    sb_append(sb, "  cloc [options] <path> | clocf    # Process cloc output via pipe\n");
+    puts(sb_to_string(sb));
+    sb_free(sb);
+}
+
+fn main() -> int {
+    var argc = sys_argc();
+    
+    if (argc > 1) {
+        var arg = sys_argv(1);
+        if (arg == "--help" || arg == "-h") {
+            print_help();
+            return 0;
+        }
+    }
+
+    var totalCode = 0;
+    var maxNameLen = 0;
+    var langCount = 0;
+    
+    var dataStorage = sb_new();
+    
+    while (true) {
+        var line = gets();
+        if (len(line) == 0) { break; }
+
+        if (starts_with(line, "github.com/AlDanial/cloc") || starts_with(line, "-") || starts_with(line, "Language") || starts_with(line, "SUM")) {
+            continue;
+        }
+
+        var codeStr = "";
+        var foundDigits = false;
+        var codeIdxStart = 0;
+
+        for (var i = len(line) - 1; i >= 0; i = i - 1) {
+            var c = char_at(line, i);
+            var isDigit = (c == "0" || c == "1" || c == "2" || c == "3" || c == "4" || 
+                           c == "5" || c == "6" || c == "7" || c == "8" || c == "9");
+            
+            if (isDigit) {
+                var tempSb = sb_new();
+                sb_append(tempSb, c);
+                sb_append(tempSb, codeStr);
+                codeStr = sb_free(tempSb);
+                foundDigits = true;
+            } else if (foundDigits) {
+                codeIdxStart = i;
+                break;
+            }
+        }
+
+        var namePart = "";
+        for (var j = 0; j < len(line); j = j + 1) {
+            var c = char_at(line, j);
+            if (c == " " && j > 0) {
+                if (char_at(line, j-1) != " ") {
+                     namePart = substr(line, 0, j);
+                     break;
+                }
+            }
+        }
+
+        if (len(codeStr) > 0 && len(namePart) > 0) {
+            var codeValue = to_int(codeStr);
+            totalCode = totalCode + codeValue;
+            
+            if (len(namePart) > maxNameLen) {
+                maxNameLen = len(namePart);
+            }
+
+            sb_append(dataStorage, namePart);
+            sb_append(dataStorage, ":");
+            sb_append(dataStorage, codeStr);
+            sb_append(dataStorage, "\n");
+            langCount = langCount + 1;
+        }
+    }
+
+    if (totalCode == 0) {
+        puts_error("Error: No cloc data received via pipe.");
+        sb_free(dataStorage);
+        return 1;
+    }
+
+    var headerSb = sb_new();
+    sb_append(headerSb, "Total code lines: ");
+    sb_append(headerSb, to_string(to_int(totalCode)));
+    puts(sb_to_string(headerSb));
+    sb_free(headerSb);
+    puts("Language percentages:");
+
+    var rawResults = sb_free(dataStorage);
+    var currentPos = 0;
+
+    for (var k = 0; k < langCount; k = k + 1) {
+        var entry = "";
+        for (var m = currentPos; m < len(rawResults); m = m + 1) {
+            if (char_at(rawResults, m) == "\n") {
+                entry = substr(rawResults, currentPos, m - currentPos);
+                currentPos = m + 1;
+                break;
+            }
+        }
+
+        var splitIdx = 0;
+        for (var n = 0; n < len(entry); n = n + 1) {
+            if (char_at(entry, n) == ":") {
+                splitIdx = n;
+                break;
+            }
+        }
+
+        var lName = substr(entry, 0, splitIdx);
+        var lCode = to_int(substr(entry, splitIdx + 1));
+        var percent = (lCode * 100.0) / totalCode;
+
+        var lineSb = sb_new();
+        sb_append(lineSb, lName);
+        
+        var padding = maxNameLen - len(lName);
+        for (var p = 0; p < padding; p = p + 1) {
+            sb_append(lineSb, " ");
+        }
+
+        sb_append(lineSb, " : ");
+        sb_append(lineSb, to_string(percent));
+        sb_append(lineSb, "% (");
+        sb_append(lineSb, to_string(lCode));
+        sb_append(lineSb, " lines)");
+        
+        puts(sb_to_string(lineSb));
+        sb_free(lineSb);
+    }
+
+    return 0;
+}
+
+shutdown(main());

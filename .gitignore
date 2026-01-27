@@ -692,7 +692,6 @@ doxman/
 RC[a-z][0-9][0-9][0-9][0-9][0-9]
 *.md5
 *.pdf
-clocf
 *.AppImage
 package-lock.json
 *.js
