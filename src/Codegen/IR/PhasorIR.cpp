@@ -442,17 +442,17 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			break;
 		case ValueType::Struct:
 #ifdef _MSC_VER
-#pragma message("Structs have not been fully implemented!")
+#pragma message("Warning:PHS_01 Structs have not been fully implemented!")
 #else
-#warning "Structs have not been fully implemented!"
+#warning "PHS_01 Structs have not been fully implemented!"
 #endif
 			throw std::runtime_error("Structs not implemented!");
 			break;
 		case ValueType::Array:
 #ifdef _MSC_VER
-#pragma message("Arrays have not been implemented!")
+#pragma message("Warning: PHS_02 Arrays have not been implemented!")
 #else
-#warning "Arrays have not been implemented!"
+#warning "PHS_02 Arrays have not been implemented!"
 #endif
 			throw std::runtime_error("Arrays not implemented!");
 		}

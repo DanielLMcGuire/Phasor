@@ -5,6 +5,11 @@
 #include <string>
 #include <algorithm>
 
+const std::vector<std::string> PATCHES = {
+	"#pragma warning(disable:4996)", 
+	"#pragma warning(disable:4244)"
+};
+
 struct Param
 {
 	std::string type;
@@ -181,6 +186,10 @@ int main(int argc, char** argv)
 	outfile << "#include <PhasorFFI.h>\n";
 	outfile << "#include <windows.h>\n";
 	outfile << "#include \"../src/tools/windows/handle.hpp\"\n\n";
+	for (const auto& patch : PATCHES)
+	{
+		outfile << patch << "\n";
+	}
 
 	std::string line;
 	int lineNumber = 0;

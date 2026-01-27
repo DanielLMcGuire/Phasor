@@ -153,7 +153,7 @@ Token Lexer::scanToken()
 
 Token Lexer::identifier()
 {
-	int start = position;
+	size_t start = position;
 	while (std::isalnum(static_cast<unsigned char>(peek())) || peek() == '_')
 		advance();
 	std::string text = source.substr(start, position - start);
@@ -178,7 +178,7 @@ Token Lexer::identifier()
 
 Token Lexer::number()
 {
-	int start = position;
+	size_t start = position;
 	while (std::isdigit(static_cast<unsigned char>(peek())))
 		advance();
 	if (peek() == '.' && position + 1 < source.length() &&
