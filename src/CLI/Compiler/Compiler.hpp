@@ -23,6 +23,7 @@ class Compiler
 	{
 		std::string inputFile;
 		std::string outputFile;
+		bool        showLogo = true;
 		bool        verbose = false;
 		bool        irMode = false;
 		int         scriptArgc = 0;

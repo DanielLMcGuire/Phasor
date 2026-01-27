@@ -20,7 +20,7 @@ Compiler::Compiler(int argc, char *argv[], char *envp[])
 
 int Compiler::run()
 {
-	std::cout << "Phasor Compiler\n(C) 2026 Daniel McGuire\n\n";
+	if (m_args.showLogo) std::cout << "Phasor Compiler\n(C) 2026 Daniel McGuire\n\n";
 	if (m_args.inputFile.empty())
 	{
 		std::cerr << "Error: No input file provided\n";
@@ -77,7 +77,7 @@ int Compiler::compileToBytecode()
 			return 1;
 		}
 
-		std::cout << "Compiled successfully: " << m_args.inputFile << " -> " << m_args.outputFile << "\n";
+		if (m_args.showLogo) std::cout << "Compiled successfully: " << m_args.inputFile << " -> " << m_args.outputFile << "\n";
 		return 0;
 	}
 	catch (const std::exception &e)
@@ -148,6 +148,10 @@ void Compiler::parseArguments(int argc, char *argv[])
 		if (arg == "-v" || arg == "--verbose")
 		{
 			m_args.verbose = true;
+		}
+		else if (arg == "--no-logo")
+		{
+			m_args.showLogo = false;
 		}
 		else if (arg == "-o" || arg == "--output")
 		{
