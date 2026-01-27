@@ -16,19 +16,15 @@ Phasor is a general-purpose scripting language featuring:
 .IP \(bu 2
 Dynamic typing with type inference
 .IP \(bu 2
-First-class functions
+Functions
 .IP \(bu 2
-Struct-based data structures
+C like syntax and control flow
 .IP \(bu 2
-Module system with import/export
-.IP \(bu 2
-C-like syntax and control flow
-.IP \(bu 2
-Standard library for I/O, math, and system operations
+Standard library for I O, math, and system operations
 .RE
 .SH SYNTAX
 .SS Comments
-Phasor supports single-line comments:
+Phasor supports single line comments:
 .PP
 .nf
 .RS
@@ -53,22 +49,19 @@ Phasor supports the following data types:
 .RS
 .IP \(bu 2
 .B null
-- Null/undefined value
+\- Null or undefined value
 .IP \(bu 2
 .B bool
-- Boolean values (true, false)
+\- Boolean values true and false
 .IP \(bu 2
 .B int
-- 64-bit signed integers
+\- 64 bit signed integers
 .IP \(bu 2
 .B float
-- 64-bit floating-point numbers (IEEE 754 double)
+\- 64 bit floating point numbers IEEE 754 double
 .IP \(bu 2
 .B string
-- UTF-8 encoded text strings
-.IP \(bu 2
-.B struct
-- User-defined composite types
+\- UTF 8 encoded text strings
 .RE
 .SS Functions
 Functions are declared with the
@@ -89,7 +82,7 @@ fn greet(name: string) {
 .PP
 Functions without a return type implicitly return null.
 .SS Control Flow
-.B If Statements
+.SS If Statements
 .PP
 .nf
 .RS
@@ -102,8 +95,7 @@ if (condition) {
 }
 .RE
 .fi
-.PP
-.B While Loops
+.SS While Loops
 .PP
 .nf
 .RS
@@ -112,8 +104,7 @@ while (condition) {
 }
 .RE
 .fi
-.PP
-.B For Loops
+.SS For Loops
 .PP
 .nf
 .RS
@@ -122,8 +113,7 @@ for (var i = 0; i < 10; i++) {
 }
 .RE
 .fi
-.PP
-.B Switch Statements
+.SS Switch Statements
 .PP
 .nf
 .RS
@@ -140,232 +130,64 @@ switch (value) {
 .RE
 .fi
 .SS Operators
-.B Arithmetic
+.SS Arithmetic
 .RS
+.IP \(bu 2
 +, -, *, /, % (modulo)
 .RE
-.PP
-.B Comparison
+.SS Comparison
 .RS
+.IP \(bu 2
 ==, !=, <, >, <=, >=
 .RE
-.PP
-.B Logical
+.SS Logical
 .RS
+.IP \(bu 2
 && (and), || (or), ! (not)
 .RE
-.PP
-.B Assignment
+.SS Assignment
 .RS
+.IP \(bu 2
 = (basic assignment)
 .RE
-.PP
-.B Unary
+.SS Unary
 .RS
+.IP \(bu 2
 - (negate), ! (logical not)
 .RE
-.PP
-.B Postfix
+.SS Postfix
 .RS
+.IP \(bu 2
 ++ (increment), -- (decrement)
 .RE
-.PP
-.B Pointer Operations (unsafe)
-.RS
-& (address-of), * (dereference)
-.RE
-.SS Structs
-Structs are declared with the
-.B struct
-keyword:
-.PP
-.nf
-.RS
-struct Point {
-    x: int,
-    y: int
-}
-
-var p = Point{ x: 10, y: 20 };
-print p.x;
-p.y = 30;
-.RE
-.fi
-.SS Import and Export
-.B Imports
-.PP
-.nf
-.RS
-import "module.phs";
-import "lib/utils.phs";
-.RE
-.fi
-.PP
-.B Exports
-.PP
-.nf
-.RS
-export fn publicFunction() {
-    // code
-}
-
-export struct PublicType {
-    field: int
-}
-.RE
-.fi
-.SS Unsafe Blocks
-Unsafe blocks allow pointer operations:
-.PP
-.nf
-.RS
-unsafe {
-    var ptr = &x;
-    var value = *ptr;
-}
-.RE
-.fi
-.SH STANDARD LIBRARY
-Phasor provides built-in functions accessible without imports:
-.SS I/O Functions
-.RS
-.IP \(bu 2
-.B print(value)
-- Print value to stdout
-.IP \(bu 2
-.B printerror(value)
-- Print value to stderr
-.IP \(bu 2
-.B readline()
-- Read line from stdin
-.RE
-.SS String Functions
-.RS
-.IP \(bu 2
-.B len(string)
-- Get string length
-.IP \(bu 2
-.B charAt(string, index)
-- Get character at index
-.IP \(bu 2
-.B substr(string, start, length)
-- Extract substring
-.RE
-.SS System Functions
-.RS
-.IP \(bu 2
-.B system(command)
-- Execute system command
-.RE
-.SS Math Functions
-Mathematical operations are performed through operators and built-in functions:
-.RS
-.IP \(bu 2
-sqrt, pow, log, exp
-.IP \(bu 2
-sin, cos, tan
-.RE
-.SH EXAMPLE PROGRAMS
-.B Hello World
-.PP
-.nf
-.RS
-print "Hello, World!";
-.RE
-.fi
-.PP
-.B Fibonacci Function
-.PP
-.nf
-.RS
-fn fibonacci(n: int) -> int {
-    if (n <= 1) {
-        return n;
-    }
-    return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
-print fibonacci(10);
-.RE
-.fi
-.PP
-.B Struct Example
-.PP
-.nf
-.RS
-struct Person {
-    name: string,
-    age: int
-}
-
-fn greet(p: Person) {
-    print "Hello, " + p.name + "!";
-    print "You are " + p.age + " years old.";
-}
-
-var alice = Person{ name: "Alice", age: 30 };
-greet(alice);
-.RE
-.fi
-.PP
-.B Module Example
-.PP
-.nf
-.RS
-// math.phs
-export fn square(x: int) -> int {
-    return x * x;
-}
-
-// main.phs
-import "math.phs";
-print square(5);
-.RE
-.fi
-.SH FILE ORGANIZATION
-Phasor programs can be organized into multiple files:
-.RS
-.IP \(bu 2
-One file per module is recommended
-.IP \(bu 2
-Use descriptive filenames (lowercase, underscores)
-.IP \(bu 2
-Main entry point typically named
-.B main.phs
-.IP \(bu 2
-Library modules can be organized in subdirectories
-.RE
-.SH ENCODING
-All Phasor source files must use UTF-8 encoding:
+.SH SOURCE FILE CHARACTERISTICS
 .RS
 .IP \(bu 2
 Supports international characters in strings and comments
 .IP \(bu 2
 Identifiers are limited to ASCII alphanumerics and underscores
 .IP \(bu 2
-String literals support UTF-8 characters
+String literals support UTF 8 characters
 .RE
 .SH LINE ENDINGS
 Phasor accepts any standard line ending:
 .RS
 .IP \(bu 2
-LF (\\n) - Unix/Linux/macOS
+LF (\\n) Unix/Linux/macOS
 .IP \(bu 2
-CRLF (\\r\\n) - Windows
+CRLF (\\r\\n) Windows
 .IP \(bu 2
-CR (\\r) - Classic Mac (legacy)
+CR (\\r) macOS/OSX Legacy
 .RE
 .SH STYLE CONVENTIONS
 While not enforced, the following conventions are recommended:
 .RS
 .IP \(bu 2
-Use 4 spaces for indentation (no tabs)
+Use 4 spaces for indentation no tabs
 .IP \(bu 2
-Opening braces on same line (K&R style)
+Opening braces on the same line
 .IP \(bu 2
 Function names in camelCase
-.IP \(bu 2
-Struct names in PascalCase
 .IP \(bu 2
 Constants in UPPER_CASE
 .IP \(bu 2
@@ -378,43 +200,43 @@ Blank line between function definitions
 .SH COMPILATION
 Source files are processed through several stages:
 .RS
-.IP 1. 3
+.IP 1.
 .B Lexical Analysis
-- Source text tokenized by
+\- Source text tokenized by
 .BR Lexer
-.IP 2. 3
+.IP 2.
 .B Parsing
-- Tokens converted to Abstract Syntax Tree (AST)
-.IP 3. 3
+\- Tokens converted to an Abstract Syntax Tree AST
+.IP 3.
 .B Code Generation
-- AST compiled to bytecode instructions
-.IP 4. 3
+\- AST compiled to bytecode instructions
+.IP 4.
 .B Serialization
-- Bytecode saved to .phsb or .phir format
+\- Bytecode saved to .phsb or .phir format
 .RE
 .SH EXECUTION MODES
 Phasor source files can be executed in multiple ways:
 .RS
 .IP \(bu 2
 .B Direct execution
--
+\- Using
 .BR phasorjit (1)
 for development
 .IP \(bu 2
 .B Compiled execution
--
+\- Using
 .BR phasorcompiler (1)
 then
 .BR phasorvm (1)
 for production
 .IP \(bu 2
 .B Native compilation
--
+\- Using
 .BR phasornative (1)
 for maximum performance
 .IP \(bu 2
 .B Interactive
--
+\- Using
 .BR phasorrepl (1)
 for experimentation
 .RE
@@ -422,15 +244,13 @@ for experimentation
 Current language limitations:
 .RS
 .IP \(bu 2
-No classes or inheritance (structs only)
-.IP \(bu 2
 No operator overloading
 .IP \(bu 2
 No macros or metaprogramming
 .IP \(bu 2
-No exception handling (use return values)
+No exception handling use return values
 .IP \(bu 2
-No garbage collection (manual memory management in unsafe blocks)
+No garbage collection
 .IP \(bu 2
 Limited standard library
 .RE
