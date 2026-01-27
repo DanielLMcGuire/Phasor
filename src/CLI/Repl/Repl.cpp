@@ -55,7 +55,7 @@ std::unique_ptr<VM> Repl::createVm()
 	StdLib::argc = m_args.scriptArgc;
 	StdLib::envp = m_args.envp;
 
-	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {
+	vm->setImportHandler([vm_ptr = vm.get()](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 			throw std::runtime_error("Could not open imported file: " + path.string());
