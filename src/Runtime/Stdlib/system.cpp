@@ -8,6 +8,12 @@
 
 #include "core/system.h"
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace Phasor
 {
 
@@ -28,6 +34,11 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
+	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
+	vm->registerNativeFunction("sys_exec_output", StdLib::sys_exec_get_output);
+	vm->registerNativeFunction("sys_exec_error", StdLib::sys_exec_get_error);
+	return Value();
+
 	return true;
 }
 
@@ -154,6 +165,20 @@ Value StdLib::sys_exec(const std::vector<Value> &args, VM *vm)
 	return vm->operation(OpCode::SYSTEM_R, VM::Register::r1);
 }
 
+Value StdLib::sys_exec_get_output(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "sys_exec_output");
+	vm->setRegister(VM::Register::r1, args[0]); // Load string into r1
+	return vm->operation(OpCode::SYSTEM_OUT_R, VM::Register::r1);
+}
+
+Value StdLib::sys_exec_get_error(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "sys_exec_error");
+	vm->setRegister(VM::Register::r1, args[0]); // Load string into r1
+	return vm->operation(OpCode::SYSTEM_ERR_R, VM::Register::r1);
+}
+
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "error");
@@ -175,6 +200,16 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 	int ret = static_cast<int>(args[0].asInt());
 	std::exit(ret);
 	return Value(ret);
+}
+
+Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 0, "sys_pid");
+#if defined(_WIN32)
+	return static_cast<int64_t>(GetCurrentProcessId());
+#else
+	return static_cast<int64_t>(getpid());
+#endif
 }
 
 } // namespace Phasor

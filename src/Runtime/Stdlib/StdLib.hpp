@@ -82,20 +82,23 @@ class StdLib
 	static Value file_remove_directory(const std::vector<Value> &args, VM *vm);
 
 	// System (meaning VM/CRT more than actual system)
-	static Value sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
-	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
-	static Value sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
-	static Value sys_clear(const std::vector<Value> &args, VM *vm);          ///< Clear the console
-	static Value sys_os(const std::vector<Value> &args, VM *vm);             ///< Get the current OS
-	static Value sys_env(const std::vector<Value> &args, VM *vm);            ///< Get the current environment variables
-	static Value sys_argv(const std::vector<Value> &args, VM *vm);           ///< Get the current command line arguments
+	static Value sys_time(const std::vector<Value> &args, VM *vm);               ///< Current time
+	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm);     ///< Current time formatted
+	static Value sys_sleep(const std::vector<Value> &args, VM *vm);              ///< Sleep for a specified amount of time
+	static Value sys_clear(const std::vector<Value> &args, VM *vm);              ///< Clear the console
+	static Value sys_os(const std::vector<Value> &args, VM *vm);                 ///< Get the current OS
+	static Value sys_env(const std::vector<Value> &args, VM *vm);                ///< Get the current environment variables
+	static Value sys_argv(const std::vector<Value> &args, VM *vm);               ///< Get the current command line arguments
 	static Value system_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
-	static Value sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
-	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm); ///< Wait for input
-	static Value sys_exec(const std::vector<Value> &args, VM *vm);           ///< Run a shell command
-	static Value sys_crash(const std::vector<Value> &args, VM *vm);          ///< Crash the VM / Program
-	static Value sys_reset(const std::vector<Value> &args, VM *vm);          ///< Reset the VM
-	static Value sys_shutdown(const std::vector<Value> &args, VM *vm);       ///< Shutdown the VM
+	static Value sys_argc(const std::vector<Value> &args, VM *vm);               ///< Get the current number of command line arguments
+	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm);     ///< Wait for input
+	static Value sys_exec(const std::vector<Value> &args, VM *vm);               ///< Run a shell command
+	static Value sys_exec_get_output(const std::vector<Value> &args, VM *vm);    ///< Run a shell command and get output
+	static Value sys_exec_get_error(const std::vector<Value> &args, VM *vm);     ///< Run a shell command and get error output
+	static Value sys_crash(const std::vector<Value> &args, VM *vm);              ///< Crash the VM / Program
+	static Value sys_reset(const std::vector<Value> &args, VM *vm);              ///< Reset the VM
+	static Value sys_shutdown(const std::vector<Value> &args, VM *vm);           ///< Shutdown the VM
+	static Value sys_pid(const std::vector<Value> &args, VM *vm);                ///< Get the current process ID
 
 	// Type conversion functions
 	static Value to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
