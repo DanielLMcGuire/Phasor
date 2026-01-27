@@ -61,6 +61,8 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {
     {OpCode::CALL_NATIVE, "CALL_NATIVE"},
     {OpCode::CALL, "CALL"},
     {OpCode::SYSTEM, "SYSTEM"},
+	{OpCode::SYSTEM_OUT, "SYSTEM_OUT"},
+	{OpCode::SYSTEM_ERR, "SYSTEM_ERR"},
     {OpCode::RETURN, "RETURN"},
     {OpCode::TRUE_P, "TRUE"},
     {OpCode::FALSE_P, "FALSE"},
@@ -114,7 +116,9 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {
     {OpCode::PRINT_R, "PRINT_R"},
     {OpCode::PRINTERROR_R, "PRINTERROR_R"},
     {OpCode::READLINE_R, "READLINE_R"},
-    {OpCode::SYSTEM_R, "SYSTEM_R"}};
+    {OpCode::SYSTEM_R, "SYSTEM_R"},
+	{OpCode::SYSTEM_OUT_R, "SYSTEM_OUT_R"},
+	{OpCode::SYSTEM_ERR_R, "SYSTEM_ERR_R"}};
 
 const std::unordered_map<std::string, OpCode> PhasorIR::stringToOpCodeMap = [] {
 	std::unordered_map<std::string, OpCode> map;
@@ -189,12 +193,16 @@ int PhasorIR::getOperandCount(OpCode op)
 	case OpCode::CALL_NATIVE:
 	case OpCode::CALL:
 	case OpCode::SYSTEM:
+	case OpCode::SYSTEM_OUT:
+	case OpCode::SYSTEM_ERR:
 	case OpCode::PUSH_R:
 	case OpCode::POP_R:
 	case OpCode::PRINT_R:
 	case OpCode::PRINTERROR_R:
 	case OpCode::READLINE_R:
 	case OpCode::SYSTEM_R:
+	case OpCode::SYSTEM_OUT_R:
+	case OpCode::SYSTEM_ERR_R:
 	case OpCode::NEW_STRUCT:
 	case OpCode::GET_FIELD:
 	case OpCode::SET_FIELD:
@@ -442,7 +450,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			break;
 		case ValueType::Struct:
 #ifdef _MSC_VER
-#pragma message("Warning:PHS_01 Structs have not been fully implemented!")
+#pragma message("Warning: PHS_01 Structs have not been fully implemented!")
 #else
 #warning "PHS_01 Structs have not been fully implemented!"
 #endif
@@ -565,7 +573,8 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			{
 				lineStr += " ";
 			}
-			lineStr += "; " + comment;
+
+			lineStr += "; " + escapeString(comment);
 		}
 		ss << lineStr << "\n";
 	}

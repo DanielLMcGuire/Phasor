@@ -394,6 +394,16 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
+	case OpCode::SYSTEM_OUT: {
+		push(asm_system_out(registers[rA].c_str()));
+		break;
+	}
+
+	case OpCode::SYSTEM_ERR: {
+		push(asm_system_err(registers[rA].c_str()));
+		break;
+	}
+
 	// Register-based operations (v2.0)
 	case OpCode::MOV: {
 		registers[rA] = registers[rB];
@@ -689,6 +699,16 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::SYSTEM_R: {
 		registers[rA] = asm_system(registers[rA].c_str());
+		break;
+	}
+
+	case OpCode::SYSTEM_OUT_R: {
+		registers[rA] = asm_system_out(registers[rA].c_str());
+		break;
+	}
+
+	case OpCode::SYSTEM_ERR_R: {
+		registers[rA] = asm_system_err(registers[rA].c_str());
 		break;
 	}
 
