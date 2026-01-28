@@ -697,3 +697,5 @@ package-lock.json
 *.js
 *.js.map
 build/
+phasor.pem
+phasor.key
