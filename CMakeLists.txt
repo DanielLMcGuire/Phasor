@@ -348,9 +348,9 @@ foreach(tgt ${TARGETS})
         )
     else()
         install(TARGETS ${tgt}
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION usr/bin
+            LIBRARY DESTINATION usr/lib
+            ARCHIVE DESTINATION usr/lib
         )
     endif()
 endforeach()
@@ -414,9 +414,9 @@ else()
         phasor_repl
         phasor_interpreter
         phasor_shell
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION usr/bin
+        LIBRARY DESTINATION usr/lib
+        ARCHIVE DESTINATION usr/lib
     )
     install(FILES
         ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
