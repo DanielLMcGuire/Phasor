@@ -370,5 +370,7 @@ install(FILES
 if(WIN32)
 install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
         DESTINATION bin 
-        FILES_MATCHING PATTERN "*.pdb")
+        FILES_MATCHING 
+        PATTERN "*.pdb" 
+        PATTERN "CMakeFiles" EXCLUDE)
 endif()
