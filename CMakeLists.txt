@@ -333,13 +333,26 @@ foreach(tgt ${TARGETS})
     target_include_directories(${tgt} PRIVATE ${BIN_DIR})
     target_link_libraries(${tgt} phasor_native_runtime)
     set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
-
-    install(TARGETS ${tgt}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        FRAMEWORK DESTINATION frameworks
-    )
+    if(WIN32)
+        install(TARGETS ${tgt}
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+        )
+    elseif(APPLE)
+        install(TARGETS ${tgt}
+            RUNTIME DESTINATION usr/local/bin
+            LIBRARY DESTINATION usr/local/lib
+            ARCHIVE DESTINATION usr/local/lib
+            FRAMEWORK DESTINATION frameworks
+        )
+    else()
+        install(TARGETS ${tgt}
+            RUNTIME DESTINATION usr/bin
+            LIBRARY DESTINATION usr/lib
+            ARCHIVE DESTINATION usr/lib
+        )
+    endif()
 endforeach()
 
 
@@ -359,7 +372,6 @@ if(WIN32)
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        FRAMEWORK DESTINATION frameworks
     )
 elseif(APPLE)
     install(TARGETS
