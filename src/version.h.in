@@ -1,0 +1,3 @@
+#pragma once
+
+#define PHASOR_VERSION_STRING "@PROJECT_VERSION@"

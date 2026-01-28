@@ -3,7 +3,7 @@
   "publisher": "phasor",
   "displayName": "Phasor Programming Language",
   "description": "Function VM Based Programming Language",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "icon": "logo.png",
   "repository": {
     "type": "git",

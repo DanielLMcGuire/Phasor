@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
-project(Phasor VERSION 2.1.0 LANGUAGES C CXX)
+project(Phasor VERSION 2.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include_directories(include src)
+include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
 
 option(ASSEMBLY "Enable assembly for core code" ON)
 
@@ -73,7 +73,6 @@ elseif(UNIX)
         set(LOGICAL_ASM src/Runtime/VM/core/logical/linux_x86_64.s)
     endif()
 endif()
-
 
 set(RUNTIME_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp
@@ -155,7 +154,17 @@ add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADER
 
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
-add_library(PhasorFrontend STATIC ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    @ONLY
+)
+
+add_library(PhasorFrontend STATIC 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp 
+    ${CMAKE_CURRENT_BINARY_DIR}/version.h
+)
 target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen PhasorRuntime)
 
 add_library(phasor_native_runtime SHARED
