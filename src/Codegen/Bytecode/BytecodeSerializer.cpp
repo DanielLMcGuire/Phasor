@@ -3,20 +3,7 @@
 #include <stdexcept>
 #include <filesystem>
 #include <fstream>
-
-/**
- * @brief Magic number (little endian)
- *
- * 'PHSB'
- */
-const uint32_t MAGIC_NUMBER = 0x42534850;
-
-/**
- * @brief Version number
- *
- * '3.0.0.0'
- */
-const uint32_t VERSION = 0x03000000;
+#include "metadata.h"
 
 // Section IDs
 const uint8_t SECTION_CONSTANTS = 0x01;    //< Constants Section
