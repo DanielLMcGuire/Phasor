@@ -1,4 +1,4 @@
-# Phasor ![Phasor Logo (Hand-drawn sinewave)](https://phasor.pages.dev/assets/logo.webp) Language
+# Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
 A dynamically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for performance and flexibility.
 
