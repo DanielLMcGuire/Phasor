@@ -382,10 +382,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			pc = bytecode->instructions.size();
 			break;
 		}
-		Value returnValue = pop();
 		pc = callStack.back();
 		callStack.pop_back();
-		push(returnValue);
 		break;
 	}
 
