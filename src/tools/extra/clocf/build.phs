@@ -14,22 +14,8 @@ fn buildPHSB(input: string, output: string) -> bool {
     return to_bool(sys_execute(sb_to_string(cmd)));
 }
 
-fn buildPHIR(input: string, output: string) -> bool {
-    var cmd = sb_new();
-    sb_append(cmd, "phasorcompiler --no-logo -i -o ");
-    sb_append(cmd, output);
-    sb_append(cmd, " ");
-    sb_append(cmd, input);
-    printf("Building Phasor Assembly: %s -> %s\n", input, output);
-    return to_bool(sys_execute(sb_to_string(cmd)));
-}
-
 fcd("src/tools/extra/clocf");
 var src = "native/clocf.phs";
 var dst = "../../../../clocf.phsb";
 
-var success = 0;
-success = buildPHSB(src, dst);
-success = buildPHIR(src, "clocf.phir");
-
-shutdown (!success);
+shutdown (!buildPHSB(src, dst));
