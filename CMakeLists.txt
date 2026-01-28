@@ -7,24 +7,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(WIN32)
-    set(PLUGIN_INSTALL_DIR "bin/plugins")
+    set(PLUGIN_INSTALL_DIR "plugins")
 elseif(APPLE)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        # Default absolute path
         set(PLUGIN_INSTALL_DIR "/Library/Application Support/org.Phasor.Phasor/plugins")
     else()
-        # User specified --prefix, use relative path
-        set(PLUGIN_INSTALL_DIR "bin/plugins")
+        set(PLUGIN_INSTALL_DIR "plugins")
     endif()
 elseif(UNIX)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        # Default absolute path
         set(PLUGIN_INSTALL_DIR "/opt/Phasor/plugins")
     else()
-        # User specified --prefix, use relative path
-        set(PLUGIN_INSTALL_DIR "bin/plugins")
+        set(PLUGIN_INSTALL_DIR "plugins")
     endif()
 endif()
+
 
 
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
