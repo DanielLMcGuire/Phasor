@@ -4,8 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.X.X   | :white_check_mark: |
-| < 2.X.X | :x:                |
+| >= 2.1.X   | :white_check_mark: |
+| < 2.1.X | :x:                |
 
 ## Report a Security Issue
 
