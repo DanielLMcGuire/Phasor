@@ -3,6 +3,7 @@
 | AST        | Abstract Syntax Tree node definitions          |
 | App        | Frontfacing code                               |
 | Backend    | Lexer / Parser                                 |
+| Bindings   | Phasor FFI Bindings for OS APIs                |
 | CLI        | Middle layer code                              |
 | Codegen    | Contains code for generating Code / Binaries.  |
 | Extensions | Plugins for third-party ecosystems, IDEs, etc. |
