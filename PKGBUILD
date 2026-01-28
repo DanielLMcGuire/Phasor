@@ -24,13 +24,13 @@ pkgver() {
 
 build() {
 	cd "$srcdir/Phasor"
-    cmake -S "$srcdir/Phasor" -B "$srcdir/Phasor/build" -G Ninja
-    cmake --build "$srcdir/Phasor/build"
+    cmake -S "$srcdir/Phasor" -B "$srcdir/Phasor/build" -G Ninja -DCMAKE_INSTALL_PREFIX=/usr
+    cmake --build "$srcdir/Phasor/build" 
 }
 
 package() {
     cd "$srcdir/Phasor/build"
-    cmake --install . --prefix="$pkgdir/usr"
+    DESTDIR="$pkgdir" cmake --install .
 
     for section in 1 3 5 7; do
         src="$srcdir/Phasor/docs/man/man$section"
