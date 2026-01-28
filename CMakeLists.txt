@@ -7,21 +7,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    if(WIN32)
-        set(PLUGIN_INSTALL_DIR "C:/Phasor/bin/plugins")
-    elseif(APPLE)
-        set(PLUGIN_INSTALL_DIR "/Library/Application Support/org.Phasor.Phasor/plugins")
-    else()
-        set(PLUGIN_INSTALL_DIR "/opt/Phasor/plugins")
-    endif()
+    set(CMAKE_INSTALL_PREFIX "/" CACHE PATH "Default install prefix" FORCE)
+endif()
+
+if(WIN32)
+    set(PLUGIN_INSTALL_DIR "bin/plugins")
+elseif(APPLE)
+    set(PLUGIN_INSTALL_DIR "Library/Application Support/org.Phasor.Phasor/plugins")
 else()
-    if(WIN32)
-        set(PLUGIN_INSTALL_DIR "bin/plugins")
-    elseif(APPLE)
-        set(PLUGIN_INSTALL_DIR "Library/Application Support/org.Phasor.Phasor/plugins")
-    else()
-        set(PLUGIN_INSTALL_DIR "opt/Phasor/plugins")
-    endif()
+    set(PLUGIN_INSTALL_DIR "opt/Phasor/plugins")
 endif()
 
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
@@ -54,6 +48,7 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer -frtti -fexceptions")
     set(CMAKE_C_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer -fexceptions")
 endif()
+
 
 if(MSVC)
     if(ASSEMBLY)
@@ -162,9 +157,12 @@ set(CODEGEN_HEADERS
 )
 
 add_library(PhasorStdlib STATIC ${STDLIB_SOURCES} ${STDLIB_HEADERS})
+
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
 target_link_libraries(PhasorRuntime PUBLIC PhasorStdlib)
+
 add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADERS})
+
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
 configure_file(
@@ -199,6 +197,7 @@ add_library(phasor_native_runtime_static STATIC
 )
 target_link_libraries(phasor_native_runtime_static PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
+
 
 add_executable(phasor_repl
     ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl.rc
@@ -262,9 +261,10 @@ target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/util
 target_link_libraries(phasor_shell phasor_native_runtime)
 set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
-# --- BINDINGS ---
 if(WIN32)
-    add_executable(phasor_winapi_gen ${CMAKE_SOURCE_DIR}/src/Bindings/win32/binding_generator.cpp)
+    add_executable(phasor_winapi_gen
+        ${CMAKE_SOURCE_DIR}/src/Bindings/win32/binding_generator.cpp
+    )
     set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
     add_custom_command(
@@ -283,20 +283,23 @@ if(WIN32)
         OUTPUT_NAME winapi_phs
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
     )
-    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}")
+
+    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION bin/plugins)
 else()
-    add_library(phasor_posix_bindings SHARED ${CMAKE_SOURCE_DIR}/src/Bindings/posix_bindings.c)
+    add_library(phasor_posix_bindings SHARED
+        ${CMAKE_SOURCE_DIR}/src/Bindings/posix_bindings.c
+    )
     set_target_properties(phasor_posix_bindings PROPERTIES 
         OUTPUT_NAME posix_phs
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
     )
+
     install(TARGETS phasor_posix_bindings
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
 endif()
 
-# --- COREUTILS ---
 set(TARGETS cat cp echo ls mv rm touch)
 set(BIN_DIR "${CMAKE_BINARY_DIR}/src/CLI/utils/coreutils")
 
@@ -320,22 +323,29 @@ foreach(tgt ${TARGETS})
         @ONLY
     )
 
-    add_executable(${tgt} ${GEN_CPP} src/App/utils/coreutils/${tgt}.rc ${HEADER} ${PHS})
+    add_executable(${tgt}
+        ${GEN_CPP}
+        src/App/utils/coreutils/${tgt}.rc
+        ${HEADER}
+        ${PHS}
+    )
     target_include_directories(${tgt} PRIVATE ${BIN_DIR})
     target_link_libraries(${tgt} phasor_native_runtime)
     set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
 
     install(TARGETS ${tgt}
-        RUNTIME DESTINATION "${BIN_INSTALL_DEST}"
-        LIBRARY DESTINATION "${LIB_INSTALL_DEST}"
-        ARCHIVE DESTINATION "${LIB_INSTALL_DEST}"
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        FRAMEWORK DESTINATION frameworks
     )
 endforeach()
+
 
 add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf/clocf.c)
 set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-# --- FINAL INSTALL ---
+
 install(TARGETS
     phasor_compiler
     phasor_cpp_compiler
@@ -345,9 +355,10 @@ install(TARGETS
     phasor_repl
     phasor_interpreter
     phasor_shell
-    RUNTIME DESTINATION "${BIN_INSTALL_DEST}"
-    LIBRARY DESTINATION "${LIB_INSTALL_DEST}"
-    ARCHIVE DESTINATION "${LIB_INSTALL_DEST}"
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    FRAMEWORK DESTINATION frameworks
 )
 
 install(FILES
@@ -357,7 +368,7 @@ install(FILES
 )
 
 if(WIN32)
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
-            DESTINATION bin 
-            FILES_MATCHING PATTERN "*.pdb")
+install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
+        DESTINATION bin 
+        FILES_MATCHING PATTERN "*.pdb")
 endif()
