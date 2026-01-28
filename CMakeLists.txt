@@ -9,19 +9,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(WIN32)
     set(PLUGIN_INSTALL_DIR "plugins")
 elseif(APPLE)
-    set(CMAKE_INSTALL_PREFIX "/Library/Application Support/org.Phasor.Phasor" CACHE PATH "Install prefix" FORCE)
-    set(PLUGIN_INSTALL_DIR "plugins")
+    set(PLUGIN_INSTALL_DIR "/Library/Application Support/org.Phasor.Phasor/plugins")
 elseif(UNIX)
-    if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/plugins")
-    else()
-        set(CMAKE_INSTALL_PREFIX "/opt/Phasor" CACHE PATH "Install prefix" FORCE)
-        set(PLUGIN_INSTALL_DIR "plugins")
+        set(PLUGIN_INSTALL_DIR "/opt/Phasor/plugins")
     endif()
 endif()
-
-
-
 
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
 
