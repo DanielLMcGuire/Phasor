@@ -699,3 +699,4 @@ package-lock.json
 build/
 phasor.pem
 phasor.key
+!win32
