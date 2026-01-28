@@ -7,13 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    if(APPLE)
-        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Default install prefix" FORCE)
-    elseif(UNIX)
-        set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Default install prefix" FORCE)
-    else()
-        set(CMAKE_INSTALL_PREFIX "/" CACHE PATH "Default install prefix" FORCE)
-    endif()
+    set(CMAKE_INSTALL_PREFIX "/" CACHE PATH "Default install prefix" FORCE)
 endif()
 
 if(WIN32)
@@ -21,7 +15,7 @@ if(WIN32)
 elseif(APPLE)
     set(PLUGIN_INSTALL_DIR "Library/Application Support/org.Phasor.Phasor/plugins")
 else()
-    set(PLUGIN_INSTALL_DIR "opt/Phasor/plugins")
+    set(PLUGIN_INSTALL_DIR "usr/local/opt/Phasor/plugins")
 endif()
 
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
@@ -290,7 +284,7 @@ if(WIN32)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
     )
 
-    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION bin/plugins)
+    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION PLUGIN_INSTALL_DIR)
 else()
     add_library(phasor_posix_bindings SHARED
         ${CMAKE_SOURCE_DIR}/src/Bindings/posix_bindings.c
@@ -351,8 +345,23 @@ endforeach()
 add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf/clocf.c)
 set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-
-install(TARGETS
+if(WIN32)
+    install(TARGETS
+        phasor_compiler
+        phasor_cpp_compiler
+        phasor_runtime_exe
+        phasor_native_runtime
+        phasor_native_runtime_static
+        phasor_repl
+        phasor_interpreter
+        phasor_shell
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        FRAMEWORK DESTINATION frameworks
+    )
+elseif(APPLE)
+    install(TARGETS
     phasor_compiler
     phasor_cpp_compiler
     phasor_runtime_exe
@@ -361,11 +370,26 @@ install(TARGETS
     phasor_repl
     phasor_interpreter
     phasor_shell
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION usr/local/bin
+    LIBRARY DESTINATION usr/local/lib
+    ARCHIVE DESTINATION usr/local/lib
     FRAMEWORK DESTINATION frameworks
-)
+    )
+else()
+    install(TARGETS
+        phasor_compiler
+        phasor_cpp_compiler
+        phasor_runtime_exe
+        phasor_native_runtime
+        phasor_native_runtime_static
+        phasor_repl
+        phasor_interpreter
+        phasor_shell
+        RUNTIME DESTINATION usr/bin
+        LIBRARY DESTINATION usr/lib
+        ARCHIVE DESTINATION usr/lib
+    )
+endif()
 
 install(FILES
     ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
