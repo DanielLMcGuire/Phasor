@@ -136,11 +136,14 @@ WriteRegStr HKCU "Software\Classes\.phs" "" "PhasorScript"
 WriteRegStr HKCU "Software\Classes\.phsb" "" "PhasorBinary"
 
 ; PhasorBinary
+WriteRegStr HKCU "Software\Classes\PhasorBinary" "" "Phasor Binary File"
 WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open" "Icon" "$INSTDIR\${MAIN_APP_EXE}"
 WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open\command" "" '"$INSTDIR\${MAIN_APP_EXE}" "%1" %*'
 ; PhasorIR
+WriteRegStr HKCU "Software\Classes\PhasorIR" "" "Phasor IR File"
 WriteRegStr HKCU "Software\Classes\PhasorIR\shell\open" "Icon" "$INSTDIR\bin\phasorcompiler.exe"
 ; PhasorScript
+WriteRegStr HKCU "Software\Classes\PhasorScript" "" "Phasor Script File"
 WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open" "Icon" "$INSTDIR\bin\phasorjit.exe"
 WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
 
