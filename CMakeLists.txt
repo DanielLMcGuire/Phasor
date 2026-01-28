@@ -348,9 +348,9 @@ foreach(tgt ${TARGETS})
         )
     else()
         install(TARGETS ${tgt}
-            RUNTIME DESTINATION usr/bin
-            LIBRARY DESTINATION usr/lib
-            ARCHIVE DESTINATION usr/lib
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
         )
     endif()
 endforeach()
@@ -360,6 +360,12 @@ add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf/clocf.c)
 set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 if(WIN32)
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
+        DESTINATION bin 
+        FILES_MATCHING 
+        PATTERN "*.pdb" 
+        PATTERN "CMakeFiles" EXCLUDE
+    )
     install(TARGETS
         phasor_compiler
         phasor_cpp_compiler
@@ -372,6 +378,11 @@ if(WIN32)
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
+    )
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
+        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+        DESTINATION include
     )
 elseif(APPLE)
     install(TARGETS
@@ -388,6 +399,11 @@ elseif(APPLE)
     ARCHIVE DESTINATION usr/local/lib
     FRAMEWORK DESTINATION frameworks
     )
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
+        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+        DESTINATION usr/local/include
+    )
 else()
     install(TARGETS
         phasor_compiler
@@ -398,22 +414,13 @@ else()
         phasor_repl
         phasor_interpreter
         phasor_shell
-        RUNTIME DESTINATION usr/bin
-        LIBRARY DESTINATION usr/lib
-        ARCHIVE DESTINATION usr/lib
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
     )
-endif()
-
-install(FILES
-    ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-    ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
-    DESTINATION include
-)
-
-if(WIN32)
-install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
-        DESTINATION bin 
-        FILES_MATCHING 
-        PATTERN "*.pdb" 
-        PATTERN "CMakeFiles" EXCLUDE)
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
+        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+        DESTINATION usr/include
+    )
 endif()
