@@ -6,10 +6,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if(WIN32)
+    set(PLUGIN_INSTALL_DIR "plugins")
+elseif(APPLE)
+    set(PLUGIN_INSTALL_DIR "/Library/Application Support/org.Phasor.Phasor/plugins")
+elseif(UNIX)
+    set(PLUGIN_INSTALL_DIR "/opt/Phasor/plugins")
+endif()
+
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
 
 option(ASSEMBLY "Enable assembly for core code" ON)
-
 
 if(MSVC)
     enable_language(RC)
@@ -252,7 +259,7 @@ set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
 if(WIN32)
     add_executable(phasor_winapi_gen
-        ${CMAKE_SOURCE_DIR}/src/tools/windows/bindings.cpp
+        ${CMAKE_SOURCE_DIR}/src/Bindings/win32/binding_generator.cpp
     )
     set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
@@ -265,7 +272,7 @@ if(WIN32)
 
     add_library(phasor_winapi_bindings SHARED
         ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
-        ${CMAKE_SOURCE_DIR}/src/tools/windows/handle.hpp
+        ${CMAKE_SOURCE_DIR}/src/Bindings/win32/handle.hpp
         ${CMAKE_SOURCE_DIR}/scripts/winapi.h
     )
     set_target_properties(phasor_winapi_bindings PROPERTIES 
@@ -274,8 +281,20 @@ if(WIN32)
     )
 
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION bin/plugins)
-endif()
+else()
+    add_library(phasor_posix_bindings SHARED
+        ${CMAKE_SOURCE_DIR}/src/Bindings/posix_bindings.c
+    )
+    set_target_properties(phasor_posix_bindings PROPERTIES 
+        OUTPUT_NAME posix_phs
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
+    )
 
+    install(TARGETS phasor_posix_bindings
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+        RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
+    )
+endif()
 
 set(TARGETS cat cp echo ls mv rm touch)
 set(BIN_DIR "${CMAKE_BINARY_DIR}/src/CLI/utils/coreutils")

@@ -1,8 +1,14 @@
 #ifndef PHASOR_FFI_HPP
 #define PHASOR_FFI_HPP
 
+#ifdef __cplusplus
 #include <cstdint>
 #include <cstddef>
+#else
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+#endif
 
 /*
 * Phasor Foreign Function Interface
