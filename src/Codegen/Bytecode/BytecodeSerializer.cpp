@@ -5,11 +5,11 @@
 #include <fstream>
 
 /**
- * @brief Magic number
+ * @brief Magic number (little endian)
  *
  * 'PHSB'
  */
-const uint32_t MAGIC_NUMBER = 0x50485342;
+const uint32_t MAGIC_NUMBER = 0x42534850;
 
 /**
  * @brief Version number
