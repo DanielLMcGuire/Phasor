@@ -10,9 +10,22 @@ Lexer::Lexer(const std::string &source) : source(source)
 {
 }
 
+void Lexer::skipShebang()
+{
+    if (position == 0 && peek() == '#' && 
+        position + 1 < source.length() && source[position + 1] == '!')
+    {
+        while (!isAtEnd() && peek() != '\n')
+        {
+            advance();
+        }
+    }
+}
+
 std::vector<Token> Lexer::tokenize()
 {
 	std::vector<Token> tokens;
+	skipShebang();
 	while (!isAtEnd())
 	{
 		skipWhitespace();
