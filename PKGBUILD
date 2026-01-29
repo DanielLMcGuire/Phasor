@@ -7,12 +7,12 @@ url="https://github.com/DanielLMcGuire/Phasor"
 license=('MIT')
 depends=('cmake' 'ninja')
 makedepends=('git' 'gcc')
-source=("git+https://github.com/DanielLMcGuire/Phasor.git")
-sha256sums=('SKIP')
+source=()
+sha256sums=()
 
 pkgver() {
-    cd "$srcdir/Phasor"
-    tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+    cd "$startdir"
+    tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.2.0")
     commits_since_tag=$(git rev-list "${tag}"..HEAD --count 2>/dev/null || echo 0)
     if [ "$commits_since_tag" -eq 0 ]; then
         echo "$tag"
@@ -21,19 +21,17 @@ pkgver() {
     fi
 }
 
-
 build() {
-	cd "$srcdir/Phasor"
-    cmake -S "$srcdir/Phasor" -B "$srcdir/Phasor/build" -G Ninja
-    cmake --build "$srcdir/Phasor/build" 
+    cd "$startdir"
+    cmake -S "$startdir" -B "$startdir/build" -G Ninja
+    cmake --build "$startdir/build"
 }
 
 package() {
-    cd "$srcdir/Phasor/build"
+    cd "$startdir/build"
     cmake --install . --prefix "$pkgdir"
-
     for section in 1 3 5 7; do
-        src="$srcdir/Phasor/docs/man/man$section"
+        src="$startdir/docs/man/man$section"
         dest="$pkgdir/usr/share/man/man$section"
         mkdir -p "$dest"
         for file in "$src"/*."$section"; do
@@ -41,5 +39,3 @@ package() {
         done
     done
 }
-
-
