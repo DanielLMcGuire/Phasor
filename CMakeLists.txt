@@ -199,6 +199,15 @@ add_library(phasor_native_runtime_static STATIC
 target_link_libraries(phasor_native_runtime_static PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
+add_executable(phasor_main 
+    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.cpp
+)
+target_link_libraries(phasor_main PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
 add_executable(phasor_repl
     ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl.rc
@@ -244,15 +253,6 @@ add_executable(phasor_interpreter
 )
 target_link_libraries(phasor_interpreter PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
-
-add_executable(phasor_main 
-    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.cpp
-)
-target_link_libraries(phasor_main PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
-set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
