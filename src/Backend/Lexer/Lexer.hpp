@@ -42,7 +42,7 @@ class Lexer
 	char  advance();
 	bool  isAtEnd();
 	void  skipWhitespace();
-	void  skipShebang()
+	void  skipShebang();
 	Token scanToken();
 	Token identifier();
 	Token number();
