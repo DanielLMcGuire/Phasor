@@ -31,22 +31,25 @@ std::string readStdin() {
 
 namespace fs = std::filesystem;
 
-void showHelp(fs::path program = "phasor") {
-    std::cout << "Phasor Programming Language\n";
-    std::cout << "Usage: [RAWSCRIPT] |  " << program.stem() << " [SCRIPT, BYTECODE]\n";
-    std::cout << "A. PIPE: <text> | phasor\n";
-    std::cout << "B. JIT/BYTECODE:  phasor <file>\n";
-    std::cout << "C. REPL: phasor\n\n";
-    std::cout << "Example:\n"; 
+void showHelp(const fs::path &program = "phasor")
+{
+	const std::string programName = program.stem().string();
+	std::cout << "Phasor Programming Language\n";
+	std::cout << "Usage: [RAWSCRIPT] | " << programName << " [SCRIPT, BYTECODE]\n";
+	std::cout << "A. PIPE:    <text> | " << programName << "\n";
+	std::cout << "B. JIT/BYTECODE:     " << programName << " <file>\n";
+	std::cout << "C. REPL:             " << programName << "\n\n";
+	std::cout << "Example:\n";
+
 #ifdef _WIN32
-    std::cout << "A. CMD:  echo \"print(^\"Hello, World!^\")\" | phasor\n";
-    std::cout << "A. PWSH: echo \"print(`\"Hello, World!`\")\" | phasor\n";
-    std::cout << "B.       phasor hello.phs\n";
-    std::cout << "C.       phasor" << std::endl;
+	std::cout << "A. CMD:  echo \"print(^\"Hi^\")\" | " << programName << "\n";
+	std::cout << "A. PWSH: echo \"print(`\"Hi`\")\" | " << programName << "\n";
+	std::cout << "B.       " << programName << " hello.phs\n";
+	std::cout << "B.       " << programName << " hello.phsb" << std::endl;
 #else
-    std::cout << "A. echo \"print(\\\"Hello, World!\\\")\" | phasor\n";
-    std::cout << "B. phasor hello.phs\n";
-    std::cout << "C. phasor" << std::endl;
+	std::cout << "A. echo \"print(\\\"Hi!\\\")\" | " << programName << "\n";
+	std::cout << "B. " << programName << " hello.phs\n";
+	std::cout << "B. " << programName << " hello.phsb" << std::endl;
 #endif
 }
 
@@ -58,7 +61,7 @@ int main(int argc, char *argv[], char *envp[])
             if (!source.empty()) {
                 Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
                 Phasor::Frontend::runScript(source);
-                goto end;
+				return 0;
             }
         }
         if (argc < 2) {
@@ -76,13 +79,12 @@ int main(int argc, char *argv[], char *envp[])
                 m_path.erase(0, m_path.find_first_not_of("-/"));
                 if (m_path == "help" || m_path == "h" || m_path == "?" || m_path == "h" || m_path == "help") {
                     showHelp(program);
-                    goto end;
+					return 0;
                 }
                 std::cerr << "Invalid argument: " << m_path << "\n";
             } else 
                 std::cerr << "File not found: " << raw << "\n";
-
-            goto err;
+			return 1;
         }
 
 
@@ -96,10 +98,10 @@ int main(int argc, char *argv[], char *envp[])
             return BinRT.run();
         } else if (ext == ".phir") {
             std::cout << "Phasor IR (.phir) compilation not yet implemented.\n";
-            goto end;
+			return 0;
         } else {
             std::cerr << "Unknown extension: " << ext << "\n";
-            goto err;
+			return 1;
         }
     }
     catch (const std::exception &e)
@@ -108,8 +110,5 @@ int main(int argc, char *argv[], char *envp[])
         return 1;
     }
 
-end:
-    return 0;
-err:
     return 1;
 }
