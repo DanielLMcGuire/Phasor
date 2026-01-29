@@ -245,6 +245,15 @@ add_executable(phasor_interpreter
 target_link_libraries(phasor_interpreter PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
+add_executable(phasor_main 
+    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.cpp
+)
+target_link_libraries(phasor_main PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
+
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
     COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp -H --nologo
@@ -367,6 +376,7 @@ if(WIN32)
         PATTERN "CMakeFiles" EXCLUDE
     )
     install(TARGETS
+        phasor_main
         phasor_compiler
         phasor_cpp_compiler
         phasor_runtime_exe
@@ -386,18 +396,19 @@ if(WIN32)
     )
 elseif(APPLE)
     install(TARGETS
-    phasor_compiler
-    phasor_cpp_compiler
-    phasor_runtime_exe
-    phasor_native_runtime
-    phasor_native_runtime_static
-    phasor_repl
-    phasor_interpreter
-    phasor_shell
-    RUNTIME DESTINATION usr/local/bin
-    LIBRARY DESTINATION usr/local/lib
-    ARCHIVE DESTINATION usr/local/lib
-    FRAMEWORK DESTINATION frameworks
+        phasor_main
+        phasor_compiler
+        phasor_cpp_compiler
+        phasor_runtime_exe
+        phasor_native_runtime
+        phasor_native_runtime_static
+        phasor_repl
+        phasor_interpreter
+        phasor_shell
+        RUNTIME DESTINATION usr/local/bin
+        LIBRARY DESTINATION usr/local/lib
+        ARCHIVE DESTINATION usr/local/lib
+        FRAMEWORK DESTINATION frameworks
     )
     install(FILES
         ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
@@ -406,6 +417,7 @@ elseif(APPLE)
     )
 else()
     install(TARGETS
+        phasor_main
         phasor_compiler
         phasor_cpp_compiler
         phasor_runtime_exe
