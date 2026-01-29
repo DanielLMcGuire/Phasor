@@ -150,7 +150,7 @@ This repo contains:
 
 ```bash
 cmake -S . -B build
-cmake --build build --config Release (-DASSEMBLY=[ON,OFF] (Only supported on Windows-AMD64))
+cmake --build build --config Release (-DASSEMBLY=[ON,OFF] (Only supported on x86-64))
 cmake --install build --prefix install
 ````
 
