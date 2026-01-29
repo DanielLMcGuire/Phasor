@@ -294,7 +294,7 @@ if(WIN32)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
     )
 
-    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION PLUGIN_INSTALL_DIR)
+    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
 else()
     add_library(phasor_posix_bindings SHARED
         ${CMAKE_SOURCE_DIR}/src/Bindings/posix_bindings.c
@@ -374,6 +374,8 @@ if(WIN32)
         FILES_MATCHING 
         PATTERN "*.pdb" 
         PATTERN "CMakeFiles" EXCLUDE
+        PATTERN "src" EXCLUDE
+	PATTERN "winapi-gen-phs.pdb" EXCLUDE
     )
     install(TARGETS
         phasor_main
