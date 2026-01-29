@@ -3,7 +3,7 @@ include_stdio();
 include_stdstr();
 include_stdtype();
 
-fn print_help() -> void{
+fn print_help() -> void {
     var sb = sb_new();
     sb_append(sb, "clocf - cloc formatter\n\n");
     sb_append(sb, "Usage:\n");
