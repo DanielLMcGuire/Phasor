@@ -6,6 +6,8 @@ Phasor is still in beta, as I wish for a **smooth, stable experience** for the f
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
+---
+
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
@@ -113,17 +115,25 @@ putf("%d! = %d\n", num, result);
 - **Shell** (`shell`) - Phasor-based command shell **PREVIEW**
 - **Core Utils** (`cat-phs`, `cp-phs`, `echo-phs`, `ls-phs`, `mv-phs`, `rm-phs`, `touch-phs`) - Unix-like utilities **PREVIEW**
 
-## Standard Library Modules
+---
 
-| Module      | Include Statement    | Functions                                                             |
-| ----------- | -------------------- | --------------------------------------------------------------------- |
-| **I/O**     | `include_stdio()`    | `puts`, `puts_error` `printf`, `gets`, `putf`, `msgbox`, `msgbox_err` |
-| **Math**    | `include_stdmath()`  | `math_sqrt`, `math_pow`, `math_sin`, `math_cos`, etc.                 |
-| **Strings** | `include_stdstr()`   | `len`, `substr`, `concat`, `to_upper`, `to_lower`                     |
-| **Files**   | `include_stdfile()`  | `fread`, `fwrite`, `fexists`, `fcopy`, `fmove`                        |
-| **System**  | `include_stdsys()`   | `time`, `sleep`, `sys_os`, `sys_exec`, `clear`                        |
-| **Types**   | `include_stdtype()`  | `to_int`, `to_float`, `to_string`, `to_bool`                          |
-| **Regex**   | `include_stdregex()` | `regex_match`, `regex_search`, `regex_replace`                        |
+## Overview
+
+This repo contains:
+
+- Frontend:
+  - [Phasor Language](https://github.com/DanielLMcGuire/Phasor/blob/master/docs/man/man5/PHS.5) (Specification)
+  - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://github.com/DanielLMcGuire/Phasor/blob/master/docs/man/man7/phasor-isa.7), C/C++/Assembly)
+  - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
+ 
+- Backend:
+  - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Backend) (C++)
+  - [FFI API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h) (C)
+  - [Runtime API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h) (C)
+
+- Extensions:
+  - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
+  -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
 ---
 
