@@ -144,7 +144,7 @@ This repo contains:
 ### Prerequisites
 
 - CMake 3.10+
-- C++17 compiler (MSVC, GCC, Clang)
+- C++20 compiler (MSVC, GCC, Clang)
 
 ### Build Steps
 
