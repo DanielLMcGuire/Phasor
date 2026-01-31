@@ -1,10 +1,11 @@
+# Maintainer: Daniel McGuire <danielmcguire2023 at gmail dot com>
 pkgname=phasor-dev
 pkgver=2.2.0
 pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
-license=('MIT')
+license=('0BSD')
 makedepends=('git' 'gcc' 'cmake' 'ninja')
 source=()
 sha256sums=()
