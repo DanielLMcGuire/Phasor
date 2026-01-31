@@ -701,3 +701,5 @@ phasor.pem
 phasor.key
 !win32
 /archbuild
+/pkg
+*pkg.tar.zst

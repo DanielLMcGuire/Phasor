@@ -1,5 +1,5 @@
 pkgname=phasor
-pkgver=2.2.0
+pkgver=2.1.0.r113
 pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')

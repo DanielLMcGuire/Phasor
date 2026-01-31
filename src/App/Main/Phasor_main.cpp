@@ -42,12 +42,12 @@ void showHelp(const fs::path &program = "phasor")
 	std::cout << "Example:\n";
 
 #ifdef _WIN32
-	std::cout << "A. CMD:  echo \"print(^\"Hi\\!\n^\");\" | " << programName << "\n";
+	std::cout << "A. CMD:  echo \"print(^\"Hi\\!\\n^\");\" | " << programName << "\n";
 	std::cout << "A. PWSH: echo \"print(`\"Hi\\!\n`\");\" | " << programName << "\n";
 	std::cout << "B.       " << programName << " hello.phs\n";
 	std::cout << "B.       " << programName << " hello.phsb" << std::endl;
 #else
-	std::cout << "A. echo \"print(\\\"Hi\\!\n\\\");\" | " << programName << "\n";
+	std::cout << "A. echo \"print(\\\"Hi\\!\\n\\\");\" | " << programName << "\n";
 	std::cout << "B. " << programName << " hello.phs\n";
 	std::cout << "B. " << programName << " hello.phsb" << std::endl;
 #endif
