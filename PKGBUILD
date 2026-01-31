@@ -23,7 +23,7 @@ pkgver() {
 
 build() {
     cd "$startdir"
-    cmake -S "$startdir" -B "$startdir/build" -G Ninja
+    cmake -S "$startdir" -B "$startdir/build" -G Ninja --preset linux-64-rel
     cmake --build "$startdir/build"
 }
 

@@ -24,7 +24,7 @@ pkgver() {
 
 build() {
     cd "$srcdir/Phasor"
-    cmake -S . -B build -G Ninja
+    cmake -S . -B build -G Ninja --preset linux-64-rel
     cmake --build build
 }
 
