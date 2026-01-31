@@ -15,7 +15,7 @@ sha256sums=('84F4CAD864C35F42A54540CA9FDB36E702CE072CD030265798AF88B8C8F48668')
 build() {
     cd "$srcdir/Phasor-2.1.0"
     cmake -S . -B build -G Ninja --preset linux-64-rel
-    cmake --build build
+    cmake --build build --config Release
 }
 
 package() {
