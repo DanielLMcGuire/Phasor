@@ -2,7 +2,7 @@ Phasor End User License Agreement (EULA) 1.1
 
 IMPORTANT – READ CAREFULLY: This is a legal agreement between you (the user) and Daniel McGuire.
 
-This agreement applies only to precompiled binary distributions of the Phasor Programming Language.
+This agreement applies only to precompiled binary distributions of the Phasor Programming Language distributed with this license.
 
 This agreement does not apply to builds compiled from source, including, but not limited to, nightly or CI releases generated via GitHub Actions, Azure DevOps, or similar first- or third-party services.
 
