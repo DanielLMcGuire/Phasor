@@ -7,6 +7,7 @@ arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
 license=('0BSD')
 makedepends=('gcc' 'cmake' 'ninja')
+conflicts=('phasor-git' 'phasor-dev')
 depends=()
 source=("https://github.com/DanielLMcGuire/Phasor/archive/refs/tags/2.1.0.tar.gz")
 sha256sums=('84F4CAD864C35F42A54540CA9FDB36E702CE072CD030265798AF88B8C8F48668')
