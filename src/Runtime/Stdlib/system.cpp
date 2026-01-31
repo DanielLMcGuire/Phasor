@@ -37,8 +37,6 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 	vm->registerNativeFunction("sys_exec_output", StdLib::sys_exec_get_output);
 	vm->registerNativeFunction("sys_exec_error", StdLib::sys_exec_get_error);
-	return Value();
-
 	return true;
 }
 
