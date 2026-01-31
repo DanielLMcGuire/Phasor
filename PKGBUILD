@@ -5,8 +5,7 @@ pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
 license=('MIT')
-depends=('cmake' 'ninja')
-makedepends=('git' 'gcc')
+makedepends=('git' 'gcc' 'cmake' 'ninja')
 source=()
 sha256sums=()
 
