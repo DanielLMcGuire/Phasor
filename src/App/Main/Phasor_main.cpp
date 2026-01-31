@@ -47,7 +47,7 @@ void showHelp(const fs::path &program = "phasor")
 	std::cout << "B.       " << programName << " hello.phs\n";
 	std::cout << "B.       " << programName << " hello.phsb" << std::endl;
 #else
-	std::cout << "A. echo \"print(\\\"Hi!\\\")\" | " << programName << "\n";
+	std::cout << "A. echo \"print(\\\"Hi\!\\\")\" | " << programName << "\n";
 	std::cout << "B. " << programName << " hello.phs\n";
 	std::cout << "B. " << programName << " hello.phsb" << std::endl;
 #endif
