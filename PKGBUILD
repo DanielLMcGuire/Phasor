@@ -1,4 +1,4 @@
-pkgname=phasor
+pkgname=phasor-dev
 pkgver=2.1.0.r113
 pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
