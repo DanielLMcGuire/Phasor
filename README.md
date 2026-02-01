@@ -44,14 +44,11 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 ## Quick Start
 
 ```bash
-# Open phasor shell (optional)
-./shell
-
 # Compile and run a program
-phasorjit input.phs
+phasorjit input.phs # or use 'phasor input.phs'
 
-# Interactive REPL
-phasorrepl
+# Interactive REPL 
+phasorrepl # or use 'phasor'
 
 # Compile to bytecode
 phasorcompiler input.phs (-o, --output output.phsb)
@@ -60,13 +57,16 @@ phasorcompiler input.phs (-o, --output output.phsb)
 phasorcompiler -i, --ir input.phs (-o, --output output.phir)
 
 # Run bytecode
-phasorvm output.phsb
+phasorvm output.phsb # or use 'phasor output.phsb'
 
 # Compile to Native
 cp src/App/Runtime/NativeRuntime_[static,dynamic]_main.cpp main.cpp
 
+# Run a script directly
+cat input.phs | phasor
+
 phasornative -c, --compiler clang++ -l, --linker lld -s, --source main.cpp input.phs -o, --output output
-````
+```
 
 ### Example Program
 
