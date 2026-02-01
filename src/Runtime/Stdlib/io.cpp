@@ -17,7 +17,7 @@ Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-Value StdLib::io_c_format(const std::vector<Value> &args, VM *vm) {
+Value StdLib::io_c_format(const std::vector<Value> &args, VM *) {
     if (args.empty()) {
         return Value("");  // Return empty string if no arguments
     }

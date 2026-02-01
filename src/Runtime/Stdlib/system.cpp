@@ -40,7 +40,7 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_time(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "time");
 	auto   now = std::chrono::steady_clock::now();
@@ -49,7 +49,7 @@ Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
 	return millis;
 }
 
-Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "timef");
 	std::string format = args[0].asString();
@@ -73,7 +73,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *vm)
 	return std::string(buffer);
 }
 
-Value StdLib::sys_sleep(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
 	int64_t ms = args[0].asInt();
@@ -87,7 +87,7 @@ Value StdLib::sys_clear(const std::vector<Value> &args, VM *vm)
 	return io_prints(std::vector<Value>{"\033[2J\033[H"}, vm);
 }
 
-Value StdLib::sys_os(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_os(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
@@ -106,7 +106,7 @@ Value StdLib::sys_os(const std::vector<Value> &args, VM *vm)
 	return false;
 }
 
-Value StdLib::sys_env(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
 	std::string key = args[0].asString();
@@ -115,7 +115,7 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 	return value;
 }
 
-Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	if (args.size() == 0)
 	{
@@ -137,13 +137,13 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 		return Value();
 }
 
-Value StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_argc(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_argc");
 	return argc;
 }
 
-Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *vm)
+Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_get_memory");
 	return static_cast<int64_t>(getAvailableMemory());
@@ -200,7 +200,7 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 	return Value(ret);
 }
 
-Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_pid(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_pid");
 #if defined(_WIN32)
