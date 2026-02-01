@@ -107,6 +107,7 @@ putf("%d! = %d\n", num, result);
 
 ## Applications
 
+- **phasor** - Wrapper, combining the JIT Runtime, VM Runtime, and REPL
 - **REPL** ([`phasorrepl`](https://phasor-docs.pages.dev/man?f=phasorrepl.1)) - Interactive interpreter
 - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
 - **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
