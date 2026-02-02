@@ -86,4 +86,6 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
     return 0;
 }
 
+if (sys_argc() < 4) shutdown(rule110(15, 15, true));
+
 shutdown(rule110(to_int(sys_argv(1)), to_int(sys_argv(2)), to_int(sys_argv(3))));

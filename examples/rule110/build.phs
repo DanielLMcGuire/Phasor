@@ -1,0 +1,24 @@
+// Phasor Build Script
+include_stdsys();
+include_stdio();
+include_stdstr();
+include_stdfile();
+include_stdtype();
+
+var conf = "build.conf";
+if (sys_argc() == 2) 
+	conf = sys_argv(1);
+var src = freadln(conf, 0);
+var dst = freadln(conf, 1);
+
+fn buildPHSB(input: string, output: string) -> bool {
+    var cmd = sb_new();
+    sb_append(cmd, "phasorcompiler --no-logo -o ");
+    sb_append(cmd, output);
+    sb_append(cmd, " ");
+    sb_append(cmd, input);
+    printf("Building Phasor Binary: %s -> %s\n", input, output);
+    return to_bool(sys_execute(sb_to_string(cmd)));
+}
+
+shutdown (!buildPHSB(src, dst));
