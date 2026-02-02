@@ -39,28 +39,6 @@ Start the REPL:
 .RS
 phasorrepl
 .RE
-.fi
-.PP
-Example REPL session:
-.PP
-.nf
-.RS
-> let x = 42
-> let y = x + 8
-> y
-50
-> fn double(n) { return n * 2 }
-> double(y)
-100
-.RE
-.fi
-.SH EXIT STATUS
-.TP
-.B 0
-Normal exit from REPL
-.TP
-.B 1
-Initialization error or runtime failure
 .SH ENVIRONMENT
 The REPL has access to all environment variables from the parent process through the standard library.
 .SH DIAGNOSTICS
