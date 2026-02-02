@@ -186,10 +186,12 @@ int main(int argc, char** argv)
 	outfile << "#include <PhasorFFI.h>\n";
 	outfile << "#include <windows.h>\n";
 	outfile << "#include \"../src/Bindings/win32/handle.hpp\"\n\n";
+	outfile << "// =====BEGIN PATCHES=====\n";
 	for (const auto& patch : PATCHES)
 	{
 		outfile << patch << "\n";
 	}
+	outfile << "// ======END PATCHES======\n\n";
 
 	std::string line;
 	int lineNumber = 0;
