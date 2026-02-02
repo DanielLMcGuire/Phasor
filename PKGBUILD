@@ -1,6 +1,6 @@
 # Maintainer: Daniel McGuire <danielmcguire2023@gmail.com>
 pkgname=phasor-dev
-packager="Daniel McGuire <danielmcguire2023@gmail.com>"
+PACKAGER="Daniel McGuire <danielmcguire2023@gmail.com>"
 pkgver=2.2.0
 pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
