@@ -27,34 +27,69 @@ if(WIN32 AND ASSEMBLY)
 endif()
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /DNOMINMAX /EHsc /fp:precise /arch:AVX2 /Oi /Ot /GL /Gy /Qspectre- /W3")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox /fp:precise /arch:AVX2 /Oi /Ot /GL /Gy /Qspectre-")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG /OPT:REF /OPT:ICF")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG /OPT:REF /OPT:ICF")
-    
-    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DNOMINMAX /EHsc /fp:strict")
+    set(CMAKE_C_FLAGS_RELEASE
+        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /Qspectre-"
+    )
+    set(CMAKE_CXX_FLAGS_RELEASE
+        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
+    )
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE
+        "/LTCG /OPT:REF /OPT:ICF"
+    )
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE
+        "/LTCG /OPT:REF /OPT:ICF"
+    )
     set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /fp:strict")
+    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /fp:strict /EHsc /DNOMINMAX")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -flto -ffast-math -funroll-loops -fomit-frame-pointer -frtti -fexceptions -Wall")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native -flto -ffast-math -funroll-loops -fomit-frame-pointer -fexceptions")
-    
-    if(APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-dead_strip")
-    elseif(WIN32)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl")
+    set(COMMON_OPT
+        "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
+    )
+    set(COMMON_FP
+        "-ffast-math"
+    )
+    set(COMMON_WARN
+        "-Wall -Wextra -pedantic"
+    )
+    set(COMMON_CXX_LANG
+        "-fexceptions -frtti"
+    )
+    if(WIN32)
+        set(COMMON_COMPAT
+            "-fno-ms-extensions -fno-ms-compatibility -fno-delayed-template-parsing"
+        )
     else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections")
+        set(COMMON_COMPAT "")
     endif()
     
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer -frtti -fexceptions")
-    set(CMAKE_C_FLAGS_DEBUG "-O0 -g -fno-omit-frame-pointer -fexceptions")
-endif()
+    set(CMAKE_C_FLAGS_RELEASE
+        "${COMMON_OPT} ${COMMON_FP} -march=native"
+    )
 
+    set(CMAKE_CXX_FLAGS_RELEASE
+        "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} ${COMMON_COMPAT} -march=native"
+    )
+    
+    if(APPLE)
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
+        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
+    elseif(WIN32)
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
+        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "")
+    else()
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,--gc-sections")
+        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections")
+    endif()
+    
+    set(CMAKE_C_FLAGS_DEBUG
+        "-O0 -g -fno-omit-frame-pointer"
+    )
+    set(CMAKE_CXX_FLAGS_DEBUG
+        "-O0 -g -fno-omit-frame-pointer -fexceptions -frtti"
+    )
+endif()
 
 if(WIN32)
     if(ASSEMBLY)
@@ -145,6 +180,7 @@ set(INTERPRETER_SOURCES
 set(INTERPRETER_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.hpp
     ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.hpp
+    ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
 )
 
 set(CODEGEN_SOURCES
@@ -230,7 +266,7 @@ add_executable(phasor_compiler
     ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Compiler.cpp
     ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Compiler.hpp
 )
-target_link_libraries(phasor_compiler PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_compiler PhasorInterpreter PhasorCodegen)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
 
 add_executable(phasor_cpp_compiler
@@ -239,7 +275,7 @@ add_executable(phasor_cpp_compiler
     ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/CppCompiler.cpp
     ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/CppCompiler.hpp
 )
-target_link_libraries(phasor_cpp_compiler PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_cpp_compiler PhasorInterpreter PhasorCodegen)
 set_target_properties(phasor_cpp_compiler PROPERTIES OUTPUT_NAME phasornative)
 
 add_executable(phasor_runtime_exe
@@ -248,7 +284,7 @@ add_executable(phasor_runtime_exe
     ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.hpp
 )
-target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
 add_executable(phasor_interpreter

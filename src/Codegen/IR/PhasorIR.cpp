@@ -6,6 +6,17 @@
 #include <sstream>
 #include <stdexcept>
 
+#if defined(_MSC_VER)
+#define COMPILE_MESSAGE(msg) __pragma(message(msg))
+#elif defined(__GNUC__) || defined(__clang__)
+#define DO_PRAGMA(x) _Pragma(#x)
+#define COMPILE_MESSAGE(msg) DO_PRAGMA(message msg)
+#else
+#define COMPILE_MESSAGE(msg)
+#endif
+#define STR2(x) #x
+#define STR(x) STR2(x)
+
 namespace Phasor
 {
 
@@ -449,19 +460,11 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			ss << "STRING \"" << escapeString(val.asString()) << "\"\n";
 			break;
 		case ValueType::Struct:
-#ifdef _MSC_VER
-#pragma message("Warning: PHS_01 Structs have not been fully implemented!")
-#else
-#warning "PHS_01 Structs have not been fully implemented!"
-#endif
+COMPILE_MESSAGE("Warning: PHS_01 Structs have not been fully implemented! Line " STR(__LINE__))
 			throw std::runtime_error("Structs not implemented!");
 			break;
 		case ValueType::Array:
-#ifdef _MSC_VER
-#pragma message("Warning: PHS_02 Arrays have not been implemented!")
-#else
-#warning "PHS_02 Arrays have not been implemented!"
-#endif
+COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__LINE__))
 			throw std::runtime_error("Arrays not implemented!");
 		}
 	}
