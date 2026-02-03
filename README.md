@@ -16,7 +16,10 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - **Comprehensive standard library**
 - **Windows and POSIX API Bindings**
 
-## Upcoming (Some may appear to work before actual implementation)
+## Upcoming 
+> [!NOTE]
+>
+> Some may *appear* to work before actual implementation
 
 - **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
 - **Arrays** are being tested with C syntax ```var arrayName[arraySize];``` 
