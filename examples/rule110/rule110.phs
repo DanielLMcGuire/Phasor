@@ -4,7 +4,13 @@ include_stdtype();
 include_stdsys();
 include_stdfile();
 
-var logfile = "log.txt";
+var logfile = "outfile.txt";
+
+fn secondsToMinutes(seconds: float) -> string {
+    if (seconds < 60) return c_fmt("%fs", seconds);
+    if (seconds % 60 < 10) return c_fmt("%d:0%ds", seconds / 60, seconds % 60);
+    return c_fmt("%d:%ds", seconds / 60, seconds % 60);
+}
 
 fn msToSeconds(milli: float) -> float {
     return milli / 1000;
@@ -30,8 +36,13 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
     var file_buffer = sb_new(); 
     var g = 0;
 
-    if (!stdout) putf("Generation 0 done in %f seconds", msToSeconds(time() - start));
+    if (!stdout) printf("GENERATION 0 TIME: %s", secondsToMinutes(msToSeconds(time() - start)));
     var l_start = time();
+    var avg_amt = 0.0;
+    var avg_gen = 0.0;
+    var average = 0.0;
+    var avg_remaining = 0.0;
+
     while (g <= generations) {
         if (stdout) { 
             puts(board);
@@ -67,9 +78,35 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
 
             if (!stdout) {
                 var now = time();
-            putf("Generation %d-%d done in %f seconds, total %f seconds", (g - 499), g, msToSeconds(now - l_start), msToSeconds(now - start));
-            l_start = now; 
+
+                var chunk_time;
+                chunk_time = msToSeconds(now - l_start);
+
+                avg_amt = avg_amt + chunk_time;
+                avg_gen = avg_gen + 1;
+
+                average = avg_amt / avg_gen;
+
+                var chunks_done;
+                chunks_done = avg_gen;
+
+                var chunks_total;
+                chunks_total = generations / 500.0;
+
+                avg_remaining = (chunks_total - chunks_done) * average;
+				prints("\r                                                                        ");
+                printf(
+                    "\rGENERATION %d-%d TIME: %s, TOTAL: %s, ETA: %s",
+                    (g - 499),
+                    g,
+                    secondsToMinutes(chunk_time),
+                    secondsToMinutes(msToSeconds(now - start)),
+                    secondsToMinutes(avg_remaining)
+                );
+
+                l_start = now;
             }
+
         }
 
         board = sb_to_string(next_board);
@@ -86,6 +123,6 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
     return 0;
 }
 
-if (sys_argc() < 4) shutdown(rule110(15, 15, true));
+if (sys_argc() < 4) shutdown(rule110(2048, 80960, false));
 
 shutdown(rule110(to_int(sys_argv(1)), to_int(sys_argv(2)), to_int(sys_argv(3))));
