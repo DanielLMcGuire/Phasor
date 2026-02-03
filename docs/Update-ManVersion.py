@@ -43,7 +43,7 @@ def update_man_version(old_version: str, new_version: str) -> None:
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python update_man_version.py <old version> <new version>")
+        print(f"Usage: python {Path(__file__).name} <old version> <new version>")
         sys.exit(1)
     
     old_version = sys.argv[1]
