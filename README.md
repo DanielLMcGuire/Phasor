@@ -161,6 +161,12 @@ Binaries are available in the `install` directory:
 - `bin/` - All executables and utilities
 - `lib/` - Runtime libraries (static and shared)
 
+Plugins (Like win32 api, posix) are available in different locations based on your OS:
+
+- Unix - `opt/Phasor/plugins/`
+- macOS - `library/Application Support/org.Phasor.Phasor/plugins`
+- Windows - `bin/plugins` 
+
 ---
 
 **Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
