@@ -119,7 +119,7 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
     sb_free(file_buffer);
 
     sb_free(next_board);
-    putf("Time = %f seconds", msToSeconds(time() - start));
+    putf("\nTOTAL: %s", secondsToMinutes(msToSeconds(time() - start)));
     return 0;
 }
 
