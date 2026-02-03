@@ -30,7 +30,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 > **Q** - Are you just ripping off the best from every language?
 >
-> **A** - No, some inspiration came from a few places, TS, C99, Zig, Rust, etc 
+> **A** - No, the idea started before I knew much about other languages, some inspiration however did come from the majority of the programming languages I use. <sub>(Like C++, C#, Python, Java, TS, C99, Rust to name a few)</sub>
 >
 > **Q** - What is this? Why would I even need this?
 >
