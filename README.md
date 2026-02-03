@@ -173,7 +173,6 @@ Binaries are available in the `install` directory:
 - Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
-- Phasor binary releases | [Phasor Binary EULA](https://phasor.pages.dev/document?file=content%2Flegal%2Fphasorbineula.txt&name=Phasor%20Binary%20EULA)
 
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
