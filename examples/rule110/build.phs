@@ -23,7 +23,7 @@ Configuration File Format:
     Line 2 - Binary File (outfile)`, sys_argv(0));
 }
 
-fn l2i(index: int) -> int {return index - 1;}
+fn line2index(line: int) -> int {return line - 1;}
 
 fn buildPHSB(input: string, output: string) -> bool {
     putf("Building Phasor Binary: %s -> %s", input, output);
@@ -31,7 +31,6 @@ fn buildPHSB(input: string, output: string) -> bool {
 }
 
 if (sys_argc() >= 2) {
-	
     var argument = sys_argv(1);
 	if (argument == "--help" || argument == "-h") {
 		printHelp();
@@ -46,8 +45,8 @@ if (sys_argc() >= 2) {
 }
 
 if (conf != null || conf != "") {
-	var src = freadln(conf, l2i(1));
-	var dst = freadln(conf, l2i(2)); 
+	var src = freadln(conf, line2index(1));
+	var dst = freadln(conf, line2index(2)); 
 } else {
 	puts("Invalid configuration file!");
 }
