@@ -62,7 +62,7 @@ phasorvm output.phsb # or use 'phasor output.phsb'
 # Compile to Native
 cp src/App/Runtime/NativeRuntime_[static,dynamic]_main.cpp main.cpp
 
-# Run a script directly
+# Run a script raw
 cat input.phs | phasor
 
 phasornative -c, --compiler clang++ -l, --linker lld -s, --source main.cpp input.phs -o, --output output
@@ -74,16 +74,11 @@ phasornative -c, --compiler clang++ -l, --linker lld -s, --source main.cpp input
 include_stdio();
 include_stdtype();
 
-fn factorial(n: int) -> int {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
-}
-
 puts("Enter a number:");
 var input = gets();
-var num = to_int(input);
-var result = factorial(num);
-putf("%d! = %d\n", num, result);
+var num1 = to_int(input);
+var num2 = 25;
+putf("%d + %d = %d\n", num, num2, num1 + num2);
 ```
 
 ---
