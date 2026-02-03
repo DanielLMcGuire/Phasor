@@ -6,19 +6,56 @@ include_stdfile();
 include_stdtype();
 
 var conf = "build.conf";
-if (sys_argc() == 2) 
-	conf = sys_argv(1);
-var src = freadln(conf, 0);
-var dst = freadln(conf, 1);
+var g_clean = false;
 
-fn buildPHSB(input: string, output: string) -> bool {
-    var cmd = sb_new();
-    sb_append(cmd, "phasorcompiler --no-logo -o ");
-    sb_append(cmd, output);
-    sb_append(cmd, " ");
-    sb_append(cmd, input);
-    printf("Building Phasor Binary: %s -> %s\n", input, output);
-    return to_bool(sys_execute(sb_to_string(cmd)));
+fn printHelp() {
+	putf(`
+phasor %s [option] CONFIG 
+
+    CONFIG      - Configuration File (defaults to build.conf)			
+
+Options:
+    -c, --clean - Clean build files
+    -h, --help  - Show this help message
+	
+Configuration File Format:
+    Line 1 - Source File (infile)
+    Line 2 - Binary File (outfile)`, sys_argv(0));
 }
 
-shutdown (!buildPHSB(src, dst));
+fn l2i(index: int) -> int {return index - 1;}
+
+fn buildPHSB(input: string, output: string) -> bool {
+    putf("Building Phasor Binary: %s -> %s", input, output);
+    return to_bool(sys_execute(c_fmt("phasorcompiler --no-logo -o %s %s", output, input)));
+}
+
+if (sys_argc() >= 2) {
+	
+    var argument = sys_argv(1);
+	if (argument == "--help" || argument == "-h") {
+		printHelp();
+		shutdown(1);
+	} else if (argument == "--clean" || argument == "-c") {
+        g_clean = true;
+    } else {
+		conf = argument;
+	}
+	if (sys_argc() == 3)
+		conf = sys_argv(2);
+}
+
+if (conf != null || conf != "") {
+	var src = freadln(conf, l2i(1));
+	var dst = freadln(conf, l2i(2)); 
+} else {
+	puts("Invalid configuration file!");
+}
+
+if (g_clean) {
+    var stat = !frm(dst);
+    putf("Cleaned %s", dst);
+    shutdown(stat);
+}
+
+shutdown(!buildPHSB(src, dst));
