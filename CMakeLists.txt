@@ -417,7 +417,8 @@ if(WIN32)
         PATTERN "*.pdb" 
         PATTERN "CMakeFiles" EXCLUDE
         PATTERN "src" EXCLUDE
-	PATTERN "winapi-gen-phs.pdb" EXCLUDE
+	    PATTERN "winapi-gen-phs.pdb" EXCLUDE
+		PATTERN "clocf.pdb" EXCLUDE
     )
     install(TARGETS
         phasor_main
