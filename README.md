@@ -177,3 +177,4 @@ Binaries are available in the `install` directory:
 
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
+Phasor and the "sinewave Phasor" logo are trademarks of Daniel McGuire.
