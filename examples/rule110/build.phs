@@ -7,6 +7,11 @@ include_stdtype();
 
 var conf = "build.conf";
 var g_clean = false;
+var show_help = false;
+var src;
+var dest;
+var comp;
+var args;
 
 fn printHelp() {
 	putf(`
@@ -17,24 +22,40 @@ phasor %s [option] CONFIG
 Options:
     -c, --clean - Clean build files
     -h, --help  - Show this help message
+
+Example Config File:
+    in.phs
+    out.phsb
+    phasorcompiler
+    --no-logo -o %%s %%s`, 
+	sys_argv(0));
 	
-Configuration File Format:
-    Line 1 - Source File (infile)
-    Line 2 - Binary File (outfile)`, sys_argv(0));
+	if (fexists(conf)) {
+		putf(`
+Current Config:
+
+    Source:   %s
+    Binary:   %s
+    Compiler: %s
+    Flags:    %s
+    Command:  %s`, 
+	src, 
+	dest, 
+	comp, 
+	args, 
+	c_fmt("%s %s", comp, c_fmt(args, dest, src)));
+	}
 }
 
-fn line2index(line: int) -> int {return line - 1;}
-
-fn buildPHSB(input: string, output: string) -> bool {
-    putf("Building Phasor Binary: %s -> %s", input, output);
-    return to_bool(sys_execute(c_fmt("phasorcompiler --no-logo -o %s %s", output, input)));
+fn build() -> bool {
+    putf("Using compiler: %s\n\nBuilding Phasor Binary: %s -> %s", comp, src, dest);
+    return to_bool(sys_execute(c_fmt("%s %s", comp, c_fmt(args, dest, src))));
 }
 
 if (sys_argc() >= 2) {
     var argument = sys_argv(1);
 	if (argument == "--help" || argument == "-h") {
-		printHelp();
-		shutdown(1);
+		show_help = true;
 	} else if (argument == "--clean" || argument == "-c") {
         g_clean = true;
     } else {
@@ -45,16 +66,23 @@ if (sys_argc() >= 2) {
 }
 
 if (conf != null || conf != "") {
-	var src = freadln(conf, line2index(1));
-	var dst = freadln(conf, line2index(2)); 
+	src = freadln(conf, 0);  // 1 - Source File
+	dest = freadln(conf, 1);  // 2 - Out File
+    comp = freadln(conf, 2); // 3 - Compiler
+    args = freadln(conf, 3); // 4 - Compiler Flags
 } else {
 	puts("Invalid configuration file!");
 }
 
+if (show_help) {
+    printHelp();
+    shutdown(0);
+}
+
 if (g_clean) {
-    var stat = !frm(dst);
-    putf("Cleaned %s", dst);
+    var stat = !frm(dest);
+    putf("Cleaned %s", dest);
     shutdown(stat);
 }
 
-shutdown(!buildPHSB(src, dst));
+shutdown(!build(src, dest, comp, args));
