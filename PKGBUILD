@@ -1,8 +1,8 @@
 # Maintainer: Daniel McGuire <danielmcguire2023@gmail.com>
 pkgname=phasor-dev
 PACKAGER="Daniel McGuire <danielmcguire2023@gmail.com>"
-pkgver=2.2.0
-pkgrel=1
+pkgver=2.2.0.dev
+pkgrel=2
 pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
@@ -11,6 +11,7 @@ makedepends=('git' 'gcc' 'cmake' 'ninja')
 optdepends=('gcc: For building Phasor Native wrappers.')
 conflicts=('phasor' 'phasor-git')
 options=(strip !debug)
+install=phasor.install
 source=()
 sha256sums=()
 
@@ -19,9 +20,9 @@ pkgver() {
     tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.2.0")
     commits_since_tag=$(git rev-list "${tag}"..HEAD --count 2>/dev/null || echo 0)
     if [ "$commits_since_tag" -eq 0 ]; then
-        echo "$tag"
+        echo "$tag.dev"
     else
-        echo "${tag}.r${commits_since_tag}"
+        echo "${tag}.r${commits_since_tag}.dev"
     fi
 }
 
@@ -34,6 +35,8 @@ build() {
 package() {
     cd "$startdir/build"
     cmake --install . --prefix "$pkgdir"
+    
+    # Install man pages
     for section in 1 3 5 7; do
         src="$startdir/docs/man/man$section"
         dest="$pkgdir/usr/share/man/man$section"
@@ -42,4 +45,7 @@ package() {
             [ -f "$file" ] && install -Dm644 "$file" "$dest"/
         done
     done
+    
+    install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
+        "$pkgdir/usr/share/file/magic/phasor"
 }

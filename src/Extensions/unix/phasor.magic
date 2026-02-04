@@ -1,0 +1,14 @@
+#------------------------------------------------------------------------------
+# phasor:  file(1) magic for Phasor language files
+#
+
+# Phasor Binary file
+0   string      PHSB                    Phasor Binary file
+>7  byte        x                       \b, version %d
+>6  byte        x                       \b.%d
+>5  byte        x                       \b.%d
+>4  byte        x                       \b.%d
+
+# Phasor IR file
+0   string/bt   .PHIR                   Phasor IR file
+>6  string      x                       \b, version %s
