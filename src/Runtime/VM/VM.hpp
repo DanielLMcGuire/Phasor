@@ -96,12 +96,17 @@ class VM
 		r24,
 		r25 // If you are here to try adding more, step back and think about what got you here in the first place
 	};
-
+#ifdef _WIN32
 	/// @brief Execute a single operation
 	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
 	                          const int &operand3 = 0,
 	                const int &operand4 = 0, const int &operand5 = 0);
-
+#else
+		/// @brief Execute a single operation
+	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	                          const int &operand3 = 0,
+	                const int &operand4 = 0, const int &operand5 = 0);
+#endif
 	/// @brief Push a value onto the stack
 	void push(const Value &value);
 
