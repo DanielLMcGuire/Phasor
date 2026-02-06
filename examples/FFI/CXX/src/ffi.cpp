@@ -1,5 +1,5 @@
 #define PHASOR_FFI_BUILD_DLL
-#include <PhasorFFI.hpp>
+#include <PhasorFFI.h>
 
 #include <iostream>
 
