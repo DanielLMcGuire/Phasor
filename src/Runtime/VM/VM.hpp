@@ -98,7 +98,8 @@ class VM
 	};
 
 	/// @brief Execute a single operation
-	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
+	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	                          const int &operand3 = 0,
 	                const int &operand4 = 0, const int &operand5 = 0);
 
 	/// @brief Push a value onto the stack
