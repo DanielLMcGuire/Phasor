@@ -1,8 +1,8 @@
 # Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
-A dynamically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for performance and flexibility.
+A dynamically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
 
-Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a HUGE amount of work. Although it's perfectly stable now, at least enough for me to query SQL databases (check out the [SQLITE bindings](https://github.com/DanielLMcGuire/SQLite-Phasor)).
+Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
@@ -23,6 +23,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 - **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
 - **Arrays** are being tested with C syntax ```var arrayName[arraySize];``` 
+- **Metaprogramming** - Runtime metaprogramming layer
 
 ---
 
@@ -30,19 +31,19 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 > **Q** - Are you just ripping off the best from every language?
 >
-> **A** - No, the idea started before I knew much about other languages, some inspiration however did come from the majority of the programming languages I use. <sub>(Like C++, C#, Python, Java, TS, C99, Rust to name a few)</sub>
+> **A** - No, the idea started before I knew much about other languages, some inspiration however did come from the majority of the programming languages I use. <sub>(Like C++, Python, TS, C to name a few)</sub>
 >
 > **Q** - What is this? Why would I even need this?
 >
-> **A** - Not sure.
+> **A** - You probably don't.
 >
 > **Q** - Is this better than 'Java' or '.NET'?
 >
-> **A** - I have not tested Phasor against other languages, runtimes, VMs, etc.
+> **A** - Phasor doesn't beat anything without PGO (which even this is determinisic)
 >
-> **Q** - How is it fast without JIT?
+> **Q** - How is it somewhat fast without JIT?
 >
-> **A** - Easy! Just pray the entire core end up into L1/L2, then just let the CPU handle it! (I hate that this works)
+> **A** - Easy! Just pray the entire core end up into L1/L2, then just let the CPU handle it! (Yes, this actually works, no joke)
 
 ## Quick Start
 
