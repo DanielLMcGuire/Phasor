@@ -21,8 +21,8 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 >
 > Some may *appear* to work before actual implementation
 
-- **Structs** with C style static field access, mostly untested. ```struct.member = 14;```
-- **Arrays** are being tested with C syntax ```var arrayName[arraySize];``` 
+- **Structs** with C style static field access ```struct.member = 14;```
+- **Arrays** with C syntax ```var arrayName[arraySize];``` 
 - **Metaprogramming** - Runtime metaprogramming layer
 
 ---
