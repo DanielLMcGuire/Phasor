@@ -46,17 +46,6 @@ namespace PULSARSTD_api {
         PULSAR_STD_API int __fastcall factorial(int n);
         PULSAR_STD_API int __fastcall sqrt(int a);
     }
-    namespace vector { // std_vector.cpp
-        PULSAR_STD_API int __fastcall encode(int base, int slot, int valueToAdd, int bitsPerValue = 4);
-        PULSAR_STD_API int __fastcall decode(int base, int slot, int bitsPerValue = 4);
-        PULSAR_STD_API int __fastcall sort(int base, int bitsPerValue, int numSlots);
-        PULSAR_STD_API int __fastcall reverse(int base, int bitsPerValue, int numSlots);
-        namespace helper {
-            std::vector<int> __fastcall unpack(int base, int bitsPerValue, int numSlots);
-            int  __fastcall pack(const std::vector<int>& values, int bitsPerValue);
-            void __fastcall debugBits(int base, int bitsPerValue, int numSlots);
-        }   
-    }
 
     namespace fs { // std_fs.cpp
         PULSAR_STD_API bool __fastcall change_directory(const std::string& path);
