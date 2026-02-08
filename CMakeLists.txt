@@ -140,7 +140,6 @@ else()
     )
 endif()
 
-
 set(RUNTIME_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/Value.hpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.hpp
@@ -268,6 +267,16 @@ add_executable(phasor_compiler
 )
 target_link_libraries(phasor_compiler PhasorInterpreter PhasorCodegen)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
+
+add_executable(phasor_disasm
+    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Disassembler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Disassembler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Disassembler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Disassembler.hpp
+)
+
+target_link_libraries(phasor_disasm PhasorInterpreter PhasorCodegen)
+set_target_properties(phasor_disasm PROPERTIES OUTPUT_NAME phasordecomp)
 
 add_executable(phasor_cpp_compiler
     ${CMAKE_SOURCE_DIR}/src/App/Compiler/CppCompiler.rc
@@ -423,6 +432,7 @@ if(WIN32)
     install(TARGETS
         phasor_main
         phasor_compiler
+        phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -443,6 +453,7 @@ elseif(APPLE)
     install(TARGETS
         phasor_main
         phasor_compiler
+        phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -464,6 +475,7 @@ else()
     install(TARGETS
         phasor_main
         phasor_compiler
+        phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
