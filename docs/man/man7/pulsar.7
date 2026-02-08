@@ -1,0 +1,79 @@
+.TH PULSAR 7 "February 2026" "Phasor 0.3.158" "Pulsar Scripting Language"
+.SH NAME
+pulsar \- minimal scripting language for the Phasor runtime
+
+.SH DESCRIPTION
+Pulsar is a scripting language implemented as part of the Phasor Programming Language Toolchain. It is designed based on Phasor Alpha and runs during Phasor Runtime for meta-programming.
+
+.SH DATA TYPES
+Pulsar supports three primary data types:
+.IP \(bu 2
+\fBInteger\fR: Signed whole numbers (e.g., \fB42\fR, \fB-7\fR).
+.IP \(bu 2
+\fBString\fR: Text literals enclosed in double quotes (e.g., \fB"hello"\fR). Escape sequences such as \fB\\"\fR are supported within string literals.
+.IP \(bu 2
+\fBBoolean\fR: Logical values \fBtrue\fR and \fBfalse\fR.
+
+.SH VARIABLES
+Variables are declared using the \fBlet\fR keyword.
+.TP
+.B let \fIname\fR = \fIvalue\fR
+Assigns a value to a variable identifier. Identifiers must start with a letter or underscore and contain only alphanumeric characters or underscores. Variables are strictly typed based on their initial assignment.
+
+.SH FUNCTIONS
+Functions are declared using the \fBfunc\fR keyword and support typed parameters and return values.
+.SS Definition Syntax
+\fBfunc\fR \fIname\fR [\fIreturn_type\fR] \fIparam_type\fR:\fIparam_name\fR ... { \fIbody\fR }
+.IP \(bu 2
+\fIname\fR: The function identifier.
+.IP \(bu 2
+\fIreturn_type\fR: Optional return type (\fBint\fR, \fBstring\fR, or \fBbool\fR); defaults to \fBint\fR if not specified.
+.IP \(bu 2
+\fIParameters\fR: Parameters follow the \fBtype:name\fR syntax (e.g., \fBint:x\fR).
+.TP
+.B return \fIvalue\fR
+Exits the function and returns the specified value.
+
+.SH CONTROL FLOW
+.SS Conditionals
+.TP
+.B if \fIcondition\fR { \fIstatements\fR } [else { \fIstatements\fR }]
+Executes a block of code if the \fIcondition\fR evaluates to \fBtrue\fR. 
+.IP \(bu 2
+\fBComparison\fR: Supports \fB==\fR, \fB!=\fR, \fB<\fR, \fB>\fR, \fB<=\fR, and \fB>=\fR.
+.IP \(bu 2
+\fBLogic\fR: Supports logical AND (\fB&&\fR), OR (\fB||\fR), and NOT (\fB!\fR).
+.IP \(bu 2
+\fBTruthiness\fR: Integers are \fBtrue\fR if non-zero; strings are \fBtrue\fR if not empty and not equal to \fB"0"\fR or \fB"false"\fR.
+
+.SS Loops
+.TP
+.B while \fIcondition\fR { \fIstatements\fR }
+Repeatedly executes the block as long as the \fIcondition\fR remains \fBtrue\fR.
+
+.SH SYSTEM AND I/O
+.TP
+.B print \fIarg\fR...
+Prints values to standard output without a newline.
+.TP
+.B println \fIarg\fR...
+Prints values to standard output followed by a newline.
+.TP
+.B help [\fIcommand\fR]
+Displays help information for the language or a specific command.
+.TP
+.B version
+Displays the version information of the toolchain.
+.TP
+.B exit
+Terminates the Pulsar interpreter session.
+
+.SH SEE ALSO
+.BR phasor (3),
+.BR phasor-isa (7)
+
+.SH AUTHOR
+Daniel McGuire
+
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
