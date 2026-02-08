@@ -1,0 +1,27 @@
+// Purpose: Pulsar Language REPL
+// Original Author: Daniel McGuire
+// Copyright: Copyleft, MIT
+
+include_stdio();
+include_stdmeta();
+include_stdsys();
+
+pulsar_dbg();
+
+fn main() {
+    var ret;
+    if (sys_argc() == 2)
+        return pulsar(sys_argv(1));
+    printf("Pulsar 0.1.0 Language REPL\n");
+    while(true) {
+        print(">");
+        var cmd = gets();
+        if (cmd == "exit" || cmd == "close") {
+            break;
+        }
+        ret = pulsar(cmd);
+    }
+    return ret;
+}
+
+shutdown(main());
