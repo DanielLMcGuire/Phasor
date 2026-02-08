@@ -41,9 +41,6 @@ class BytecodeDeserializer
 	void readInstructions(Bytecode &bytecode);    ///< Helper method to read Instuctions Table
 	void readFunctionEntries(Bytecode &bytecode); ///< Helper method to read Function Entries
 
-	/// @brief Validate header
-	void validateHeader(uint32_t expectedChecksum);
-
 	/// @brief Calculate CRC32 checksum
 	uint32_t calculateCRC32(const uint8_t *data, size_t size);
 };
