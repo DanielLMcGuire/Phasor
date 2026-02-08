@@ -40,13 +40,13 @@ namespace pulsar {
             STRING,         // String literals
             INT,            // Integer literals
             IDENTIFIER,     // Variable names and identifiers
-            ANGLE_LEFT,     // '<' for expression start (deprecated for conditionals)
-            ANGLE_RIGHT,    // '>' for expression end (deprecated for conditionals)
+            ANGLE_LEFT,     // '<' for expression start
+            ANGLE_RIGHT,    // '>' for expression end
             
             // Conditional and comparison tokens
             IF,             // if keyword
             ELSE,           // else keyword
-            ENDIF,          // endif keyword (legacy - keeping for backward compatibility)
+            ENDIF,          // endif keyword, unused
             
             // Block delimiters
             BLOCK_START,    // '{' for block start
