@@ -15,7 +15,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - **C-style Control flow**: if/else, while, for, switch/case, break/continue
 - **Comprehensive standard library**
 - **Windows and POSIX API Bindings**
-- - **Metaprogramming** - Runtime metaprogramming layer, basically a tiny dumb command interpreter
+- **Metaprogramming** - Runtime metaprogramming layer, basically a tiny dumb command interpreter
 
 ## Upcoming 
 > [!NOTE]
