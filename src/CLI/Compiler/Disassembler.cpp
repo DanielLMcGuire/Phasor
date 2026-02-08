@@ -1,5 +1,5 @@
-﻿#include "../../CodeGen/Bytecode/BytecodeDeserializer.hpp"
-#include "../../CodeGen/IR/PhasorIR.hpp"
+﻿#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
+#include "../../Codegen/IR/PhasorIR.hpp"
 
 #include "Disassembler.hpp"
 
