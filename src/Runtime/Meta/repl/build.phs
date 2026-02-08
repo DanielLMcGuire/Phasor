@@ -1,0 +1,89 @@
+// Phasor Build Script
+include_stdsys();
+include_stdio();
+include_stdstr();
+include_stdfile();
+include_stdmeta(); // for pulsar
+include_stdtype();
+
+var conf = "build.conf";
+var g_clean = false;
+var show_help = false;
+var src;
+var dest;
+var comp;
+var args;
+
+fn printHelp() {
+	putf(`
+phasor %s [option] CONFIG 
+
+    CONFIG      - Pulsar Configuration File (defaults to build.conf)			
+
+Options:
+    -c, --clean - Clean build files
+    -h, --help  - Show this help message
+
+Example Config File:
+    let src = "rule110.phs"
+    let binary = "rule110.phsb"
+    let compiler = "phasorcompiler"
+    let args = "--no-logo -o %%s %%s"`, 
+	sys_argv(0));
+	
+	if (fexists(conf)) {
+		putf(`
+Current Config:
+
+    Source:   %s
+    Binary:   %s
+    Compiler: %s
+    Flags:    %s
+    Command:  %s`, 
+	src, 
+	dest, 
+	comp, 
+	args, 
+	c_fmt("%s %s", comp, c_fmt(args, dest, src)));
+	}
+}
+
+fn build() -> bool {
+    putf("Using compiler: %s\n\nBuilding Phasor Binary: %s -> %s", comp, src, dest);
+    return to_bool(sys_execute(c_fmt("%s %s", comp, c_fmt(args, dest, src))));
+}
+
+if (sys_argc() >= 2) {
+    var argument = sys_argv(1);
+	if (argument == "--help" || argument == "-h") {
+		show_help = true;
+	} else if (argument == "--clean" || argument == "-c") {
+        g_clean = true;
+    } else {
+		conf = argument;
+	}
+	if (sys_argc() == 3)
+		conf = sys_argv(2);
+}
+
+if ((conf != null || conf != "") && pulsar_exec(conf)) {
+	src = pulsar_get("src");
+	dest = pulsar_get("binary");
+    comp = pulsar_get("compiler");
+    args = pulsar_get("args");
+} else {
+	puts("Invalid configuration file!");
+}
+
+if (show_help) {
+    printHelp();
+    shutdown(0);
+}
+
+if (g_clean) {
+    var stat = !frm(dest);
+    putf("Cleaned %s", dest);
+    shutdown(stat);
+}
+
+shutdown(!build(src, dest, comp, args));
