@@ -140,6 +140,22 @@ else()
     )
 endif()
 
+set(PULSARSTD_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/stdlib/std_file.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/stdlib/std_fs.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/stdlib/std_math.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/stdlib/std_string.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/stdlib/std_sys.cpp
+)
+
+set(PULSAR_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/api/api_extras.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/interpreter_help.cpp 
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/interpreter_io.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/interpreter_stdlibmap.cpp 
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/interpreter.cpp
+)
+
 set(RUNTIME_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/Value.hpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.hpp
@@ -160,6 +176,7 @@ set(STDLIB_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/io.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/regex.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/math.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/meta.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/string.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/system.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/typeconv.cpp
@@ -198,7 +215,15 @@ set(CODEGEN_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Codegen/Cpp/CppCodeGenerator.hpp
 )
 
+add_library(pulsar_stdlib SHARED ${PULSARSTD_SOURCES} ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/stdlib/stdlib.h)
+set_property(TARGET pulsar_stdlib PROPERTY OUTPUT_NAME phasorrt-std-meta)
+target_compile_definitions(pulsar_stdlib PRIVATE PULSAR_STD_BUILD)
+
+add_library(pulsar STATIC ${PULSAR_SOURCES} ${CMAKE_SOURCE_DIR}/src/Runtime/Meta/interpreter.hpp)
+target_link_libraries(pulsar PRIVATE pulsar_stdlib)
+
 add_library(PhasorStdlib STATIC ${STDLIB_SOURCES} ${STDLIB_HEADERS})
+target_link_libraries(PhasorStdlib PUBLIC pulsar)
 
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
 target_link_libraries(PhasorRuntime PUBLIC PhasorStdlib)
@@ -432,7 +457,7 @@ if(WIN32)
     install(TARGETS
         phasor_main
         phasor_compiler
-        phasor_disasm
+		phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -440,6 +465,7 @@ if(WIN32)
         phasor_repl
         phasor_interpreter
         phasor_shell
+	pulsar_stdlib
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -453,7 +479,7 @@ elseif(APPLE)
     install(TARGETS
         phasor_main
         phasor_compiler
-        phasor_disasm
+		phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -461,6 +487,7 @@ elseif(APPLE)
         phasor_repl
         phasor_interpreter
         phasor_shell
+	pulsar_stdlib
         RUNTIME DESTINATION usr/local/bin
         LIBRARY DESTINATION usr/local/lib
         ARCHIVE DESTINATION usr/local/lib
@@ -475,7 +502,7 @@ else()
     install(TARGETS
         phasor_main
         phasor_compiler
-        phasor_disasm
+		phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -483,6 +510,7 @@ else()
         phasor_repl
         phasor_interpreter
         phasor_shell
+	pulsar_stdlib
         RUNTIME DESTINATION usr/bin
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib
