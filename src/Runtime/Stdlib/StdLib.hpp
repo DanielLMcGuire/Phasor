@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../Meta/interpreter.hpp"
+
 namespace Phasor
 {
 
@@ -24,6 +26,14 @@ using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *v
 class StdLib
 {
   public:
+	explicit StdLib()
+	{
+		meta_interp = new pulsar::interpreter;
+	};
+	~StdLib()
+	{
+		delete meta_interp;
+	};
 	/// @brief Register all standard library functions
 	static void registerFunctions(VM &vm);
 
@@ -38,6 +48,7 @@ class StdLib
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
 
 	static Value registerMathFunctions(const std::vector<Value> &args, VM *vm);
+	static Value registerMetaFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerStringFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerTypeConvFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerFileFunctions(const std::vector<Value> &args, VM *vm);
@@ -60,6 +71,13 @@ class StdLib
 	static Value math_sin(const std::vector<Value> &args, VM *vm);   ///< Sine
 	static Value math_cos(const std::vector<Value> &args, VM *vm);   ///< Cosine
 	static Value math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
+
+	// Meta functions
+	inline static pulsar::interpreter* meta_interp;
+	static Value meta_expr(const std::vector<Value> &args, VM *vm);
+	static Value meta_extr(const std::vector<Value> &args, VM *vm);
+	static Value meta_exec(const std::vector<Value> &args, VM *vm);
+	static Value meta_dbg(const std::vector<Value> &args, VM *vm);
 
 	// File IO
 	static Value file_read(const std::vector<Value> &args, VM *vm);              ///< Read file
