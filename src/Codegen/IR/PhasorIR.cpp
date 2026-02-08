@@ -512,7 +512,6 @@ COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__
 		{
 			OperandType type = getOperandType(instr.op, i);
 
-			// Add comma separator for operands after the first
 			if (i > 0)
 				instrLine << ",";
 			instrLine << " ";
@@ -524,7 +523,6 @@ COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__
 				break;
 			case OperandType::CONSTANT_IDX:
 				instrLine << operands[i];
-				// Add constant value to comment
 				if (operands[i] >= 0 && operands[i] < static_cast<int>(bytecode.constants.size()))
 				{
 					const Value &val = bytecode.constants[operands[i]];
@@ -533,17 +531,20 @@ COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__
 						std::string str = val.asString();
 						if (str.length() > 20)
 							str = str.substr(0, 20) + "...";
-						comment = "const[" + std::to_string(operands[i]) + "]=\"" + str + "\"";
+						comment = "const[" + std::to_string(operands[i]) + "]=\"" + escapeString(str) + "\"";
 					}
 					else if (val.getType() == ValueType::Int)
 					{
 						comment = "const[" + std::to_string(operands[i]) + "]=" + std::to_string(val.asInt());
 					}
+					else if (val.getType() == ValueType::Float)
+					{
+						comment = "const[" + std::to_string(operands[i]) + "]=" + std::to_string(val.asFloat());
+					}
 				}
 				break;
 			case OperandType::VARIABLE_IDX:
 				instrLine << operands[i];
-				// Add variable name to comment
 				if (indexToVarName.count(operands[i]))
 				{
 					comment = "var=" + indexToVarName[operands[i]];
@@ -551,7 +552,6 @@ COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__
 				break;
 			case OperandType::FUNCTION_IDX:
 				instrLine << operands[i];
-				// Add function name to comment
 				if (addressToFuncName.count(operands[i]))
 				{
 					comment = "func=" + addressToFuncName[operands[i]];
@@ -563,7 +563,6 @@ COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__
 			}
 		}
 
-		// Pad to column 40 for aligned comments
 		std::string lineStr = instrLine.str();
 		if (!comment.empty())
 		{
@@ -577,7 +576,7 @@ COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__
 				lineStr += " ";
 			}
 
-			lineStr += "; " + escapeString(comment);
+			lineStr += "; " + comment;
 		}
 		ss << lineStr << "\n";
 	}
