@@ -160,7 +160,6 @@ set(STDLIB_SOURCES
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/io.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/regex.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/math.cpp
-    ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/meta.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/string.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/system.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/typeconv.cpp
