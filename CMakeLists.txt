@@ -34,10 +34,10 @@ configure_file(
 
 if(MSVC)
     set(CMAKE_C_FLAGS_RELEASE
-        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /Qspectre-"
+        "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /Qspectre-"
     )
     set(CMAKE_CXX_FLAGS_RELEASE
-        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
+        "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
     )
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE
         "/LTCG /OPT:REF /OPT:ICF"
