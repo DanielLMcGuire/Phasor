@@ -12,7 +12,6 @@ void StdLib::registerFunctions(VM &vm)
 	vm.registerNativeFunction("include_stdio", registerIOFunctions);
 	vm.registerNativeFunction("include_stdsys", registerSysFunctions);
 	vm.registerNativeFunction("include_stdmath", registerMathFunctions);
-	vm.registerNativeFunction("include_stdmeta", registerMetaFunctions);
 	vm.registerNativeFunction("include_stdstr", registerStringFunctions);
 	vm.registerNativeFunction("include_stdtype", registerTypeConvFunctions);
 	vm.registerNativeFunction("include_stdfile", registerFileFunctions);
