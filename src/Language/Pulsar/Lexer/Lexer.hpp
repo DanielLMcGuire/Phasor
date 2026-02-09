@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../AST/ast.hpp"
+#include "../../../AST/AST.hpp"
 #include <string>
 #include <vector>
 #include <iostream>
