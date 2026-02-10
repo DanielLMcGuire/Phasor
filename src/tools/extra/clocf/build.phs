@@ -10,12 +10,15 @@ fn buildPHSB(input: string, output: string) -> bool {
     sb_append(cmd, output);
     sb_append(cmd, " ");
     sb_append(cmd, input);
-    printf("Building Phasor Binary: %s -> %s\n", input, output);
+    putf("Building Phasor Binary: %s -> %s", input, output);
     return to_bool(sys_execute(sb_to_string(cmd)));
 }
 
-fcd("src/tools/extra/clocf");
+if (!fcd("src/tools/extra/clocf")) {
+	puts("Could not find src/tools/extra/clocf!"); 
+	shutdown(1);
+}
 var src = "native/clocf.phs";
 var dst = "../../../../clocf.phsb";
 
-shutdown (!buildPHSB(src, dst));
+shutdown(!buildPHSB(src, dst));
