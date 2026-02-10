@@ -51,7 +51,7 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 else()
     set(COMMON_OPT
-        "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
+        "-O3 -flto -funroll-loops -static -fomit-frame-pointer -Wno-missing-field-initializers"
     )
     set(COMMON_FP
         "-ffast-math"
@@ -62,20 +62,13 @@ else()
     set(COMMON_CXX_LANG
         "-fexceptions -frtti"
     )
-    if(WIN32)
-        set(COMMON_COMPAT
-            "-fno-ms-extensions -fno-ms-compatibility -fno-delayed-template-parsing"
-        )
-    else()
-        set(COMMON_COMPAT "")
-    endif()
     
     set(CMAKE_C_FLAGS_RELEASE
         "${COMMON_OPT} ${COMMON_FP} -march=native"
     )
 
     set(CMAKE_CXX_FLAGS_RELEASE
-        "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} ${COMMON_COMPAT} -march=native"
+        "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
     )
     
     if(APPLE)
@@ -336,7 +329,7 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
     COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp -H --nologo
     DEPENDS ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs phasor_cpp_compiler
-    COMMENT "Building PHS object src/CLI/utils/Shell.phs"
+    COMMENT "Building PHS bytecode src/CLI/utils/Shell.hpp"
 )
 
 add_executable(phasor_shell
@@ -359,7 +352,7 @@ if(WIN32)
         OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
         COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
         DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
-        COMMENT "Building scripts/winapi.h"
+        COMMENT "Generating win32 bindings phasor_winapi_bindings.cpp"
     )
 
     add_library(phasor_winapi_bindings SHARED
@@ -389,12 +382,15 @@ else()
 endif()
 
 set(TARGETS cat cp echo ls mv rm touch)
-set(BIN_DIR "${CMAKE_BINARY_DIR}/src/CLI/utils/coreutils")
+set(BIN_RAW "src/CLI/utils/coreutils")
+set(BIN_DIR "${CMAKE_BINARY_DIR}/${BIN_RAW}")
 
 foreach(tgt ${TARGETS})
     set(PHS "${CMAKE_SOURCE_DIR}/src/CLI/utils/coreutils/${tgt}.phs")
     set(HEADER "${BIN_DIR}/${tgt}.hpp")
     set(GEN_CPP "${BIN_DIR}/${tgt}.cpp")
+    set(PATH_COUT "${BIN_RAW}/${tgt}.hpp")
+
 
     file(MAKE_DIRECTORY ${BIN_DIR})
 
@@ -402,7 +398,7 @@ foreach(tgt ${TARGETS})
         OUTPUT ${HEADER}
         COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${PHS} -o ${HEADER} -H --nologo
         DEPENDS ${PHS} phasor_cpp_compiler
-        COMMENT "Building PHS object ${PHS}"
+        COMMENT "Building PHS object ${PATH_COUT}"
     )
 
     configure_file(
