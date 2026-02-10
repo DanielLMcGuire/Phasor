@@ -17,7 +17,7 @@ fn printHelp() {
 	putf(`
 phasor %s [option] CONFIG 
 
-    CONFIG      - Configuration File (defaults to build.conf)			
+    CONFIG      - Configuration File (defaults to build.conf)
 
 Options:
     -c, --clean - Clean build files
@@ -29,7 +29,7 @@ Example Config File:
     phasorcompiler
     --no-logo -o %%s %%s`, 
 	sys_argv(0));
-	
+
 	if (fexists(conf)) {
 		putf(`
 Current Config:
