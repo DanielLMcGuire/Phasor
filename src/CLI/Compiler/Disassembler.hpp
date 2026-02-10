@@ -21,7 +21,7 @@ class Disassembler
 	{
 		std::filesystem::path inputFile;
 		std::filesystem::path outputFile;
-		std::string           programName;
+		std::filesystem::path program;
 		bool                  noLogo = false;
 		bool                  showHelp = false;
 	} m_args;
