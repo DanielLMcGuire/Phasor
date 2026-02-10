@@ -22,19 +22,19 @@ class Interpreter
   private:
 	struct Args
 	{
-		std::string inputFile;
+		std::filesystem::path inputFile;
 		bool        verbose = false;
 		int         scriptArgc = 0;
 		char      **scriptArgv = nullptr;
 		char      **envp = nullptr;
+		std::filesystem::path program;
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);
-	void showHelp(const std::string &programName);
+	void showHelp();
 
 	int  runSource();
 	void runSourceString(const std::string &source, Phasor::VM &vm);
-	int  runRepl(Phasor::VM &vm);
 
 	std::unique_ptr<Phasor::VM> createVm();
 };

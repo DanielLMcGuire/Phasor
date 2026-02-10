@@ -111,6 +111,7 @@ std::unique_ptr<Phasor::VM> Interpreter::createVm()
 
 void Interpreter::parseArguments(int argc, char *argv[])
 {
+	m_args.program = std::filesystem::path(argv[0]);
 	int defaultArgLocation = 1;
 	for (int i = 1; i < argc; i++)
 	{
@@ -122,29 +123,23 @@ void Interpreter::parseArguments(int argc, char *argv[])
 		}
 		else if (arg == "-h" || arg == "--help")
 		{
-			showHelp(argv[0]);
+			showHelp();
 			exit(0);
 		}
 		else
 		{
 			defaultArgLocation = i;
 			m_args.inputFile = arg;
-			break; // Stop parsing after finding the input file
+			break;
 		}
 	}
 	m_args.scriptArgv = argv + defaultArgLocation;
 	m_args.scriptArgc = argc - defaultArgLocation;
 }
 
-void Interpreter::showHelp(const std::string &programName)
+void Interpreter::showHelp()
 {
-	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Scripting Runtime\n\n";
-	std::cout << "Usage:\n";
-	std::cout << "  " << filename << " [options] [file.phs] [...script args]\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";
-	std::cout << "  -h, --help          Show this help message\n";
+	std::cout << "Usage:\n" << "  " << m_args.program.stem().string() << " [inFile] [...script args]\n\n";
 }
 
 } // namespace Phasor
