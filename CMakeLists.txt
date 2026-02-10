@@ -51,7 +51,7 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 else()
     set(COMMON_OPT
-        "-O3 -flto -funroll-loops -static -fomit-frame-pointer -Wno-missing-field-initializers"
+        "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
     )
     set(COMMON_FP
         "-ffast-math"
