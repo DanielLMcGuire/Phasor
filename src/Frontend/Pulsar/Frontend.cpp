@@ -76,7 +76,7 @@ void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 
 void pulsar::Frontend::runRepl(Phasor::VM *vm)
 {
-	std::cout << "Pulsar (PRE STANDARD) -- Phasor v" << PHASOR_VERSION_STRING << " REPL\n(C) 2026 Daniel McGuire\n\n";
+	std::cout << "Pulsar REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
 	std::cout << "Type 'exit()' to quit. Function declarations will not work.\n";
 
 	bool ownVM = false;
