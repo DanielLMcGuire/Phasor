@@ -35,6 +35,7 @@ int Disassembler::run()
 
 bool Disassembler::parseArguments(int argc, char *argv[])
 {
+	m_args.program = std::filesystem::path(argv[0]);
 	for (int i = 1; i < argc; i++)
 	{
 		std::string arg = argv[i];
@@ -85,7 +86,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 const bool Disassembler::showHelp()
 {
 	std::cout << "Usage:\n";
-	std::cout << "  " << m_args.programName << " [options] <input.phsb>\n\n";
+	std::cout << "  " << m_args.program.stem().string() << " [options] <input.phsb>\n\n";
 	std::cout << "Options:\n";
 	std::cout << "  -o, --output <file>   Output file\n";
 	std::cout << "  -h, --help            Show this help message\n";
