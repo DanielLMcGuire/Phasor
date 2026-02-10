@@ -20,7 +20,7 @@ int Disassembler::run()
 {
 	if (!m_args.noLogo)
 	{
-		std::cout << "Phasor C++ Code Generator\n";
+		std::cout << "Phasor Decompiler\n";
 		std::cout << "Copyright (c) 2026 Daniel McGuire\n";
 		std::cout << "\n";
 	}
@@ -35,7 +35,6 @@ int Disassembler::run()
 
 bool Disassembler::parseArguments(int argc, char *argv[])
 {
-	m_args.programName = std::filesystem::path(argv[0]).stem().string();
 	for (int i = 1; i < argc; i++)
 	{
 		std::string arg = argv[i];
@@ -98,6 +97,15 @@ const bool Disassembler::decompileBinary()
 {
 	BytecodeDeserializer bcDeserializer{};
 	PhasorIR             phir;
+
+	if (m_args.outputFile.empty())
+	{
+		m_args.outputFile = m_args.inputFile;
+		std::filesystem::path path(m_args.outputFile);
+		path.replace_extension(".phir");
+		m_args.outputFile = path.string();
+	}
+
 	return phir.saveToFile(bcDeserializer.loadFromFile(m_args.inputFile), m_args.outputFile);
 }
 
