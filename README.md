@@ -2,7 +2,13 @@
 
 A dynamically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
 
-Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
+Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language.
+
+> [!WARNING]
+> 
+> Phasor is not memory safe! 
+> Phasor cannot free memory! 
+> Phasor is not verifiably secure!
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
