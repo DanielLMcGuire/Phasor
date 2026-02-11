@@ -6,6 +6,25 @@
 
 namespace Phasor
 {
+enum class TokenType
+{
+	Identifier,
+	Number,
+	String,
+	Keyword,
+	Symbol,
+	EndOfFile,
+	Unknown
+};
+
+struct Token
+{
+	TokenType   type;
+	std::string lexeme;
+	size_t      line;
+	size_t      column;
+};
+
 /// @brief Abstract Syntax Tree (AST) namespace
 namespace AST
 {

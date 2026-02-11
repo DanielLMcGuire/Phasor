@@ -26,12 +26,18 @@ if(WIN32 AND ASSEMBLY)
     enable_language(RC)
 endif()
 
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    @ONLY
+)
+
 if(MSVC)
     set(CMAKE_C_FLAGS_RELEASE
-        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /Qspectre-"
+        "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /Qspectre-"
     )
     set(CMAKE_CXX_FLAGS_RELEASE
-        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
+        "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
     )
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE
         "/LTCG /OPT:REF /OPT:ICF"
@@ -56,20 +62,13 @@ else()
     set(COMMON_CXX_LANG
         "-fexceptions -frtti"
     )
-    if(WIN32)
-        set(COMMON_COMPAT
-            "-fno-ms-extensions -fno-ms-compatibility -fno-delayed-template-parsing"
-        )
-    else()
-        set(COMMON_COMPAT "")
-    endif()
     
     set(CMAKE_C_FLAGS_RELEASE
         "${COMMON_OPT} ${COMMON_FP} -march=native"
     )
 
     set(CMAKE_CXX_FLAGS_RELEASE
-        "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} ${COMMON_COMPAT} -march=native"
+        "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
     )
     
     if(APPLE)
@@ -150,6 +149,8 @@ set(RUNTIME_HEADERS
     ${CMAKE_SOURCE_DIR}/src/sscanf.h
     ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
+    ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
+    ${CMAKE_CURRENT_BINARY_DIR}/version.h
 )
 
 set(STDLIB_SOURCES
@@ -171,15 +172,24 @@ set(STDLIB_HEADERS
     ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/StdLib.hpp
 )
 
-set(INTERPRETER_SOURCES
-    ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.cpp
-    ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.cpp
+set(PHASOR_LANGUAGE_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/Language/Phasor/Lexer/Lexer.cpp
+    ${CMAKE_SOURCE_DIR}/src/Language/Phasor/Parser/Parser.cpp
 )
 
-set(INTERPRETER_HEADERS
-    ${CMAKE_SOURCE_DIR}/src/Backend/Lexer/Lexer.hpp
-    ${CMAKE_SOURCE_DIR}/src/Backend/Parser/Parser.hpp
-    ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
+set(PHASOR_LANGUAGE_HEADERS
+    ${CMAKE_SOURCE_DIR}/src/Language/Phasor/Lexer/Lexer.hpp
+    ${CMAKE_SOURCE_DIR}/src/Language/Phasor/Parser/Parser.hpp
+)
+
+set(PULSAR_LANGUAGE_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/Language/Pulsar/Lexer/Lexer.cpp
+    ${CMAKE_SOURCE_DIR}/src/Language/Pulsar/Parser/Parser.cpp
+)
+
+set(PULSAR_LANGUAGE_HEADERS
+    ${CMAKE_SOURCE_DIR}/src/Language/Pulsar/Lexer/Lexer.hpp
+    ${CMAKE_SOURCE_DIR}/src/Language/Pulsar/Parser/Parser.cpp
 )
 
 set(CODEGEN_SOURCES
@@ -203,113 +213,123 @@ add_library(PhasorStdlib STATIC ${STDLIB_SOURCES} ${STDLIB_HEADERS})
 add_library(PhasorRuntime STATIC ${RUNTIME_SOURCES} ${RUNTIME_HEADERS})
 target_link_libraries(PhasorRuntime PUBLIC PhasorStdlib)
 
-add_library(PhasorInterpreter STATIC ${INTERPRETER_SOURCES} ${INTERPRETER_HEADERS})
+add_library(phasor_language STATIC ${PHASOR_LANGUAGE_SOURCES} ${PHASOR_LANGUAGE_HEADERS})
+
+add_library(pulsar_language STATIC ${PULSAR_LANGUAGE_SOURCES} ${PULSAR_LANGUAGE_HEADERS})
 
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
-    @ONLY
-)
-
 add_library(PhasorFrontend STATIC 
-    ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.cpp 
-    ${CMAKE_SOURCE_DIR}/src/Frontend/Frontend.hpp 
-    ${CMAKE_CURRENT_BINARY_DIR}/version.h
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Phasor/Frontend.cpp 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Phasor/Frontend.hpp 
 )
 target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen PhasorRuntime)
 
+add_library(PulsarFrontend STATIC 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Pulsar/Frontend.cpp 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Pulsar/Frontend.hpp 
+)
+target_link_libraries(PulsarFrontend PUBLIC PhasorCodegen PhasorRuntime)
+
 add_library(phasor_native_runtime SHARED
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntimeDll.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntimeDll.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
-target_link_libraries(phasor_native_runtime PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_native_runtime PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
 add_library(phasor_native_runtime_static STATIC
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/NativeRuntime_library.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
-target_link_libraries(phasor_native_runtime_static PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_native_runtime_static PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
 add_executable(phasor_main 
-    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Main/Phasor_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.cpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Main/Phasor.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Main/Phasor_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/BinaryRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Repl/Repl.cpp
 )
-target_link_libraries(phasor_main PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_main PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
-add_executable(phasor_repl
-    ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Repl/Repl_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Repl/Repl.hpp
+add_executable(pulsar_main 
+    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Interpreter/Interpreter.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Interpreter/Interpreter_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Interpreter/Interpreter.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Interpreter/Interpreter.hpp
 )
-target_link_libraries(phasor_repl PhasorRuntime PhasorInterpreter PhasorFrontend)
+target_link_libraries(pulsar_main PhasorRuntime pulsar_language PhasorCodegen PulsarFrontend)
+set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
+
+add_executable(phasor_repl
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Repl/Repl.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Repl/Repl_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Repl/Repl.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Repl/Repl.hpp
+)
+target_link_libraries(phasor_repl PhasorRuntime phasor_language PhasorFrontend)
 set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
 
 add_executable(phasor_compiler
-    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Compiler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Compiler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Compiler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Compiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Compiler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Compiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Compiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Compiler.hpp
 )
-target_link_libraries(phasor_compiler PhasorInterpreter PhasorCodegen)
+target_link_libraries(phasor_compiler phasor_language PhasorCodegen)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
 
 add_executable(phasor_disasm
-    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Disassembler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Compiler/Disassembler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Disassembler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/Disassembler.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Disassembler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Disassembler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Disassembler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Disassembler.hpp
 )
 
-target_link_libraries(phasor_disasm PhasorInterpreter PhasorCodegen)
+target_link_libraries(phasor_disasm phasor_language PhasorCodegen)
 set_target_properties(phasor_disasm PROPERTIES OUTPUT_NAME phasordecomp)
 
 add_executable(phasor_cpp_compiler
-    ${CMAKE_SOURCE_DIR}/src/App/Compiler/CppCompiler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Compiler/CppCompiler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/CppCompiler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Compiler/CppCompiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/CppCompiler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/CppCompiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/CppCompiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/CppCompiler.hpp
 )
-target_link_libraries(phasor_cpp_compiler PhasorInterpreter PhasorCodegen)
+target_link_libraries(phasor_cpp_compiler phasor_language PhasorCodegen)
 set_target_properties(phasor_cpp_compiler PROPERTIES OUTPUT_NAME phasornative)
 
 add_executable(phasor_runtime_exe
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/BinaryRuntime.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/BinaryRuntime_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/BinaryRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/BinaryRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/BinaryRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/BinaryRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/BinaryRuntime.hpp
 )
 target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
 add_executable(phasor_interpreter
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/ScriptingRuntime.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Runtime/ScriptingRuntime_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Runtime/ScriptingRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/ScriptingRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/ScriptingRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/ScriptingRuntime.hpp
 )
-target_link_libraries(phasor_interpreter PhasorRuntime PhasorInterpreter PhasorCodegen PhasorFrontend)
+target_link_libraries(phasor_interpreter PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
     COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp -H --nologo
     DEPENDS ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs phasor_cpp_compiler
-    COMMENT "Building PHS object src/CLI/utils/Shell.phs"
+    COMMENT "Building PHS bytecode src/CLI/utils/Shell.hpp"
 )
 
 add_executable(phasor_shell
@@ -332,7 +352,7 @@ if(WIN32)
         OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
         COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
         DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
-        COMMENT "Building scripts/winapi.h"
+        COMMENT "Generating win32 bindings phasor_winapi_bindings.cpp"
     )
 
     add_library(phasor_winapi_bindings SHARED
@@ -362,12 +382,15 @@ else()
 endif()
 
 set(TARGETS cat cp echo ls mv rm touch)
-set(BIN_DIR "${CMAKE_BINARY_DIR}/src/CLI/utils/coreutils")
+set(BIN_RAW "src/CLI/utils/coreutils")
+set(BIN_DIR "${CMAKE_BINARY_DIR}/${BIN_RAW}")
 
 foreach(tgt ${TARGETS})
     set(PHS "${CMAKE_SOURCE_DIR}/src/CLI/utils/coreutils/${tgt}.phs")
     set(HEADER "${BIN_DIR}/${tgt}.hpp")
     set(GEN_CPP "${BIN_DIR}/${tgt}.cpp")
+    set(PATH_COUT "${BIN_RAW}/${tgt}.hpp")
+
 
     file(MAKE_DIRECTORY ${BIN_DIR})
 
@@ -375,7 +398,7 @@ foreach(tgt ${TARGETS})
         OUTPUT ${HEADER}
         COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${PHS} -o ${HEADER} -H --nologo
         DEPENDS ${PHS} phasor_cpp_compiler
-        COMMENT "Building PHS object ${PHS}"
+        COMMENT "Building PHS object ${PATH_COUT}"
     )
 
     configure_file(
@@ -431,8 +454,9 @@ if(WIN32)
     )
     install(TARGETS
         phasor_main
+        pulsar_main
         phasor_compiler
-		phasor_disasm
+        phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -452,8 +476,9 @@ if(WIN32)
 elseif(APPLE)
     install(TARGETS
         phasor_main
+        pulsar_main
         phasor_compiler
-		phasor_disasm
+        phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
@@ -474,8 +499,9 @@ elseif(APPLE)
 else()
     install(TARGETS
         phasor_main
+        pulsar_main
         phasor_compiler
-		phasor_disasm
+        phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
         phasor_native_runtime
