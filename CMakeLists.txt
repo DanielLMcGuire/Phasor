@@ -126,8 +126,14 @@ elseif(UNIX)
 endif()
 
 set(RUNTIME_SOURCES
-    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/VM.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/Native.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/Operations.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/Register.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/Stack.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/Utility.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/VM/Variables.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/ffi.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/FFI/api.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/VM/core/IO/IO.c
 )
 if(ASSEMBLY)
@@ -287,6 +293,15 @@ add_executable(phasor_compiler
 )
 target_link_libraries(phasor_compiler phasor_language PhasorCodegen)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
+
+add_executable(pulsar_compiler
+    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Compiler/Compiler.rc
+    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Compiler/Compiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Compiler/Compiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Compiler/Compiler.hpp
+)
+target_link_libraries(pulsar_compiler pulsar_language PhasorCodegen)
+set_target_properties(pulsar_compiler PROPERTIES OUTPUT_NAME pulsarcompiler)
 
 add_executable(phasor_disasm
     ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Disassembler.rc

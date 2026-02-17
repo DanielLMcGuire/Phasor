@@ -7,6 +7,9 @@
 #include <map>
 #include <array>
 #include "core/core.h"
+#include <iostream>
+#include <stdexcept>
+
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -17,6 +20,7 @@ namespace Phasor
 class VM
 {
   public:
+
 	/// @brief Run the virtual machine
 	void run(const Bytecode &bytecode);
 
@@ -127,6 +131,8 @@ class VM
 	void logerr(const Value &msg);
 
   private:
+
+
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
 
@@ -150,5 +156,6 @@ class VM
 
 	/// @brief Native function registry
 	std::map<std::string, NativeFunction> nativeFunctions;
+
 };
 } // namespace Phasor
