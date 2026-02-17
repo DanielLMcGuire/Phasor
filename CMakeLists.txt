@@ -450,10 +450,6 @@ foreach(tgt ${TARGETS})
     endif()
 endforeach()
 
-
-add_executable(clocf ${CMAKE_SOURCE_DIR}/src/tools/extra/clocf/clocf.c)
-set_target_properties(clocf PROPERTIES EXCLUDE_FROM_ALL TRUE)
-
 if(WIN32)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
         DESTINATION bin 
