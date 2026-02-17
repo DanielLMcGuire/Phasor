@@ -10,7 +10,7 @@ namespace Phasor
  * @note This function is safe for strings, as it copies the C string into a
  *       new C++ std::string, taking ownership of the memory.
  */
-static Phasor::Value from_c_value(const PhasorValue &c_value)
+Phasor::Value from_c_value(const PhasorValue &c_value)
 {
 	switch (c_value.type)
 	{
@@ -53,7 +53,7 @@ static Phasor::Value from_c_value(const PhasorValue &c_value)
  *                     managed by this arena.
  * @return The equivalent C-style value for the plugin.
  */
-static PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_ptr<char[]>> &string_arena,
+PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_ptr<char[]>> &string_arena,
                               std::vector<std::unique_ptr<PhasorValue[]>> &array_arena)
 {
 	switch (cpp_value.getType())
@@ -98,7 +98,7 @@ static PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::u
 	}
 }
 
-static Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM* vm, const std::vector<Phasor::Value>& args)
+Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM* vm, const std::vector<Phasor::Value>& args)
 {
     std::vector<std::unique_ptr<char[]>> string_arena;
     std::vector<std::unique_ptr<PhasorValue[]>> array_arena;
