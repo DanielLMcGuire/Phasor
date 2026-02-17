@@ -468,6 +468,7 @@ if(WIN32)
         phasor_main
         pulsar_main
         phasor_compiler
+        pulsar_compiler
         phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
@@ -490,6 +491,7 @@ elseif(APPLE)
         phasor_main
         pulsar_main
         phasor_compiler
+        pulsar_compiler
         phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
@@ -513,6 +515,7 @@ else()
         phasor_main
         pulsar_main
         phasor_compiler
+        pulsar_compiler
         phasor_disasm
         phasor_cpp_compiler
         phasor_runtime_exe
