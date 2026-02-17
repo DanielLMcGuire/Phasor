@@ -2,6 +2,10 @@ Phasor
     filter remove_inline //.*$
     extension phs
     3rd_gen_scale 2.50
+Pulsar
+    filter remove_inline //.*$
+    extension pul
+    3rd_gen_scale 2.50
 Phasor_IR
     filter remove_inline ;.*$
     extension phir
