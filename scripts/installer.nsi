@@ -130,10 +130,12 @@ EndVC:
 
 ; .phir -> PhasorIR
 WriteRegStr HKCU "Software\Classes\.phir" "" "PhasorIR"
-; .phs -> PhasorScript
-WriteRegStr HKCU "Software\Classes\.phs" "" "PhasorScript"
+; .phs -> PhasorSource
+WriteRegStr HKCU "Software\Classes\.phs" "" "PhasorSource"
 ; .phsb -> PhasorBinary
 WriteRegStr HKCU "Software\Classes\.phsb" "" "PhasorBinary"
+; .pul -> PulsarScript
+WriteRegStr HKCU "Software\Classes\.pul" "" "PulsarScript"
 
 ; PhasorBinary
 WriteRegStr HKCU "Software\Classes\PhasorBinary" "" "Phasor Binary File"
@@ -142,10 +144,14 @@ WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open\command" "" '"$INSTDI
 ; PhasorIR
 WriteRegStr HKCU "Software\Classes\PhasorIR" "" "Phasor IR File"
 WriteRegStr HKCU "Software\Classes\PhasorIR\shell\open" "Icon" "$INSTDIR\bin\phasorcompiler.exe"
-; PhasorScript
-WriteRegStr HKCU "Software\Classes\PhasorScript" "" "Phasor Script File"
-WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open" "Icon" "$INSTDIR\bin\phasorjit.exe"
-WriteRegStr HKCU "Software\Classes\PhasorScript\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
+; PhasorSource
+WriteRegStr HKCU "Software\Classes\PhasorSource" "" "Phasor Source File"
+WriteRegStr HKCU "Software\Classes\PhasorSource\shell\open" "Icon" "$INSTDIR\bin\phasorjit.exe"
+WriteRegStr HKCU "Software\Classes\PhasorSource\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
+; PulsarScript
+WriteRegStr HKCU "Software\Classes\PulsarScript" "" "Pulsar Script File"
+WriteRegStr HKCU "Software\Classes\PulsarScript\shell\open" "Icon" "$INSTDIR\bin\pulsar.exe"
+WriteRegStr HKCU "Software\Classes\PulsarScript\shell\open\command" "" '"$INSTDIR\bin\pulsar.exe" "%1" %*'
 
 EnVar::SetHKLM
 EnVar::AddValue "PATH" "$INSTDIR\bin"
