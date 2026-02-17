@@ -242,28 +242,6 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 		exeDir = std::filesystem::path(std::string(path, count)).parent_path();
 	else
 		exeDir = std::filesystem::current_path();
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-	char path[1024];
-	int mib[4];
-	size_t size = sizeof(path);
-
-#if defined(__FreeBSD__)
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_PROC;
-	mib[2] = KERN_PROC_PATHNAME;
-	mib[3] = -1;
-	if (sysctl(mib, 4, path, &size, nullptr, 0) == 0 && size > 0)
-		exeDir = std::filesystem::path(path).parent_path();
-	else
-		exeDir = std::filesystem::current_path();
-#elif defined(__NetBSD__) || defined(__OpenBSD__)
-	ssize_t count = readlink("/proc/curproc/exe", path, sizeof(path));
-	if (count != -1)
-		exeDir = std::filesystem::path(std::string(path, count)).parent_path();
-	else
-		exeDir = std::filesystem::current_path();
-#endif
-
 #else
 	exeDir = std::filesystem::current_path();
 #endif
