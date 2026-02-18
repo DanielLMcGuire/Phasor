@@ -235,7 +235,6 @@ add_library(PulsarFrontend STATIC
 target_link_libraries(PulsarFrontend PUBLIC PhasorCodegen PhasorRuntime)
 
 add_library(phasor_native_runtime SHARED
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/NativeRuntimeDll.rc
     ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.cpp
