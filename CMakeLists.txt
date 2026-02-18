@@ -224,21 +224,22 @@ add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
 add_library(PhasorFrontend STATIC 
     ${CMAKE_SOURCE_DIR}/src/Frontend/Phasor/Frontend.cpp 
-    ${CMAKE_SOURCE_DIR}/src/Frontend/Phasor/Frontend.hpp 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Phasor/Frontend.hpp
 )
 target_link_libraries(PhasorFrontend PUBLIC PhasorCodegen PhasorRuntime)
 
 add_library(PulsarFrontend STATIC 
-    ${CMAKE_SOURCE_DIR}/src/Frontend/Pulsar/Frontend.cpp 
-    ${CMAKE_SOURCE_DIR}/src/Frontend/Pulsar/Frontend.hpp 
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Pulsar/Frontend.cpp
+    ${CMAKE_SOURCE_DIR}/src/Frontend/Pulsar/Frontend.hpp
 )
 target_link_libraries(PulsarFrontend PUBLIC PhasorCodegen PhasorRuntime)
 
 add_library(phasor_native_runtime SHARED
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntimeDll.rc
     ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntime_library.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/NativeRuntimeDll.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
 target_link_libraries(phasor_native_runtime PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
@@ -246,117 +247,117 @@ target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
 add_library(phasor_native_runtime_static STATIC
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/NativeRuntime_library.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/NativeRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/NativeRuntime_library.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
 target_link_libraries(phasor_native_runtime_static PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
 add_executable(phasor_main 
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Main/Phasor.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Main/Phasor_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/ScriptingRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/BinaryRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Repl/Repl.cpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Main/Phasor/Phasor.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Main/Phasor/Phasor_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Shared/BinaryRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.cpp
 )
 target_link_libraries(phasor_main PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
 add_executable(pulsar_main 
-    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Interpreter/Interpreter.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Interpreter/Interpreter_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Interpreter/Interpreter.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Interpreter/Interpreter.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Pulsar/ScriptingRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Pulsar/ScriptingRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Pulsar/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Pulsar/ScriptingRuntime.hpp
 )
 target_link_libraries(pulsar_main PhasorRuntime pulsar_language PhasorCodegen PulsarFrontend)
 set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
 
 add_executable(phasor_repl
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Repl/Repl.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Repl/Repl_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Repl/Repl.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Repl/Repl.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Repl/Phasor/Repl.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Repl/Phasor/Repl_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.cpp
+    ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.hpp
 )
 target_link_libraries(phasor_repl PhasorRuntime phasor_language PhasorFrontend)
 set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
 
 add_executable(phasor_compiler
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Compiler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Compiler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Compiler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Compiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Phasor/Compiler.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Phasor/Compiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/Compiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/Compiler.hpp
 )
 target_link_libraries(phasor_compiler phasor_language PhasorCodegen)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
 
 add_executable(pulsar_compiler
-    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Compiler/Compiler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Pulsar/Compiler/Compiler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Compiler/Compiler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Pulsar/Compiler/Compiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Pulsar/Compiler.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Pulsar/Compiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Pulsar/Compiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Pulsar/Compiler.hpp
 )
 target_link_libraries(pulsar_compiler pulsar_language PhasorCodegen)
 set_target_properties(pulsar_compiler PROPERTIES OUTPUT_NAME pulsarcompiler)
 
 add_executable(phasor_disasm
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Disassembler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/Disassembler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Disassembler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/Disassembler.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Shared/Disassembler.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Shared/Disassembler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Shared/Disassembler.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Shared/Disassembler.hpp
 )
 
 target_link_libraries(phasor_disasm phasor_language PhasorCodegen)
 set_target_properties(phasor_disasm PROPERTIES OUTPUT_NAME phasordecomp)
 
 add_executable(phasor_cpp_compiler
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/CppCompiler.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Compiler/CppCompiler_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/CppCompiler.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Compiler/CppCompiler.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Phasor/CppCompiler.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Compiler/Phasor/CppCompiler_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/CppCompiler.cpp
+    ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/CppCompiler.hpp
 )
 target_link_libraries(phasor_cpp_compiler phasor_language PhasorCodegen)
 set_target_properties(phasor_cpp_compiler PROPERTIES OUTPUT_NAME phasornative)
 
 add_executable(phasor_runtime_exe
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/BinaryRuntime.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/BinaryRuntime_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/BinaryRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/BinaryRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Shared/BinaryRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Shared/BinaryRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Shared/BinaryRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Shared/BinaryRuntime.hpp
 )
 target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
 add_executable(phasor_interpreter
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/ScriptingRuntime.rc
-    ${CMAKE_SOURCE_DIR}/src/App/Phasor/Runtime/ScriptingRuntime_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/ScriptingRuntime.cpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/Phasor/Runtime/ScriptingRuntime.hpp
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/ScriptingRuntime.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/Runtime/Phasor/ScriptingRuntime_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/ScriptingRuntime.cpp
+    ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/ScriptingRuntime.hpp
 )
 target_link_libraries(phasor_interpreter PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
-    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp -H --nologo
-    DEPENDS ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs phasor_cpp_compiler
-    COMMENT "Building PHS bytecode src/CLI/utils/Shell.hpp"
+    OUTPUT ${CMAKE_BINARY_DIR}/src/utils/Shell.hpp
+    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/utils/Shell.hpp -H --nologo
+    DEPENDS ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs phasor_cpp_compiler
+    COMMENT "Building PHS bytecode src/Library/utils/Shell.hpp"
 )
 
 add_executable(phasor_shell
-    ${CMAKE_SOURCE_DIR}/src/App/utils/Shell.rc
-    ${CMAKE_SOURCE_DIR}/src/App/utils/shell_main.cpp
-    ${CMAKE_BINARY_DIR}/src/CLI/utils/Shell.hpp
-    ${CMAKE_SOURCE_DIR}/src/CLI/utils/Shell.phs
+    ${CMAKE_SOURCE_DIR}/src/Executable/utils/Shell.rc
+    ${CMAKE_SOURCE_DIR}/src/Executable/utils/shell_main.cpp
+    ${CMAKE_BINARY_DIR}/src/utils/Shell.hpp
+    ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs
 )
-target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/CLI/utils)
+target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/utils)
 target_link_libraries(phasor_shell phasor_native_runtime)
 set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
 if(WIN32)
     add_executable(phasor_winapi_gen
-        ${CMAKE_SOURCE_DIR}/src/Bindings/win32/binding_generator.cpp
+        ${CMAKE_SOURCE_DIR}/src/Executable/Bindings/win32/bindgen_main.cpp
     )
     set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
@@ -370,6 +371,7 @@ if(WIN32)
     add_library(phasor_winapi_bindings SHARED
         ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
         ${CMAKE_SOURCE_DIR}/src/Bindings/win32/handle.hpp
+        ${CMAKE_SOURCE_DIR}/src/Executable/Bindings/win32/main.rc
         ${CMAKE_SOURCE_DIR}/scripts/winapi.h
     )
     set_target_properties(phasor_winapi_bindings PROPERTIES 
@@ -380,7 +382,7 @@ if(WIN32)
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
 else()
     add_library(phasor_posix_bindings SHARED
-        ${CMAKE_SOURCE_DIR}/src/Bindings/posix_bindings.c
+        ${CMAKE_SOURCE_DIR}/src/Executable/Bindings/main.c
     )
     set_target_properties(phasor_posix_bindings PROPERTIES 
         OUTPUT_NAME posix_phs
@@ -394,11 +396,11 @@ else()
 endif()
 
 set(TARGETS cat cp echo ls mv rm touch)
-set(BIN_RAW "src/CLI/utils/coreutils")
+set(BIN_RAW "src/utils/coreutils")
 set(BIN_DIR "${CMAKE_BINARY_DIR}/${BIN_RAW}")
 
 foreach(tgt ${TARGETS})
-    set(PHS "${CMAKE_SOURCE_DIR}/src/CLI/utils/coreutils/${tgt}.phs")
+    set(PHS "${CMAKE_SOURCE_DIR}/src/utils/coreutils/${tgt}.phs")
     set(HEADER "${BIN_DIR}/${tgt}.hpp")
     set(GEN_CPP "${BIN_DIR}/${tgt}.cpp")
     set(PATH_COUT "${BIN_RAW}/${tgt}.hpp")
@@ -414,14 +416,14 @@ foreach(tgt ${TARGETS})
     )
 
     configure_file(
-        "${CMAKE_SOURCE_DIR}/src/App/utils/coreutils/coreutils_main.in.cpp"
+        "${CMAKE_SOURCE_DIR}/src/Executable/utils/coreutils/coreutils_main.in.cpp"
         "${GEN_CPP}"
         @ONLY
     )
 
     add_executable(${tgt}
         ${GEN_CPP}
-        src/App/utils/coreutils/${tgt}.rc
+        src/Executable/utils/coreutils/${tgt}.rc
         ${HEADER}
         ${PHS}
     )
