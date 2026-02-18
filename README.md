@@ -56,19 +56,11 @@ phasorrepl # or use 'phasor'
 # Compile to bytecode
 phasorcompiler input.phs (-o, --output output.phsb)
 
-# Compile to Phasor VM IR
-phasorcompiler -i, --ir input.phs (-o, --output output.phir)
-
 # Run bytecode
 phasorvm output.phsb # or use 'phasor output.phsb'
 
-# Compile to Native
-cp src/App/Runtime/NativeRuntime_[static,dynamic]_main.cpp main.cpp
-
 # Run a script raw
 cat input.phs | phasor
-
-phasornative -c, --compiler clang++ -l, --linker lld -s, --source main.cpp input.phs -o, --output output
 ```
 
 ### Example Program
