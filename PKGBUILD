@@ -11,7 +11,7 @@ makedepends=('git' 'gcc' 'cmake' 'ninja')
 optdepends=('gcc: For building Phasor Native wrappers.')
 conflicts=('phasor' 'phasor-git')
 options=(strip !debug)
-install=phasor.install
+install=scripts/phasor.install
 source=()
 sha256sums=()
 
