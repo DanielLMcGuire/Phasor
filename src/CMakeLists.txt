@@ -1,0 +1,6 @@
+add_subdirectory(Runtime)
+add_subdirectory(Language)
+add_subdirectory(Codegen)
+add_subdirectory(Frontend)
+add_subdirectory(Compiler)
+add_subdirectory(Executable)
