@@ -1,8 +1,14 @@
-using("stdsys", "stdtype", "stdio");
+using("stdsys", "stdtype", "stdio", "stdfile");
 
-fn printHelp(program: string) -> int {
-    printf("Usage: <runtime> %s [preset]\n", program);
-    return sys_execute("cmake --list-presets");
+fn printHelp(script: string) {
+    printf("Usage: phasor %s [preset] [options]\n\n\n", program);
+    sys_execute("cmake --list-presets");
+    print(`
+Options:
+
+  -h, --help       Show this help message
+  -i, --install    Install the built files to the specified prefix (default: install)
+`);
 }
 
 fn configure(srcFolder: string, buildFolder: string, preset: string) -> bool {
@@ -28,34 +34,43 @@ fn install(buildFolder: string, prefixFolder: string) -> bool {
 
 fn main() -> int {
     var preset;
-    var install = true;
+    var prefix = "install";
+    var install = false;
+    var outFolder = "out";
     if (sys_argc() > 1) { 
         preset = to_string(sys_argv(1)); 
     } else {
-        if (printHelp(sys_argv(0)) != 0) return 1;
+        printHelp(sys_argv(0));
         return -1;
     }
 
     if (sys_argc() > 2) {
-        if (to_string(sys_argv(2)) == "--no-install") {
-            install = false;
-        } else {
+        if (to_string(sys_argv(2)) == "-i" || to_string(sys_argv(2)) == "--install") {
+            install = true;
+            if (sys_argc() > 3) {
+                prefix = to_string(sys_argv(3));
+            }
+        } else if (to_string(sys_argv(2)) == "-h" || to_string(sys_argv(2)) == "--help") {
             if (printHelp(sys_argv(0)) != 0) return 1;
+            return -1;
+        } else {
+            printf("Unknown argument: %s\n", sys_argv(2));
+            printHelp(sys_argv(0));
             return -1;
         }
     }
 
-    if (!configure(".", "build", preset)) {
+    if (!configure(fcd(), outFolder, preset)) {
         printf("Configuration failed\n");
         return 1;
     }
 
-    if (!build("build")) {
+    if (!build(outFolder)) {
         printf("Build failed\n");
         return 1;
     }
 
-    if (install && !install("build", "install")) {
+    if (install && !install(outFolder, prefix)) {
         printf("Installation failed\n");
         return 1;
     }
