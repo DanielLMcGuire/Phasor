@@ -94,9 +94,10 @@ std::unique_ptr<TypeNode> Parser::parseType()
 		isPointer = true;
 	}
 	Token typeName = consume(TokenType::Identifier, "Expect type name.");
-	
+
 	std::vector<int> dims;
-	while (match(TokenType::Symbol, "[")) {
+	while (match(TokenType::Symbol, "["))
+	{
 		Token size = consume(TokenType::Number, "Expect array size in type declaration.");
 		dims.push_back(std::stoi(size.lexeme));
 		consume(TokenType::Symbol, "]", "Expect ']' after array size.");
@@ -585,8 +586,10 @@ std::unique_ptr<Expression> Parser::primary()
 	if (match(TokenType::Symbol, "["))
 	{
 		std::vector<std::unique_ptr<Expression>> elements;
-		if (!check(TokenType::Symbol) || peek().lexeme != "]") {
-			do {
+		if (!check(TokenType::Symbol) || peek().lexeme != "]")
+		{
+			do
+			{
 				elements.push_back(expression());
 			} while (match(TokenType::Symbol, ","));
 		}

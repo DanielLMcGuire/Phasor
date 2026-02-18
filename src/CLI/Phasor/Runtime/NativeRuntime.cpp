@@ -30,7 +30,8 @@ NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int
 	m_vm = std::make_unique<VM>();
 }
 
-NativeRuntime::NativeRuntime(const std::string &script, const int argc, char **argv) : m_script(script), m_argc(argc), m_argv(argv)
+NativeRuntime::NativeRuntime(const std::string &script, const int argc, char **argv)
+    : m_script(script), m_argc(argc), m_argv(argv)
 {
 	Lexer lexer(m_script);
 	auto  tokens = lexer.tokenize();

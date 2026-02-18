@@ -35,7 +35,7 @@ std::vector<std::string> splits(const std::string &input)
 extern "C"
 {
 	DLLEXPORT void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,
-	                    const void *nativeFunctionsVector, const int argc, const char** argv)
+	                    const void *nativeFunctionsVector, const int argc, const char **argv)
 	{
 		try
 		{
@@ -44,8 +44,8 @@ extern "C"
 
 			if (nativeFunctionsVector != nullptr)
 			{
-				const void* ptr = nativeFunctionsVector;
-				const auto* funcVector = static_cast<const std::vector<std::pair<std::string, void*>>*>(ptr);
+				const void *ptr = nativeFunctionsVector;
+				const auto *funcVector = static_cast<const std::vector<std::pair<std::string, void *>> *>(ptr);
 				for (const auto &nativeFunction : *funcVector)
 				{
 					NativeRT.addNativeFunction(nativeFunction.first, nativeFunction.second);
@@ -73,8 +73,8 @@ extern "C"
 
 			if (nativeFunctionsVector != nullptr)
 			{
-				const void* ptr = nativeFunctionsVector;
-				const auto* funcVector = static_cast<const std::vector<std::pair<std::string, void*>>*>(ptr);
+				const void *ptr = nativeFunctionsVector;
+				const auto *funcVector = static_cast<const std::vector<std::pair<std::string, void *>> *>(ptr);
 				for (const auto &nativeFunction : *funcVector)
 				{
 					NativeRT.addNativeFunction(nativeFunction.first, nativeFunction.second);

@@ -4,7 +4,10 @@
 #include <string>
 #include <vector>
 
-namespace Phasor { class VM; }
+namespace Phasor
+{
+class VM;
+}
 
 namespace Phasor
 {

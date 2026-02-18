@@ -26,7 +26,7 @@ class Disassembler
 		bool                  showHelp = false;
 	} m_args;
 
-	bool parseArguments(int argc, char *argv[]);
+	bool       parseArguments(int argc, char *argv[]);
 	const bool showHelp();
 	const bool decompileBinary();
 };

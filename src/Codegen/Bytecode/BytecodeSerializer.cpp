@@ -156,15 +156,14 @@ void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
 			writeString(constant.asString());
 			break;
 		case ValueType::Struct:
-COMPILE_MESSAGE("Warning: PHS_01 Structs have not been implemented! Line " STR(__LINE__))
+			COMPILE_MESSAGE("Warning: PHS_01 Structs have not been implemented! Line " STR(__LINE__))
 			throw std::runtime_error("Structs have not been implemented!");
 			break;
 		case ValueType::Array:
-COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__LINE__))
+			COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__LINE__))
 			throw std::runtime_error("Arrays have not been implemented!");
 			break;
 		}
-
 	}
 }
 

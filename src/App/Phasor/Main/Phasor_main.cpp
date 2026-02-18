@@ -19,14 +19,15 @@
 /**
  * @brief Reads all content from stdin until EOF (piped input)
  */
-std::string readStdin() {
-    std::string content;
-    std::string line;
-    while (std::getline(std::cin, line))
-    {
-        content += line + "\n";
-    }
-    return content;
+std::string readStdin()
+{
+	std::string content;
+	std::string line;
+	while (std::getline(std::cin, line))
+	{
+		content += line + "\n";
+	}
+	return content;
 }
 
 namespace fs = std::filesystem;
@@ -55,60 +56,74 @@ void showHelp(const fs::path &program = "phasor")
 
 int main(int argc, char *argv[], char *envp[])
 {
-    try {
-        if (!IS_TERMINAL) {
-            const std::string source = readStdin();
-            if (!source.empty()) {
-                Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
-                Phasor::Frontend::runScript(source);
+	try
+	{
+		if (!IS_TERMINAL)
+		{
+			const std::string source = readStdin();
+			if (!source.empty())
+			{
+				Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
+				Phasor::Frontend::runScript(source);
 				return 0;
-            }
-        }
-        if (argc < 2) {
-            Phasor::Repl Repl(argc, argv, envp);
-            return Repl.run();
-        }
+			}
+		}
+		if (argc < 2)
+		{
+			Phasor::Repl Repl(argc, argv, envp);
+			return Repl.run();
+		}
 
-        const fs::path program = argv[0];
-        const fs::path file = argv[1];
+		const fs::path program = argv[0];
+		const fs::path file = argv[1];
 
-        if (!fs::exists(file)) {
-            const std::string raw = file.string();
-            if (!raw.empty() && (raw.front() == '-' || raw.front() == '/')) {
-                std::string m_path = raw;
-                m_path.erase(0, m_path.find_first_not_of("-/"));
-                if (m_path == "help" || m_path == "h" || m_path == "?" || m_path == "h" || m_path == "help") {
-                    showHelp(program);
+		if (!fs::exists(file))
+		{
+			const std::string raw = file.string();
+			if (!raw.empty() && (raw.front() == '-' || raw.front() == '/'))
+			{
+				std::string m_path = raw;
+				m_path.erase(0, m_path.find_first_not_of("-/"));
+				if (m_path == "help" || m_path == "h" || m_path == "?" || m_path == "h" || m_path == "help")
+				{
+					showHelp(program);
 					return 0;
-                }
-                std::cerr << "Invalid argument: " << m_path << "\n";
-            } else 
-                std::cerr << "File not found: " << raw << "\n";
+				}
+				std::cerr << "Invalid argument: " << m_path << "\n";
+			}
+			else
+				std::cerr << "File not found: " << raw << "\n";
 			return 1;
-        }
+		}
 
+		const std::string ext = file.extension().string();
 
-        const std::string ext = file.extension().string();
-
-        if (ext == ".phs") {
-            Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
-            return ScriptRT.run();
-        } else if (ext == ".phsb") {
-            Phasor::BinaryRuntime BinRT(argc, argv, envp);
-            return BinRT.run();
-        } else if (ext == ".phir") {
-            std::cout << "Phasor IR (.phir) compilation not yet implemented.\n";
+		if (ext == ".phs")
+		{
+			Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
+			return ScriptRT.run();
+		}
+		else if (ext == ".phsb")
+		{
+			Phasor::BinaryRuntime BinRT(argc, argv, envp);
+			return BinRT.run();
+		}
+		else if (ext == ".phir")
+		{
+			std::cout << "Phasor IR (.phir) compilation not yet implemented.\n";
 			return 0;
-        } else {
-            std::cerr << "Unknown extension: " << ext << "\n";
+		}
+		else
+		{
+			std::cerr << "Unknown extension: " << ext << "\n";
 			return 1;
-        }
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error: " << e.what() << "\n";
-        return 1;
-    }
+		}
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << "Error: " << e.what() << "\n";
+		return 1;
+	}
 
-    return 1;
+	return 1;
 }

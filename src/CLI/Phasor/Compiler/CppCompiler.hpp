@@ -32,7 +32,7 @@ class CppCompiler
 		std::string           linker;
 		bool                  run = false;
 		bool                  headerOnly = false;
-		bool 				  objectOnly = false;
+		bool                  objectOnly = false;
 		bool                  generateOnly = false;
 		bool                  noLogo = false;
 	} m_args;

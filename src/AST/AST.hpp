@@ -68,17 +68,19 @@ struct Program : public Node
 /// @brief Type Node
 struct TypeNode : public Node
 {
-	std::string name;
-	bool        isPointer = false;
+	std::string      name;
+	bool             isPointer = false;
 	std::vector<int> arrayDimensions;
 
-	TypeNode(std::string n, bool ptr = false, std::vector<int> dims = {}) : name(n), isPointer(ptr), arrayDimensions(std::move(dims))
+	TypeNode(std::string n, bool ptr = false, std::vector<int> dims = {})
+	    : name(n), isPointer(ptr), arrayDimensions(std::move(dims))
 	{
 	}
 	void print(int indent = 0) const override
 	{
 		std::cout << std::string(indent, ' ') << "Type: " << name << (isPointer ? "*" : "") << "\n";
-		for (int dim : arrayDimensions) {
+		for (int dim : arrayDimensions)
+		{
 			std::cout << std::string(indent + 2, ' ') << "ArrayDim: " << dim << "\n";
 		}
 	}
@@ -323,11 +325,14 @@ struct ArrayAccessExpr : public Expression
 struct ArrayLiteralExpr : public Expression
 {
 	std::vector<std::unique_ptr<Expression>> elements;
-	ArrayLiteralExpr(std::vector<std::unique_ptr<Expression>> elems) : elements(std::move(elems)) {}
+	ArrayLiteralExpr(std::vector<std::unique_ptr<Expression>> elems) : elements(std::move(elems))
+	{
+	}
 	void print(int indent = 0) const override
 	{
 		std::cout << std::string(indent, ' ') << "ArrayLiteral:\n";
-		for (const auto &elem : elements) elem->print(indent + 2);
+		for (const auto &elem : elements)
+			elem->print(indent + 2);
 	}
 };
 

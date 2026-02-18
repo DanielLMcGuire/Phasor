@@ -10,7 +10,6 @@
 #include <iostream>
 #include <stdexcept>
 
-
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -20,7 +19,6 @@ namespace Phasor
 class VM
 {
   public:
-
 	/// @brief Run the virtual machine
 	void run(const Bytecode &bytecode);
 
@@ -103,12 +101,10 @@ class VM
 #ifdef _WIN32
 	/// @brief Execute a single operation
 	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
-	                          const int &operand3 = 0,
-	                const int &operand4 = 0, const int &operand5 = 0);
+	                           const int &operand3 = 0, const int &operand4 = 0, const int &operand5 = 0);
 #else
-		/// @brief Execute a single operation
-	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
-	                          const int &operand3 = 0,
+	/// @brief Execute a single operation
+	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
 	                const int &operand4 = 0, const int &operand5 = 0);
 #endif
 	/// @brief Push a value onto the stack
@@ -131,8 +127,6 @@ class VM
 	void logerr(const Value &msg);
 
   private:
-
-
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
 
@@ -156,6 +150,5 @@ class VM
 
 	/// @brief Native function registry
 	std::map<std::string, NativeFunction> nativeFunctions;
-
 };
 } // namespace Phasor

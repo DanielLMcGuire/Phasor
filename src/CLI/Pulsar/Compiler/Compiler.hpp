@@ -38,4 +38,4 @@ class Compiler
 	int compileToIR();
 };
 
-} // namespace Pulsar
+} // namespace pulsar

@@ -170,8 +170,7 @@ Phasor::Token Lexer::identifier()
 		advance();
 	std::string text = source.substr(start, position - start);
 
-	static const std::vector<std::string> keywords = {
-	    "let", "func", "print", "if", "else", "while"};
+	static const std::vector<std::string> keywords = {"let", "func", "print", "if", "else", "while"};
 
 	for (const auto &kw : keywords)
 	{

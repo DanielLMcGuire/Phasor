@@ -32,7 +32,7 @@ class NativeRuntime
 	std::string          m_script;
 	std::unique_ptr<VM>  m_vm;
 	int                  m_argc;
-	char                 **m_argv;
+	char               **m_argv;
 };
 
 } // namespace Phasor

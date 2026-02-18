@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 
-
 namespace Phasor
 {
 /// @brief Lexer
@@ -15,10 +14,10 @@ class Lexer
 	std::vector<Token> tokenize();
 
   private:
-	std::string    source;
-	size_t         position = 0;
-	size_t         line = 1;
-	size_t         column = 1;
+	std::string source;
+	size_t      position = 0;
+	size_t      line = 1;
+	size_t      column = 1;
 
 	char  peek();
 	char  advance();

@@ -13,7 +13,7 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		else
 		{
-			
+
 			pulsar::Frontend::runRepl();
 		}
 	}

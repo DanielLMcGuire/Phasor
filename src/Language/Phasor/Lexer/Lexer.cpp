@@ -12,14 +12,13 @@ Lexer::Lexer(const std::string &source) : source(source)
 
 void Lexer::skipShebang()
 {
-    if (position == 0 && peek() == '#' && 
-        position + 1 < source.length() && source[position + 1] == '!')
-    {
-        while (!isAtEnd() && peek() != '\n')
-        {
-            advance();
-        }
-    }
+	if (position == 0 && peek() == '#' && position + 1 < source.length() && source[position + 1] == '!')
+	{
+		while (!isAtEnd() && peek() != '\n')
+		{
+			advance();
+		}
+	}
 }
 
 std::vector<Token> Lexer::tokenize()
@@ -171,10 +170,9 @@ Token Lexer::identifier()
 		advance();
 	std::string text = source.substr(start, position - start);
 
-	static const std::vector<std::string> keywords = {
-	    "var", "fn", "if", "else", "while", "for",
-	    "return", "true",  "false",  "null",
-	    "throw", "print", "break", "continue", "switch", "case", "default"};
+	static const std::vector<std::string> keywords = {"var",    "fn",       "if",     "else", "while",  "for",
+	                                                  "return", "true",     "false",  "null", "throw",  "print",
+	                                                  "break",  "continue", "switch", "case", "default"};
 
 	for (const auto &kw : keywords)
 	{
@@ -309,8 +307,8 @@ Token Lexer::string()
 
 Token Lexer::complexString()
 {
-	size_t                tokenLine = line;
-	size_t                tokenColumn = column;
+	size_t             tokenLine = line;
+	size_t             tokenColumn = column;
 	std::ostringstream out;
 	advance(); // Skip opening backtick
 

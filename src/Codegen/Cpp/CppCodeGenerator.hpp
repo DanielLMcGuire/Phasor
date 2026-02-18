@@ -34,7 +34,7 @@ class CppCodeGenerator
 	 * @brief Generate Bytecode object from embedded bytecode string
 	 * @param input The string containing the embedded bytecode array
 	 * @return Deserialized Bytecode object
-	 * 	
+	 *
 	 */
 	Bytecode generateBytecodeFromEmbedded(const std::string &input);
 

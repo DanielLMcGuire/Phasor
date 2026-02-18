@@ -9,7 +9,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
-#else 
+#else
 #define error(msg) std::cerr << "Error: " << msg << std::endl
 #endif
 
@@ -58,7 +58,7 @@ int BinaryRuntime::run()
 #elif defined(__linux__)
 		FFI ffi("/opt/Phasor/plugins", vm.get());
 #endif
-		
+
 		vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});

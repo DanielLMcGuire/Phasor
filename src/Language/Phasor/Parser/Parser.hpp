@@ -30,17 +30,17 @@ class Parser
 	Token consume(TokenType type, std::string lexeme, std::string message);
 	Token expect(TokenType type, const std::string &message);
 
-	std::unique_ptr<AST::Statement>		     declaration();
-	std::unique_ptr<AST::Statement>		     varDeclaration();
-	std::unique_ptr<AST::Statement>			 functionDeclaration();
-	std::unique_ptr<AST::Statement>		     statement();
-	std::unique_ptr<AST::Statement>			 printStatement();
-	std::unique_ptr<AST::Statement>			 ifStatement();
-	std::unique_ptr<AST::Statement>			 whileStatement();
-	std::unique_ptr<AST::Statement>		     forStatement();
-	std::unique_ptr<AST::Statement>			 switchStatement();
-	std::unique_ptr<AST::Statement>		     returnStatement();
-	std::unique_ptr<AST::Statement>		     unsafeStatement();
+	std::unique_ptr<AST::Statement>          declaration();
+	std::unique_ptr<AST::Statement>          varDeclaration();
+	std::unique_ptr<AST::Statement>          functionDeclaration();
+	std::unique_ptr<AST::Statement>          statement();
+	std::unique_ptr<AST::Statement>          printStatement();
+	std::unique_ptr<AST::Statement>          ifStatement();
+	std::unique_ptr<AST::Statement>          whileStatement();
+	std::unique_ptr<AST::Statement>          forStatement();
+	std::unique_ptr<AST::Statement>          switchStatement();
+	std::unique_ptr<AST::Statement>          returnStatement();
+	std::unique_ptr<AST::Statement>          unsafeStatement();
 	std::unique_ptr<AST::BlockStmt>          block();
 	std::unique_ptr<AST::Statement>          importStatement();
 	std::unique_ptr<AST::Statement>          exportStatement();

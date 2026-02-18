@@ -88,22 +88,21 @@ int CppCompiler::run()
 		generateSource(m_args.moduleName + ".h", m_args.moduleName + ".cpp");
 		compileSource(m_args.moduleName + ".cpp", m_args.outputFile);
 		return 0;
-
 	}
 
 	std::cout << "Generating wrapper...\n";
 
-	if (generateHeader(m_args.inputFile, m_args.moduleName + ".h")) 
+	if (generateHeader(m_args.inputFile, m_args.moduleName + ".h"))
 		std::cout << m_args.inputFile << " -> " << m_args.moduleName + ".h\n";
-	else 
+	else
 	{
 		std::cerr << "Error: Could not generate header file\n";
 		return 1;
 	}
 
-	if (generateSource(m_args.mainFile, m_args.moduleName + ".cpp")) 
+	if (generateSource(m_args.mainFile, m_args.moduleName + ".cpp"))
 		std::cout << m_args.mainFile.filename() << " -> " << m_args.moduleName + ".cpp\n\n";
-	else 
+	else
 	{
 		std::cerr << "Could not generate source file\n";
 		return 1;
@@ -111,8 +110,8 @@ int CppCompiler::run()
 
 	std::cout << "Compiling...\n";
 	std::cout << "[COMPILER] ";
-	if (compileSource(m_args.moduleName + ".cpp", m_args.moduleName + ".obj")) 
-	std::cout << m_args.moduleName + ".cpp -> " << m_args.moduleName + ".obj\n\n";
+	if (compileSource(m_args.moduleName + ".cpp", m_args.moduleName + ".obj"))
+		std::cout << m_args.moduleName + ".cpp -> " << m_args.moduleName + ".obj\n\n";
 	else
 	{
 		std::cerr << "Could not compile program\n";
@@ -122,7 +121,7 @@ int CppCompiler::run()
 	std::cout << "Linking...\n";
 	std::cout << "[LINKER] ";
 	if (linkObject(m_args.moduleName + ".obj", m_args.outputFile))
-	std::cout << m_args.moduleName + ".obj -> " << m_args.outputFile << "\n";
+		std::cout << m_args.moduleName + ".obj -> " << m_args.outputFile << "\n";
 	else
 	{
 		std::cerr << "Could not link program\n";
@@ -286,44 +285,46 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 		{
 			PhasorIR phasorIR;
 			bytecode = phasorIR.loadFromFile(sourcePath);
-		} else {
-		// Read source file
-		if (m_args.verbose)
-			std::cout << "Reading source file...\n";
-
-		std::ifstream file(sourcePath);
-		if (!file.is_open())
-		{
-			std::cerr << "Error: Could not open input file: " << sourcePath << "\n";
-			return false;
 		}
+		else
+		{
+			// Read source file
+			if (m_args.verbose)
+				std::cout << "Reading source file...\n";
 
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		std::string source = buffer.str();
-		file.close();
+			std::ifstream file(sourcePath);
+			if (!file.is_open())
+			{
+				std::cerr << "Error: Could not open input file: " << sourcePath << "\n";
+				return false;
+			}
 
-		// Lex
-		if (m_args.verbose)
-			std::cout << "Lexing...\n";
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string source = buffer.str();
+			file.close();
 
-		Lexer lexer(source);
-		auto  tokens = lexer.tokenize();
+			// Lex
+			if (m_args.verbose)
+				std::cout << "Lexing...\n";
 
-		// Parse
-		if (m_args.verbose)
-			std::cout << "Parsing...\n";
+			Lexer lexer(source);
+			auto  tokens = lexer.tokenize();
 
-		Parser parser(tokens);
-		auto   program = parser.parse();
+			// Parse
+			if (m_args.verbose)
+				std::cout << "Parsing...\n";
 
-		// Generate bytecode
-		if (m_args.verbose)
-			std::cout << "Generating bytecode...\n";
+			Parser parser(tokens);
+			auto   program = parser.parse();
 
-		CodeGenerator codegen;
-		bytecode = codegen.generate(*program);
-	    }
+			// Generate bytecode
+			if (m_args.verbose)
+				std::cout << "Generating bytecode...\n";
+
+			CodeGenerator codegen;
+			bytecode = codegen.generate(*program);
+		}
 
 		if (bytecode.instructions.empty())
 		{
@@ -392,7 +393,7 @@ bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const 
 	outputFile << "#include \"" << headerPath.filename().string() << "\"\n";
 	outputFile << source;
 	outputFile.close();
-	
+
 	return true;
 }
 
@@ -455,4 +456,3 @@ bool CppCompiler::linkObject(const std::filesystem::path &objectPath, const std:
 }
 
 } // namespace Phasor
-

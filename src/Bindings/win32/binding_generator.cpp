@@ -5,10 +5,7 @@
 #include <string>
 #include <algorithm>
 
-const std::vector<std::string> PATCHES = {
-	"#pragma warning(disable:4996)", 
-	"#pragma warning(disable:4244)"
-};
+const std::vector<std::string> PATCHES = {"#pragma warning(disable:4996)", "#pragma warning(disable:4244)"};
 
 struct Param
 {
@@ -25,26 +22,24 @@ struct Function
 	int                lineNumber = 0;
 };
 
-bool isHandleType(const std::string& type)
+bool isHandleType(const std::string &type)
 {
-	return type == "HANDLE" || type == "HMODULE" || type == "HWND" ||
-	       type == "HINSTANCE" || type == "HDC";
+	return type == "HANDLE" || type == "HMODULE" || type == "HWND" || type == "HINSTANCE" || type == "HDC";
 }
 
-bool isSupportedParam(const std::string& type)
+bool isSupportedParam(const std::string &type)
 {
 	if (isHandleType(type))
 		return true;
 
 	std::string t = type;
 	t.erase(std::remove(t.begin(), t.end(), ' '), t.end());
-	return t == "BOOL" || t == "DWORD" || t == "int" || t == "LONG" ||
-	       t == "UINT" || t == "ULONG" || t == "float" || t == "double" ||
-	       t == "LPCSTR" || t == "LPSTR" || t == "constchar*" ||
-	       t == "LPCWSTR" || t == "LPWSTR" || t == "constwchar_t*";
+	return t == "BOOL" || t == "DWORD" || t == "int" || t == "LONG" || t == "UINT" || t == "ULONG" || t == "float" ||
+	       t == "double" || t == "LPCSTR" || t == "LPSTR" || t == "constchar*" || t == "LPCWSTR" || t == "LPWSTR" ||
+	       t == "constwchar_t*";
 }
 
-std::string trim(const std::string& str)
+std::string trim(const std::string &str)
 {
 	size_t start = str.find_first_not_of(" \t\r\n");
 	if (start == std::string::npos)
@@ -53,7 +48,7 @@ std::string trim(const std::string& str)
 	return str.substr(start, end - start + 1);
 }
 
-Function parseFunction(const std::string& line, int lineNumber)
+Function parseFunction(const std::string &line, int lineNumber)
 {
 	Function f;
 	f.rawLine = line;
@@ -77,7 +72,7 @@ Function parseFunction(const std::string& line, int lineNumber)
 		return f;
 
 	std::istringstream pstream(paramStr);
-	std::string param;
+	std::string        param;
 	while (std::getline(pstream, param, ','))
 	{
 		param = trim(param);
@@ -85,7 +80,7 @@ Function parseFunction(const std::string& line, int lineNumber)
 			continue;
 
 		std::istringstream ps(param);
-		Param p;
+		Param              p;
 		ps >> p.type >> p.name;
 
 		if (!isSupportedParam(p.type))
@@ -100,32 +95,29 @@ Function parseFunction(const std::string& line, int lineNumber)
 	return f;
 }
 
-void generateWrapper(const Function& f, std::ostream& out)
+void generateWrapper(const Function &f, std::ostream &out)
 {
 	if (f.returnType.empty())
 		return;
 
 	out << "// " << f.rawLine << " @ln:" << f.lineNumber << "\n";
-	out << "static PhasorValue win32_" << f.name
-	    << "(PhasorVM* vm, int argc, const PhasorValue* argv) {\n";
+	out << "static PhasorValue win32_" << f.name << "(PhasorVM* vm, int argc, const PhasorValue* argv) {\n";
 
 	for (size_t i = 0; i < f.params.size(); ++i)
 	{
-		const auto& p = f.params[i];
+		const auto &p = f.params[i];
 
 		if (isHandleType(p.type))
 		{
-			out << "    " << p.type << " " << p.name
-			    << " = HandleSystem::resolve<" << p.type
-			    << ">(phasor_to_int(argv[" << i << "]));\n";
+			out << "    " << p.type << " " << p.name << " = HandleSystem::resolve<" << p.type << ">(phasor_to_int(argv["
+			    << i << "]));\n";
 			continue;
 		}
 
 		std::string conv;
 		if (p.type == "BOOL")
 			conv = "phasor_to_bool(argv[" + std::to_string(i) + "])";
-		else if (p.type == "DWORD" || p.type == "int" || p.type == "LONG" ||
-		         p.type == "UINT" || p.type == "ULONG")
+		else if (p.type == "DWORD" || p.type == "int" || p.type == "LONG" || p.type == "UINT" || p.type == "ULONG")
 			conv = "(" + p.type + ")phasor_to_int(argv[" + std::to_string(i) + "])";
 		else if (p.type == "float" || p.type == "double")
 			conv = "(" + p.type + ")phasor_to_float(argv[" + std::to_string(i) + "])";
@@ -159,8 +151,7 @@ void generateWrapper(const Function& f, std::ostream& out)
 		out << "    return phasor_make_bool(result);\n";
 	else if (f.returnType == "float" || f.returnType == "double")
 		out << "    return phasor_make_float(result);\n";
-	else if (f.returnType == "DWORD" || f.returnType == "int" ||
-	         f.returnType == "LONG" || f.returnType == "UINT" ||
+	else if (f.returnType == "DWORD" || f.returnType == "int" || f.returnType == "LONG" || f.returnType == "UINT" ||
 	         f.returnType == "ULONG")
 		out << "    return phasor_make_int(result);\n";
 	else
@@ -169,7 +160,7 @@ void generateWrapper(const Function& f, std::ostream& out)
 	out << "}\n\n";
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	std::string inputFile = "winapi.h";
 	std::string outputFile = "phasor_winapi.cpp";
@@ -187,14 +178,14 @@ int main(int argc, char** argv)
 	outfile << "#include <windows.h>\n";
 	outfile << "#include \"../src/Bindings/win32/handle.hpp\"\n\n";
 	outfile << "// =====BEGIN PATCHES=====\n";
-	for (const auto& patch : PATCHES)
+	for (const auto &patch : PATCHES)
 	{
 		outfile << patch << "\n";
 	}
 	outfile << "// ======END PATCHES======\n\n";
 
-	std::string line;
-	int lineNumber = 0;
+	std::string           line;
+	int                   lineNumber = 0;
 	std::vector<Function> funcs;
 
 	while (std::getline(infile, line))
@@ -208,14 +199,13 @@ int main(int argc, char** argv)
 			funcs.push_back(f);
 	}
 
-	for (const auto& f : funcs)
+	for (const auto &f : funcs)
 		generateWrapper(f, outfile);
 
 	outfile << "PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm) {\n";
-	for (const auto& f : funcs)
+	for (const auto &f : funcs)
 	{
-		outfile << "    api->register_function(vm, \"win32_" << f.name
-		        << "\", win32_" << f.name << ");\n";
+		outfile << "    api->register_function(vm, \"win32_" << f.name << "\", win32_" << f.name << ");\n";
 	}
 	outfile << "}\n";
 }

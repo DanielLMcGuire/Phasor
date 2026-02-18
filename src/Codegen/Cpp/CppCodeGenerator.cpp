@@ -56,7 +56,7 @@ bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path 
 Bytecode CppCodeGenerator::generateBytecodeFromEmbedded(const std::string &input)
 {
 	std::vector<unsigned char> bytecodeData = parseEmbeddedBytecode(input);
-	BytecodeDeserializer deserializer;
+	BytecodeDeserializer       deserializer;
 	return deserializer.deserialize(bytecodeData);
 }
 
@@ -101,23 +101,23 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 
 std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const std::string &input)
 {
-    std::vector<unsigned char> result;
-    std::istringstream stream(input);
-    std::string token;
+	std::vector<unsigned char> result;
+	std::istringstream         stream(input);
+	std::string                token;
 
-    while (stream >> token)
-    {
-        // Only process tokens starting with "0x"
-        if (token.size() >= 3 && token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
-        {
-            unsigned int byte;
-            std::istringstream hexStream(token);
-            hexStream >> std::hex >> byte;
-            result.push_back(static_cast<unsigned char>(byte));
-        }
-    }
+	while (stream >> token)
+	{
+		// Only process tokens starting with "0x"
+		if (token.size() >= 3 && token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
+		{
+			unsigned int       byte;
+			std::istringstream hexStream(token);
+			hexStream >> std::hex >> byte;
+			result.push_back(static_cast<unsigned char>(byte));
+		}
+	}
 
-    return result;
+	return result;
 }
 
 std::string CppCodeGenerator::escapeString(const std::string &str)

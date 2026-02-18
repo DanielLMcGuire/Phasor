@@ -65,10 +65,10 @@ int Interpreter::runSource()
 
 void Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
 {
-	Lexer  lexer(source);
-	Parser        parser(lexer.tokenize());
+	Lexer                 lexer(source);
+	Parser                parser(lexer.tokenize());
 	Phasor::CodeGenerator codegen;
-	auto   program = parser.parse();
+	auto                  program = parser.parse();
 
 	if (m_args.verbose)
 	{
@@ -76,7 +76,7 @@ void Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
 		program->print();
 		std::cout << "\n";
 	}
-	auto          bytecode = codegen.generate(*program);
+	auto bytecode = codegen.generate(*program);
 
 	vm.run(bytecode);
 }
@@ -142,4 +142,4 @@ void Interpreter::showHelp()
 	std::cout << "Usage:\n" << "  " << m_args.program.stem().string() << " [inFile] [...script args]\n\n";
 }
 
-} // namespace Phasor
+} // namespace pulsar

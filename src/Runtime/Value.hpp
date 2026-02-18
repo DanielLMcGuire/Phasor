@@ -6,7 +6,6 @@
 #include <memory>
 #include <vector>
 
-
 namespace Phasor
 {
 
@@ -40,8 +39,8 @@ class Value
 	using ArrayInstance = std::vector<Value>;
 
   private:
-	using DataType = std::variant<std::monostate, bool, int64_t, double, std::string,
-	                              std::shared_ptr<StructInstance>, std::shared_ptr<ArrayInstance>>;
+	using DataType = std::variant<std::monostate, bool, int64_t, double, std::string, std::shared_ptr<StructInstance>,
+	                              std::shared_ptr<ArrayInstance>>;
 
 	DataType data;
 
@@ -282,8 +281,9 @@ class Value
 			return asInt() != 0;
 		if (isFloat())
 			return asFloat() != 0.0;
-		if (isString()) {
-			if (asString() == "true" || asString() == "1") 
+		if (isString())
+		{
+			if (asString() == "true" || asString() == "1")
 				return true;
 			else if (asString() == "false" || asString() == "0")
 				return false;
@@ -309,7 +309,8 @@ class Value
 			return asString() == other.asString();
 		if (isArray())
 		{
-			if (!other.isArray()) return false;
+			if (!other.isArray())
+				return false;
 			const auto &self_arr = *asArray();
 			const auto &other_arr = *other.asArray();
 			return self_arr == other_arr;

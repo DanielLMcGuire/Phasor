@@ -4,8 +4,8 @@
 namespace Phasor
 {
 
-Bytecode CodeGenerator::generate(const AST::Program &program, const std::map<std::string, int> &existingVars, int nextVarIdx,
-                                 bool replMode)
+Bytecode CodeGenerator::generate(const AST::Program &program, const std::map<std::string, int> &existingVars,
+                                 int nextVarIdx, bool replMode)
 {
 	bytecode = Bytecode(); // Reset bytecode
 	bytecode.variables = existingVars;
@@ -136,16 +136,20 @@ void CodeGenerator::generateStatement(const AST::Statement *stmt)
 	{
 		generateFunctionDecl(funcDecl);
 	}
-	else if (auto structDecl = dynamic_cast<const AST::StructDecl*>(stmt)) {
-    	generateStructDecl(structDecl);
+	else if (auto structDecl = dynamic_cast<const AST::StructDecl *>(stmt))
+	{
+		generateStructDecl(structDecl);
 	}
-	else if (dynamic_cast<const AST::BreakStmt*>(stmt)) {
+	else if (dynamic_cast<const AST::BreakStmt *>(stmt))
+	{
 		generateBreakStmt();
 	}
-	else if (dynamic_cast<const AST::ContinueStmt*>(stmt)) {
+	else if (dynamic_cast<const AST::ContinueStmt *>(stmt))
+	{
 		generateContinueStmt();
 	}
-	else if (auto switchStmt = dynamic_cast<const AST::SwitchStmt*>(stmt)) {
+	else if (auto switchStmt = dynamic_cast<const AST::SwitchStmt *>(stmt))
+	{
 		generateSwitchStmt(switchStmt);
 	}
 	else
@@ -192,15 +196,20 @@ void CodeGenerator::generateExpression(const AST::Expression *expr)
 	{
 		generateAssignmentExpr(assignExpr);
 	}
-	else if (auto structExpr = dynamic_cast<const AST::StructInstanceExpr*>(expr)) {
-    	generateStructInstanceExpr(structExpr);
+	else if (auto structExpr = dynamic_cast<const AST::StructInstanceExpr *>(expr))
+	{
+		generateStructInstanceExpr(structExpr);
 	}
-	else if (auto fieldAccessExpr = dynamic_cast<const AST::FieldAccessExpr*>(expr)) {
-    	generateFieldAccessExpr(fieldAccessExpr);
+	else if (auto fieldAccessExpr = dynamic_cast<const AST::FieldAccessExpr *>(expr))
+	{
+		generateFieldAccessExpr(fieldAccessExpr);
 	}
-	else if (auto postfixExpr = dynamic_cast<const AST::PostfixExpr *>(expr)) {
+	else if (auto postfixExpr = dynamic_cast<const AST::PostfixExpr *>(expr))
+	{
 		generatePostfixExpr(postfixExpr);
-	} else {
+	}
+	else
+	{
 		throw std::runtime_error("Unknown expression type in code generation");
 	}
 }
@@ -323,11 +332,11 @@ void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
 		bytecode.emit(OpCode::NOT);
 		break;
 	case AST::UnaryOp::AddressOf:
-	// Not implemented
-	//	bytecode.emit(OpCode::ADROF);
+		// Not implemented
+		//	bytecode.emit(OpCode::ADROF);
 		[[fallthrough]]; // for now
-	case AST::UnaryOp::Dereference :
-	//	bytecode.emit(OpCode::DREF);
+	case AST::UnaryOp::Dereference:
+		//	bytecode.emit(OpCode::DREF);
 		break;
 	}
 }
@@ -537,7 +546,7 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 
 	// Reuse literal detection done here to choose appropriate register opcodes.
 	Value leftLiteral;
-	bool leftIsLiteral = isLiteralExpression(binExpr->left.get(), leftLiteral);
+	bool  leftIsLiteral = isLiteralExpression(binExpr->left.get(), leftLiteral);
 	if (leftIsLiteral)
 	{
 		int constIndex = bytecode.addConstant(leftLiteral);
@@ -550,7 +559,7 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 	}
 
 	Value rightLiteral;
-	bool rightIsLiteral = isLiteralExpression(binExpr->right.get(), rightLiteral);
+	bool  rightIsLiteral = isLiteralExpression(binExpr->right.get(), rightLiteral);
 	if (rightIsLiteral)
 	{
 		int constIndex = bytecode.addConstant(rightLiteral);
@@ -756,14 +765,14 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 	{
 		generateStatement(forStmt->initializer.get());
 	}
-	
+
 	int loopStartIndex = static_cast<int>(bytecode.instructions.size());
-	
+
 	// Push loop context
 	loopStartStack.push_back(loopStartIndex);
 	breakJumpsStack.push_back(std::vector<int>());
 	continueJumpsStack.push_back(std::vector<int>());
-	
+
 	// Generate condition (if present)
 	int jumpToEndIndex = -1;
 	if (forStmt->condition)
@@ -772,27 +781,27 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 		jumpToEndIndex = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
 	}
-	
+
 	// Generate body
 	generateStatement(forStmt->body.get());
-	
+
 	// Continue jumps to increment (or loop start if no increment)
 	int incrementIndex = static_cast<int>(bytecode.instructions.size());
 	for (int continueJump : continueJumpsStack.back())
 	{
 		bytecode.instructions[continueJump].operand1 = incrementIndex;
 	}
-	
+
 	// Generate increment
 	if (forStmt->increment)
 	{
 		generateExpression(forStmt->increment.get());
 		bytecode.emit(OpCode::POP); // Discard increment result
 	}
-	
+
 	// Jump back to condition check
 	bytecode.emit(OpCode::JUMP_BACK, loopStartIndex);
-	
+
 	// Patch jump to end and break jumps
 	int endIndex = static_cast<int>(bytecode.instructions.size());
 	if (jumpToEndIndex != -1)
@@ -803,7 +812,7 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 	{
 		bytecode.instructions[breakJump].operand1 = endIndex;
 	}
-	
+
 	// Pop loop context
 	loopStartStack.pop_back();
 	breakJumpsStack.pop_back();
@@ -908,7 +917,7 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 		// Variable assignment: a = value
 		// 1. Generate value (pushes value to stack)
 		generateExpression(assignExpr->value.get());
-		
+
 		// Try to infer and record type
 		Value val;
 		if (isLiteralExpression(assignExpr->value.get(), val))
@@ -939,7 +948,7 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 		// Use dynamic field access since we don't have type information
 		int fieldNameIndex = bytecode.addConstant(Value(fieldExpr->fieldName));
 		bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
-		
+
 		// Reload the assigned field value so the assignment expression evaluates to it
 		generateExpression(fieldExpr->object.get());
 		bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
@@ -1003,19 +1012,19 @@ void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
 	{
 		throw std::runtime_error("Postfix operators only supported on variables");
 	}
-	
+
 	int varIndex = bytecode.getOrCreateVar(identExpr->name);
-	
+
 	// Load current value
 	bytecode.emit(OpCode::LOAD_VAR, varIndex);
-	
+
 	// Duplicate for return value (postfix returns old value)
 	bytecode.emit(OpCode::LOAD_VAR, varIndex);
-	
+
 	// Push 1
 	int oneIndex = bytecode.addConstant(Value(static_cast<int64_t>(1)));
 	bytecode.emit(OpCode::PUSH_CONST, oneIndex);
-	
+
 	// Add or subtract
 	// Prefer integer ops if we have inferred this variable is int
 	auto it = inferredTypes.find(identExpr->name);
@@ -1028,11 +1037,11 @@ void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
 	{
 		bytecode.emit(varIsInt ? OpCode::ISUBTRACT : OpCode::FLSUBTRACT);
 	}
-	
+
 	// Store new value
 	bytecode.emit(OpCode::STORE_VAR, varIndex);
 	bytecode.emit(OpCode::POP); // Pop the stored value
-	// Old value is still on stack as return value
+	                            // Old value is still on stack as return value
 }
 
 void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
@@ -1080,34 +1089,39 @@ void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 {
 	generateExpression(switchStmt->expr.get());
-	
+
 	std::vector<int> caseJumps;
-	
-	for (const auto& caseClause : switchStmt->cases) {
+
+	for (const auto &caseClause : switchStmt->cases)
+	{
 		generateExpression(caseClause.value.get());
 		bytecode.emit(OpCode::FLEQUAL);
 		int jumpIndex = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
 		caseJumps.push_back(jumpIndex);
-		
-		for (const auto& stmt : caseClause.statements) {
+
+		for (const auto &stmt : caseClause.statements)
+		{
 			generateStatement(stmt.get());
 		}
-		
+
 		int endJump = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP, 0);
 		bytecode.instructions[jumpIndex].operand1 = static_cast<int>(bytecode.instructions.size());
 		caseJumps.back() = endJump;
 	}
-	
-	if (!switchStmt->defaultStmts.empty()) {
-		for (const auto& stmt : switchStmt->defaultStmts) {
+
+	if (!switchStmt->defaultStmts.empty())
+	{
+		for (const auto &stmt : switchStmt->defaultStmts)
+		{
 			generateStatement(stmt.get());
 		}
 	}
-	
+
 	int endIndex = static_cast<int>(bytecode.instructions.size());
-	for (int jumpIdx : caseJumps) {
+	for (int jumpIdx : caseJumps)
+	{
 		bytecode.instructions[jumpIdx].operand1 = endIndex;
 	}
 }

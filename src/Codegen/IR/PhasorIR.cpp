@@ -72,8 +72,8 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {
     {OpCode::CALL_NATIVE, "CALL_NATIVE"},
     {OpCode::CALL, "CALL"},
     {OpCode::SYSTEM, "SYSTEM"},
-	{OpCode::SYSTEM_OUT, "SYSTEM_OUT"},
-	{OpCode::SYSTEM_ERR, "SYSTEM_ERR"},
+    {OpCode::SYSTEM_OUT, "SYSTEM_OUT"},
+    {OpCode::SYSTEM_ERR, "SYSTEM_ERR"},
     {OpCode::RETURN, "RETURN"},
     {OpCode::TRUE_P, "TRUE"},
     {OpCode::FALSE_P, "FALSE"},
@@ -128,8 +128,8 @@ const std::unordered_map<OpCode, std::string> PhasorIR::opCodeToStringMap = {
     {OpCode::PRINTERROR_R, "PRINTERROR_R"},
     {OpCode::READLINE_R, "READLINE_R"},
     {OpCode::SYSTEM_R, "SYSTEM_R"},
-	{OpCode::SYSTEM_OUT_R, "SYSTEM_OUT_R"},
-	{OpCode::SYSTEM_ERR_R, "SYSTEM_ERR_R"}};
+    {OpCode::SYSTEM_OUT_R, "SYSTEM_OUT_R"},
+    {OpCode::SYSTEM_ERR_R, "SYSTEM_ERR_R"}};
 
 const std::unordered_map<std::string, OpCode> PhasorIR::stringToOpCodeMap = [] {
 	std::unordered_map<std::string, OpCode> map;
@@ -460,11 +460,11 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 			ss << "STRING \"" << escapeString(val.asString()) << "\"\n";
 			break;
 		case ValueType::Struct:
-COMPILE_MESSAGE("Warning: PHS_01 Structs have not been fully implemented! Line " STR(__LINE__))
+			COMPILE_MESSAGE("Warning: PHS_01 Structs have not been fully implemented! Line " STR(__LINE__))
 			throw std::runtime_error("Structs not implemented!");
 			break;
 		case ValueType::Array:
-COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__LINE__))
+			COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__LINE__))
 			throw std::runtime_error("Arrays not implemented!");
 		}
 	}

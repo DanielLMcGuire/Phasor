@@ -54,7 +54,7 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
  * @return The equivalent C-style value for the plugin.
  */
 PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_ptr<char[]>> &string_arena,
-                              std::vector<std::unique_ptr<PhasorValue[]>> &array_arena)
+                       std::vector<std::unique_ptr<PhasorValue[]>> &array_arena)
 {
 	switch (cpp_value.getType())
 	{
@@ -98,33 +98,32 @@ PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_p
 	}
 }
 
-Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM* vm, const std::vector<Phasor::Value>& args)
+Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM *vm, const std::vector<Phasor::Value> &args)
 {
-    std::vector<std::unique_ptr<char[]>> string_arena;
-    std::vector<std::unique_ptr<PhasorValue[]>> array_arena;
+	std::vector<std::unique_ptr<char[]>>        string_arena;
+	std::vector<std::unique_ptr<PhasorValue[]>> array_arena;
 
-    std::vector<PhasorValue> c_args;
-    c_args.reserve(args.size());
-    for (const auto& arg : args)
-    {
-        c_args.push_back(to_c_value(arg, string_arena, array_arena));
-    }
+	std::vector<PhasorValue> c_args;
+	c_args.reserve(args.size());
+	for (const auto &arg : args)
+	{
+		c_args.push_back(to_c_value(arg, string_arena, array_arena));
+	}
 
-    PhasorValue c_result = c_func(reinterpret_cast<PhasorVM*>(vm), (int)c_args.size(), c_args.data());
+	PhasorValue c_result = c_func(reinterpret_cast<PhasorVM *>(vm), (int)c_args.size(), c_args.data());
 
-    return from_c_value(c_result);
+	return from_c_value(c_result);
 }
 
-void register_native_c_func(PhasorVM* vm, const char* name, PhasorNativeFunction func)
+void register_native_c_func(PhasorVM *vm, const char *name, PhasorNativeFunction func)
 {
-    Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	Phasor::VM *cpp_vm = reinterpret_cast<Phasor::VM *>(vm);
 
-    auto wrapper = [func](const std::vector<Phasor::Value>& args, Phasor::VM* vm_param) -> Phasor::Value
-    {
-        return c_native_func_wrapper(func, vm_param, args);
-    };
+	auto wrapper = [func](const std::vector<Phasor::Value> &args, Phasor::VM *vm_param) -> Phasor::Value {
+		return c_native_func_wrapper(func, vm_param, args);
+	};
 
-    cpp_vm->registerNativeFunction(name, wrapper);
+	cpp_vm->registerNativeFunction(name, wrapper);
 }
 
-}
+} // namespace Phasor

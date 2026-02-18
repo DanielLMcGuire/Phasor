@@ -29,13 +29,13 @@
 #include "@CMAKE_SOURCE_DIR@/src/Runtime/Value.hpp"
 
 // Forward declare native runtime entry points (linked in from the runtime library)
-extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize,
-	                   const char *moduleName, const void *nativeFunctionsVector, const int argc, char **argv);
+extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,
+                     const void *nativeFunctionsVector, const int argc, char **argv);
 
 // Main entry point
 int main(int argc, char *argv[], char *envp[])
 {
-	int         exitCode = 1;
+	int exitCode = 1;
 
 	try
 	{

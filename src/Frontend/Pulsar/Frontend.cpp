@@ -32,11 +32,11 @@ bool startsWith(const std::string &input, const std::string &prefix)
 
 void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 {
-	Lexer lexer(source);
-	Parser        parser(lexer.tokenize());
+	Lexer                 lexer(source);
+	Parser                parser(lexer.tokenize());
 	Phasor::CodeGenerator codegen;
-	auto program = parser.parse();
-	auto bytecode = codegen.generate(*program);
+	auto                  program = parser.parse();
+	auto                  bytecode = codegen.generate(*program);
 
 	bool ownVM = false;
 
@@ -108,7 +108,7 @@ void pulsar::Frontend::runRepl(Phasor::VM *vm)
 
 	std::map<std::string, int> globalVars;
 	int                        nextVarIdx = 0;
-	Phasor::CodeGenerator              codegen;
+	Phasor::CodeGenerator      codegen;
 
 	std::string line;
 	while (true)
@@ -165,10 +165,10 @@ void pulsar::Frontend::runRepl(Phasor::VM *vm)
 				continue;
 			}
 
-			Lexer lexer(line);
+			Lexer  lexer(line);
 			Parser parser(lexer.tokenize());
-			auto program = parser.parse();
-			auto bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
+			auto   program = parser.parse();
+			auto   bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
 
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;

@@ -18,7 +18,7 @@ extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedByte
 // Main entry point
 int main(int argc, char *argv[], char *envp[])
 {
-	int         exitCode = 1;
+	int exitCode = 1;
 
 	try
 	{

@@ -23,10 +23,10 @@ class Interpreter
 	struct Args
 	{
 		std::filesystem::path inputFile;
-		bool        verbose = false;
-		int         scriptArgc = 0;
-		char      **scriptArgv = nullptr;
-		char      **envp = nullptr;
+		bool                  verbose = false;
+		int                   scriptArgc = 0;
+		char                **scriptArgv = nullptr;
+		char                **envp = nullptr;
 		std::filesystem::path program;
 	} m_args;
 
@@ -39,4 +39,4 @@ class Interpreter
 	std::unique_ptr<Phasor::VM> createVm();
 };
 
-} // namespace Phasor
+} // namespace pulsar

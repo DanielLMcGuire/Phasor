@@ -1,5 +1,5 @@
 #ifndef CORE_SYSTEM_H
-#define CORE_SYSTEM_H	
+#define CORE_SYSTEM_H
 
 #ifdef _WIN32
 #include <windows.h>
