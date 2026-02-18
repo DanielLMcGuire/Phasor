@@ -1,4 +1,5 @@
 #include "VM.hpp"
+#include <stdexcept>
 
 namespace Phasor
 {
@@ -12,7 +13,9 @@ Value VM::pop()
 {
 	if (stack.empty())
 	{
-		throw std::runtime_error("Stack underflow");
+		// Provide PC information to aid debugging
+		std::string msg = "Stack underflow at pc=" + std::to_string(pc);
+		throw std::runtime_error(msg);
 	}
 	Value value = stack.back();
 	stack.pop_back();
@@ -23,7 +26,8 @@ Value VM::peek()
 {
 	if (stack.empty())
 	{
-		throw std::runtime_error("Stack is empty");
+		std::string msg = "Stack is empty at pc=" + std::to_string(pc);
+		throw std::runtime_error(msg);
 	}
 	return stack.back();
 }

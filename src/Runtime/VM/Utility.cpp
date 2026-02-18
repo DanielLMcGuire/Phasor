@@ -19,7 +19,19 @@ void VM::run(const Bytecode &bc)
 	while (pc < bytecode->instructions.size())
 	{
 		const Instruction &instr = bytecode->instructions[pc++];
-		operation(instr.op, instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5);
+#ifdef _DEBUG
+		std::cerr << "EXEC idx=" << (pc - 1) << " op=" << static_cast<int>(instr.op)
+		          << " stack=" << stack.size() << "\n";
+#endif
+		try
+		{
+			operation(instr.op, instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5);
+		}
+		catch (const std::exception &ex)
+		{
+			std::cerr << ex.what() << "\n\n" << getInformation() << "\n";
+			throw;
+		}
 	}
 }
 

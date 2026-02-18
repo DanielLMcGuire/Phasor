@@ -426,6 +426,19 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	if (bytecode.functionEntries.count(callExpr->callee))
 	{
 		int nameIndex = bytecode.addConstant(Value(callExpr->callee));
+		// The best fix of all time: check if the function exists and has the correct number of parameters
+		auto itParam = bytecode.functionParamCounts.find(callExpr->callee);
+		if (itParam != bytecode.functionParamCounts.end())
+		{
+			int expected = itParam->second;
+			int got = static_cast<int>(callExpr->arguments.size());
+			if (expected != got)
+			{
+				std::cerr << "ERROR: calling function '" << callExpr->callee << "' with " << got
+						  << " arguments but it expects " << expected << "\n";
+				std::exit(1);
+			}
+		}
 		bytecode.emit(OpCode::CALL, nameIndex);
 	}
 	else
@@ -870,6 +883,9 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	// Record entry point
 	int entryPoint = static_cast<int>(bytecode.instructions.size());
 	bytecode.functionEntries[funcDecl->name] = entryPoint;
+
+	// Record parameter count
+	bytecode.functionParamCounts[funcDecl->name] = static_cast<int>(funcDecl->params.size());
 
 	// Pop argument count (it's on the stack when function is called)
 	bytecode.emit(OpCode::POP);

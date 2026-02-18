@@ -203,6 +203,7 @@ struct Bytecode
 	std::vector<Value>         constants;        ///< Constant pool
 	std::map<std::string, int> variables;        ///< Variable name -> index mapping
 	std::map<std::string, int> functionEntries;  ///< Function name -> instruction index mapping
+	std::map<std::string, int> functionParamCounts; ///< Function name -> parameter count
 	int                        nextVarIndex = 0; ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
