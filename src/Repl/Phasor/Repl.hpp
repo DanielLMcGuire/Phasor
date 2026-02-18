@@ -6,12 +6,12 @@
 #include <string>
 #include <vector>
 
-/* Forward-declare Phasor::VM so the C++ gods are pleased with me */
 namespace Phasor
 {
 class VM;
 }
 
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

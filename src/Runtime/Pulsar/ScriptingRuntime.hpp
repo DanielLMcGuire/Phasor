@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "../../Runtime/VM/VM.hpp"
-
+/// @brief The Pulsar Scripting Language
 namespace pulsar
 {
 

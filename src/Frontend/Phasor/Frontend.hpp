@@ -1,6 +1,6 @@
 #include "../../Runtime/VM/VM.hpp"
 #include <string>
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

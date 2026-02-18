@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <cstdint>
-
+/// @brief Handle system for managed win32 resources
 namespace HandleSystem
 {
 using HandleId = uint32_t;

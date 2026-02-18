@@ -3,9 +3,10 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
+/// @brief Token types for the lexer
 enum class TokenType
 {
 	Identifier,
@@ -16,7 +17,7 @@ enum class TokenType
 	EndOfFile,
 	Unknown
 };
-
+/// @brief Token structure
 struct Token
 {
 	TokenType   type;

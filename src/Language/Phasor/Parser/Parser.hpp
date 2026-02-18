@@ -2,7 +2,7 @@
 #include "../../../AST/AST.hpp"
 #include <memory>
 #include <vector>
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <memory>
 #include <vector>
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

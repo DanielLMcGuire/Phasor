@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-
+/// @brief The Pulsar Scripting Language
 namespace pulsar
 {
 

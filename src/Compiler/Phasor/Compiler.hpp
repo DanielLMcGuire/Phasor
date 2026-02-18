@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

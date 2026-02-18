@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 

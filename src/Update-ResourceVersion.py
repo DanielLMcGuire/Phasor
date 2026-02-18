@@ -10,7 +10,7 @@ def dot_to_comma(version: str) -> str:
 
 
 def update_resource_version(old_version: str, new_version: str) -> None:
-    app_dir = Path("./App")
+    app_dir = Path("./Executable")
     
     if not app_dir.exists():
         print(f"Error: Directory '{app_dir}' does not exist")

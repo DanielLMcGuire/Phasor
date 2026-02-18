@@ -3,7 +3,7 @@
   "publisher": "phasor",
   "displayName": "Phasor Programming Language",
   "description": "Function VM Based Programming Language",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "icon": "logo.png",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
   ],
   "main": "./extension.js",
   "scripts": {
-    "build": "vsce package"
+    "build": "tsc && vsce package"
   },
   "contributes": {
     "languages": [

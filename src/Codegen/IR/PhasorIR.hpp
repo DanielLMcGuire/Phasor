@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 
@@ -41,14 +42,15 @@ class PhasorIR
 	static std::string unescapeString(const std::string &str);
 
   private:
+	/// @brief Operand types for instructions
 	enum class OperandType
 	{
-		NONE,
-		INT,
-		REGISTER,
-		CONSTANT_IDX,
-		VARIABLE_IDX,
-		FUNCTION_IDX
+		NONE, ///< No operand
+		INT,  ///< Integer operand
+		REGISTER,  ///< Register operand
+		CONSTANT_IDX, ///< Index into constant pool
+		VARIABLE_IDX, ///< Index into variable mapping
+		FUNCTION_IDX ///< Index into function entries
 	};
 
 	static int         getOperandCount(OpCode op);

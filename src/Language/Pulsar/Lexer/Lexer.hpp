@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
+/// @brief The Pulsar Scripting Language
 namespace pulsar
 {
 /// @brief Pulsar Lexer

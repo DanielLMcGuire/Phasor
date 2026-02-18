@@ -5,7 +5,7 @@
 #include <string>
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../Runtime/VM/VM.hpp"
-
+/// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 
