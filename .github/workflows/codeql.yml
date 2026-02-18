@@ -33,7 +33,7 @@ jobs:
       if: matrix.language == 'c-cpp'
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential
+        sudo apt-get install -y cmake build-essential ninja
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
@@ -47,8 +47,8 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-        cmake --build . -- -j$(nproc)
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DASSEMBLY=OFF -G Ninja
+        cmake --build . -- 
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
