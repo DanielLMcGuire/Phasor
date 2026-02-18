@@ -20,8 +20,8 @@ void VM::run(const Bytecode &bc)
 	{
 		const Instruction &instr = bytecode->instructions[pc++];
 #ifdef _DEBUG
-		std::cerr << "EXEC idx=" << (pc - 1) << " op=" << static_cast<int>(instr.op)
-		          << " stack=" << stack.size() << "\n";
+		log(std::string("EXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
+		flush();
 #endif
 		try
 		{
@@ -89,5 +89,15 @@ void VM::logerr(const Value &msg)
 {
 	std::string s = msg.toString();
 	asm_print_stderr(s.c_str(), s.length());
+}
+
+void VM::flush() 
+{
+	fflush(stdout);
+}
+
+void VM::flusherr()
+{
+	fflush(stderr);
 }
 } // namespace Phasor

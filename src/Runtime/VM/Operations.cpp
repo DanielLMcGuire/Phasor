@@ -10,8 +10,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
 #ifdef _DEBUG
-	std::cerr << "OP: " << static_cast<int>(op) << " operands=[" << operand1 << ", " << operand2 << ", " << operand3
-	          << ", " << operand4 << ", " << operand5 << "] stack=" << stack.size() << "\n";
+	log(std::string("OP: " + std::to_string(static_cast<int>(op)) + " operands=[" + std::to_string(operand1) + ", " + std::to_string(operand2) + ", " + std::to_string(operand3)
+	          + ", " + std::to_string(operand4) + ", " + std::to_string(operand5) + "] stack=" + std::to_string(stack.size()) + "\n"));
+	flush();
 #endif
 	switch (op)
 	{

@@ -125,6 +125,8 @@ class VM
 	/// @brief Use the VM's logging via print opcode
 	void log(const Value &msg);
 	void logerr(const Value &msg);
+	void flush();
+	void flusherr();
 
   private:
 	/// @brief Import handler for loading modules

@@ -11,8 +11,8 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE
         "/LTCG /OPT:REF /OPT:ICF"
     )
-    set(CMAKE_C_FLAGS_DEBUG "/Od /Zi /fp:strict")
-    set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /fp:strict /EHsc /DNOMINMAX")
+    set(CMAKE_C_FLAGS_DEBUG "/Od /MTd /Zi /fp:strict")
+    set(CMAKE_CXX_FLAGS_DEBUG "/Od /MTd /Zi /fp:strict /EHsc /DNOMINMAX")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 else()
