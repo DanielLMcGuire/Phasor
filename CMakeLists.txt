@@ -381,7 +381,7 @@ if(WIN32)
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
 else()
     add_library(phasor_posix_bindings SHARED
-        ${CMAKE_SOURCE_DIR}/src/Executable/Bindings/main.c
+        ${CMAKE_SOURCE_DIR}/src/Executable/Bindings/posix/main.c
     )
     set_target_properties(phasor_posix_bindings PROPERTIES 
         OUTPUT_NAME posix_phs
