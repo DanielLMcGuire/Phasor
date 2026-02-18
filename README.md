@@ -66,8 +66,7 @@ cat input.phs | phasor
 ### Example Program
 
 ```javascript
-include_stdio();
-include_stdtype();
+using("stdio", "stdtype");
 
 puts("Enter a number:");
 var input = gets();
