@@ -703,3 +703,4 @@ phasor.key
 /pkg
 *pkg.tar.zst
 src/utils/Shell.phir
+!build.phs
