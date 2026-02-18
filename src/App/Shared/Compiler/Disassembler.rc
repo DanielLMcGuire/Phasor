@@ -22,7 +22,7 @@ BEGIN
         BLOCK "040904b0" // Language: US English, Codepage: Unicode
         BEGIN
             VALUE "CompanyName", "Phasor"
-            VALUE "FileDescription", "Phasor VM Disassembler"
+            VALUE "FileDescription", "Phasor Bytecode Disassembler"
             VALUE "FileVersion", "2.2.0.0"
             VALUE "InternalName", "phasordecomp.exe"
             VALUE "LegalCopyright", "© 2026 Daniel McGuire"
