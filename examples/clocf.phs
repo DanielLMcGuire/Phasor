@@ -1,7 +1,4 @@
-using("stdsys");
-using("stdio");
-using("stdstr");
-using("stdtype");
+using("stdsys", "stdio", "stdstr", "stdfile", "stdtype");
 
 fn print_help() -> void {
     var sb = sb_new();

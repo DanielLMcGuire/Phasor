@@ -1,8 +1,4 @@
-using("stdio");
-using("stdstr");
-using("stdtype");
-using("stdsys");
-using("stdfile");
+using("stdio", "stdstr", "stdtype", "stdsys", "stdfile");
 
 var logfile = "outfile.txt";
 

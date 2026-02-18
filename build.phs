@@ -1,6 +1,4 @@
-using("stdsys");
-using("stdtype");
-using("stdio");
+using("stdsys", "stdtype", "stdio");
 
 fn printHelp(program: string) -> int {
     printf("Usage: <runtime> %s [preset]\n", program);

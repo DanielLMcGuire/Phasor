@@ -58,19 +58,27 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
-	// Arg 1, stdlib module name (string)
-	std::string moduleName = args[0].asString();
-	if (moduleName == "stdio") registerIOFunctions(std::vector<Value>{}, vm);
-	else if (moduleName == "stdsys") registerSysFunctions(std::vector<Value>{}, vm);
-	else if (moduleName == "stdmath") registerMathFunctions(std::vector<Value>{}, vm);
-	else if (moduleName == "stdstr") registerStringFunctions(std::vector<Value>{}, vm);
-	else if (moduleName == "stdtype") registerTypeConvFunctions(std::vector<Value>{}, vm);
-	else if (moduleName == "stdfile") registerFileFunctions(std::vector<Value>{}, vm);
-	else if (moduleName == "stdregex") registerRegexFunctions(std::vector<Value>{}, vm);
-	else
+	checkArgCount(args, 1, "using", true);
+	for (const auto &arg : args)
 	{
-		throw std::runtime_error("Unknown standard library module: " + moduleName);
-		return false;
+		if (arg.getType() != ValueType::String)
+		{
+			throw std::runtime_error("All arguments to 'using' must be strings");
+			return false;
+		}
+		auto moduleName = arg.asString();
+		if (moduleName == "stdio") registerIOFunctions(std::vector<Value>{}, vm);
+		else if (moduleName == "stdsys") registerSysFunctions(std::vector<Value>{}, vm);
+		else if (moduleName == "stdmath") registerMathFunctions(std::vector<Value>{}, vm);
+		else if (moduleName == "stdstr") registerStringFunctions(std::vector<Value>{}, vm);
+		else if (moduleName == "stdtype") registerTypeConvFunctions(std::vector<Value>{}, vm);
+		else if (moduleName == "stdfile") registerFileFunctions(std::vector<Value>{}, vm);
+		else if (moduleName == "stdregex") registerRegexFunctions(std::vector<Value>{}, vm);
+		else
+		{
+			throw std::runtime_error("Unknown standard library module: " + moduleName);
+			return false;
+		}
 	}
 	return true;
 }
