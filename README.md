@@ -144,12 +144,14 @@ This repo contains:
 
 - CMake 3.10+
 - C++20 compiler (MSVC, GCC, Clang)
+- Ninja
 
 ### Build Steps
 
 ```bash
-cmake -S . -B build
-cmake --build build --config Release (-DASSEMBLY=[ON,OFF] (Only supported on x86-64))
+# --prefix [windows,macos,linux]-[32,64,arm64]-[rel,dbg]
+cmake -S . -B build -G Ninja --prefix windows-64-rel
+cmake --build build
 cmake --install build --prefix install
 ````
 
