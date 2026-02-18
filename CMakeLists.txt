@@ -18,7 +18,7 @@ else()
     set(PLUGIN_INSTALL_DIR "opt/Phasor/plugins")
 endif()
 
-include_directories(include src ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 option(ASSEMBLY "Enable assembly for core code" ON)
 
@@ -28,7 +28,7 @@ endif()
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
     @ONLY
 )
 

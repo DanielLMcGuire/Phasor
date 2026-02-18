@@ -101,8 +101,8 @@ target_link_libraries(phasor_interpreter PhasorRuntime phasor_language PhasorCod
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/src/utils/Shell.hpp
-    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs -o ${CMAKE_BINARY_DIR}/src/utils/Shell.hpp -H --nologo
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell.hpp
+    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs -o ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell.hpp -H --nologo
     DEPENDS ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs phasor_cpp_compiler
     COMMENT "Building PHS bytecode src/Library/utils/Shell.hpp"
 )
@@ -110,10 +110,10 @@ add_custom_command(
 add_executable(phasor_shell
     utils/Shell.rc
     utils/shell_main.cpp
-    ${CMAKE_BINARY_DIR}/src/utils/Shell.hpp
+    ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell.hpp
     ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs
 )
-target_include_directories(phasor_shell PRIVATE ${CMAKE_BINARY_DIR}/src/utils)
+target_include_directories(phasor_shell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/utils)
 target_link_libraries(phasor_shell phasor_native_runtime)
 set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
 
@@ -124,21 +124,20 @@ if(WIN32)
     set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
     add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
-        COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/phasor_winapi_bindings.cpp
+        COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_CURRENT_BINARY_DIR}/phasor_winapi_bindings.cpp
         DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
         COMMENT "Generating win32 bindings phasor_winapi_bindings.cpp"
     )
 
     add_library(phasor_winapi_bindings SHARED
-        ${CMAKE_BINARY_DIR}/phasor_winapi_bindings.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/phasor_winapi_bindings.cpp
         ${CMAKE_SOURCE_DIR}/src/Bindings/win32/handle.hpp
         Bindings/win32/main.rc
         ${CMAKE_SOURCE_DIR}/scripts/winapi.h
     )
     set_target_properties(phasor_winapi_bindings PROPERTIES 
         OUTPUT_NAME winapi_phs
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
     )
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
 else()
@@ -147,7 +146,6 @@ else()
     )
     set_target_properties(phasor_posix_bindings PROPERTIES 
         OUTPUT_NAME posix_phs
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins
     )
     install(TARGETS phasor_posix_bindings
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"

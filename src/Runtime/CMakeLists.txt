@@ -30,7 +30,7 @@ set(RUNTIME_HEADERS
     FFI/ffi.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
     ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
-    ${CMAKE_BINARY_DIR}/version.h
+    ${CMAKE_BINARY_DIR}/include/version.h
 )
 
 set(STDLIB_SOURCES
