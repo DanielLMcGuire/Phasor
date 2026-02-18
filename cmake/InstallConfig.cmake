@@ -1,12 +1,4 @@
 if(WIN32)
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/" 
-        DESTINATION bin 
-        FILES_MATCHING 
-        PATTERN "*.pdb" 
-        PATTERN "CMakeFiles" EXCLUDE
-        PATTERN "src" EXCLUDE
-        PATTERN "winapi-gen-phs.pdb" EXCLUDE
-    )
     install(TARGETS
         phasor_main
         pulsar_main
