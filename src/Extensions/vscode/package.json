@@ -30,7 +30,18 @@
         "extensions": [
           "phs"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration-phasor.json"
+      },
+      {
+        "id": "pulsar",
+        "aliases": [
+          "Pulsar",
+          "pulsar"
+        ],
+        "extensions": [
+          "pul"
+        ],
+        "configuration": "./language-configuration-pulsar.json"
       },
       {
         "id": "phasor-ir",
@@ -49,6 +60,11 @@
         "language": "phasor",
         "scopeName": "source.phasor",
         "path": "./syntaxes/phasor.tmLanguage.json"
+      },
+      {
+        "language": "pulsar",
+        "scopeName": "source.pulsar",
+        "path": "./syntaxes/pulsar.tmLanguage.json"
       },
       {
         "language": "phasor-ir",

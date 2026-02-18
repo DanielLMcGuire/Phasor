@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>name</key>
-	<string>Phasor</string>
+	<string>pulsar</string>
 	<key>scopeName</key>
-	<string>source.phasor</string>
+	<string>source.pulsar</string>
 	<key>fileTypes</key>
 	<array>
 		<string>phs</string>
@@ -49,7 +49,7 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>comment.line.double-slash.phasor</string>
+					<string>comment.line.double-slash.pulsar</string>
 					<key>match</key>
 					<string>//.*$</string>
 				</dict>
@@ -61,19 +61,19 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>keyword.control.phasor</string>
+					<string>keyword.control.pulsar</string>
 					<key>match</key>
 					<string>\b(if|else|while|for|switch|case|default|break|continue|return)\b</string>
 				</dict>
 				<dict>
 					<key>name</key>
-					<string>keyword.declaration.phasor</string>
+					<string>keyword.declaration.pulsar</string>
 					<key>match</key>
 					<string>\b(var|const|fn|struct|import|export|unsafe)\b</string>
 				</dict>
 				<dict>
 					<key>name</key>
-					<string>constant.language.phasor</string>
+					<string>constant.language.pulsar</string>
 					<key>match</key>
 					<string>\b(true|false|null)\b</string>
 				</dict>
@@ -85,7 +85,7 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>string.quoted.double.phasor</string>
+					<string>string.quoted.double.pulsar</string>
 					<key>begin</key>
 					<string>"</string>
 					<key>end</key>
@@ -94,7 +94,7 @@
 					<array>
 						<dict>
 							<key>name</key>
-							<string>constant.character.escape.phasor</string>
+							<string>constant.character.escape.pulsar</string>
 							<key>match</key>
 							<string>\\.</string>
 						</dict>
@@ -108,7 +108,7 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>constant.numeric.phasor</string>
+					<string>constant.numeric.pulsar</string>
 					<key>match</key>
 					<string>\b\d+(\.\d+)?\b</string>
 				</dict>
@@ -120,7 +120,7 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator.phasor</string>
+					<string>keyword.operator.pulsar</string>
 					<key>match</key>
 					<string>(\+\+|--|==|!=|&lt;=|&gt;=|&amp;&amp;|\|\||-&gt;|[+\-*/%&lt;&gt;=!&amp;|.])</string>
 				</dict>
@@ -132,7 +132,7 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>entity.name.function.phasor</string>
+					<string>entity.name.function.pulsar</string>
 					<key>match</key>
 					<string>\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()</string>
 				</dict>
@@ -144,7 +144,7 @@
 			<array>
 				<dict>
 					<key>name</key>
-					<string>storage.type.phasor</string>
+					<string>storage.type.pulsar</string>
 					<key>match</key>
 					<string>\b(int|float|string|bool)\b</string>
 				</dict>

@@ -1,6 +1,6 @@
 {
-  "name": "Phasor",
-  "scopeName": "source.phasor",
+  "name": "pulsar",
+  "scopeName": "source.pulsar",
   "fileTypes": ["phs"],
   "patterns": [
     {
@@ -29,7 +29,7 @@
     "comments": {
       "patterns": [
         {
-          "name": "comment.line.double-slash.phasor",
+          "name": "comment.line.double-slash.pulsar",
           "match": "//.*$"
         }
       ]
@@ -37,15 +37,15 @@
     "keywords": {
       "patterns": [
         {
-          "name": "keyword.control.phasor",
+          "name": "keyword.control.pulsar",
           "match": "\\b(if|else|while|for|switch|case|default|break|continue|return)\\b"
         },
         {
-          "name": "keyword.declaration.phasor",
+          "name": "keyword.declaration.pulsar",
           "match": "\\b(var|const|fn|struct|import|export|unsafe)\\b"
         },
         {
-          "name": "constant.language.phasor",
+          "name": "constant.language.pulsar",
           "match": "\\b(true|false|null)\\b"
         }
       ]
@@ -53,12 +53,12 @@
     "strings": {
       "patterns": [
         {
-          "name": "string.quoted.double.phasor",
+          "name": "string.quoted.double.pulsar",
           "begin": "\"",
           "end": "\"",
           "patterns": [
             {
-              "name": "constant.character.escape.phasor",
+              "name": "constant.character.escape.pulsar",
               "match": "\\\\."
             }
           ]
@@ -68,7 +68,7 @@
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric.phasor",
+          "name": "constant.numeric.pulsar",
           "match": "\\b\\d+(\\.\\d+)?\\b"
         }
       ]
@@ -76,7 +76,7 @@
     "operators": {
       "patterns": [
         {
-          "name": "keyword.operator.phasor",
+          "name": "keyword.operator.pulsar",
           "match": "(\\+\\+|--|==|!=|<=|>=|&&|\\|\\||->|[+\\-*/%<>=!&|.])"
         }
       ]
@@ -84,7 +84,7 @@
     "functions": {
       "patterns": [
         {
-          "name": "entity.name.function.phasor",
+          "name": "entity.name.function.pulsar",
           "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
         }
       ]
@@ -92,7 +92,7 @@
     "types": {
       "patterns": [
         {
-          "name": "storage.type.phasor",
+          "name": "storage.type.pulsar",
           "match": "\\b(int|float|string|bool)\\b"
         }
       ]

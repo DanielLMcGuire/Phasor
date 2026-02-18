@@ -86,10 +86,6 @@
         {
           "name": "entity.name.function.phasor",
           "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
-        },
-        {
-          "name": "support.function.phasor",
-          "match": "\\b(include_stdio|include_stdmath|include_stdstr|include_stdfile|include_stdsys|include_stdtype|include_stdregex|puts|printf|gets|putf|msgbox|math_sqrt|math_pow|math_sin|math_cos|len|substr|concat|to_upper|to_lower|fread|fwrite|fexists|fcopy|fmove|time|sleep|sys_os|sys_exec|clear|to_int|to_float|to_string|to_bool|regex_match|regex_search|regex_replace)\\b"
         }
       ]
     },
