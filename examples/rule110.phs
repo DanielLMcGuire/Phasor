@@ -1,8 +1,8 @@
-include_stdio();
-include_stdstr();
-include_stdtype();
-include_stdsys();
-include_stdfile();
+using("stdio");
+using("stdstr");
+using("stdtype");
+using("stdsys");
+using("stdfile");
 
 var logfile = "outfile.txt";
 

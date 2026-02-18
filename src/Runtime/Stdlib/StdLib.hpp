@@ -24,7 +24,6 @@ using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *v
 class StdLib
 {
   public:
-	/// @brief Register all standard library functions
 	static void registerFunctions(VM &vm);
 
 	static char **argv; ///< Command line arguments
@@ -35,6 +34,8 @@ class StdLib
 	                          bool allowMoreArguments = false);
 
   private:
+	static Value std_import(const std::vector<Value> &args, VM *vm);
+
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
 
 	static Value registerMathFunctions(const std::vector<Value> &args, VM *vm);

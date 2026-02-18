@@ -1,7 +1,7 @@
-include_stdsys();
-include_stdio();
-include_stdstr();
-include_stdtype();
+using("stdsys");
+using("stdio");
+using("stdstr");
+using("stdtype");
 
 fn print_help() -> void {
     var sb = sb_new();

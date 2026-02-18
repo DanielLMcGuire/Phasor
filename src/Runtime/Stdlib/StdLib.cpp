@@ -9,13 +9,7 @@ char **StdLib::envp = nullptr;
 
 void StdLib::registerFunctions(VM &vm)
 {
-	vm.registerNativeFunction("include_stdio", registerIOFunctions);
-	vm.registerNativeFunction("include_stdsys", registerSysFunctions);
-	vm.registerNativeFunction("include_stdmath", registerMathFunctions);
-	vm.registerNativeFunction("include_stdstr", registerStringFunctions);
-	vm.registerNativeFunction("include_stdtype", registerTypeConvFunctions);
-	vm.registerNativeFunction("include_stdfile", registerFileFunctions);
-	vm.registerNativeFunction("include_stdregex", registerRegexFunctions);
+	vm.registerNativeFunction("using", std_import);
 }
 
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
@@ -60,6 +54,25 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 		throw std::runtime_error("Function '" + name + "' expects exactly " + std::to_string(minimumArguments) +
 		                         " arguments, but got " + std::to_string(args.size()));
 	}
+}
+
+Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
+{
+	// Arg 1, stdlib module name (string)
+	std::string moduleName = args[0].asString();
+	if (moduleName == "stdio") registerIOFunctions(std::vector<Value>{}, vm);
+	else if (moduleName == "stdsys") registerSysFunctions(std::vector<Value>{}, vm);
+	else if (moduleName == "stdmath") registerMathFunctions(std::vector<Value>{}, vm);
+	else if (moduleName == "stdstr") registerStringFunctions(std::vector<Value>{}, vm);
+	else if (moduleName == "stdtype") registerTypeConvFunctions(std::vector<Value>{}, vm);
+	else if (moduleName == "stdfile") registerFileFunctions(std::vector<Value>{}, vm);
+	else if (moduleName == "stdregex") registerRegexFunctions(std::vector<Value>{}, vm);
+	else
+	{
+		throw std::runtime_error("Unknown standard library module: " + moduleName);
+		return false;
+	}
+	return true;
 }
 
 } // namespace Phasor

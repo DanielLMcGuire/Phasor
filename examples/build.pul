@@ -1,8 +1,8 @@
-include_stdsys()
-include_stdio()
-include_stdstr()
-include_stdfile()
-include_stdtype()
+using("stdsys")
+using("stdio")
+using("stdstr")
+using("stdfile")
+using("stdtype")
 
 let conf = "build.conf"
 let g_clean = false
