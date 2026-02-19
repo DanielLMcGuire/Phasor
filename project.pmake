@@ -1,0 +1,6 @@
+Phasor
+3.0.0
+git rev-parse --short HEAD
+out
+.
+.pmake

@@ -1,9 +1,26 @@
 #!/usr/bin/env phasor
 using("stdsys", "stdtype", "stdio", "stdfile", "stdstr");
 
-var project = "Phasor";
+var project = "<project>";
+var version = "0.0.0";
+var subver;
+var installFolder = "out";
+var srcFolder = fcd();
 var cacheFolder = ".pmake";
 var cacheFile = c_fmt("%s/%%s.cache", cacheFolder);
+
+
+if (fexists("project.pmake")) {
+    project = freadln("project.pmake", 0); // Line 1 - Name
+    version = freadln("project.pmake", 1); // Line 2 - Version
+    subver = freadln("project.pmake", 2); // Line 3 - Subversion command
+    installFolder = freadln("project.pmake", 3); // Line 4 - Install folder
+    srcFolder = freadln("project.pmake", 4); // Line 5 - Source folder
+    cacheFolder = freadln("project.pmake", 5); // Line 6 - Cache folder
+    cacheFile = c_fmt("%s/%%s.cache", cacheFolder);
+} else {
+    puts_error("project.pmake file not found, using defaults");
+}
 
 fn printHelp(program: string, configured: bool) {
     var presetMsg = "preset_message";
@@ -70,15 +87,17 @@ fn readCache(cacheName: string) -> string {
 }
 
 fn main() -> int {
-    printf("%s - Portable CMake Wrapper for Phasor\nPhasor ", to_string(sys_argv(0)));
-    sys_execute("git rev-parse --short HEAD");
+    printf("pmake - Portable CMake Wrapper (%s)\n%s %s", project, project, version);
+    if (subver) { 
+        print("-");
+        sys_execute(subver);
+    }
+    else puts("");
     var preset;
     var doConfigure = false;
     var doBuild = false;
     var doInstall = false;
     var doClean = false;
-    var srcFolder = fcd();
-    var installFolder = "out";
     var outFolder = ".pmake/CMakeBuild";
     var i = 1;
 
