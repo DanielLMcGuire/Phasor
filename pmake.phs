@@ -6,23 +6,23 @@ var cacheFolder = ".pmake";
 var cacheFile = c_fmt("%s/%%s.cache", cacheFolder);
 
 fn printHelp(program: string, configured: bool) {
-    if (configured)
+    var presetMsg = "preset_message";
+    if (configured) {
         putf("Usage: phasor %s [preset] [options]", program);
-    else
+        presetMsg = "required only if regenerating";
+    } else {
         putf("Usage: phasor %s <preset> [options]\n", program);
-
-    if (!configured) { 
         sys_execute("cmake --list-presets"); 
-        print("\nPreset is only needed for config step; once configured no suboptions are required.\n");
+        presetMsg = "required to generate build files";
     }
-    print(`
+    printf(`
 Options:
-  preset           The CMake preset to use for configuration (required if not configured)
+  preset           The CMake preset to use for configuration (%s)
   -h, --help       Show this help message
   -i, --install    Install the built files to the specified prefix (default: install)
-  -b, --build      Build the project to the specified output folder (default: .pmake/out)
+  -b, --build      Build the project to the specified output folder (default: .pmake/CMakeBuild)
   -s, --src        Specify the source folder (default: current directory)
-  -c, --clean      Clean the build and cache folders before building`);
+  -c, --clean      Clean the build and cache folders before building`, presetMsg);
 }
 
 fn configure(srcFolder: string, buildFolder: string, preset: string) -> bool {
@@ -70,6 +70,8 @@ fn readCache(cacheName: string) -> string {
 }
 
 fn main() -> int {
+    printf("%s - Portable CMake Wrapper for Phasor\nPhasor ", to_string(sys_argv(0)));
+    sys_execute("git rev-parse --short HEAD");
     var preset;
     var prefix = "install";
     var doConfigure = false;
@@ -77,7 +79,7 @@ fn main() -> int {
     var doInstall = false;
     var doClean = false;
     var srcFolder = fcd();
-    var outFolder = ".pmake/out";
+    var outFolder = ".pmake/CMakeBuild";
     var i = 1;
 
     if (!fexists(cacheFolder)) {
@@ -96,6 +98,7 @@ fn main() -> int {
             preset = readCache("preset");
             putf("Using cached preset: %s\n", preset);
         } else {
+            puts("");
             printHelp(sys_argv(0), false);
             frmdir(cacheFolder, true);
             return -1;
@@ -162,6 +165,10 @@ fn main() -> int {
             puts("Cleaned build and cache folders");
             return 0;
         }
+    }
+
+    if (!doClean && !doConfigure && !doBuild && !doInstall) {
+        doBuild = true;
     }
 
     if (!doClean && !doConfigure && !fexists(outFolder)) 
