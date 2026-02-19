@@ -1,5 +1,12 @@
 #include "StdLib.hpp"
 
+static std::string toHex(int value)
+{
+	std::stringstream ss;
+	ss << std::showbase << std::hex << value;
+	return ss.str();
+}
+
 namespace Phasor
 {
 
@@ -39,6 +46,7 @@ Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 				switch (spec)
 				{
 				case 's':
+				case 'c':
 					out += v.asString();
 					break;
 				case 'd':
@@ -49,6 +57,9 @@ Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 					break;
 				case '%':
 					out += '%';
+					break;
+				case 'x':
+					out += "0x" + toHex(v.asInt());
 					break;
 				default:
 					// Unknown specifier, include it literally
