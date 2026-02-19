@@ -20,29 +20,30 @@ Options:
   preset           The CMake preset to use for configuration (required if not configured)
   -h, --help       Show this help message
   -i, --install    Install the built files to the specified prefix (default: install)
-  -b, --build      Build the project to the specified output folder (default: out)
-`);
+  -b, --build      Build the project to the specified output folder (default: .pmake/out)
+  -s, --src        Specify the source folder (default: current directory)
+  -c, --clean      Clean the build and cache folders before building`);
 }
 
 fn configure(srcFolder: string, buildFolder: string, preset: string) -> bool {
-    if (sys_execute(c_fmt("cmake -S %s -B %s --preset %s", srcFolder, buildFolder, preset)) != 0) {
-        return false;
+    if (sys_execute(c_fmt("cmake -S %s -B %s --preset %s", srcFolder, buildFolder, preset)) == 0) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 fn build(buildFolder: string) -> bool {
-    if (sys_execute(c_fmt("cmake --build %s", buildFolder)) != 0) {
-        return false;
+    if (sys_execute(c_fmt("cmake --build %s", buildFolder)) == 0) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 fn install(buildFolder: string, prefixFolder: string) -> bool {
-    if (sys_execute(c_fmt("cmake --install %s --prefix %s", buildFolder, prefixFolder)) != 0) {
-        return false;
+    if (sys_execute(c_fmt("cmake --install %s --prefix %s", buildFolder, prefixFolder)) == 0) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 fn writeCache(text: string, cacheName: string) -> bool {
@@ -74,8 +75,9 @@ fn main() -> int {
     var doConfigure = false;
     var doBuild = false;
     var doInstall = false;
+    var doClean = false;
     var srcFolder = fcd();
-    var outFolder = "out";
+    var outFolder = ".pmake/out";
     var i = 1;
 
     if (!fexists(cacheFolder)) {
@@ -95,6 +97,7 @@ fn main() -> int {
             putf("Using cached preset: %s\n", preset);
         } else {
             printHelp(sys_argv(0), false);
+            frmdir(cacheFolder, true);
             return -1;
         }
     }
@@ -102,7 +105,18 @@ fn main() -> int {
     while (i < sys_argc()) {
         var arg = to_string(sys_argv(i));
 
-        if (arg == "-i" || arg == "--install") {
+        if (arg == "-s" || arg == "--src") {
+            if (i + 1 < sys_argc() && !starts_with(sys_argv(i + 1), "-")) {
+                srcFolder = to_string(sys_argv(i + 1));
+                i = i + 1;
+            } else {
+                putf_error("Expected source folder after %s", arg);
+                return 1;
+            }
+            writeCache(srcFolder, "src");
+        } else if (arg == "-c" || arg == "--clean") {
+            doClean = true;
+        } else if (arg == "-i" || arg == "--install") {
             doInstall = true;
 
             if (i + 1 < sys_argc() && !starts_with(sys_argv(i + 1), "-")) {
@@ -111,8 +125,7 @@ fn main() -> int {
             }
 
             writeCache(prefix, "install");
-        }
-        else if (arg == "-b" || arg == "--build") {
+        } else if (arg == "-b" || arg == "--build") {
             doBuild = true;
 
             if (i + 1 < sys_argc() && !starts_with(sys_argv(i + 1), "-")) {
@@ -121,12 +134,10 @@ fn main() -> int {
             }
 
             writeCache(outFolder, "build");
-        }
-        else if (arg == "-h" || arg == "--help") {
+        } else if (arg == "-h" || arg == "--help") {
             printHelp(sys_argv(0), true);
             return 0;
-        }
-        else {
+        } else {
             putf_error("Unknown argument: %s", arg);
             printHelp(sys_argv(0), true);
             return 1;
@@ -139,11 +150,21 @@ fn main() -> int {
 
     if (fexists(c_fmt(cacheFile, "install")))
         prefix = readCache("install");
-
     if (fexists(c_fmt(cacheFile, "build")))
         outFolder = readCache("build");
+    if (fexists(c_fmt(cacheFile, "src")))
+        srcFolder = readCache("src");
 
-    if (!doConfigure && !fexists(outFolder)) 
+    if (doClean && fexists(outFolder)) {
+        frmdir(outFolder, true);
+        frmdir(cacheFolder, true);
+        if (!doBuild && !doInstall) {
+            puts("Cleaned build and cache folders");
+            return 0;
+        }
+    }
+
+    if (!doClean && !doConfigure && !fexists(outFolder)) 
     { 
         puts("Output missing, configuring...");
         doConfigure = true;
