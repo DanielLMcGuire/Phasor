@@ -1,3 +1,4 @@
+#!/usr/bin/env phasor
 // Port of 'mv' - move (rename) files for GNU.
 // 'mv' file moving program for Phasor.
 //   Copyright (C) 2026 Daniel McGuire.

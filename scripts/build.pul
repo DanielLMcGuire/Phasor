@@ -1,3 +1,4 @@
+#!/usr/bin/env pulsar
 using("stdsys", "stdio", "stdstr", "stdfile", "stdtype")
 
 let conf = "build.conf"

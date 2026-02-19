@@ -1,3 +1,4 @@
+#!/usr/bin/env phasor
 // Port of GNU echo.
 // 'echo' print out program for Phasor.
 //   Copyright (C) 2026 Daniel McGuire.

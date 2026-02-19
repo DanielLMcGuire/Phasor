@@ -1,3 +1,4 @@
+#!/usr/bin/env phasor
 using("stdio", "stdstr", "stdtype", "stdsys", "stdfile");
 
 var logfile = "outfile.txt";
