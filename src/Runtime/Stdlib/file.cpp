@@ -380,11 +380,20 @@ Value StdLib::file_create_directory(const std::vector<Value> &args, VM *)
 
 Value StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 1, "frmdir");
+	checkArgCount(args, 2, "frmdir");
 	std::filesystem::path path = args[0].asString();
+	bool recursive = args[1].asBool();	
 	if (std::filesystem::exists(path))
 	{
-		std::filesystem::remove(path);
+		if (recursive)
+		{
+			if (std::filesystem::remove_all(path) == 0) 
+				return true;
+			else
+				return false;
+		} else {
+			return std::filesystem::remove(path);
+		}
 	}
 	return true;
 }
