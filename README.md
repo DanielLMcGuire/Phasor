@@ -139,7 +139,7 @@ This repo contains:
 
 ### Build Steps
 
-[](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor)
+[Moved over to the wiki](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor)
 
 ### Plugin locations
 (Like win32 api, posix) are available in different locations based on your OS:
