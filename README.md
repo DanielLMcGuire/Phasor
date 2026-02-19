@@ -129,7 +129,7 @@ This repo contains:
 
 ## Building
 
-<sub>Using Arch BTW? Grab the PKGBUILD</sub>
+<sub>Using Arch BTW? Just run `makepkg -si`</sub>
 
 ### Prerequisites
 
@@ -139,25 +139,10 @@ This repo contains:
 
 ### Build Steps
 
-```bash
-# --prefix [windows,macos,linux]-[32,64,arm64]-[rel,dbg]
-cmake -S . -B build -G Ninja --prefix windows-64-rel
-cmake --build build
-cmake --install build --prefix install
-````
+[](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor)
 
-### Generation/Build Options
-
-- `ASSEMBLY=ON/OFF` - Enable/disable native assembly optimizations (default: OFF)
-
-## Output
-
-Binaries are available in the `install` directory:
-
-- `bin/` - All executables and utilities
-- `lib/` - Runtime libraries (static and shared)
-
-Plugins (Like win32 api, posix) are available in different locations based on your OS:
+### Plugin locations
+(Like win32 api, posix) are available in different locations based on your OS:
 
 - Unix - `opt/Phasor/plugins/`
 - macOS - `library/Application Support/org.Phasor.Phasor/plugins`
