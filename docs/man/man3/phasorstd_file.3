@@ -3,7 +3,7 @@
 phasorstd_file \- Phasor file system functions
 .SH SYNOPSIS
 .nf
-.B include_stdfile();
+.B using("stdfile");
 .PP
 .B fread(path)
 .B fwrite(path, content)
@@ -24,10 +24,6 @@ phasorstd_file \- Phasor file system functions
 .B freaddir(path)
 .B fstat(path)
 .fi
-.SH DESCRIPTION
-The
-.B include_stdfile()
-function registers file system manipulation functions for the Phasor runtime, providing comprehensive file I/O, directory operations, and file metadata management.
 .SH FILE I/O FUNCTIONS
 .TP
 .BR fread (path)

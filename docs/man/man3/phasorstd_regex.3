@@ -3,7 +3,7 @@
 phasorstd_regex \- Phasor regular expression functions
 .SH SYNOPSIS
 .nf
-.B include_stdregex();
+.B using("stdregex");
 .PP
 .B regex_match(pattern, text)
 .B regex_search(pattern, text[, start[, end]])
@@ -11,10 +11,6 @@ phasorstd_regex \- Phasor regular expression functions
 .B regex_split(pattern, text[, max_split])
 .B regex_replace(pattern, text, replacement[, flags])
 .fi
-.SH DESCRIPTION
-The
-.B include_stdregex()
-function registers regular expression functions for the Phasor runtime, providing pattern matching, searching, and text manipulation capabilities using ECMAScript regex syntax.
 .SH FUNCTIONS
 .TP
 .BR regex_match (pattern, text)
