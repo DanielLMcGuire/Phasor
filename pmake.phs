@@ -1,10 +1,15 @@
+#!/usr/bin/env phasor
 using("stdsys", "stdtype", "stdio", "stdfile", "stdstr");
+
+var project = "Phasor";
+var cacheFolder = ".pmake";
+var cacheFile = c_fmt("%s/%%s.cache", cacheFolder);
 
 fn printHelp(program: string, configured: bool) {
     if (configured)
-        printf("Usage: phasor %s [preset] [options]\n", program);
+        putf("Usage: phasor %s [preset] [options]", program);
     else
-        printf("Usage: phasor %s <preset> [options]\n\n", program);
+        putf("Usage: phasor %s <preset> [options]\n", program);
 
     if (!configured) { 
         sys_execute("cmake --list-presets"); 
@@ -40,21 +45,26 @@ fn install(buildFolder: string, prefixFolder: string) -> bool {
     return true;
 }
 
-fn writeCache(text: string, fileName: string) -> bool {
+fn writeCache(text: string, cacheName: string) -> bool {
+    var fileName = c_fmt(cacheFile, cacheName);
     if (fexists(fileName)) {
         if (!frm(fileName)) {
-            printf("Failed to delete old cache file\n");
+            puts_error("Failed to delete old cache file");
             return false;
         }
     }
     if (!fwrite(fileName, text)) {
-        printf("Failed to write cache file\n");
+        puts_error("Failed to write cache file");
         return false;
     }
     return true;
 }
 
-fn readCache(fileName: string) -> string {
+fn readCache(cacheName: string) -> string {
+    var fileName = c_fmt(cacheFile, cacheName);
+    if (!fexists(fileName)) {
+        return "";
+    }
     return fread(fileName);
 }
 
@@ -68,9 +78,9 @@ fn main() -> int {
     var outFolder = "out";
     var i = 1;
 
-    if (!fexists("cache")) {
-        if (!fmkdir("cache")) {
-            printf("Failed to create cache directory\n");
+    if (!fexists(cacheFolder)) {
+        if (!fmkdir(cacheFolder)) {
+            puts_error("Failed to create cache directory");
             return -1;
         }
     }
@@ -80,9 +90,10 @@ fn main() -> int {
         i = 2;
         doConfigure = true;
     } else {
-        if (fexists("cache/preset.cache"))
-            preset = readCache("cache/preset.cache");
-        else {
+        if (fexists(c_fmt(cacheFile, "preset"))) {
+            preset = readCache("preset");
+            putf("Using cached preset: %s\n", preset);
+        } else {
             printHelp(sys_argv(0), false);
             return -1;
         }
@@ -99,7 +110,7 @@ fn main() -> int {
                 i = i + 1;
             }
 
-            writeCache(prefix, "cache/install.cache");
+            writeCache(prefix, "install");
         }
         else if (arg == "-b" || arg == "--build") {
             doBuild = true;
@@ -109,14 +120,14 @@ fn main() -> int {
                 i = i + 1;
             }
 
-            writeCache(outFolder, "cache/build.cache");
+            writeCache(outFolder, "build");
         }
         else if (arg == "-h" || arg == "--help") {
             printHelp(sys_argv(0), true);
             return 0;
         }
         else {
-            printf("Unknown argument: %s\n", arg);
+            putf_error("Unknown argument: %s", arg);
             printHelp(sys_argv(0), true);
             return 1;
         }
@@ -124,31 +135,40 @@ fn main() -> int {
         i = i + 1;
     }
 
-    writeCache(preset, "cache/preset.cache");
+    writeCache(preset, "preset");
 
-    if (fexists("cache/install.cache"))
-        prefix = readCache("cache/install.cache");
+    if (fexists(c_fmt(cacheFile, "install")))
+        prefix = readCache("install");
 
-    if (fexists("cache/build.cache"))
-        outFolder = readCache("cache/build.cache");
+    if (fexists(c_fmt(cacheFile, "build")))
+        outFolder = readCache("build");
+
+    if (!doConfigure && !fexists(outFolder)) 
+    { 
+        puts("Output missing, configuring...");
+        doConfigure = true;
+    }
 
     if (doConfigure) {
+    	putf("Configuring %s...", project);
         if (configure(srcFolder, outFolder, preset)) {
-            printf("Configuration failed\n");
+            puts_error("Configuration failed");
             return 1;
         }
     }
 
     if (doBuild) {
+        putf("Building %s...", project);
         if (build(outFolder)) {
-            printf("Build failed\n");
+            puts_error("Build failed");
             return 1;
         }
     }
 
     if (doInstall) {
+	putf("Installing %s...", project);
         if (install(outFolder, prefix)) {
-            printf("Installation failed\n");
+            puts_error("Installation failed");
             return 1;
         }
     }
