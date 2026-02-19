@@ -3,7 +3,7 @@
 phasorstd_io \- Phasor standard I/O functions
 .SH SYNOPSIS
 .nf
-.B include_stdio();
+.B using("stdio");
 .PP
 .B c_fmt(format, ...)
 .B prints(string)
@@ -34,6 +34,10 @@ Integer (decimal)
 Float
 .IP \fB%%\fR 8
 Literal percent sign
+.IP \fB%c\fR 8
+Character
+.IP \fB%x\fR 8
+Hexadecimal (lowercase)
 .RE
 .PP
 .B Arguments:

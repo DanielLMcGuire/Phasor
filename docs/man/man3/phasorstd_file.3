@@ -20,7 +20,7 @@ phasorstd_file \- Phasor file system functions
 .B fpropget(path, property)
 .B fmk(path)
 .B fmkdir(path)
-.B frmdir(path)
+.B frmdir(path, recurse)
 .B freaddir(path)
 .B fstat(path)
 .fi
@@ -234,8 +234,17 @@ Boolean true if created, false if directory already exists
 .RE
 .PP
 .TP
-.BR frmdir (path)
+.BR frmdir (path, recurse)
 Remove an empty directory.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Directory path
+.IP \fBrecurse\fR 12
+Boolean to remove subdirectories (optional, default false)
+.RE
 .RS
 .PP
 .B Returns:
