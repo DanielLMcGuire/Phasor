@@ -100,23 +100,6 @@ add_executable(phasor_interpreter
 target_link_libraries(phasor_interpreter PhasorRuntime phasor_language PhasorCodegen PhasorFrontend)
 set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell.hpp
-    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs -o ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell.hpp -H --nologo
-    DEPENDS ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs phasor_cpp_compiler
-    COMMENT "Building PHS bytecode src/Library/utils/Shell.hpp"
-)
-
-add_executable(phasor_shell
-    utils/Shell.rc
-    utils/shell_main.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell.hpp
-    ${CMAKE_SOURCE_DIR}/src/utils/Shell.phs
-)
-target_include_directories(phasor_shell PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/utils)
-target_link_libraries(phasor_shell phasor_native_runtime)
-set_target_properties(phasor_shell PROPERTIES OUTPUT_NAME phash)
-
 if(WIN32)
     add_executable(phasor_winapi_gen
         Bindings/win32/bindgen_main.cpp

@@ -1,4 +1,4 @@
-#include <Shell.hpp>
+#include <pmake.hpp>
 
 #include <cstdint>
 #include <cstdio>
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "../../Runtime/Value.hpp"
+#include "../../../Runtime/Value.hpp"
 
 // Forward declare native runtime entry points (linked in from the runtime library)
 extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,
