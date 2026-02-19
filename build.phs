@@ -1,78 +1,156 @@
-using("stdsys", "stdtype", "stdio", "stdfile");
+using("stdsys", "stdtype", "stdio", "stdfile", "stdstr");
 
-fn printHelp(script: string) {
-    printf("Usage: phasor %s [preset] [options]\n\n\n", program);
-    sys_execute("cmake --list-presets");
+fn printHelp(program: string, configured: bool) {
+    if (configured)
+        printf("Usage: phasor %s [preset] [options]\n", program);
+    else
+        printf("Usage: phasor %s <preset> [options]\n\n", program);
+
+    if (!configured) { 
+        sys_execute("cmake --list-presets"); 
+        print("\nPreset is only needed for config step; once configured no suboptions are required.\n");
+    }
     print(`
 Options:
-
+  preset           The CMake preset to use for configuration (required if not configured)
   -h, --help       Show this help message
   -i, --install    Install the built files to the specified prefix (default: install)
+  -b, --build      Build the project to the specified output folder (default: out)
 `);
 }
 
 fn configure(srcFolder: string, buildFolder: string, preset: string) -> bool {
     if (sys_execute(c_fmt("cmake -S %s -B %s --preset %s", srcFolder, buildFolder, preset)) != 0) {
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 fn build(buildFolder: string) -> bool {
     if (sys_execute(c_fmt("cmake --build %s", buildFolder)) != 0) {
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 fn install(buildFolder: string, prefixFolder: string) -> bool {
     if (sys_execute(c_fmt("cmake --install %s --prefix %s", buildFolder, prefixFolder)) != 0) {
-        return true;
+        return false;
     }
-    return false;
+    return true;
+}
+
+fn writeCache(text: string, fileName: string) -> bool {
+    if (fexists(fileName)) {
+        if (!frm(fileName)) {
+            printf("Failed to delete old cache file\n");
+            return false;
+        }
+    }
+    if (!fwrite(fileName, text)) {
+        printf("Failed to write cache file\n");
+        return false;
+    }
+    return true;
+}
+
+fn readCache(fileName: string) -> string {
+    return fread(fileName);
 }
 
 fn main() -> int {
     var preset;
     var prefix = "install";
-    var install = false;
+    var doConfigure = false;
+    var doBuild = false;
+    var doInstall = false;
+    var srcFolder = fcd();
     var outFolder = "out";
-    if (sys_argc() > 1) { 
-        preset = to_string(sys_argv(1)); 
-    } else {
-        printHelp(sys_argv(0));
-        return -1;
-    }
+    var i = 1;
 
-    if (sys_argc() > 2) {
-        if (to_string(sys_argv(2)) == "-i" || to_string(sys_argv(2)) == "--install") {
-            install = true;
-            if (sys_argc() > 3) {
-                prefix = to_string(sys_argv(3));
-            }
-        } else if (to_string(sys_argv(2)) == "-h" || to_string(sys_argv(2)) == "--help") {
-            if (printHelp(sys_argv(0)) != 0) return 1;
-            return -1;
-        } else {
-            printf("Unknown argument: %s\n", sys_argv(2));
-            printHelp(sys_argv(0));
+    if (!fexists("cache")) {
+        if (!fmkdir("cache")) {
+            printf("Failed to create cache directory\n");
             return -1;
         }
     }
 
-    if (!configure(fcd(), outFolder, preset)) {
-        printf("Configuration failed\n");
-        return 1;
+    if (sys_argc() > 1 && !starts_with(sys_argv(1), "-")) {
+        preset = to_string(sys_argv(1));
+        i = 2;
+        doConfigure = true;
+    } else {
+        if (fexists("cache/preset.cache"))
+            preset = readCache("cache/preset.cache");
+        else {
+            printHelp(sys_argv(0), false);
+            return -1;
+        }
     }
 
-    if (!build(outFolder)) {
-        printf("Build failed\n");
-        return 1;
+    while (i < sys_argc()) {
+        var arg = to_string(sys_argv(i));
+
+        if (arg == "-i" || arg == "--install") {
+            doInstall = true;
+
+            if (i + 1 < sys_argc() && !starts_with(sys_argv(i + 1), "-")) {
+                prefix = to_string(sys_argv(i + 1));
+                i = i + 1;
+            }
+
+            writeCache(prefix, "cache/install.cache");
+        }
+        else if (arg == "-b" || arg == "--build") {
+            doBuild = true;
+
+            if (i + 1 < sys_argc() && !starts_with(sys_argv(i + 1), "-")) {
+                outFolder = to_string(sys_argv(i + 1));
+                i = i + 1;
+            }
+
+            writeCache(outFolder, "cache/build.cache");
+        }
+        else if (arg == "-h" || arg == "--help") {
+            printHelp(sys_argv(0), true);
+            return 0;
+        }
+        else {
+            printf("Unknown argument: %s\n", arg);
+            printHelp(sys_argv(0), true);
+            return 1;
+        }
+
+        i = i + 1;
     }
 
-    if (install && !install(outFolder, prefix)) {
-        printf("Installation failed\n");
-        return 1;
+    writeCache(preset, "cache/preset.cache");
+
+    if (fexists("cache/install.cache"))
+        prefix = readCache("cache/install.cache");
+
+    if (fexists("cache/build.cache"))
+        outFolder = readCache("cache/build.cache");
+
+    if (doConfigure) {
+        if (configure(srcFolder, outFolder, preset)) {
+            printf("Configuration failed\n");
+            return 1;
+        }
+    }
+
+    if (doBuild) {
+        if (build(outFolder)) {
+            printf("Build failed\n");
+            return 1;
+        }
+    }
+
+    if (doInstall) {
+        if (install(outFolder, prefix)) {
+            printf("Installation failed\n");
+            return 1;
+        }
     }
 
     return 0;
