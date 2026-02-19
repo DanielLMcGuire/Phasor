@@ -73,12 +73,12 @@ fn main() -> int {
     printf("%s - Portable CMake Wrapper for Phasor\nPhasor ", to_string(sys_argv(0)));
     sys_execute("git rev-parse --short HEAD");
     var preset;
-    var prefix = "install";
     var doConfigure = false;
     var doBuild = false;
     var doInstall = false;
     var doClean = false;
     var srcFolder = fcd();
+    var installFolder = "out";
     var outFolder = ".pmake/CMakeBuild";
     var i = 1;
 
@@ -123,11 +123,11 @@ fn main() -> int {
             doInstall = true;
 
             if (i + 1 < sys_argc() && !starts_with(sys_argv(i + 1), "-")) {
-                prefix = to_string(sys_argv(i + 1));
+                installFolder = to_string(sys_argv(i + 1));
                 i = i + 1;
             }
 
-            writeCache(prefix, "install");
+            writeCache(installFolder, "install");
         } else if (arg == "-b" || arg == "--build") {
             doBuild = true;
 
@@ -152,7 +152,7 @@ fn main() -> int {
     writeCache(preset, "preset");
 
     if (fexists(c_fmt(cacheFile, "install")))
-        prefix = readCache("install");
+        installFolder = readCache("install");
     if (fexists(c_fmt(cacheFile, "build")))
         outFolder = readCache("build");
     if (fexists(c_fmt(cacheFile, "src")))
@@ -195,7 +195,7 @@ fn main() -> int {
 
     if (doInstall) {
 	putf("Installing %s...", project);
-        if (install(outFolder, prefix)) {
+        if (install(outFolder, installFolder)) {
             puts_error("Installation failed");
             return 1;
         }
