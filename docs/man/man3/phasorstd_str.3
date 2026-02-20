@@ -5,6 +5,7 @@ phasorstd_str \- Phasor string manipulation functions
 .nf
 .B using("stdstr");
 .PP
+.B find(string, substr[, start[, end]])
 .B len(string)
 .B char_at(string, index)
 .B substr(string, start[, length])
@@ -21,6 +22,27 @@ phasorstd_str \- Phasor string manipulation functions
 .B sb_free(handle)
 .fi
 .SH STRING FUNCTIONS
+.TP
+.BR find (string, substr[, start[, end]])
+Find the first occurrence of a substring in a string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+Input string
+.IP \fBsubstr\fR 12
+Substring to search for
+.IP \fBstart\fR 12
+Starting index (optional, defaults to 0)
+.IP \fBend\fR 12
+Ending index (optional, defaults to string length)
+.RE
+.PP
+.B Returns:
+Index of the first occurrence of the substring, or -1 if not found
+.RE
+.PP
 .TP
 .BR len (string)
 Get the length of a string in characters.

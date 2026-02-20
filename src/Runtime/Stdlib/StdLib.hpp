@@ -110,6 +110,7 @@ class StdLib
 	static Value to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
 
 	// String functions
+	static Value str_find(const std::vector<Value> &args, VM *vm);        ///< Find string in string
 	static Value str_len(const std::vector<Value> &args, VM *vm);         ///< Get string length
 	static Value str_char_at(const std::vector<Value> &args, VM *vm);     ///< Get character at index
 	static Value str_substr(const std::vector<Value> &args, VM *vm);      ///< Get substring
