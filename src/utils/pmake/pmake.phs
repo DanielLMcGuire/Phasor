@@ -8,16 +8,18 @@ var installFolder = "out";
 var srcFolder = fcd();
 var cacheFolder = ".pmake";
 var cacheFile = c_fmt("%s/%%s.cache", cacheFolder);
-
+var lockFile = c_fmt("%s/%%s.lock", cacheFolder);
+var pid = sys_pid();
 
 if (fexists("project.pmake")) {
     project = freadln("project.pmake", 0); // Line 1 - Name
     version = freadln("project.pmake", 1); // Line 2 - Version
     subver = freadln("project.pmake", 2); // Line 3 - Subversion command
-    installFolder = freadln("project.pmake", 3); // Line 4 - Install folder
-    srcFolder = freadln("project.pmake", 4); // Line 5 - Source folder
-    cacheFolder = freadln("project.pmake", 5); // Line 6 - Cache folder
+    installFolder = fabsolute(freadln("project.pmake", 3)); // Line 4 - Install folder
+    srcFolder = fabsolute(freadln("project.pmake", 4)); // Line 5 - Source folder
+    cacheFolder = fabsolute(freadln("project.pmake", 5)); // Line 6 - Cache folder
     cacheFile = c_fmt("%s/%%s.cache", cacheFolder);
+    lockFile = c_fmt("%s/%%s.lock", cacheFolder);
 } else {
     puts_error("project.pmake file not found, using defaults");
 }
@@ -25,10 +27,10 @@ if (fexists("project.pmake")) {
 fn printHelp(program: string, configured: bool) {
     var presetMsg = "preset_message";
     if (configured) {
-        putf("Usage: phasor %s [preset] [options]", program);
+        putf("Usage: [runtime] %s [preset] [options]", program);
         presetMsg = "required only if regenerating";
     } else {
-        putf("Usage: phasor %s <preset> [options]\n", program);
+        putf("Usage: [runtime] %s <preset> [options]\n", program);
         sys_execute("cmake --list-presets"); 
         presetMsg = "required to generate build files";
     }
@@ -50,7 +52,7 @@ fn configure(srcFolder: string, buildFolder: string, preset: string) -> bool {
 }
 
 fn build(buildFolder: string) -> bool {
-    if (sys_execute(c_fmt("cmake --build %s", buildFolder)) == 0) {
+    if (sys_execute(c_fmt("ninja -C %s", buildFolder)) == 0) {
         return true;
     }
     return false;
@@ -86,6 +88,39 @@ fn readCache(cacheName: string) -> string {
     return fread(fileName);
 }
 
+fn writeStatus(text: string) -> bool {
+    var fileName = c_fmt(lockFile, project);
+    var tmpFile = c_fmt("%s.tmp", fileName);
+    var finalText = c_fmt("%s\nPID: %d", text, pid);
+    if (fexists(fileName)) {
+        if (!frm(fileName)) {
+            puts_error("Failed to delete old status file");
+            return false;
+        }
+    }
+    if (!fwrite(tmpFile, finalText)) {
+        puts_error("Failed to write temp status file");
+        return false;
+    } else {
+        if (!fmv(tmpFile, fileName)) {
+            puts_error("Failed to move status file");
+            return false;
+        }
+    }
+    return true;
+}
+
+fn clearStatus() -> bool {
+    var fileName = c_fmt(lockFile, project);
+    if (fexists(fileName)) {
+        if (!frm(fileName)) {
+            puts_error("Failed to delete status file");
+            return false;
+        }
+    }
+    return true;
+}
+
 fn main() -> int {
     printf("pmake - Portable CMake Wrapper (%s)\n%s %s", project, project, version);
     if (subver) { 
@@ -99,6 +134,7 @@ fn main() -> int {
     var doInstall = false;
     var doClean = false;
     var outFolder = ".pmake/CMakeBuild";
+    var l_statusFile = c_fmt(lockFile, project);
     var i = 1;
 
     if (!fexists(cacheFolder)) {
@@ -124,6 +160,13 @@ fn main() -> int {
         }
     }
 
+    if (fexists(c_fmt(cacheFile, "install")))
+        installFolder = readCache("install");
+    if (fexists(c_fmt(cacheFile, "build")))
+        outFolder = readCache("build");
+    if (fexists(c_fmt(cacheFile, "src")))
+        srcFolder = readCache("src");
+
     while (i < sys_argc()) {
         var arg = to_string(sys_argv(i));
 
@@ -135,7 +178,7 @@ fn main() -> int {
                 putf_error("Expected source folder after %s", arg);
                 return 1;
             }
-            writeCache(srcFolder, "src");
+            writeCache(fabsolute(srcFolder), "src");
         } else if (arg == "-c" || arg == "--clean") {
             doClean = true;
         } else if (arg == "-i" || arg == "--install") {
@@ -146,7 +189,7 @@ fn main() -> int {
                 i = i + 1;
             }
 
-            writeCache(installFolder, "install");
+            writeCache(fabsolute(installFolder), "install");
         } else if (arg == "-b" || arg == "--build") {
             doBuild = true;
 
@@ -155,10 +198,13 @@ fn main() -> int {
                 i = i + 1;
             }
 
-            writeCache(outFolder, "build");
+            writeCache(fabsolute(outFolder), "build");
         } else if (arg == "-h" || arg == "--help") {
             printHelp(sys_argv(0), true);
             return 0;
+        } else if (arg == "-f" || arg == "--force") {
+            clearStatus();
+            frmdir(outFolder, true);
         } else {
             putf_error("Unknown argument: %s", arg);
             printHelp(sys_argv(0), true);
@@ -168,17 +214,27 @@ fn main() -> int {
         i = i + 1;
     }
 
-    writeCache(preset, "preset");
+    if (fexists(l_statusFile)) {
+        var pid = to_int(substr(freadln(l_statusFile, "1"), 5));
+        if (pid != sys_pid()) {
+            putf_error("pmake locked by another process %d", l_statusFile);
+            return 2;
+        }
+    }
+    if (!doClean) writeStatus("init");
 
-    if (fexists(c_fmt(cacheFile, "install")))
-        installFolder = readCache("install");
-    if (fexists(c_fmt(cacheFile, "build")))
-        outFolder = readCache("build");
-    if (fexists(c_fmt(cacheFile, "src")))
-        srcFolder = readCache("src");
+    if (!doClean) writeCache(preset, "preset");
 
-    if (doClean && fexists(outFolder)) {
-        frmdir(outFolder, true);
+    if (doClean && fexists(cacheFolder)) {
+        if (fexists(c_fmt(cacheFile, "configure") || fexists(outFolder))) {
+            doConfigure = false;
+            if (!frmdir(outFolder, true)) {
+                putf_error("Failed to clean output folder %s", outFolder);
+                return 1;
+            }
+        }
+            clearStatus();
+        }
         frmdir(cacheFolder, true);
         if (!doBuild && !doInstall) {
             puts("Cleaned build and cache folders");
@@ -196,31 +252,43 @@ fn main() -> int {
         doConfigure = true;
     }
 
-    if (doConfigure) {
+    if (doConfigure || !fexists(c_fmt(cacheFile, "configure"))) {
+        writeStatus("config");
     	putf("Configuring %s...", project);
         if (configure(srcFolder, outFolder, preset)) {
             puts_error("Configuration failed");
             return 1;
         }
+        writeCache(fabsolute(outFolder), "build");
+        writeCache(fabsolute(srcFolder), "src");
+        writeCache(preset, "preset");
+        writeCache(fabsolute(installFolder), "install");
+        writeCache("", "configure");
+        writeStatus("idle");
     }
 
     if (doBuild) {
+        writeStatus("build");
         putf("Building %s...", project);
         if (build(outFolder)) {
             puts_error("Build failed");
             return 1;
         }
+        writeStatus("idle");
     }
 
     if (doInstall) {
+    writeStatus("install");
 	putf("Installing %s...", project);
         if (install(outFolder, installFolder)) {
             puts_error("Installation failed");
             return 1;
         }
+        writeStatus("idle");
     }
-
     return 0;
 }
 
-shutdown(main());
+var stat = main();
+clearStatus();
+shutdown(stat);
