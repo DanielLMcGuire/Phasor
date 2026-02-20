@@ -1,6 +1,6 @@
 add_library(phasor_native_runtime SHARED
-    Runtime/Phasor/NativeRuntimeDll.rc
-    Runtime/Phasor/NativeRuntime_library.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/NativeRuntimeDll.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
@@ -10,7 +10,7 @@ target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
 add_library(phasor_native_runtime_static STATIC
-    Runtime/Phasor/NativeRuntime_library.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/NativeRuntime.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
@@ -19,8 +19,8 @@ target_link_libraries(phasor_native_runtime_static PhasorRuntime phasor_language
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
 add_executable(phasor_main 
-    Main/Phasor/Phasor.rc
-    Main/Phasor/Phasor_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/ScriptingRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Shared/BinaryRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.cpp
@@ -29,8 +29,8 @@ target_link_libraries(phasor_main PhasorRuntime phasor_language PhasorCodegen Ph
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
 add_executable(pulsar_main 
-    Runtime/Pulsar/ScriptingRuntime.rc
-    Runtime/Pulsar/ScriptingRuntime_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Pulsar/ScriptingRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Pulsar/ScriptingRuntime.hpp
 )
@@ -38,8 +38,8 @@ target_link_libraries(pulsar_main PhasorRuntime pulsar_language PhasorCodegen Pu
 set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
 
 add_executable(phasor_repl
-    Repl/Phasor/Repl.rc
-    Repl/Phasor/Repl_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Repl/Phasor/Repl.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Repl/Phasor/Repl_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.cpp
     ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.hpp
 )
@@ -47,8 +47,8 @@ target_link_libraries(phasor_repl PhasorRuntime phasor_language PhasorFrontend)
 set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
 
 add_executable(phasor_compiler
-    Compiler/Phasor/Compiler.rc
-    Compiler/Phasor/Compiler_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/Compiler.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/Compiler.hpp
 )
@@ -56,8 +56,8 @@ target_link_libraries(phasor_compiler phasor_language PhasorCodegen)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
 
 add_executable(pulsar_compiler
-    Compiler/Pulsar/Compiler.rc
-    Compiler/Pulsar/Compiler_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Pulsar/Compiler.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Pulsar/Compiler_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Pulsar/Compiler.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Pulsar/Compiler.hpp
 )
@@ -65,26 +65,26 @@ target_link_libraries(pulsar_compiler pulsar_language PhasorCodegen)
 set_target_properties(pulsar_compiler PROPERTIES OUTPUT_NAME pulsarcompiler)
 
 add_executable(phasor_disasm
-    Compiler/Shared/Disassembler.rc
-    Compiler/Shared/Disassembler_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Shared/Disassembler.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Shared/Disassembler.hpp
 )
 target_link_libraries(phasor_disasm phasor_language PhasorCodegen)
 set_target_properties(phasor_disasm PROPERTIES OUTPUT_NAME phasordecomp)
 
-add_executable(phasor_cpp_compiler
-    Compiler/Phasor/CppCompiler.rc
-    Compiler/Phasor/CppCompiler_main.cpp
+add_executable(phasor_cxx_transpiler
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CppCompiler.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CppCompiler_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/CppCompiler.cpp
     ${CMAKE_SOURCE_DIR}/src/Compiler/Phasor/CppCompiler.hpp
 )
-target_link_libraries(phasor_cpp_compiler phasor_language PhasorCodegen)
-set_target_properties(phasor_cpp_compiler PROPERTIES OUTPUT_NAME phasornative)
+target_link_libraries(phasor_cxx_transpiler phasor_language PhasorCodegen)
+set_target_properties(phasor_cxx_transpiler PROPERTIES OUTPUT_NAME phasornative)
 
 add_executable(phasor_runtime_exe
-    Runtime/Shared/BinaryRuntime.rc
-    Runtime/Shared/BinaryRuntime_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/BinaryRuntime.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/BinaryRuntime_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Shared/BinaryRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Shared/BinaryRuntime.hpp
 )
@@ -92,8 +92,8 @@ target_link_libraries(phasor_runtime_exe PhasorRuntime PhasorCodegen)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
 add_executable(phasor_interpreter
-    Runtime/Phasor/ScriptingRuntime.rc
-    Runtime/Phasor/ScriptingRuntime_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/ScriptingRuntime.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/ScriptingRuntime_main.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/ScriptingRuntime.cpp
     ${CMAKE_SOURCE_DIR}/src/Runtime/Phasor/ScriptingRuntime.hpp
 )
@@ -102,7 +102,7 @@ set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
 if(WIN32)
     add_executable(phasor_winapi_gen
-        Bindings/win32/bindgen_main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/bindgen_main.cpp
     )
     set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
@@ -116,7 +116,7 @@ if(WIN32)
     add_library(phasor_winapi_bindings SHARED
         ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
         ${CMAKE_SOURCE_DIR}/src/Bindings/win32/handle.hpp
-        Bindings/win32/main.rc
+        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/main.rc
         ${CMAKE_SOURCE_DIR}/scripts/winapi.h
     )
     set_target_properties(phasor_winapi_bindings PROPERTIES 
@@ -125,7 +125,7 @@ if(WIN32)
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
 else()
     add_library(phasor_posix_bindings SHARED
-        Bindings/posix/main.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
     )
     set_target_properties(phasor_posix_bindings PROPERTIES 
         OUTPUT_NAME posix_phs

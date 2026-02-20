@@ -1,12 +1,12 @@
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell/Shell.hpp
-    COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${CMAKE_SOURCE_DIR}/src/utils/Shell/Shell.phs -o ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell/Shell.hpp -H --nologo
-    DEPENDS ${CMAKE_SOURCE_DIR}/src/utils/Shell/Shell.phs phasor_cpp_compiler
+    COMMAND $<TARGET_FILE:phasor_cxx_transpiler> ${CMAKE_SOURCE_DIR}/src/utils/Shell/Shell.phs -o ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell/Shell.hpp -H --nologo
+    DEPENDS ${CMAKE_SOURCE_DIR}/src/utils/Shell/Shell.phs phasor_cxx_transpiler
     COMMENT "Building PHS bytecode src/Library/utils/Shell/Shell.hpp"
 )
 add_executable(phasor_shell
-    Shell.rc
-    shell_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Shell.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/shell_main.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/src/utils/Shell/Shell.hpp
     ${CMAKE_SOURCE_DIR}/src/utils/Shell/Shell.phs
 )

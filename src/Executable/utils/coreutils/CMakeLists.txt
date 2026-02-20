@@ -1,14 +1,12 @@
 set(TARGETS cat cp echo ls mv rm touch)
-set(BIN_RAW "src/utils/coreutils")
-set(BIN_DIR "${CMAKE_BINARY_DIR}/${BIN_RAW}")
 
 foreach(tgt ${TARGETS})
     set(PHS "${CMAKE_SOURCE_DIR}/src/utils/coreutils/${tgt}.phs")
-    set(HEADER "${BIN_DIR}/${tgt}.hpp")
-    set(GEN_CPP "${BIN_DIR}/${tgt}.cpp")
+    set(HEADER "${CMAKE_CURRENT_BINARY_DIR}/${tgt}.hpp")
+    set(GEN_CPP "${CMAKE_CURRENT_BINARY_DIR}/${tgt}.cpp")
     set(PATH_COUT "${BIN_RAW}/${tgt}.hpp")
 
-    file(MAKE_DIRECTORY ${BIN_DIR})
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
     add_custom_command(
         OUTPUT ${HEADER}
@@ -18,18 +16,18 @@ foreach(tgt ${TARGETS})
     )
 
     configure_file(
-        "${CMAKE_SOURCE_DIR}/src/Executable/utils/coreutils/coreutils_main.in.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/coreutils_main.in.cpp"
         "${GEN_CPP}"
         @ONLY
     )
 
     add_executable(${tgt}
         ${GEN_CPP}
-        ${CMAKE_SOURCE_DIR}/src/Executable/utils/coreutils/${tgt}.rc
+        ${CMAKE_CURRENT_SOURCE_DIR}/${tgt}.rc
         ${HEADER}
         ${PHS}
     )
-    target_include_directories(${tgt} PRIVATE ${BIN_DIR})
+    target_include_directories(${tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_link_libraries(${tgt} phasor_native_runtime)
     set_target_properties(${tgt} PROPERTIES OUTPUT_NAME "${tgt}-phs")
     if(WIN32)

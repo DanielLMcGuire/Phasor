@@ -5,7 +5,7 @@ if(WIN32)
         phasor_compiler
         pulsar_compiler
         phasor_disasm
-        phasor_cpp_compiler
+        phasor_cxx_transpiler
         phasor_runtime_exe
         phasor_native_runtime
         phasor_native_runtime_static
@@ -28,7 +28,7 @@ elseif(APPLE)
         phasor_compiler
         pulsar_compiler
         phasor_disasm
-        phasor_cpp_compiler
+        phasor_cxx_transpiler
         phasor_runtime_exe
         phasor_native_runtime
         phasor_native_runtime_static
@@ -52,7 +52,7 @@ else()
         phasor_compiler
         pulsar_compiler
         phasor_disasm
-        phasor_cpp_compiler
+        phasor_cxx_transpiler
         phasor_runtime_exe
         phasor_native_runtime
         phasor_native_runtime_static
