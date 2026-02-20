@@ -197,4 +197,5 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	{
 		delete vm;
 	}
+	return 0;
 }
