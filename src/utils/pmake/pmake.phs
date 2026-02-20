@@ -38,7 +38,7 @@ fn printHelp(program: string, configured: bool) {
 Options:
   preset           The CMake preset to use for configuration (%s)
   -h, --help       Show this help message
-  -i, --install    Install the built files to the specified prefix (default: install)
+  -i, --install    Install the built files to the specified prefix (default: out)
   -b, --build      Build the project to the specified output folder (default: .pmake/CMakeBuild)
   -s, --src        Specify the source folder (default: current directory)
   -c, --clean      Clean the build and cache folders before building`, presetMsg);
