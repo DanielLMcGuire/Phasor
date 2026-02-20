@@ -63,6 +63,7 @@ class StdLib
 	static Value math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
 
 	// File IO
+	static Value file_absolute(const std::vector<Value> &args, VM *vm);     ///< Get full path to relative path
 	static Value file_read(const std::vector<Value> &args, VM *vm);              ///< Read file
 	static Value file_write(const std::vector<Value> &args, VM *vm);             ///< Write to file
 	static Value file_exists(const std::vector<Value> &args, VM *vm);            ///< Check if file exists

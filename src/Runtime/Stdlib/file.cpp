@@ -10,6 +10,7 @@ namespace Phasor
 Value StdLib::registerFileFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdfile");
+	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
 	vm->registerNativeFunction("fread", StdLib::file_read);
 	vm->registerNativeFunction("fwrite", StdLib::file_write);
 	vm->registerNativeFunction("fexists", StdLib::file_exists);
@@ -30,6 +31,14 @@ Value StdLib::registerFileFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("fstat", StdLib::file_statistics);
 
 	return true;
+}
+
+Value StdLib::file_absolute(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fabsolute");
+	std::filesystem::path path = args[0].asString();
+	std::filesystem::path fullPath = std::filesystem::weakly_canonical(path);
+	return fullPath.string();
 }
 
 Value StdLib::file_read(const std::vector<Value> &args, VM *)
@@ -243,9 +252,10 @@ Value StdLib::file_move(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 2, "fmv");
 	std::filesystem::path src = args[0].asString();
 	std::filesystem::path dest = args[1].asString();
-	std::filesystem::copy_file(src, dest);
-	std::filesystem::remove(src);
-	return Value();
+	bool status;
+	status = std::filesystem::copy_file(src, dest);
+	status = std::filesystem::remove(src);
+	return status;
 }
 
 Value StdLib::file_property_edit(const std::vector<Value> &args, VM *)

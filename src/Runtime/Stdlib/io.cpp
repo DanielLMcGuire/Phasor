@@ -59,7 +59,7 @@ Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 					out += '%';
 					break;
 				case 'x':
-					out += "0x" + toHex(v.asInt());
+					out += "0x" + toHex((int)v.asInt());
 					break;
 				default:
 					// Unknown specifier, include it literally
