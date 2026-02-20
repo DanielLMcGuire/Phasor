@@ -1,0 +1,94 @@
+using("stdio", "stdstr", "stdtype", "stdsys");
+
+fn extract_filename(line) {
+    var last_space = -1;
+    var i = 0;
+    while (i < len(line)) {
+        if (char_at(line, i) == " ") {
+            last_space = i;
+        }
+        i = i + 1;
+    }
+    
+    if (last_space == -1) {
+        return "";
+    }
+    
+    var candidate = substr(line, last_space + 1);
+    var has_slash = find(candidate, "/") != -1;
+    var has_backslash = find(candidate, "\\") != -1;
+    
+    if (has_slash || has_backslash) {
+        return candidate;
+    }
+    
+    return "";
+}
+
+fn main() {
+    var width = 40;
+    
+    while (true) {
+        var line = gets();
+        
+        var start = find(line, "[");
+        if (start == -1) {
+            break;
+        }
+        
+        var slash = find(line, "/", start);
+        if (slash == -1) {
+            continue;
+        }
+        
+        var end = find(line, "]", slash);
+        if (end == -1) {
+            continue;
+        }
+        
+        var current_str = substr(line, start + 1, slash - start - 1);
+        var total_str = substr(line, slash + 1, end - slash - 1);
+        
+        var current = to_int(current_str);
+        var total = to_int(total_str);
+        
+        var pos = 0;
+        if (total > 0) {
+            pos = current * width / total;
+        }
+        
+        var bar = sb_new();
+        sb_append(bar, "\r[");
+        
+        var i = 0;
+        while (i < width) {
+            if (i < pos) {
+                sb_append(bar, "=");
+            } else if (i == pos) {
+                sb_append(bar, ">");
+            } else {
+                sb_append(bar, " ");
+            }
+            i = i + 1;
+        }
+        
+        sb_append(bar, "] ");
+        sb_append(bar, to_string(current));
+        sb_append(bar, "/");
+        sb_append(bar, to_string(total));
+        
+        var filename = extract_filename(line);
+        if (len(filename) > 0) {
+            sb_append(bar, " ");
+            sb_append(bar, filename);
+        }
+        
+        printf("%s", sb_to_string(bar));
+        sb_free(bar);
+    }
+    
+    puts("");
+    return 0;
+}
+
+shutdown(main());
