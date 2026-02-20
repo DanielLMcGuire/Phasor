@@ -10,8 +10,8 @@ foreach(tgt ${TARGETS})
 
     add_custom_command(
         OUTPUT ${HEADER}
-        COMMAND $<TARGET_FILE:phasor_cpp_compiler> ${PHS} -o ${HEADER} -H --nologo
-        DEPENDS ${PHS} phasor_cpp_compiler
+        COMMAND $<TARGET_FILE:phasor_cxx_transpiler> ${PHS} -o ${HEADER} -H --nologo
+        DEPENDS ${PHS} phasor_cxx_transpiler
         COMMENT "Building PHS object ${PATH_COUT}"
     )
 
