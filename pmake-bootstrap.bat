@@ -1,6 +1,5 @@
 @echo off
 setlocal
-echo.
 set SCRIPT_DIR=%~dp0
 set TMP_DIR=%SCRIPT_DIR%.tmp
 set POST_STEPS=1
@@ -48,7 +47,7 @@ if errorlevel 1 (
     echo Failed to update git submodules
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[---------]          `r[=-------] CFG vs-vswhere\""
+powershell -Command "Write-Host -NoNewline \"`r[----------]                              `r[=---------] CFG vs-vswhere\""
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 if not exist "%VSWHERE%" (
     echo vswhere.exe not found
@@ -59,58 +58,68 @@ if not defined VS_PATH (
     echo No Visual Studio installation with required C++ tools found
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[=---------]          `r[==--------] CFG vs-vcvars\""
+powershell -Command "Write-Host -NoNewline \"`r[=---------]                                         `r[==--------] CFG vs-vcvars\""
 call "%VS_PATH%\Common7\Tools\VsDevCmd.bat" -arch=%VSBUILD_ARCH% -host_arch=%VSBUILD_HOST_ARCH% -no_logo
 if errorlevel 1 (
     echo Failed to initialize Visual Studio environment
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[==--------]          `r[===-------] CFG phasor-cmake\""
+powershell -Command "Write-Host -NoNewline \"`r[==--------]                                        `r[===-------] CFG phasor-cmake\""
 cmake -S "%SCRIPT_DIR:~0,-1%" -B "%TMP_DIR%" --preset %CMAKE_PRESET% 2>&1 1>nul
 if errorlevel 1 (
     echo CMake configuration failed
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[=====-----]          `r[=====-----] CXX phasor_native_runtime_static\""
+powershell -Command "Write-Host -NoNewline \"`r[===-------]                                        `r[====------] CXX phasor_native_runtime_static\""
 ninja -C "%TMP_DIR%" phasor_native_runtime_static 2>&1 1>nul
 if errorlevel 1 (
     echo Building runtime failed
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[======----]          `r[======----] CXX phasor_cxx_transpiler\""
+powershell -Command "Write-Host -NoNewline \"`r[=====-----]                                        `r[======----] CXX phasor_cxx_transpiler\""
 ninja -C "%TMP_DIR%" phasor_cxx_transpiler 2>&1 1>nul
 if errorlevel 1 (
     echo Building compiler failed
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[=======---]          `r[=======---] PHS pmake.phs\""
+powershell -Command "Write-Host -NoNewline \"`r[=======---]                                        `r[=======---] PHS pmake.phs\""
 ninja -C "%TMP_DIR%" pmake 2>&1 1>nul
 if errorlevel 1 (
     echo Building pmake failed
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[=========-]          `r[=========-] INST pmake.exe .\""
+powershell -Command "Write-Host -NoNewline \"`r[=========-]                                        `r[=========-] INST pmake.exe .\""
 copy "%TMP_DIR%\thirdparty\pmake\Executable\pmake\pmake.exe" "%SCRIPT_DIR%pmake.exe" /Y 2>&1 1>nul
 if errorlevel 1 (
     echo Copying pmake.exe failed
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[=========-]          `r[=========-] CLEAN\""
+powershell -Command "Write-Host -NoNewline \"`r[=========-]                                        `r[=========-] CLEAN\""
 rmdir /s /q "%TMP_DIR%"
 if errorlevel 1 (
     echo Failed to remove temporary files
     exit /b 1
 )
-powershell -Command "Write-Host -NoNewline \"`r[==========]          `r[==========] DONE\""
+powershell -Command "Write-Host \"`r[==========]                                        `r[==========] DONE\""
 if /i "%POST_STEPS%"=="1" (
+    call "%VS_PATH%\Common7\Tools\VsDevCmd.bat" -arch=%VSBUILD_HOST_ARCH% -host_arch=%VSBUILD_HOST_ARCH% -no_logo 2>&1 1>nul
+    if errorlevel 1 (
+        echo Failed to reinitialize Visual Studio environment
+        exit /b 1
+    )
     echo.
-    echo Setting up build...\""
-    pmake %PMAKE_TARGET% -f
+    powershell -Command "Write-Host \"Setting up build...\""
+    pmake %PMAKE_TARGET% -f 2>&1 1>nul
     if errorlevel 1 (
         echo pmake setup failed
         exit /b 1
     )
-    echo Showing options...
-    pmake -h
-)
+    choice /m "Do you want to build"
+    if errorlevel 2 goto end
+    if errorlevel 1 goto contd
+:contd
+    echo ^>pmake -b -i
+    pmake -b -i
+)  
+:end 
 endlocal
