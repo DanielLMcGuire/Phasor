@@ -30,11 +30,10 @@ int Repl::run()
 int Repl::runRepl()
 {
 	auto vm = createVm();
-	Frontend::runRepl(vm.get());
-	return 0;
+	return Frontend::runRepl(vm.get());
 }
 
-void Repl::runSourceString(const std::string &source, VM &vm)
+int Repl::runSourceString(const std::string &source, VM &vm)
 {
 	Lexer  lexer(source);
 	auto   tokens = lexer.tokenize();
@@ -44,7 +43,7 @@ void Repl::runSourceString(const std::string &source, VM &vm)
 	CodeGenerator codegen;
 	auto          bytecode = codegen.generate(*program);
 
-	vm.run(bytecode);
+	return vm.run(bytecode);
 }
 
 std::unique_ptr<VM> Repl::createVm()

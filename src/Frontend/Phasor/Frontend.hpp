@@ -13,13 +13,13 @@ namespace Frontend
  * @param vm The virtual machine to run the script on
  * @return The result of the script
  */
-void runScript(const std::string &source, VM *vm = nullptr);
+int runScript(const std::string &source, VM *vm = nullptr);
 
 /**
  * @brief Run an REPL
  * @param vm The virtual machine to run the REPL on
  */
-void runRepl(VM *vm = nullptr);
+int runRepl(VM *vm = nullptr);
 } // namespace Frontend
 
 } // namespace Phasor

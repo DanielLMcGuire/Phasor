@@ -30,7 +30,7 @@ bool startsWith(const std::string &input, const std::string &prefix)
 	return false;
 }
 
-void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
+int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 {
 	Lexer                 lexer(source);
 	Parser                parser(lexer.tokenize());
@@ -38,6 +38,7 @@ void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	auto                  program = parser.parse();
 	auto                  bytecode = codegen.generate(*program);
 
+	int status = 0;
 	bool ownVM = false;
 
 	if (vm == nullptr)
@@ -55,7 +56,7 @@ void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	Phasor::FFI("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([&status](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -63,10 +64,15 @@ void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		status = runScript(buffer.str());
 	});
 
-	vm->run(bytecode);
+	if (status != 0) {
+		if (ownVM) delete vm;
+		return status;
+	}
+
+	return vm->run(bytecode);
 
 	if (ownVM)
 	{
@@ -74,11 +80,12 @@ void pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	}
 }
 
-void pulsar::Frontend::runRepl(Phasor::VM *vm)
+int pulsar::Frontend::runRepl(Phasor::VM *vm)
 {
 	std::cout << "Pulsar REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
 	std::cout << "Type 'exit()' to quit. Function declarations will not work.\n";
 
+	int status = 0;
 	bool ownVM = false;
 	if (vm == nullptr)
 	{
@@ -95,7 +102,7 @@ void pulsar::Frontend::runRepl(Phasor::VM *vm)
 	Phasor::FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([&status](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -103,8 +110,13 @@ void pulsar::Frontend::runRepl(Phasor::VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		status = runScript(buffer.str());
 	});
+
+	if (status != 0) {
+		if (ownVM) delete vm;
+		return status;
+	}
 
 	std::map<std::string, int> globalVars;
 	int                        nextVarIdx = 0;
@@ -173,7 +185,7 @@ void pulsar::Frontend::runRepl(Phasor::VM *vm)
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 
-			vm->run(bytecode);
+			return vm->run(bytecode);
 		}
 		catch (const std::exception &e)
 		{

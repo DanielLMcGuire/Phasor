@@ -20,7 +20,7 @@ class VM
 {
   public:
 	/// @brief Run the virtual machine
-	void run(const Bytecode &bytecode);
+	int run(const Bytecode &bytecode);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
@@ -127,6 +127,8 @@ class VM
 	void logerr(const Value &msg);
 	void flush();
 	void flusherr();
+
+	int status = 0;
 
   private:
 	/// @brief Import handler for loading modules

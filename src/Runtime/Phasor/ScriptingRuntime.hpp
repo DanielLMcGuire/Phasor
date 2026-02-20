@@ -38,7 +38,7 @@ class ScriptingRuntime
 	void showHelp(const std::string &programName);
 
 	int  runSource();
-	void runSourceString(const std::string &source, VM &vm);
+	int runSourceString(const std::string &source, VM &vm);
 
 	std::unique_ptr<VM> createVm();
 };

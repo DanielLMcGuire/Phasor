@@ -66,12 +66,12 @@ int BinaryRuntime::run()
 		if (m_args.verbose)
 			std::cerr << "DEBUG: About to run bytecode" << std::endl;
 
-		vm->run(bytecode);
+		int status = vm->run(bytecode);
 
 		if (m_args.verbose)
-			std::cerr << "DEBUG: Bytecode execution complete" << std::endl;
+			std::cerr << "DEBUG: Bytecode execution complete with return " << status << std::endl;
 
-		return 0;
+		return status;
 	}
 	catch (const std::exception &e)
 	{

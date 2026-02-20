@@ -30,8 +30,9 @@ bool startsWith(const std::string &input, const std::string &prefix)
 	return false;
 }
 
-void Phasor::Frontend::runScript(const std::string &source, VM *vm)
+int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 {
+	int status = 0;
 	Lexer lexer(source);
 	auto  tokens = lexer.tokenize();
 
@@ -58,7 +59,7 @@ void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([&status](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -66,22 +67,29 @@ void Phasor::Frontend::runScript(const std::string &source, VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		status = runScript(buffer.str());
 	});
 
-	vm->run(bytecode);
+	if (status != 0) {
+		if (ownVM) delete vm;
+		return status;
+	}
+
+	status = vm->run(bytecode);
 
 	if (ownVM)
 	{
 		delete vm;
 	}
+
+	return status;
 }
 
-void Phasor::Frontend::runRepl(VM *vm)
+int Phasor::Frontend::runRepl(VM *vm)
 {
 	std::cout << "Phasor REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
 	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
-
+	int status = 0;
 	bool ownVM = false;
 	if (vm == nullptr)
 	{
@@ -98,7 +106,7 @@ void Phasor::Frontend::runRepl(VM *vm)
 	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([&status](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -106,8 +114,13 @@ void Phasor::Frontend::runRepl(VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		status = runScript(buffer.str());
 	});
+
+	if (status != 0) {
+		if (ownVM) delete vm;
+		return status;
+	}
 
 	std::map<std::string, int> globalVars;
 	int                        nextVarIdx = 0;
@@ -180,7 +193,7 @@ void Phasor::Frontend::runRepl(VM *vm)
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 
-			vm->run(bytecode);
+			status = vm->run(bytecode);
 		}
 		catch (const std::exception &e)
 		{
@@ -188,8 +201,11 @@ void Phasor::Frontend::runRepl(VM *vm)
 			error(errorMsg);
 		}
 	}
+
 	if (ownVM)
 	{
 		delete vm;
 	}
+
+	return status;
 }

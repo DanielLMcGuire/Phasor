@@ -34,7 +34,7 @@ class Repl
 
   private:
 	int         runRepl();
-	static void runSourceString(const std::string &source, VM &vm);
+	static int runSourceString(const std::string &source, VM &vm);
 
 	std::unique_ptr<VM> createVm();
 

@@ -33,8 +33,8 @@ class Interpreter
 	void parseArguments(int argc, char *argv[]);
 	void showHelp();
 
-	int  runSource();
-	void runSourceString(const std::string &source, Phasor::VM &vm);
+	int runSource();
+	int runSourceString(const std::string &source, Phasor::VM &vm);
 
 	std::unique_ptr<Phasor::VM> createVm();
 };

@@ -42,6 +42,8 @@ NativeRuntime::NativeRuntime(const std::string &script, const int argc, char **a
 	CodeGenerator codegen;
 	m_bytecode = codegen.generate(*program);
 	m_vm = std::make_unique<VM>();
+
+	m_vm->registerNativeFunction("lib_Phasor", runScript);
 }
 
 NativeRuntime::~NativeRuntime()
@@ -58,7 +60,7 @@ void NativeRuntime::addNativeFunction(const std::string &name, void *function)
 	m_vm->registerNativeFunction(name, nativeFunction);
 }
 
-void NativeRuntime::eval(VM *vm, const std::string &script)
+int NativeRuntime::eval(VM *vm, const std::string &script)
 {
 	Lexer lexer(script);
 	auto  tokens = lexer.tokenize();
@@ -69,7 +71,7 @@ void NativeRuntime::eval(VM *vm, const std::string &script)
 	CodeGenerator codegen;
 	auto          bytecode = codegen.generate(*program);
 
-	vm->run(bytecode);
+	return vm->run(bytecode);
 }
 
 int NativeRuntime::run()
@@ -91,7 +93,7 @@ int NativeRuntime::run()
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});
 
-		m_vm->run(m_bytecode);
+		return m_vm->run(m_bytecode);
 	}
 	catch (const std::exception &e)
 	{
@@ -100,6 +102,18 @@ int NativeRuntime::run()
 		return 1;
 	}
 	return 0;
+}
+
+Value NativeRuntime::runScript(const std::vector<Value> &args, VM *)
+{
+	VM newVM;
+	StdLib::checkArgCount(args, 1, "lib_Phasor");
+	Lexer lexer(args[1].asString());
+	Parser parser(lexer.tokenize());
+	CodeGenerator codegen;
+	auto program = parser.parse();
+	auto bytecode = codegen.generate(*program);
+	return newVM.run(bytecode);
 }
 
 } // namespace Phasor

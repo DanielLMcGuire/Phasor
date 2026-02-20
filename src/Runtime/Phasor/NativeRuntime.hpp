@@ -24,9 +24,10 @@ class NativeRuntime
 	int  run();
 	void addNativeFunction(const std::string &name, void *function);
 
-	static void eval(VM *vm, const std::string &script);
+	static int eval(VM *vm, const std::string &script);
 
   private:
+	static Value runScript(const std::vector<Value> &args, VM *vm); // Run script on independent VM
 	Bytecode             m_bytecode;
 	std::vector<uint8_t> m_bytecodeData;
 	std::string          m_script;

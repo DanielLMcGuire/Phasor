@@ -6,7 +6,7 @@
 namespace Phasor
 {
 
-void VM::run(const Bytecode &bc)
+int VM::run(const Bytecode &bc)
 {
 	this->bytecode = &bc;
 	pc = 0;
@@ -33,6 +33,7 @@ void VM::run(const Bytecode &bc)
 			throw;
 		}
 	}
+	return status;
 }
 
 void VM::setImportHandler(ImportHandler handler)

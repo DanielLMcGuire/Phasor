@@ -63,7 +63,7 @@ int Interpreter::runSource()
 	return 0;
 }
 
-void Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
+int Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
 {
 	Lexer                 lexer(source);
 	Parser                parser(lexer.tokenize());
@@ -78,7 +78,7 @@ void Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
 	}
 	auto bytecode = codegen.generate(*program);
 
-	vm.run(bytecode);
+	return vm.run(bytecode);
 }
 
 std::unique_ptr<Phasor::VM> Interpreter::createVm()

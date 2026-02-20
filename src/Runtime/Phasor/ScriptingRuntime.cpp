@@ -63,7 +63,7 @@ int ScriptingRuntime::runSource()
 	return 0;
 }
 
-void ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
+int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 {
 	Lexer  lexer(source);
 	auto   tokens = lexer.tokenize();
@@ -80,7 +80,7 @@ void ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 	CodeGenerator codegen;
 	auto          bytecode = codegen.generate(*program);
 
-	vm.run(bytecode);
+	return vm.run(bytecode);
 }
 
 std::unique_ptr<VM> ScriptingRuntime::createVm()
