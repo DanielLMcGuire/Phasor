@@ -16,10 +16,7 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-include_stdio();
-include_stdfile();
-include_stdsys();
-include_stdstr();
+using("stdio", "stdfile", "stdsys", "stdstr");
 
 fn show_help() -> void {
     puts("Usage: rm [OPTION]... FILE...");

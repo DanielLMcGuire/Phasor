@@ -3,10 +3,7 @@
 // (C) 2026 Daniel McGuire
 // This file is licensed under the MIT License
 
-include_stdio();
-include_stdstr();
-include_stdsys();
-include_stdfile();
+using("stdio", "stdfile", "stdsys", "stdstr");
 
 puts("Phasor Shell\n(C) 2026 Daniel McGuire\n");
 

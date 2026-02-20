@@ -16,10 +16,7 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-include_stdfile();
-include_stdsys();
-include_stdstr();
-include_stdio();
+using("stdio", "stdfile", "stdsys", "stdstr");
 
 var g_show_hidden = false;
 var g_long_format = false;

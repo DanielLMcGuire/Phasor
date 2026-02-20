@@ -17,10 +17,7 @@
 //   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Include standard libraries
-include_stdio();
-include_stdfile();
-include_stdsys();
-include_stdstr();
+using("stdio", "stdfile", "stdsys", "stdstr");
 
 // Global variables for options
 var g_show_all = false;        // -A, --show-all
