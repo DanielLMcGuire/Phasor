@@ -39,5 +39,7 @@ include(cmake/AssemblyConfig.cmake)
 # Build
 add_subdirectory(src)
 
+add_subdirectory(thirdparty)
+
 # Install
 include(cmake/InstallConfig.cmake)
