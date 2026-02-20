@@ -5,6 +5,7 @@ phasorstd_file \- Phasor file system functions
 .nf
 .B using("stdfile");
 .PP
+.B fabsolute(path)
 .B fread(path)
 .B fwrite(path, content)
 .B fexists(path)
@@ -38,6 +39,21 @@ Path to the file
 .PP
 .B Returns:
 String containing file contents, or null if file cannot be opened
+.RE
+.PP
+.TP
+.BR fabsolute (path)
+Get the absolute path of a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+Absolute path
 .RE
 .PP
 .TP
