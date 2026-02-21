@@ -41,6 +41,8 @@ struct Node
 {
 	virtual ~Node() = default;
 	virtual void print(int indent = 0) const = 0;
+	size_t       line = 0;
+	size_t       column = 0;
 };
 
 /// @brief Expression Node

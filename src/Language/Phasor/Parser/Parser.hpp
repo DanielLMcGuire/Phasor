@@ -1,6 +1,7 @@
 #pragma once
 #include "../../../AST/AST.hpp"
 #include <memory>
+#include <optional>
 #include <vector>
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -12,11 +13,22 @@ class Parser
   public:
 	Parser(const std::vector<Token> &tokens);
 	std::unique_ptr<AST::Program> parse();
-
+	
+	struct Error
+	{
+		std::string message;
+		size_t      line;
+		size_t      column;
+	};
+	std::optional<Error> getError() const
+	{
+		return lastError;
+	}
   private:
 	std::vector<Token> tokens;
 	int                current = 0;
 	std::string        currentFunction = "";
+	std::optional<Error> lastError;
 
 	Token peek();
 	Token previous();
