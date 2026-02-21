@@ -15,6 +15,27 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - **C-style Control flow**: if/else, while, for, switch/case, break/continue
 - **Comprehensive standard library**
 - **Windows and POSIX API Bindings**
+- Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
+
+```javascript
+// Print
+print "Hello World!\n"; // Print to console
+// Or 
+using("stdio"); // Import io for puts
+puts("Hello World!"); // Print string with newline
+```
+```javascript
+using("stdsys", "stdio"); // Import sys, io
+// Variables
+var code = 15; // int
+var fmt = "Code = %d"; // string
+// Formatting
+printf("Exiting with code %d", code);
+putf("%d", code);
+var fmtStr = c_fmt(fmt, code);
+// Exit with a code other than 0
+shutdown(code); // from stdsys
+```
 
 ## Upcoming 
 > [!NOTE]
