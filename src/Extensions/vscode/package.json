@@ -23,35 +23,20 @@
     "languages": [
       {
         "id": "phasor",
-        "aliases": [
-          "Phasor",
-          "phasor"
-        ],
-        "extensions": [
-          "phs"
-        ],
+        "aliases": ["Phasor", "phasor"],
+        "extensions": ["phs"],
         "configuration": "./language-configuration-phasor.json"
       },
       {
         "id": "pulsar",
-        "aliases": [
-          "Pulsar",
-          "pulsar"
-        ],
-        "extensions": [
-          "pul"
-        ],
+        "aliases": ["Pulsar", "pulsar"],
+        "extensions": ["pul"],
         "configuration": "./language-configuration-pulsar.json"
       },
       {
         "id": "phasor-ir",
-        "aliases": [
-          "PhasorIR",
-          "phasor-ir"
-        ],
-        "extensions": [
-          "phir"
-        ],
+        "aliases": ["PhasorIR", "phasor-ir"],
+        "extensions": ["phir"],
         "configuration": "./language-configuration-ir.json"
       }
     ],
@@ -86,13 +71,6 @@
           "when": "resourceLangId == phasor",
           "group": "navigation"
         }
-      ],
-      "editor/context": [
-        {
-          "command": "phasor.run",
-          "when": "resourceLangId == phasor",
-          "group": "navigation"
-        }
       ]
     },
     "configuration": {
@@ -101,7 +79,7 @@
         "phasor.jitPath": {
           "type": "string",
           "default": "phasorjit",
-          "description": "Path to the Phasor JIT executable. Use 'phasorjit' if it's in your PATH, or provide the full path to the executable."
+          "description": "Path to the Phasor JIT executable."
         },
         "phasor.jitArgs": {
           "type": "array",
@@ -115,13 +93,33 @@
           "type": "boolean",
           "default": true,
           "description": "Clear the output panel before running a file."
+        },
+        "phasor.lspPath": {
+          "type": "string",
+          "default": "phasor-lsp",
+          "description": "Path to the Phasor Language Server executable."
+        },
+        "phasor.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "verbose",
+          "description": "Traces the communication between VS Code and the Phasor language server."
         }
       }
     }
   },
+  "activationEvents": [
+    "onLanguage:phasor",
+    "onLanguage:pulsar",
+    "onLanguage:phasor-ir"
+  ],
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
   "devDependencies": {
     "@types/node": "^25.0.9",
     "@types/vscode": "^1.108.1",
+    "eslint": "^10.0.1",
     "typescript": "^5.9.3"
   }
 }

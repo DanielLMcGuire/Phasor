@@ -64,6 +64,14 @@ add_executable(pulsar_compiler
 target_link_libraries(pulsar_compiler pulsar_language PhasorCodegen)
 set_target_properties(pulsar_compiler PROPERTIES OUTPUT_NAME pulsarcompiler)
 
+add_executable(phasor_lsp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LSP/Phasor/LSP_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/LSP/Phasor/LSP.cpp
+    ${CMAKE_SOURCE_DIR}/src/LSP/Phasor/LSP.hpp
+)
+target_link_libraries(phasor_lsp phasor_language PhasorCodegen)
+set_target_properties(phasor_lsp PROPERTIES OUTPUT_NAME phasor-lsp)
+
 add_executable(phasor_disasm
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler_main.cpp

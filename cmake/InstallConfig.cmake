@@ -12,6 +12,7 @@ if(WIN32)
         phasor_repl
         phasor_interpreter
         phasor_shell
+        phasor_lsp
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -35,6 +36,7 @@ elseif(APPLE)
         phasor_repl
         phasor_interpreter
         phasor_shell
+        phasor_lsp
         RUNTIME DESTINATION usr/local/bin
         LIBRARY DESTINATION usr/local/lib
         ARCHIVE DESTINATION usr/local/lib
@@ -59,6 +61,7 @@ else()
         phasor_repl
         phasor_interpreter
         phasor_shell
+        phasor_lsp
         RUNTIME DESTINATION usr/bin
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib
