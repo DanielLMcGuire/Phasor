@@ -8,17 +8,17 @@ namespace Phasor
 
 int VM::run(const Bytecode &bc)
 {
-	this->bytecode = &bc;
+	m_bytecode = &bc;
 	pc = 0;
 	stack.clear();
 	callStack.clear();
 
 	registers.fill(Value());
-	variables.resize(bytecode->nextVarIndex);
+	variables.resize(m_bytecode->nextVarIndex);
 
-	while (pc < bytecode->instructions.size())
+	while (pc < m_bytecode->instructions.size())
 	{
-		const Instruction &instr = bytecode->instructions[pc++];
+		const Instruction &instr = m_bytecode->instructions[pc++];
 #ifdef _DEBUG
 		log(std::string("EXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
 		flush();
@@ -27,20 +27,20 @@ int VM::run(const Bytecode &bc)
 		{
 			operation(instr.op, instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5);
 		}
+		catch (const VM::Halt &)
+		{
+			return status;
+		}
 		catch (const std::exception &ex)
 		{
 			std::cerr << ex.what() << "\n\n" << getInformation() << "\n";
 			throw;
 		}
-	    catch (const VM::Halt &)
-		{
-			return status;
-		}
 	}
-	return status;
+	return 1;
 }
 
-void VM::setImportHandler(ImportHandler handler)
+void VM::setImportHandler(const ImportHandler &handler)
 {
 	importHandler = handler;
 }
@@ -61,7 +61,7 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 		variables.clear();
 	}
 	pc = 0;
-	bytecode = nullptr;
+	m_bytecode = nullptr;
 }
 
 std::string VM::getInformation()

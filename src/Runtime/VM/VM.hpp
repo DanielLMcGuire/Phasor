@@ -19,7 +19,25 @@ namespace Phasor
 class VM
 {
   public:
+	explicit VM()
+	{
+	}
+	explicit VM(const Bytecode &bytecode)
+	{
+		run(bytecode);
+	}
+	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
+	            const int &operand4 = 0, const int &operand5 = 0)
+	{
+		operation(op, operand1, operand2, operand3, operand4, operand5);
+	}
+	~VM()
+	{
+		flush();
+		flusherr();
+	}
 	/// @brief Run the virtual machine
+	/// Exits -11654 on unknown error
 	int run(const Bytecode &bytecode);
 
 	/// @brief Native function signature
@@ -29,7 +47,7 @@ class VM
 	void registerNativeFunction(const std::string &name, NativeFunction fn);
 
 	using ImportHandler = std::function<void(const std::filesystem::path &path)>;
-	void setImportHandler(ImportHandler handler);
+	void setImportHandler(const ImportHandler &handler);
 
 	/// @brief Free a variable in the VM
 	void freeVariable(const size_t index);
@@ -157,7 +175,7 @@ class VM
 	std::vector<Value> variables;
 
 	/// @brief Bytecode to execute
-	const Bytecode *bytecode;
+	const Bytecode *m_bytecode;
 
 	/// @brief Program counter
 	size_t pc = 0;

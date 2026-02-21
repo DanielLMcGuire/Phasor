@@ -179,9 +179,10 @@ Value StdLib::sys_exec_get_error(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "error");
-	throw std::runtime_error(args[0].asString());
+	checkArgCount(args, 1, "error", true);
 	vm->reset();
+	vm->status = -1;
+	throw std::runtime_error(args[0].asString());
 }
 
 Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)

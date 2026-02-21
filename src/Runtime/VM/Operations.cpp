@@ -17,9 +17,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	switch (op)
 	{
 	case OpCode::PUSH_CONST:
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index");
-		push(bytecode->constants[operand1]);
+		push(m_bytecode->constants[operand1]);
 		break;
 
 	case OpCode::POP:
@@ -311,7 +311,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::IMPORT: {
-		Value       pathVal = bytecode->constants[operand1];
+		Value       pathVal = m_bytecode->constants[operand1];
 		std::string path = pathVal.asString();
 		if (importHandler)
 			importHandler(path);
@@ -320,11 +320,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 	case OpCode::HALT:
-		pc = bytecode->instructions.size(); // stop execution
+		pc = m_bytecode->instructions.size(); // stop execution
 		break;
 
 	case OpCode::CALL_NATIVE: {
-		Value       funcNameVal = bytecode->constants[operand1];
+		Value       funcNameVal = m_bytecode->constants[operand1];
 		std::string funcName = funcNameVal.asString();
 		auto        it = nativeFunctions.find(funcName);
 		if (it == nativeFunctions.end())
@@ -351,10 +351,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 
 	case OpCode::CALL: {
-		Value       funcNameVal = bytecode->constants[operand1];
+		Value       funcNameVal = m_bytecode->constants[operand1];
 		std::string funcName = funcNameVal.asString();
-		auto        it = bytecode->functionEntries.find(funcName);
-		if (it == bytecode->functionEntries.end())
+		auto        it = m_bytecode->functionEntries.find(funcName);
+		if (it == m_bytecode->functionEntries.end())
 			throw std::runtime_error("Unknown function: " + funcName);
 
 		callStack.push_back(static_cast<int>(pc));
@@ -364,7 +364,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::RETURN: {
 		if (callStack.empty())
 		{
-			pc = bytecode->instructions.size();
+			pc = m_bytecode->instructions.size();
 			break;
 		}
 		pc = callStack.back();
@@ -396,9 +396,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::LOAD_CONST_R: {
 		// LOAD_CONST_R rA, constIndex
 		int constIndex = operand2;
-		if (constIndex < 0 || constIndex >= static_cast<int>(bytecode->constants.size()))
+		if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index");
-		registers[rA] = bytecode->constants[constIndex];
+		registers[rA] = m_bytecode->constants[constIndex];
 		break;
 	}
 
@@ -767,18 +767,18 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
 		// operand1: structIndex into bytecode->structs
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->structs.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
 
-		const StructInfo &info = bytecode->structs[operand1];
+		const StructInfo &info = m_bytecode->structs[operand1];
 		// Create struct instance by name, then apply default values from constants
 		Value instance = Value::createStruct(info.name);
 		for (int i = 0; i < info.fieldCount; ++i)
 		{
 			int constIndex = info.firstConstIndex + i;
-			if (constIndex < 0 || constIndex >= static_cast<int>(bytecode->constants.size()))
+			if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
 				throw std::runtime_error("Invalid default constant index for struct field");
-			const Value       &defVal = bytecode->constants[constIndex];
+			const Value       &defVal = m_bytecode->constants[constIndex];
 			const std::string &fieldName = info.fieldNames[i];
 			instance.setField(fieldName, defVal);
 		}
@@ -788,9 +788,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::GET_FIELD_STATIC: {
 		// operand1: structIndex, operand2: fieldOffset
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->structs.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
-		const StructInfo &info = bytecode->structs[operand1];
+		const StructInfo &info = m_bytecode->structs[operand1];
 		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
@@ -802,9 +802,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::SET_FIELD_STATIC: {
 		// operand1: structIndex, operand2: fieldOffset
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->structs.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
-		const StructInfo &info = bytecode->structs[operand1];
+		const StructInfo &info = m_bytecode->structs[operand1];
 		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
@@ -817,18 +817,18 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::NEW_STRUCT: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for NEW_STRUCT");
-		Value       nameVal = bytecode->constants[operand1];
+		Value       nameVal = m_bytecode->constants[operand1];
 		std::string structName = nameVal.asString();
 		push(Value::createStruct(structName));
 		break;
 	}
 
 	case OpCode::SET_FIELD: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for SET_FIELD");
-		std::string fieldName = bytecode->constants[operand1].asString();
+		std::string fieldName = m_bytecode->constants[operand1].asString();
 		Value       value = pop();
 		Value       obj = pop();
 		obj.setField(fieldName, value);
@@ -837,9 +837,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::GET_FIELD: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(bytecode->constants.size()))
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for GET_FIELD");
-		std::string fieldName = bytecode->constants[operand1].asString();
+		std::string fieldName = m_bytecode->constants[operand1].asString();
 		Value       obj = pop();
 		push(obj.getField(fieldName));
 		break;

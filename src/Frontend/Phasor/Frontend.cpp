@@ -127,6 +127,7 @@ int Phasor::Frontend::runRepl(VM *vm)
 	CodeGenerator              codegen;
 
 	std::string line;
+	bool cleanExit = false;
 	while (true)
 	{
 		try
@@ -174,6 +175,7 @@ int Phasor::Frontend::runRepl(VM *vm)
 				continue;
 			}
 			if (startsWith(line, "exit"))
+				cleanExit = true;
 				break;
 			if (line.empty())
 			{
@@ -203,9 +205,10 @@ int Phasor::Frontend::runRepl(VM *vm)
 	}
 
 	if (ownVM)
-	{
 		delete vm;
-	}
+
+	if (cleanExit)
+		return 0;
 
 	return status;
 }
