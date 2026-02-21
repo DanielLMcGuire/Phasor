@@ -98,6 +98,16 @@ class VM
 		r24,
 		r25 // If you are here to try adding more, step back and think about what got you here in the first place
 	};
+
+	class Halt : public std::exception
+	{
+	  public:
+		const char *what() const noexcept override
+		{
+			return "";
+		}
+	};
+
 #ifdef _WIN32
 	/// @brief Execute a single operation
 	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,

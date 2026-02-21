@@ -32,6 +32,10 @@ int VM::run(const Bytecode &bc)
 			std::cerr << ex.what() << "\n\n" << getInformation() << "\n";
 			throw;
 		}
+	    catch (const VM::Halt &)
+		{
+			return status;
+		}
 	}
 	return status;
 }

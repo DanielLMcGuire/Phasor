@@ -56,7 +56,7 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	Phasor::FFI("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([&status](const std::filesystem::path &path) {
+	vm->setImportHandler([](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -64,7 +64,7 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		status = runScript(buffer.str());
+		runScript(buffer.str());
 	});
 
 	if (status != 0) {
@@ -102,7 +102,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	Phasor::FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([&status](const std::filesystem::path &path) {
+	vm->setImportHandler([](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -110,7 +110,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		status = runScript(buffer.str());
+		runScript(buffer.str());
 	});
 
 	if (status != 0) {

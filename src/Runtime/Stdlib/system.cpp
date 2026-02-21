@@ -197,7 +197,7 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 	vm->reset();
 	int ret = static_cast<int>(args[0].asInt());
 	vm->status = ret;
-	vm->operation(OpCode::HALT);
+	throw VM::Halt();
 	return Value();
 }
 
