@@ -1,18 +1,18 @@
-#include "Frontend.hpp"
 #include "../../Language/Pulsar/Lexer/Lexer.hpp"
 #include "../../Language/Pulsar/Parser/Parser.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
+#include "../../Runtime/FFI/ffi.hpp"
 
 #include <version.h>
-
-#include "../../Runtime/FFI/ffi.hpp"
-#include "../../sscanf.h"
+#include <sscanf.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include "Frontend.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>

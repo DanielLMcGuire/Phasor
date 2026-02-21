@@ -8,7 +8,7 @@
 #include <version.h>
 
 #include "../../Runtime/FFI/ffi.hpp"
-#include "../../sscanf.h"
+#include <sscanf.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>

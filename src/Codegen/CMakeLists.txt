@@ -12,6 +12,7 @@ set(CODEGEN_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Cpp/CppCodeGenerator.hpp
+    ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
 )
 
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
