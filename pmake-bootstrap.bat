@@ -42,7 +42,7 @@ if /i "%ARCH%"=="32" (
     exit /b 1
 )                           
 powershell -Command "Write-Host -NoNewline \"`n[----------] SYNC\""
-git submodule update
+git submodule update --init
 if errorlevel 1 (
     echo Failed to update git submodules
     exit /b 1
