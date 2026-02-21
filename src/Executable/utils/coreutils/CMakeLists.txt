@@ -4,7 +4,7 @@ foreach(tgt ${TARGETS})
     set(PHS "${CMAKE_SOURCE_DIR}/src/utils/coreutils/${tgt}.phs")
     set(HEADER "${CMAKE_CURRENT_BINARY_DIR}/${tgt}.hpp")
     set(GEN_CPP "${CMAKE_CURRENT_BINARY_DIR}/${tgt}.cpp")
-    set(PATH_COUT "${BIN_RAW}/${tgt}.hpp")
+    set(PATH_COUT "${CMAKE_CURRENT_BINARY_DIR}/${tgt}.hpp")
 
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
