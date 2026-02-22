@@ -3,6 +3,6 @@ One per instance
 
 Instances are a vector of structs containing state, and bytecode, pc, etc 
 
-And a shared call stack pair for external calls, which denotes vector index and pc of caller 
+For shared state, a shared call stack (pair of caller pc, and recipient of calls pc), and also current instance
 
-The current calling convention is for the args, then arg count to be pushed by the called function, then the VM in this case will forward those over to the stack of the other instance
+The current calling convention is for the args, then arg count to be pushed by the called function, then the VM in this case will forward those over to the stack of the calling instance, and set the current instance back
