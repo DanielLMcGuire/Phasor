@@ -4,8 +4,8 @@
 #define IDI_APP_ICON 101
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,0,0,0
- PRODUCTVERSION 3,0,0,0
+ FILEVERSION 4,0,0,0
+ PRODUCTVERSION 4,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -22,12 +22,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Phasor"
             VALUE "FileDescription", "Pulsar Interpreter"
-            VALUE "FileVersion", "3.0.0.0"
+            VALUE "FileVersion", "4.0.0.0"
             VALUE "InternalName", "pulsar.exe"
             VALUE "LegalCopyright", "© 2026 Daniel McGuire"
             VALUE "OriginalFilename", "pulsar.exe"
             VALUE "ProductName", "Pulsar Scripting Language"
-            VALUE "ProductVersion", "3.0.0.0"
+            VALUE "ProductVersion", "4.0.0.0"
         END
     END
     BLOCK "VarFileInfo"

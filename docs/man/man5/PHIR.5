@@ -1,4 +1,4 @@
-.TH PHIR 5 "January 2026" "Phasor 3.0.0" "Phasor File Formats"
+.TH PHIR 5 "January 2026" "Phasor 4.0.0" "Phasor File Formats"
 .SH NAME
 phir \- Phasor Intermediate Representation format
 .SH DESCRIPTION
@@ -16,7 +16,7 @@ The file begins with a magic identifier and version number:
 .PP
 .nf
 .RS
-\&.PHIR 3.0.0
+\&.PHIR 4.0.0
 .RE
 .fi
 .RE
@@ -220,7 +220,7 @@ A simple PHIR file:
 .PP
 .nf
 .RS
-\&.PHIR 3.0.0
+\&.PHIR 4.0.0
 \&.CONSTANTS 2
 STRING "Hello, World!"
 INT 42
@@ -278,7 +278,7 @@ The PHIR format provides several benefits:
 - Suitable for automated analysis tools
 .RE
 .SH VERSION COMPATIBILITY
-The current PHIR format version is 3.0.0.
+The current PHIR format version is 4.0.0.
 .RE
 .SH SEE ALSO
 .BR phasorcompiler (1),

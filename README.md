@@ -15,6 +15,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - **C-style Control flow**: if/else, while, for, switch/case, break/continue
 - **Comprehensive standard library**
 - **Windows and POSIX API Bindings**
+- **Modules** ```import("module");```
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 
 ```javascript
@@ -44,7 +45,6 @@ shutdown(code); // from stdsys
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
-- **[Translation units / Modules](https://github.com/DanielLMcGuire/Phasor/issues/5)** 
 
 ---
 

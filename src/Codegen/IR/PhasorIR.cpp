@@ -424,7 +424,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 	std::stringstream ss;
 
 	// Write Header
-	ss << ".PHIR 3.0.0" << "\n";
+	ss << ".PHIR 4.0.0" << "\n";
 
 	// Build reverse lookup maps for inline comments
 	std::map<int, std::string> indexToVarName;
@@ -610,7 +610,7 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 		{
 			std::string version;
 			ss >> version;
-			if (version < "1.0.0")
+			if (version < "4.0.0")
 			{
 				throw std::runtime_error("Incompatible Phasor IR version");
 			}

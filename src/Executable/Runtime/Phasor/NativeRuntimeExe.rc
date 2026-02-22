@@ -2,7 +2,7 @@
 #include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
- PRODUCTVERSION 3,0,0,0
+ PRODUCTVERSION 4,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -20,7 +20,7 @@ BEGIN
             VALUE "FileDescription", "Phasor VM Native Program"
             VALUE "InternalName", "phasorprogram.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "3.0.0.0"
+            VALUE "ProductVersion", "4.0.0.0"
         END
     END
     BLOCK "VarFileInfo"

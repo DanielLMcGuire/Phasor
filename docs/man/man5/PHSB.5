@@ -1,4 +1,4 @@
-.TH PHSB 5 "January 2026" "Phasor 3.0.0" "Phasor File Formats"
+.TH PHSB 5 "January 2026" "Phasor 4.0.0" "Phasor File Formats"
 .SH NAME
 phsb \- Phasor Binary bytecode format
 .SH DESCRIPTION
@@ -17,7 +17,7 @@ A PHSB file consists of a header followed by multiple data sections. All multi-b
 4-byte magic number: 0x50485342 (ASCII: "PHSB")
 .TP
 .B Offset 4-7: Version
-4-byte version number: 0x03000000 (version 3.0.0.0)
+4-byte version number: 0x03000000 (version 4.0.0.0)
 .TP
 .B Offset 8-11: Flags
 4-byte flags field (reserved for future use, currently 0)
@@ -172,7 +172,7 @@ UTF-8 encoding for all text data
 .PP
 A PHSB file compiled on one platform can be executed on any other platform with a compatible Phasor VM.
 .SH VERSION COMPATIBILITY
-The version number in the header (currently 3.0.0.0) determines compatibility:
+The version number in the header (currently 4.0.0.0) determines compatibility:
 .RS
 .IP \(bu 2
 The VM checks the version before loading
