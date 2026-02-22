@@ -44,7 +44,7 @@ shutdown(code); // from stdsys
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
-- **[Modules](https://github.com/DanielLMcGuire/Phasor/issues/5)** 
+- **[Translation units / Modules](https://github.com/DanielLMcGuire/Phasor/issues/5)** 
 
 ---
 
