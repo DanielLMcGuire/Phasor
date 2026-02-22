@@ -163,7 +163,7 @@ class VM
 	ImportHandler importHandler;
 
 	/// @brief Virtual registers for register-based operations (v2.0)
-	std::array<Value, 256> registers;
+	std::array<Value, 64> registers;
 
 	/// @brief Stack for function calls
 	std::vector<Value> stack;
