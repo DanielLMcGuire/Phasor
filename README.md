@@ -4,6 +4,8 @@ A statically typed, compiled programming language with a hybrid stack/register-b
 
 Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
 
+Do not expect a finished product, expect more of a 'fancy scripting interpreter' mixed with a runtime enviroment.
+
 You can check out the [website](https://phasor.pages.dev/) as well.
 
 ---
