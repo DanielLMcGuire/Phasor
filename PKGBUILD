@@ -28,13 +28,13 @@ pkgver() {
 
 build() {
     cd "$startdir"
-    cmake -S "$startdir" -B "$startdir/build" -G Ninja --preset linux-64-rel
-    cmake --build "$startdir/build"
+    "$startdir/pmake-bootstrap.sh"
+    "$startdir/pmake" linux-64-rel -s "$startdir" -b
 }
 
 package() {
-    cd "$startdir/build"
-    cmake --install . --prefix "$pkgdir"
+    cd "$startdir"
+    "$startdir/pmake" -i "$pkgdir"
     
     # Install man pages
     for section in 1 3 5 7; do
