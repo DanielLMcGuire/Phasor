@@ -9,6 +9,8 @@ struct Frame
 { 
     std::vector<Value> stack; 
     std::size_t pc; 
+    VM::errorCode = VM::errorCode::null;
+    InstanceHandle caller;
 }; 
 
 using InstanceHandle = std::size_t;
@@ -50,4 +52,4 @@ Cache can map path to instance handle. If timestamp changes, drop old instance a
 Instance* inst = runtime.instances[handle].get();
 ```
 
-Exceptions will be replaced with a new runtime system
+Exceptions will be replaced with a new system in the frame
