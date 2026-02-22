@@ -1,4 +1,3 @@
-Theoretically:
 One per instance 
 
 Instances are a vector of structs containing state, and bytecode, pc, etc 
@@ -6,3 +5,7 @@ Instances are a vector of structs containing state, and bytecode, pc, etc
 For shared state, a shared call stack (pair of caller pc, and recipient of calls pc), and also current instance
 
 The current calling convention is for the args, then arg count to be pushed by the called function, then the VM in this case will forward those over to the stack of the calling instance, and set the current instance back
+
+On top of this, bytecode would be modified with a table of obfuscated translation units, and its own internal map for common components
+
+This would require significant redesigns
