@@ -1,4 +1,5 @@
 #include "VM.hpp"
+#include "Runtime.hpp"
 #include <iostream>
 #include <stdexcept>
 #include "core/core.h"
@@ -6,81 +7,65 @@
 namespace Phasor
 {
 
-int VM::run(const Bytecode &bc)
+int VM::run(Instance &instance)
 {
-	m_bytecode = &bc;
-	pc = 0;
-	stack.clear();
-	callStack.clear();
+	m_instance = &instance;
 
-	registers.fill(Value());
-	variables.resize(m_bytecode->nextVarIndex);
+	instance.callStack.clear();
+	instance.variables.resize(instance.code.nextVarIndex);
 
-	while (pc < m_bytecode->instructions.size())
+	instance.pushFrame();
+
+	while (instance.activeFrame().pc < instance.code.instructions.size())
 	{
-		const Instruction &instr = m_bytecode->instructions[pc++];
+		const Instruction &instr = instance.code.instructions[instance.activeFrame().pc++];
+
 #ifdef _DEBUG
-		log(std::string("EXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
+		log(std::string("EXEC idx=" + std::to_string(instance.activeFrame().pc - 1) +
+		                " op=" + std::to_string(static_cast<int>(instr.op)) +
+		                " stack=" + std::to_string(instance.activeFrame().stack.size()) + "\n"));
 		flush();
 #endif
+
 		try
 		{
 			operation(instr.op, instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5);
 		}
 		catch (const VM::Halt &)
 		{
+			m_instance = nullptr;
 			return status;
 		}
 		catch (const std::exception &ex)
 		{
-			std::cerr << ex.what() << "\n\n" << getInformation() << "\n";
+			std::cerr << ex.what() << "\n\n" << getInformation(instance) << "\n";
+			m_instance = nullptr;
 			throw;
 		}
 	}
+
+	m_instance = nullptr;
 	return 1;
 }
 
-void VM::setImportHandler(const ImportHandler &handler)
+std::string VM::getInformation(Instance &instance)
 {
-	importHandler = handler;
-}
+	if (instance.callStack.empty())
+		return "No active frame";
 
-void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &resetVariables)
-{
-	if (resetStack)
-	{
-		stack.clear();
-		callStack.clear();
-	}
-	if (resetFunctions)
-	{
-		nativeFunctions.clear();
-	}
-	if (resetVariables)
-	{
-		variables.clear();
-	}
-	pc = 0;
-	m_bytecode = nullptr;
-}
+	const Frame &frame = instance.activeFrame();
+	std::string  info;
 
-std::string VM::getInformation()
-{
-	int    callStackTop = callStack.empty() ? -1 : callStack.back();
-	size_t programCounter = pc;
+	info = "R0: " + frame.registers[0].toString();
+	info += " | R1: " + frame.registers[1].toString();
+	info += " | R2: " + frame.registers[2].toString();
+	info += " | R3: " + frame.registers[3].toString();
+	info += " | PC: " + std::to_string(frame.pc);
+	info += " | Frame depth: " + std::to_string(instance.callStack.size());
 
-	std::string info = "Stack Top: ";
-	info += peek().toString();
-	info += " | R0: ";
-	info += registers[0].toString();
-	info += " | R1: ";
-	info += registers[1].toString();
-	info += " | R2: ";
-	info += registers[2].toString();
-	info += " | R3: ";
-	info += registers[3].toString();
-	info += " | Current Program Counter: " + std::to_string(programCounter);
-	info += " | PC Stack Top: " + std::to_string(callStackTop);
+	if (!frame.stack.empty())
+		info += " | Stack top: " + frame.stack.back().toString();
+
 	return info;
 }
 
@@ -96,7 +81,7 @@ void VM::logerr(const Value &msg)
 	asm_print_stderr(s.c_str(), s.length());
 }
 
-void VM::flush() 
+void VM::flush()
 {
 	fflush(stdout);
 }
@@ -105,4 +90,5 @@ void VM::flusherr()
 {
 	fflush(stderr);
 }
+
 } // namespace Phasor

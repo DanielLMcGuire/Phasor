@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Codegen/CodeGen.hpp"
 #include "../Value.hpp"
+#include "Runtime.hpp"
 #include <vector>
 #include <filesystem>
 #include <functional>
@@ -15,30 +16,24 @@ namespace Phasor
 {
 
 /// @class VM
-/// @brief Virtual Machine
+/// @brief Virtual Machine — executes bytecode within a given Instance and Frame.
+///        VM no longer owns execution state directly; pc, stack, callStack, and
+///        registers all live in Frame. The VM holds a pointer to the active
+///        Instance (owned by Runtime) and operates through it.
 class VM
 {
   public:
-	explicit VM()
-	{
-	}
-	explicit VM(const Bytecode &bytecode)
-	{
-		run(bytecode);
-	}
-	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
-	            const int &operand4 = 0, const int &operand5 = 0)
-	{
-		operation(op, operand1, operand2, operand3, operand4, operand5);
-	}
+	explicit VM() = default;
 	~VM()
 	{
 		flush();
 		flusherr();
 	}
-	/// @brief Run the virtual machine
-	/// Exits -11654 on unknown error
-	int run(const Bytecode &bytecode);
+
+	/// @brief Execute bytecode within the given instance.
+	///        Called by Runtime — do not call directly unless you know what you are doing.
+	/// @return Exit status code
+	int run(Instance &instance);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
@@ -46,84 +41,53 @@ class VM
 	/// @brief Register a native function
 	void registerNativeFunction(const std::string &name, NativeFunction fn);
 
-	using ImportHandler = std::function<void(const std::filesystem::path &path)>;
-	void setImportHandler(const ImportHandler &handler);
-
-	/// @brief Free a variable in the VM
+	/// @brief Free a variable in the current instance
 	void freeVariable(const size_t index);
 
-	/// @brief Add a variable to the VM
-	/// @param value The value to add
-	/// @return The index of the variable
+	/// @brief Add a variable to the current instance
+	/// @return Index of the new variable
 	size_t addVariable(const Value &value);
 
-	/// @brief Set a variable in the VM
-	/// @param index The index of the variable
-	/// @param value The value to set
+	/// @brief Set a variable in the current instance
 	void setVariable(const size_t index, const Value &value);
 
-	/// @brief Get a variable from the VM
+	/// @brief Get a variable from the current instance
 	Value getVariable(const size_t index);
 
-	/// @brief Get the number of variables in the VM
+	/// @brief Get the number of variables in the current instance
 	size_t getVariableCount();
 
-	/// @brief Set a register value
-	/// @param index Register index
-	/// @param value Value to set
+	/// @brief Set a register value in the active frame
 	void setRegister(uint8_t index, const Value &value);
 
-	/// @brief Free a register (reset to null)
-	/// @param index Register index to free
+	/// @brief Free a register (reset to null) in the active frame
 	void freeRegister(uint8_t index);
 
-	/// @brief Get a register value
-	/// @param index Register index
-	/// @return Value in the register
+	/// @brief Get a register value from the active frame
 	Value getRegister(uint8_t index);
 
-	/// @brief Get the total number of registers
-	/// @return Number of registers
+	/// @brief Get the total number of registers per frame
 	size_t getRegisterCount();
 
-	/// @brief Enum for lower 26 registers
+	/// @brief Named register aliases (r0–r31)
 	enum Register
 	{
-		r0,
-		r1,
-		r2,
-		r3,
-		r4,
-		r5,
-		r6,
-		r7,
-		r8,
-		r9,
-		r10,
-		r11,
-		r12,
-		r13,
-		r14,
-		r15,
-		r16,
-		r17,
-		r18,
-		r19,
-		r20,
-		r21,
-		r22,
-		r23,
-		r24,
-		r25 // If you are here to try adding more, step back and think about what got you here in the first place
+		r0,  r1,  r2,  r3,
+		r4,  r5,  r6,  r7,
+		r8,  r9,  r10, r11,
+		r12, r13, r14, r15,
+		r16, r17, r18, r19,
+		r20, r21, r22, r23,
+		r24, r25, r26, r27,
+		r28, r29, r30, r31
+		// 32 registers per frame. If you need more, I highly suggest that you reconsider.
 	};
 
+	/// @brief Thrown internally to halt execution cleanly
 	class Halt : public std::exception
 	{
 	  public:
-		const char *what() const noexcept override
-		{
-			return "";
-		}
+		const char *what() const noexcept override { return ""; }
 	};
 
 #ifdef _WIN32
@@ -132,55 +96,43 @@ class VM
 	                           const int &operand3 = 0, const int &operand4 = 0, const int &operand5 = 0);
 #else
 	/// @brief Execute a single operation
-	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
-	                const int &operand4 = 0, const int &operand5 = 0);
+	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	                const int &operand3 = 0, const int &operand4 = 0, const int &operand5 = 0);
 #endif
-	/// @brief Push a value onto the stack
+
+	/// @brief Push a value onto the active frame's stack
 	void push(const Value &value);
 
-	/// @brief Pop a value from the stack
+	/// @brief Pop a value from the active frame's stack
 	Value pop();
 
-	/// @brief Peek at the top value on the stack
+	/// @brief Peek at the top value on the active frame's stack
 	Value peek();
 
-	/// @brief Reset the virtual machine
-	void reset(const bool &resetStack = true, const bool &resetFunctions = true, const bool &resetVariables = true);
+	/// @brief Get diagnostic information for the current execution state
+	std::string getInformation(Instance &instance);
 
-	/// @brief Get VM information for debugging
-	std::string getInformation();
-
-	/// @brief Use the VM's logging via print opcode
+	/// @brief Log a value to stdout via the runtime print path
 	void log(const Value &msg);
+
+	/// @brief Log a value to stderr
 	void logerr(const Value &msg);
+
 	void flush();
 	void flusherr();
 
+	/// @brief Exit status of the last run() call
 	int status = 0;
 
   private:
-	/// @brief Import handler for loading modules
-	ImportHandler importHandler;
+	/// @brief Active instance — set at the start of run(), cleared on return
+	Instance *m_instance = nullptr;
 
-	/// @brief Virtual registers for register-based operations (v2.0)
-	std::array<Value, 64> registers;
-
-	/// @brief Stack for function calls
-	std::vector<Value> stack;
-
-	/// @brief Call stack for function calls
-	std::vector<int> callStack;
-
-	/// @brief Variable storage indexed by variable index
-	std::vector<Value> variables;
-
-	/// @brief Bytecode to execute
-	const Bytecode *m_bytecode;
-
-	/// @brief Program counter
-	size_t pc = 0;
-
-	/// @brief Native function registry
+	/// @brief Native function registry — shared across runs on this VM
 	std::map<std::string, NativeFunction> nativeFunctions;
+
+	/// @brief Convenience accessor: active frame (top of instance call stack)
+	Frame &activeFrame();
 };
+
 } // namespace Phasor

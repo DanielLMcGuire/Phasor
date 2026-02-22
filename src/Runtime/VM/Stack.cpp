@@ -6,30 +6,30 @@ namespace Phasor
 
 void VM::push(const Value &value)
 {
-	stack.push_back(value);
+	m_instance->activeFrame().stack.push_back(value);
 }
 
 Value VM::pop()
 {
-	if (stack.empty())
+	if (m_instance->activeFrame().stack.empty())
 	{
 		// Provide PC information to aid debugging
-		std::string msg = "Stack underflow at pc=" + std::to_string(pc);
+		std::string msg = "Stack underflow at pc=" + std::to_string(m_instance->activeFrame().pc);
 		throw std::runtime_error(msg);
 	}
-	Value value = stack.back();
-	stack.pop_back();
+	Value value = m_instance->activeFrame().stack.back();
+	m_instance->activeFrame().stack.pop_back();
 	return value;
 }
 
 Value VM::peek()
 {
-	if (stack.empty())
+	if (m_instance->activeFrame().stack.empty())
 	{
-		std::string msg = "Stack is empty at pc=" + std::to_string(pc);
+		std::string msg = "Stack is empty at pc=" + std::to_string(m_instance->activeFrame().pc);
 		throw std::runtime_error(msg);
 	}
-	return stack.back();
+	return m_instance->activeFrame().stack.back();
 }
 
 } // namespace Phasor

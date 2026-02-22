@@ -114,7 +114,7 @@ class CodeGenerator
 	/// @brief Allocate a new register
 	uint8_t allocateRegister()
 	{
-		for (size_t i = 0; i < 256; i++)
+		for (size_t i = 0; i < 32; i++)
 		{
 			if (i >= registerInUse.size())
 			{
@@ -126,7 +126,7 @@ class CodeGenerator
 				return static_cast<uint8_t>(i);
 			}
 		}
-		throw std::runtime_error("Out of registers");
+		throw std::runtime_error("Out of registers: exceeded 32 per frame");
 	}
 
 	/// @brief Free a register
