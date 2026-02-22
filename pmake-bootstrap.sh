@@ -64,8 +64,3 @@ echo "CLEAN"
 rm -rf "$TMP_DIR"
 
 echo "DONE"
-echo "Setting up build..."
-"$SCRIPT_DIR/pmake" "${OS}-${ARCH}-${BUILD_TYPE}" -f
-
-echo "Showing options..."
-"$SCRIPT_DIR/pmake" -h

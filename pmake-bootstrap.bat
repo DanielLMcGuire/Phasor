@@ -2,7 +2,6 @@
 setlocal
 set SCRIPT_DIR=%~dp0
 set TMP_DIR=%SCRIPT_DIR%.tmp
-set POST_STEPS=1
 
 set ARCH=%1
 if "%1"=="" (
@@ -12,8 +11,7 @@ if "%1"=="" (
     echo   64     - Build for 64-bit x86-64
     echo   arm64  - Build for ARM64
     set /p ARCH="Enter a number: "
-    cls
-    set POST_STEPS=0        
+    cls      
 )
 
 powershell -Command "Write-Host -NoNewline \"Building pmake \"; git -C thirdparty/pmake rev-parse --short HEAD"
@@ -101,25 +99,5 @@ if errorlevel 1 (
     exit /b 1
 )
 powershell -Command "Write-Host \"`r[==========]                                        `r[==========] DONE\""
-if /i "%POST_STEPS%"=="1" (
-    call "%VS_PATH%\Common7\Tools\VsDevCmd.bat" -arch=%VSBUILD_HOST_ARCH% -host_arch=%VSBUILD_HOST_ARCH% -no_logo 2>&1 1>nul
-    if errorlevel 1 (
-        echo Failed to reinitialize Visual Studio environment
-        exit /b 1
-    )
-    echo.
-    powershell -Command "Write-Host \"Setting up build...\""
-    pmake %PMAKE_TARGET% -f 2>&1 1>nul
-    if errorlevel 1 (
-        echo pmake setup failed
-        exit /b 1
-    )
-    choice /m "Do you want to build"
-    if errorlevel 2 goto end
-    if errorlevel 1 goto contd
-:contd
-    echo ^>pmake -b -i
-    pmake -b -i
 )  
-:end 
 endlocal
