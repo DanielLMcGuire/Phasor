@@ -610,7 +610,7 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 		{
 			std::string version;
 			ss >> version;
-			if (version < "1.0.0")
+			if (version < "3.0.0")
 			{
 				throw std::runtime_error("Incompatible Phasor IR version");
 			}
