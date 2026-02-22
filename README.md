@@ -22,11 +22,11 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 // Print
 print "Hello World!\n"; // Print to console
 // Or 
-using("stdio"); // Import io for puts
+import("std.io"); // Import io for puts
 puts("Hello World!"); // Print string with newline
 ```
 ```javascript
-using("stdsys", "stdio"); // Import sys, io
+import("std.sys", "std.io"); // Import sys, io
 // Variables
 var code = 15; // int
 var fmt = "Code = %d"; // string
@@ -88,7 +88,7 @@ cat input.phs | phasor
 ### Example Program
 
 ```javascript
-using("stdio", "stdtype");
+import("std.io", "std.type");
 
 puts("Enter a number:");
 var input = gets();
