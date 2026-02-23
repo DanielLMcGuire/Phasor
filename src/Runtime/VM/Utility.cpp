@@ -5,6 +5,17 @@
 #include <json.hpp>
 #include "core/core.h"
 
+#if defined(_MSC_VER)
+#define COMPILE_MESSAGE(msg) __pragma(message(msg))
+#elif defined(__GNUC__) || defined(__clang__)
+#define DO_PRAGMA(x) _Pragma(#x)
+#define COMPILE_MESSAGE(msg) DO_PRAGMA(message msg)
+#else
+#define COMPILE_MESSAGE(msg)
+#endif
+#define STR2(x) #x
+#define STR(x) STR2(x)
+
 namespace Phasor
 {
 
@@ -136,6 +147,7 @@ int VM::run(Instance &instance)
 
 InstanceHandle VM::loadModule(const std::filesystem::path &rawPath, InstanceHandle owner)
 {
+	COMPILE_MESSAGE("Warning: PHS_03 Modules have not been fully implemented! Line " STR(__LINE__))
 	// 1. Resolve canonical path
 	std::error_code ec;
 	auto            canonical = std::filesystem::canonical(rawPath, ec);
@@ -212,6 +224,7 @@ InstanceHandle VM::loadModule(const std::filesystem::path &rawPath, InstanceHand
 InstanceHandle VM::callTrans(InstanceHandle caller, InstanceHandle target, const std::string &functionName,
                              const std::vector<Value> &args)
 {
+	COMPILE_MESSAGE("Warning: PHS_03 Modules have not been fully implemented! Line " STR(__LINE__))
 	Instance *callerInst = resolve(caller);
 	if (!callerInst)
 		throw std::runtime_error("callTrans — invalid caller handle");
@@ -250,12 +263,14 @@ InstanceHandle VM::callTrans(InstanceHandle caller, InstanceHandle target, const
 InstanceHandle VM::callExtern(InstanceHandle caller, const std::filesystem::path &rawPath,
                               const std::string &functionName, const std::vector<Value> &args)
 {
+	COMPILE_MESSAGE("Warning: PHS_03 Modules have not been fully implemented! Line " STR(__LINE__))
 	InstanceHandle target = loadModule(rawPath, caller);
 	return callTrans(caller, target, functionName, args);
 }
 
 ModuleManifest VM::parseManifest(const std::filesystem::path &path)
 {
+	COMPILE_MESSAGE("Warning: PHS_03 Modules have not been fully implemented! Line " STR(__LINE__))
 	std::ifstream f(path);
 	if (!f.is_open())
 		throw std::runtime_error("parseManifest — cannot open: " + path.string());
@@ -310,6 +325,7 @@ ModuleManifest VM::parseManifest(const std::filesystem::path &path)
 
 bool VM::validateChecksums(const ModuleManifest &manifest)
 {
+	COMPILE_MESSAGE("Warning: PHS_03 Modules have not been fully implemented! Line " STR(__LINE__))
 	// TODO: implement SHA-256 hashing
 	for (std::size_t i = 0; i < manifest.checksums.size(); ++i)
 	{
@@ -320,10 +336,6 @@ bool VM::validateChecksums(const ModuleManifest &manifest)
 	}
 	return true;
 }
-
-// ─────────────────────────────────────────────
-//  Diagnostics
-// ─────────────────────────────────────────────
 
 std::string VM::getInformation()
 {
