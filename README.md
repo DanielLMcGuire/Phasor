@@ -20,9 +20,9 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 
 ```javascript
-// Print
+// Print (keyword)
 print "Hello World!\n"; // Print to console
-// Or 
+// Or via std
 using("stdio"); // Import io for puts
 puts("Hello World!"); // Print string with newline
 ```
