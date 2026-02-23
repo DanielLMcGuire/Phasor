@@ -1,5 +1,4 @@
 set(VM_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Native.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Operations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Register.cpp
@@ -19,7 +18,6 @@ else()
 endif()
 
 set(VM_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VM.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/core.h
     ${CMAKE_CURRENT_SOURCE_DIR}/core/arithmetic/arithmetic.h

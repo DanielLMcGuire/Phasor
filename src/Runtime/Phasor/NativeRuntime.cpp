@@ -68,10 +68,10 @@ int NativeRuntime::eval(VM *vm, const std::string &script)
 	Parser parser(tokens);
 	auto   program = parser.parse();
 
-	CodeGenerator codegen;
-	auto          bytecode = codegen.generate(*program);
-
-	return vm->run(bytecode);
+	CodeGenerator  codegen;
+	auto           bytecode = codegen.generate(*program);
+	InstanceHandle handle = vm->load(bytecode);
+	return vm->execute(handle);
 }
 
 int NativeRuntime::run()
@@ -89,15 +89,12 @@ int NativeRuntime::run()
 #elif defined(__linux__)
 		FFI ffi("/opt/Phasor/plugins", m_vm.get());
 #endif
-		m_vm->setImportHandler([](const std::filesystem::path &path) {
-			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
-		});
-
-		return m_vm->run(m_bytecode);
+		InstanceHandle handle = m_vm->load(m_bytecode);
+		return m_vm->execute(handle);
 	}
 	catch (const std::exception &e)
 	{
-		std::string errorMsg = std::string(e.what()) + " | " + m_vm->getInformation() + "\n";
+		std::string errorMsg = std::string(e.what()) + " | " + m_vm->getRuntimeInformation() + "\n";
 		error(errorMsg);
 		return 1;
 	}
@@ -108,12 +105,13 @@ Value NativeRuntime::runScript(const std::vector<Value> &args, VM *)
 {
 	VM newVM;
 	StdLib::checkArgCount(args, 1, "lib_Phasor");
-	Lexer lexer(args[1].asString());
-	Parser parser(lexer.tokenize());
-	CodeGenerator codegen;
-	auto program = parser.parse();
-	auto bytecode = codegen.generate(*program);
-	return newVM.run(bytecode);
+	Lexer          lexer(args[1].asString());
+	Parser         parser(lexer.tokenize());
+	CodeGenerator  codegen;
+	auto           program = parser.parse();
+	auto           bytecode = codegen.generate(*program);
+	InstanceHandle handle = newVM.load(bytecode);
+	return newVM.execute(handle);
 }
 
 } // namespace Phasor

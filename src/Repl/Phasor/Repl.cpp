@@ -43,7 +43,8 @@ int Repl::runSourceString(const std::string &source, VM &vm)
 	CodeGenerator codegen;
 	auto          bytecode = codegen.generate(*program);
 
-	return vm.run(bytecode);
+	InstanceHandle handle = vm.load(bytecode);
+	return vm.execute(handle);
 }
 
 std::unique_ptr<VM> Repl::createVm()
@@ -53,15 +54,6 @@ std::unique_ptr<VM> Repl::createVm()
 	StdLib::argv = m_args.scriptArgv;
 	StdLib::argc = m_args.scriptArgc;
 	StdLib::envp = m_args.envp;
-
-	vm->setImportHandler([vm_ptr = vm.get()](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runSourceString(buffer.str(), *vm_ptr);
-	});
 
 	return vm;
 }

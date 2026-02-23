@@ -77,10 +77,10 @@ int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 		std::cout << "\n";
 	}
 
-	CodeGenerator codegen;
-	auto          bytecode = codegen.generate(*program);
-
-	return vm.run(bytecode);
+	CodeGenerator  codegen;
+	auto           bytecode = codegen.generate(*program);
+	InstanceHandle handle = vm.load(bytecode);
+	return vm.execute(handle);
 }
 
 std::unique_ptr<VM> ScriptingRuntime::createVm()
@@ -98,15 +98,6 @@ std::unique_ptr<VM> ScriptingRuntime::createVm()
 #elif defined(__linux__)
 	FFI ffi("/opt/Phasor/plugins", vm.get());
 #endif
-
-	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runSourceString(buffer.str(), *vm_ptr);
-	});
 
 	return vm;
 }

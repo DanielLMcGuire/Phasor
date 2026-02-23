@@ -56,28 +56,19 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	Phasor::FFI("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-		{
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runScript(buffer.str());
-	});
-
 	if (status != 0) {
 		if (ownVM) delete vm;
 		return status;
 	}
 
-	return vm->run(bytecode);
+	InstanceHandle handle = vm->load(bytecode);
+	status = vm->execute(handle);
 
 	if (ownVM)
 	{
 		delete vm;
 	}
+	return status;
 }
 
 int pulsar::Frontend::runRepl(Phasor::VM *vm)
@@ -101,17 +92,6 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 #elif defined(__linux__)
 	Phasor::FFI ffi("/opt/Phasor/plugins", vm);
 #endif
-
-	vm->setImportHandler([](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-		{
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runScript(buffer.str());
-	});
 
 	if (status != 0) {
 		if (ownVM) delete vm;
@@ -166,7 +146,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			}
 			if (startsWith(line, "vm_reset"))
 			{
-				vm->reset(true, true, true);
+				// TODO Update this
 				continue;
 			}
 			if (startsWith(line, "exit"))
@@ -185,7 +165,8 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 
-			return vm->run(bytecode);
+			InstanceHandle handle = vm->load(bytecode);
+			vm->execute(handle);
 		}
 		catch (const std::exception &e)
 		{

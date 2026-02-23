@@ -59,23 +59,8 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-		{
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runScript(buffer.str());
-	});
-
-	if (status != 0) {
-		if (ownVM) delete vm;
-		return status;
-	}
-
-	status = vm->run(bytecode);
+	InstanceHandle handle = vm->load(bytecode);
+	status = vm->execute(handle);
 
 	if (ownVM)
 	{
@@ -106,17 +91,6 @@ int Phasor::Frontend::runRepl(VM *vm)
 	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-		{
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runScript(buffer.str());
-	});
-
 	if (status != 0) {
 		if (ownVM) delete vm;
 		return status;
@@ -135,45 +109,6 @@ int Phasor::Frontend::runRepl(VM *vm)
 			std::cout << "\n> ";
 			if (!std::getline(std::cin, line))
 				break;
-			if (startsWith(line, "vm_pop"))
-			{
-				line = "let popx = " + vm->pop().toString();
-				continue;
-			}
-			if (startsWith(line, "vm_push"))
-			{
-				vm->push(line.substr(4));
-				continue;
-			}
-			if (startsWith(line, "vm_peek"))
-			{
-				line = "let peekx = " + vm->peek().toString();
-			}
-			if (startsWith(line, "vm_op"))
-			{
-				char         instruction[64];
-				unsigned int operand;
-				sscanf(line.c_str(), "vm_op %63s %d", instruction, &operand);
-				vm->operation(PhasorIR::stringToOpCode(std::string(instruction)), operand);
-				continue;
-			}
-			if (startsWith(line, "vm_getvar"))
-			{
-				int index;
-				sscanf(line.c_str(), "vm_getvar %d", &index);
-				line = "let getvarx = " + vm->getVariable(index).toString();
-			}
-			if (startsWith(line, "vm_setvar"))
-			{
-				char value[64];
-				sscanf(line.c_str(), "vm_setvar %63s", value);
-				line = "var setvarx = " + std::to_string(vm->addVariable(value));
-			}
-			if (startsWith(line, "vm_reset"))
-			{
-				vm->reset(true, true, true);
-				continue;
-			}
 			if (startsWith(line, "exit"))
 				cleanExit = true;
 				break;
@@ -195,7 +130,8 @@ int Phasor::Frontend::runRepl(VM *vm)
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 
-			status = vm->run(bytecode);
+			InstanceHandle handle = vm->load(bytecode);
+			int status = vm->execute(handle);
 		}
 		catch (const std::exception &e)
 		{

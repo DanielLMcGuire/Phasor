@@ -19,4 +19,4 @@ static inline constexpr uint32_t ascii_to_u32_le(const char s[4])
  *
  * '4.0.0.0'
  */
-const uint32_t VERSION = 0x04000000;
+const uint32_t VERSION = 0x03000000;

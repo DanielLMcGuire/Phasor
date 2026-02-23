@@ -315,8 +315,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 	case OpCode::HALT:
-		m_instance->activeFrame().pc = m_instance->code.instructions.size(); // stop execution
-		break;
+		m_instance->alive = false;
+		throw VM::Halt{};
 
 	case OpCode::CALL_NATIVE: {
 		Value       funcNameVal = m_instance->code.constants[operand1];
@@ -387,7 +387,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 		std::size_t returnPc = m_instance->activeFrame().returnPc;
 		m_instance->popFrame();
-
 		m_instance->activeFrame().pc = returnPc;
 
 		if (hasRetVal)

@@ -180,26 +180,22 @@ Value StdLib::sys_exec_get_error(const std::vector<Value> &args, VM *vm)
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "error", true);
-	vm->reset();
-	vm->status = -1;
-	throw std::runtime_error(args[0].asString());
+	// TODO Update this
+	return false;
 }
 
 Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "reset");
-	vm->reset();
-	return Value();
+	// TODO Update this
+	return false;
 }
 
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "shutdown");
-	vm->reset();
-	int ret = static_cast<int>(args[0].asInt());
-	vm->status = ret;
-	throw VM::Halt();
-	return Value();
+	// TODO Update this
+	return false;
 }
 
 Value StdLib::sys_pid(const std::vector<Value> &args, VM *)

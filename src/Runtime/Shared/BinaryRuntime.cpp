@@ -59,14 +59,11 @@ int BinaryRuntime::run()
 		FFI ffi("/opt/Phasor/plugins", vm.get());
 #endif
 
-		vm->setImportHandler([](const std::filesystem::path &path) {
-			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
-		});
-
 		if (m_args.verbose)
 			std::cerr << "DEBUG: About to run bytecode" << std::endl;
 
-		int status = vm->run(bytecode);
+		InstanceHandle handle = vm->load(bytecode);
+		int status = vm->execute(handle);
 
 		if (m_args.verbose)
 			std::cerr << "DEBUG: Bytecode execution complete with return " << status << std::endl;
