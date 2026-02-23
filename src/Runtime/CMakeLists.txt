@@ -10,6 +10,7 @@ set(RUNTIME_HEADERS
 add_subdirectory(FFI)
 add_subdirectory(VM)
 add_subdirectory(Stdlib)
+add_subdirectory(Modules)
 
 add_library(PhasorRuntime STATIC ${VM_SOURCES} ${VM_HEADERS} ${FFI_SOURCES} ${FFI_HEADERS} ${RUNTIME_HEADERS} ${STDLIB_SOURCES} ${STDLIB_HEADERS})
 

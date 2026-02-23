@@ -80,31 +80,6 @@ struct Instance
 	}
 };
 
-struct ModuleCache
-{
-	std::filesystem::path           path;
-	std::filesystem::file_time_type lastLoaded;
-	InstanceHandle                  handle = NULL_HANDLE;
-	InstanceHandle                  owner = NULL_HANDLE;
-};
-
-struct ModuleManifest
-{
-	std::string                        name;
-	std::string                        entry;
-	std::vector<std::filesystem::path> sources;
-	std::vector<std::filesystem::path> imports;
-	std::vector<std::string>           exports;
-	std::string                        version;
-	bool                               lazy = false;
-	std::vector<std::string>           checksums;
-
-	bool hasEntry() const
-	{
-		return !entry.empty();
-	}
-};
-
 /// @class VM
 /// @brief Virtual Machine and Runtime — owns all instances, the module cache,
 ///        and the execution engine in a single entity.
@@ -140,20 +115,7 @@ class VM
 	/// @brief Destroy an instance and release its memory
 	void destroyInstance(InstanceHandle handle);
 
-	/// @brief Load a module from a manifest path, respecting the cache
-	InstanceHandle loadModule(const std::filesystem::path &rawPath, InstanceHandle owner = NULL_HANDLE);
-
-	/// @brief Call a function in an already-loaded instance (cross-instance call)
-	InstanceHandle callTrans(InstanceHandle caller, InstanceHandle target, const std::string &functionName,
-	                         const std::vector<Value> &args);
-
-	/// @brief Load a module and immediately call a function in it
-	InstanceHandle callExtern(InstanceHandle caller, const std::filesystem::path &rawPath,
-	                          const std::string &functionName, const std::vector<Value> &args);
-
-	ModuleManifest parseManifest(const std::filesystem::path &path);
-	bool           validateChecksums(const ModuleManifest &manifest);
-
+	
 	void   freeVariable(const size_t index);
 	size_t addVariable(const Value &value);
 	void   setVariable(const size_t index, const Value &value);
@@ -235,16 +197,9 @@ class VM
 
 	int status = 0;
 
-	ModuleCache *findCache(const std::filesystem::path &path, InstanceHandle owner);
-	void         insertCache(ModuleCache entry);
-	void         evictCache(const std::filesystem::path &path, InstanceHandle owner);
-
   private:
 	/// @brief All live instances — index == handle
 	std::vector<std::unique_ptr<Instance>> m_instances;
-
-	/// @brief Module cache keyed by (canonical path, owner handle)
-	std::map<std::pair<std::filesystem::path, InstanceHandle>, ModuleCache> m_moduleCache;
 
 	/// @brief Handle of the currently executing instance
 	InstanceHandle m_current = NULL_HANDLE;

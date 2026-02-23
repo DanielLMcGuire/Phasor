@@ -1,0 +1,1 @@
+add_library(phasor_module_loader STATIC ${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoader.cpp ${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoader.hpp)
