@@ -42,7 +42,7 @@ shutdown(code); // from stdsys
 ```
 
 ## Upcoming 
-> [!NOTE]
+> [!IMPORTANT]
 >
 > Some may *appear* to work before actual implementation
 
@@ -105,11 +105,11 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 ## Documentation
 
-> [!WARNING]
-> 
-> Documentation is not my top priority, the only source of true documentation is the [doxygen](https://phasor-docs.pages.dev/) 
+> [!NOTE]
 >
-> Also note, the non doxygen docs may be partially **AI generated**
+> Documentation may be partially AI generated, always confirm the feature works first
+>
+> This will change once I have more time for this project
 
 
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
