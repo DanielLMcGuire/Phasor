@@ -1,8 +1,8 @@
 # Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
-> [!WARNING]
+> [!CAUTION]
 >
-> This branch contains compilable, but non-functional code.
+> This branch contains compilable, but non-functional code. Use at your own risk.
 
 A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
 
