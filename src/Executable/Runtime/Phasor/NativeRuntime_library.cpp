@@ -65,7 +65,7 @@ extern "C"
 		}
 	}
 
-	DLLEXPORT void jitExec(const char *script, const char *moduleName, const void *nativeFunctionsVector)
+	DLLEXPORT void jitExec(const char *script, const char *, const void *nativeFunctionsVector)
 	{
 		try
 		{

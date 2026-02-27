@@ -19,7 +19,7 @@ Value StdLib::registerRegexFunctions(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-Value StdLib::regex_match(const std::vector<Value> &args, VM *vm)
+Value StdLib::regex_match(const std::vector<Value> &args, VM *)
 {
 	// args[1] - pattern
 	// args[2] - text
@@ -40,7 +40,7 @@ Value StdLib::regex_match(const std::vector<Value> &args, VM *vm)
 	}
 }
 
-Value StdLib::regex_search(const std::vector<Value> &args, VM *vm)
+Value StdLib::regex_search(const std::vector<Value> &args, VM *)
 {
 	// args[1] - pattern
 	// args[2] - text
@@ -91,7 +91,7 @@ Value StdLib::regex_search(const std::vector<Value> &args, VM *vm)
 	}
 }
 
-Value StdLib::regex_findall(const std::vector<Value> &args, VM *vm)
+Value StdLib::regex_findall(const std::vector<Value> &args, VM *)
 {
 	// args[1] - pattern
 	// args[2] - text
@@ -133,7 +133,7 @@ Value StdLib::regex_findall(const std::vector<Value> &args, VM *vm)
 	}
 }
 
-Value StdLib::regex_split(const std::vector<Value> &args, VM *vm)
+Value StdLib::regex_split(const std::vector<Value> &args, VM *)
 {
 	// args[1] - pattern
 	// args[2] - text
@@ -189,7 +189,7 @@ Value StdLib::regex_split(const std::vector<Value> &args, VM *vm)
 	}
 }
 
-Value StdLib::regex_replace(const std::vector<Value> &args, VM *vm)
+Value StdLib::regex_replace(const std::vector<Value> &args, VM *)
 {
 	// args[1] - pattern
 	// args[2] - text

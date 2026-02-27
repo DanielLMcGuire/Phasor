@@ -177,7 +177,7 @@ FFI::~FFI()
 	unloadAll();
 }
 
-Value FFI::native_add_plugin(const std::vector<Value> &args, VM *vm)
+Value FFI::native_add_plugin(const std::vector<Value> &args, VM *)
 {
 	if (args.size() != 1)
 	{

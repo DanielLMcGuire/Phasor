@@ -920,7 +920,7 @@ void CodeGenerator::generateBooleanExpr(const AST::BooleanExpr *boolExpr)
 	}
 }
 
-void CodeGenerator::generateNullExpr(const AST::NullExpr *nullExpr)
+void CodeGenerator::generateNullExpr(const AST::NullExpr *)
 {
 	bytecode.emit(OpCode::NULL_VAL);
 }

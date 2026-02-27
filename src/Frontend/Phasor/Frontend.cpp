@@ -175,8 +175,10 @@ int Phasor::Frontend::runRepl(VM *vm)
 				continue;
 			}
 			if (startsWith(line, "exit"))
+			{
 				cleanExit = true;
 				break;
+			}
 			if (line.empty())
 			{
 				std::cerr << "Empty line\n";
