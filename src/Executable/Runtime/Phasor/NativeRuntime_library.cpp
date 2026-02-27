@@ -69,8 +69,11 @@ extern "C"
 #endif
 		}
 	}
-
+#ifdef _WIN32
+	DLLEXPORT void jitExec(const char *script, const char *moduleName, const void *nativeFunctionsVector)
+#else
 	DLLEXPORT void jitExec(const char *script, const char *, const void *nativeFunctionsVector)
+#endif
 	{
 		try
 		{
