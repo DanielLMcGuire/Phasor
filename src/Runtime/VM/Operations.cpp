@@ -4,15 +4,16 @@
 namespace Phasor
 {
 Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3,
-                    const int &operand4, const int &operand5)
+                    const int &, const int &)
 {
 	uint8_t rA = static_cast<uint8_t>(operand1);
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
+//      uint8_t rD = static_cast<uint8_t>(operand4);
+//      uint8_t rE = static_cast<uint8_t>(operand5);
 #ifdef _DEBUG
 	log(std::string("OP: " + std::to_string(static_cast<int>(op)) + " operands=[" + std::to_string(operand1) + ", " + std::to_string(operand2) + ", " + std::to_string(operand3)
-	          + ", " + std::to_string(operand4) + ", " + std::to_string(operand5) + "] stack=" + std::to_string(stack.size()) + "\n"));
-	flush();
+	          + "] stack=" + std::to_string(stack.size()) + "\n"));
 #endif
 	switch (op)
 	{
@@ -300,6 +301,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value       v = pop();
 		std::string s = v.toString();
 		asm_print_stderr(s.c_str(), s.length());
+		flusherr();
 		break;
 	}
 
