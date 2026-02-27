@@ -8,11 +8,13 @@ Do not expect a finished product, expect more of a 'fancy scripting interpreter'
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
+```print "Hello World!\n";```
+
 ---
 
 ## Language Features
 
-- **Variables** dynamically typed with integers, floats (IEEE 754, double), strings, booleans, and null. ```var x = 21; // int```
+- **Variables** dynamically typed with integers, floats (IEEE 754, double), strings, booleans, and null. ```var x = 21```
 - **Functions** with forced type annotations ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library**
@@ -23,9 +25,6 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 
 ```javascript
-// Print (keyword)
-print "Hello World!\n"; // Print to console
-// Or via std
 import("std.io"); // Import io for puts
 puts("Hello World!"); // Print string with newline
 ```
