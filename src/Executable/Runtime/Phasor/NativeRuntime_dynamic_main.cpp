@@ -25,7 +25,7 @@
 // New functionality: Pass bytecode and size as raw args to exec to both windows and other
 
 // Main entry point
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
 	std::string tempFile;
 	int         exitCode = 1;
