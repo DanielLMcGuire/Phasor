@@ -34,8 +34,13 @@ std::vector<std::string> splits(const std::string &input)
 
 extern "C"
 {
+#ifdef _WIN32
 	DLLEXPORT void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,
 	                    const void *nativeFunctionsVector, const int argc, const char **argv)
+#else
+	DLLEXPORT void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *,
+	                    const void *nativeFunctionsVector, const int argc, const char **argv)
+#endif
 	{
 		try
 		{
