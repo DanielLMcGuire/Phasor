@@ -27,8 +27,8 @@ class Disassembler
 	} m_args;
 
 	bool       parseArguments(int argc, char *argv[]);
-	const bool showHelp();
-	const bool decompileBinary();
+	static bool showHelp();
+	bool decompileBinary();
 };
 
 } // namespace Phasor

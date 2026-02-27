@@ -83,7 +83,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-const bool Disassembler::showHelp()
+bool Disassembler::showHelp()
 {
 	std::cout << "Usage:\n";
 	std::cout << "  " << m_args.program.stem().string() << " [options] <input.phsb>\n\n";
@@ -94,7 +94,7 @@ const bool Disassembler::showHelp()
 	return true;
 }
 
-const bool Disassembler::decompileBinary()
+bool Disassembler::decompileBinary()
 {
 	BytecodeDeserializer bcDeserializer{};
 	PhasorIR             phir;
