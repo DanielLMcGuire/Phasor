@@ -12,7 +12,7 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Language Features
 
-- **Variables** dynamically typed with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
+- **Variables** dynamically typed with integers, floats (IEEE 754, double), strings, booleans, and null. ```var x = 21; // int```
 - **Functions** with forced type annotations ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library**
