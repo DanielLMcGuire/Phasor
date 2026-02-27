@@ -13,10 +13,12 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
-- **Functions** with forced type annotations ```fn func(input: string) -> void { ... }```
-- **C-style Control flow**: if/else, while, for, switch/case, break/continue
-- **Comprehensive standard library**
-- **Windows and POSIX API Bindings**
+- **Type annotations** (only in function declarations) ```fn func(input: string) -> void { ... }```
+- **Control flow**: if/else, while, for, switch/case, break/continue
+- **Standard library** ```using(featureName: string)```
+- **Plugin/FFI API** [PhasorFFI.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h)
+- **Runtime API** [PhasorRT.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h)
+- **Minimal Windows and POSIX API Bindings**
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 
 ```javascript
