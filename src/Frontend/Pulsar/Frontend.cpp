@@ -128,7 +128,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			{
 				char         instruction[64];
 				unsigned int operand;
-				sscanf(line.c_str(), "vm_op %63s %d", instruction, &operand);
+				sscanf(line.c_str(), "vm_op %63s %u", instruction, &operand);
 				vm->operation(Phasor::PhasorIR::stringToOpCode(std::string(instruction)), operand);
 				continue;
 			}

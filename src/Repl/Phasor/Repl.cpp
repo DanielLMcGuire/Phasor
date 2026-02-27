@@ -19,6 +19,8 @@ namespace Phasor
 
 Repl::Repl(int argc, char *argv[], char *envp[])
 {
+	m_args.scriptArgc = argc - 1;
+	m_args.scriptArgv = argv + 1;
 	m_args.envp = envp;
 }
 

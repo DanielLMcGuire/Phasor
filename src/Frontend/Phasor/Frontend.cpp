@@ -110,8 +110,10 @@ int Phasor::Frontend::runRepl(VM *vm)
 			if (!std::getline(std::cin, line))
 				break;
 			if (startsWith(line, "exit"))
+			{
 				cleanExit = true;
 				break;
+			}
 			if (line.empty())
 			{
 				std::cerr << "Empty line\n";

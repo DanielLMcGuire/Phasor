@@ -16,7 +16,7 @@ extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedByte
                      const void *nativeFunctionsVector, const int argc, const char *argv[]);
 
 // Main entry point
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
 	int exitCode = 1;
 
