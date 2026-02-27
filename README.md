@@ -104,6 +104,13 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 ## Documentation
 
+> [!WARNING]
+> 
+> Documentation is not my top priority, the only source of true documentation is the [doxygen](https://phasor-docs.pages.dev/) 
+>
+> Also note, the non doxygen docs may be partially **AI generated**
+
+
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
 - **[VM Internals](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_vm_internals.md&name=VM%20Internals)** - Virtual machine architecture details
 - **[Adding Opcodes](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_adding_opcodes.md&name=Adding%20Opcodes)** - Contributor guide for VM extensions
