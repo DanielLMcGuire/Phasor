@@ -71,12 +71,12 @@ void CppCodeGenerator::generateFileHeader()
 
 void CppCodeGenerator::generateModuleName()
 {
-	output << "std::string moduleName = \"" << moduleName << "\";\n\n";
+	output << "constexpr std::string moduleName = \"" << moduleName << "\";\n\n";
 }
 
 void CppCodeGenerator::generateEmbeddedBytecode()
 {
-	output << "inline const unsigned char embeddedBytecode[] = {\n";
+	output << "inline constexpr unsigned char embeddedBytecode[] = {\n";
 
 	// Write bytecode as hex array
 	for (size_t i = 0; i < serializedBytecode.size(); i++)
