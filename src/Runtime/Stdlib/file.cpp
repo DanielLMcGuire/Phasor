@@ -216,9 +216,9 @@ Value StdLib::file_copy(const std::vector<Value> &args, VM *)
 		return false;
 	}
 
-	if (!std::filesystem::exists(dest) && !overwrite)
+	if (std::filesystem::exists(dest) && !overwrite)
 	{
-		std::cerr << "Source file doesn't exist." << std::endl;
+		std::cerr << "Destination file already exists." << std::endl;
 		return false;
 	}
 
@@ -254,6 +254,11 @@ Value StdLib::file_move(const std::vector<Value> &args, VM *)
 	std::filesystem::path dest = args[1].asString();
 	bool status;
 	status = std::filesystem::copy_file(src, dest);
+	if (!status)
+	{
+		std::cerr << "Failed to copy file during move." << std::endl;
+		return false;
+	}
 	status = std::filesystem::remove(src);
 	return status;
 }
@@ -317,8 +322,8 @@ Value StdLib::file_statistics(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fstat");
 	std::string path = args[0].asString();
-	uid_t       uid;
-	gid_t       gid;
+	uid_t       uid = 0;
+	gid_t       gid = 0;
 	nlink_t     nlink = file_get_links_count(path.c_str());
 	file_get_owner_id(path.c_str(), &uid, &gid);
 	try
@@ -397,7 +402,7 @@ Value StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
 	{
 		if (recursive)
 		{
-			if (std::filesystem::remove_all(path) == 0) 
+			if (std::filesystem::remove_all(path) > 0) 
 				return true;
 			else
 				return false;
