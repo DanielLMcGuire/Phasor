@@ -1,18 +1,20 @@
 if(WIN32)
     install(TARGETS
         phasor_main
-        pulsar_main
         phasor_compiler
-        pulsar_compiler
-        phasor_disasm
+        phasor_repl
+        phasor_interpreter
         phasor_cxx_transpiler
+        phasor_lsp
+    
+        pulsar_main
+        pulsar_compiler
+
+        phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
         phasor_native_runtime_static
-        phasor_repl
-        phasor_interpreter
         phasor_shell
-        phasor_lsp
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -25,18 +27,20 @@ if(WIN32)
 elseif(APPLE)
     install(TARGETS
         phasor_main
-        pulsar_main
         phasor_compiler
-        pulsar_compiler
-        phasor_disasm
+        phasor_repl
+        phasor_interpreter
         phasor_cxx_transpiler
+        phasor_lsp
+    
+        pulsar_main
+        pulsar_compiler
+
+        phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
         phasor_native_runtime_static
-        phasor_repl
-        phasor_interpreter
         phasor_shell
-        phasor_lsp
         RUNTIME DESTINATION usr/local/bin
         LIBRARY DESTINATION usr/local/lib
         ARCHIVE DESTINATION usr/local/lib
@@ -50,18 +54,20 @@ elseif(APPLE)
 else()
     install(TARGETS
         phasor_main
-        pulsar_main
         phasor_compiler
-        pulsar_compiler
-        phasor_disasm
+        phasor_repl
+        phasor_interpreter
         phasor_cxx_transpiler
+        phasor_lsp
+    
+        pulsar_main
+        pulsar_compiler
+
+        phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
         phasor_native_runtime_static
-        phasor_repl
-        phasor_interpreter
         phasor_shell
-        phasor_lsp
         RUNTIME DESTINATION usr/bin
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib

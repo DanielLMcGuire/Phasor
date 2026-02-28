@@ -1,4 +1,4 @@
-set(TARGETS cat cp echo ls mv rm touch)
+set(TARGETS echo cat ls cp mv rm touch)
 
 foreach(tgt ${TARGETS})
     set(PHS "${CMAKE_SOURCE_DIR}/src/utils/coreutils/${tgt}.phs")
