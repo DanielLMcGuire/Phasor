@@ -4,7 +4,6 @@ set(STDLIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/file.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/regex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp

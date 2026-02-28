@@ -56,7 +56,7 @@ fn main() {
             continue;
         }
 
-        sys_execute(line);
+        sys_shell(line);
     }
     return 0;
 }

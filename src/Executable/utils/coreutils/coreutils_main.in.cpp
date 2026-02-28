@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "@HEADER@"
-#include "@CMAKE_SOURCE_DIR@/src/Runtime/Value.hpp"
+#include <Value.hpp>
 
 // Forward declare native runtime entry points (linked in from the runtime library)
 extern "C" void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,

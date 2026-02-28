@@ -1,7 +1,7 @@
 #pragma once
 
 #include <functional>
-#include "../Value.hpp"
+#include <Value.hpp>
 #include "../VM/VM.hpp"
 
 #include <vector>

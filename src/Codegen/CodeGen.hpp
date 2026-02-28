@@ -1,6 +1,6 @@
 #pragma once
 #include "../AST/AST.hpp"
-#include "../Runtime/Value.hpp"
+#include <Value.hpp>
 #include "../ISA/ISA.hpp"
 #include <cstdint>
 #include <map>
@@ -114,7 +114,7 @@ class CodeGenerator
 	/// @brief Allocate a new register
 	uint8_t allocateRegister()
 	{
-		for (size_t i = 0; i < 256; i++)
+		for (size_t i = 0; i < 32; i++)
 		{
 			if (i >= registerInUse.size())
 			{

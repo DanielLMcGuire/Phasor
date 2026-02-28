@@ -71,7 +71,7 @@ void CppCodeGenerator::generateFileHeader()
 
 void CppCodeGenerator::generateModuleName()
 {
-	output << "constexpr std::string moduleName = \"" << moduleName << "\";\n\n";
+	output << "std::string moduleName = \"" << moduleName << "\";\n\n";
 }
 
 void CppCodeGenerator::generateEmbeddedBytecode()

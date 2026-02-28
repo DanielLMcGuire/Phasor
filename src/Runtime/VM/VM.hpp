@@ -1,6 +1,6 @@
 #pragma once
 #include "../../Codegen/CodeGen.hpp"
-#include "../Value.hpp"
+#include <Value.hpp>
 #include <vector>
 #include <filesystem>
 #include <functional>
@@ -86,7 +86,7 @@ class VM
 	/// @return Number of registers
 	size_t getRegisterCount();
 
-	/// @brief Enum for lower 26 registers
+	/// @brief Enum for registers
 	enum Register
 	{
 		r0,
@@ -114,7 +114,13 @@ class VM
 		r22,
 		r23,
 		r24,
-		r25 // If you are here to try adding more, step back and think about what got you here in the first place
+		r25,
+		r26,
+		r27,
+		r28,
+		r29,
+		r30,
+		r31
 	};
 
 	#define REGISTER1 VM::Register::r0
@@ -174,7 +180,7 @@ class VM
 	ImportHandler importHandler;
 
 	/// @brief Virtual registers for register-based operations (v2.0)
-	std::array<Value, 64> registers;
+	std::array<Value, 32> registers;
 
 	/// @brief Stack for function calls
 	std::vector<Value> stack;

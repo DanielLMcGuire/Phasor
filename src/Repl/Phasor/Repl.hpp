@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Runtime/Value.hpp"
+#include <Value.hpp>
 #include <filesystem>
 #include <memory>
 #include <string>

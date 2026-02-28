@@ -31,6 +31,7 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
 	vm->registerNativeFunction("sys_fork", StdLib::sys_fork);
+	vm->registerNativeFunction("sys_fork_detached", StdLib::sys_fork_detached);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
@@ -165,6 +166,19 @@ Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
 		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
 	}
 	return PHASORstd_sys_run(executable, argc, v_argv.data());
+}
+
+Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "sys_fork_detached", true);
+	const char         *executable = args[0].c_str();
+	int                 argc = (int)args.size() - 1;
+	std::vector<char *> v_argv(argc);
+	for (int i = 0; i < argc; ++i)
+	{
+		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
+	}
+	return PHASORstd_sys_run_detached(executable, argc, v_argv.data());
 }
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)

@@ -1,5 +1,6 @@
 #pragma once
 #include "../VM/VM.hpp"
+#include <Value.hpp>
 #include <functional>
 #include <map>
 #include <string>
@@ -44,8 +45,6 @@ class StdLib
 	static Value registerFileFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerSysFunctions(const std::vector<Value> &args, VM *vm);
 	static Value registerIOFunctions(const std::vector<Value> &args, VM *vm);
-
-	static Value registerRegexFunctions(const std::vector<Value> &args, VM *vm);
 
 	// Math functions
 	static Value math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
@@ -95,6 +94,7 @@ class StdLib
 	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm);  ///< Wait for input
 	static Value sys_shell(const std::vector<Value> &args, VM *vm);            ///< Run a shell command
 	static Value sys_fork(const std::vector<Value> &args, VM *vm);           ///< Run a native program
+	static Value sys_fork_detached(const std::vector<Value> &args, VM *vm); ///< Run a native program detached
 	static Value sys_crash(const std::vector<Value> &args, VM *vm);    ///< Crash the VM / Program
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);    ///< Reset the VM
 	static Value sys_shutdown(const std::vector<Value> &args, VM *vm); ///< Shutdown the VM
@@ -134,13 +134,6 @@ class StdLib
 	static Value io_putf_error(const std::vector<Value> &args,
 	                           VM                       *vm); ///< Print formatted string with newline to error output
 	static Value io_puts_error(const std::vector<Value> &args, VM *vm); ///< Print string with newline to error output
-
-	// Regex
-	static Value regex_match(const std::vector<Value> &args, VM *vm);   ///< Check if regex matches
-	static Value regex_search(const std::vector<Value> &args, VM *vm);  ///< Check if regex is found
-	static Value regex_findall(const std::vector<Value> &args, VM *vm); ///< Find all regex matches
-	static Value regex_split(const std::vector<Value> &args, VM *vm);   ///< Split string by regex matches
-	static Value regex_replace(const std::vector<Value> &args, VM *vm); ///< Replace regex matches
 };
 
 } // namespace Phasor

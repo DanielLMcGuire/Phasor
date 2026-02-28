@@ -12,7 +12,6 @@ namespace Phasor
 
 Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "include_stdio");
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
 	vm->registerNativeFunction("clear", StdLib::io_clear);
 	vm->registerNativeFunction("prints", StdLib::io_prints);

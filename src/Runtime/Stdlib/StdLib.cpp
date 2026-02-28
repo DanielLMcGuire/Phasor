@@ -73,7 +73,6 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		else if (moduleName == "stdstr") registerStringFunctions(std::vector<Value>{}, vm);
 		else if (moduleName == "stdtype") registerTypeConvFunctions(std::vector<Value>{}, vm);
 		else if (moduleName == "stdfile") registerFileFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdregex") registerRegexFunctions(std::vector<Value>{}, vm);
 		else
 		{
 			throw std::runtime_error("Unknown standard library module: " + moduleName);

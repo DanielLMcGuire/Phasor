@@ -9,7 +9,6 @@ namespace Phasor
 
 Value StdLib::registerFileFunctions(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "include_stdfile");
 	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
 	vm->registerNativeFunction("fread", StdLib::file_read);
 	vm->registerNativeFunction("fwrite", StdLib::file_write);

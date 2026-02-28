@@ -30,6 +30,8 @@ extern "C"
 
 	int PHASORstd_sys_run(const char *name, int argc, char **argv);
 
+	int PHASORstd_sys_run_detached(const char *name, int argc, char **argv);
+
 #ifdef __cplusplus
 }
 #endif
