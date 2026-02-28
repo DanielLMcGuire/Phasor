@@ -5,10 +5,12 @@
 #include <windows.h>
 #include <process.h>
 #elif defined(__APPLE__) && defined(__MACH__)
+#include <unistd.h>
 #include <mach/mach.h>
 #include <mach/host_info.h>
 #elif defined(__linux__)
 #include <unistd.h>
+#include <sys/types.h>
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
