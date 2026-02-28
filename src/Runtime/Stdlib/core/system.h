@@ -4,7 +4,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <process.h>
-#include <stdlib.h>
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <mach/mach.h>
 #include <mach/host_info.h>
@@ -15,6 +14,8 @@
 #include <sys/sysctl.h>
 #include <unistd.h>
 #endif
+
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C"
