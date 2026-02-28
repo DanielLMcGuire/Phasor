@@ -164,6 +164,9 @@ class VM
 		r31
 		// 32 registers per frame. If you need more, I highly suggest that you reconsider.
 	};
+	#define REGISTER1 VM::Register::r0
+	#define REGISTER2 VM::Register::r1
+	#define REGISTER3 VM::Register::r2
 
 	/// @brief Thrown internally to halt execution cleanly
 	class Halt : public std::exception
@@ -196,6 +199,13 @@ class VM
 	void flusherr();
 
 	int status = 0;
+
+	template <typename... Args> inline Value regRun( OpCode opcode, Args &&...args)
+	{
+		int regIndex = 0;
+		(setRegister(regIndex++, std::forward<Args>(args)), ...);
+		return operation(opcode);
+	}
 
   private:
 	/// @brief All live instances — index == handle

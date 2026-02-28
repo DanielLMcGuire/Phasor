@@ -153,7 +153,6 @@ bool file_get_owner_id(const char *path, uid_t *uid, gid_t *gid)
 		return false;
 	}
 
-	// Optional: convert SID to some numeric representation
 	*uid = (uid_t)GetSidIdentifierAuthority(pSidOwner)->Value[5]; // crude
 	*gid = 0;
 

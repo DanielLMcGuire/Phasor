@@ -1,6 +1,6 @@
 #include "system.h"
 
-size_t getAvailableMemory()
+size_t PHASORstd_sys_getAvailableMemory()
 {
 #ifdef _WIN32
 	MEMORYSTATUSEX statex;
@@ -51,4 +51,38 @@ size_t getAvailableMemory()
 #else
 	return 0;
 #endif
+}
+
+int PHASORstd_sys_run(const char *name, int argc, char **argv)
+{
+	char **args = (char **)malloc((argc + 2) * sizeof(char *));
+	if (!args)
+		return -1;
+	 
+	args[0] = (char *)name;
+	for (int i = 0; i < argc; i++)
+		args[i + 1] = argv[i];
+	args[argc + 1] = NULL;
+
+#ifdef _WIN32
+	int ret = (int)_spawnvp(_P_WAIT, name, (const char *const *)args);
+	if (ret == -1)
+	{
+		perror(name);
+	}
+#else
+	int   ret = -1;
+	pid_t pid = fork();
+	if (pid == 0)
+	{
+		execvp(name, args);
+		exit(1); // execvp failed
+	}
+	int status;
+	waitpid(pid, &status, 0);
+	ret = WEXITSTATUS(status);
+#endif
+
+	free(args);
+	return ret;
 }
