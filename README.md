@@ -10,7 +10,7 @@ Phasor is still in beta, as I wish for a **smooth, stable experience** for the f
 >
 > This software is not available in the US state of Colorado starting January 1st, 2028.
 >
-> [See more](github.com/DanielLMcGuire/Phasor/wiki/Political-Disclaimer) 
+> [See more](https://github.com/DanielLMcGuire/Phasor/wiki/Political-Disclaimer) 
 
 Do not expect a finished product, expect more of a 'fancy scripting interpreter' mixed with a runtime enviroment.
 
