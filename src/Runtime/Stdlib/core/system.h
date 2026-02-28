@@ -11,10 +11,12 @@
 #elif defined(__linux__)
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #endif
 
 #include <stdlib.h>
