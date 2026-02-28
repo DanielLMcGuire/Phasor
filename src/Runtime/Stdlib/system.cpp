@@ -154,7 +154,7 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-Value StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork", true);
 	const char         *executable = args[0].c_str();
