@@ -1,6 +1,6 @@
 #pragma once
 #include "../AST/AST.hpp"
-#include "../Runtime/Value.hpp"
+#include <Value.hpp>
 #include "../ISA/ISA.hpp"
 #include <cstdint>
 #include <map>

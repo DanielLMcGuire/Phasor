@@ -1,4 +1,3 @@
-#include "Runtime/Value.hpp"
 #include "StdLib.hpp"
 
 namespace Phasor
@@ -6,7 +5,6 @@ namespace Phasor
 
 Value StdLib::registerMathFunctions(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "include_stdmath");
 	vm->registerNativeFunction("math_sqrt", StdLib::math_sqrt);
 	vm->registerNativeFunction("math_pow", StdLib::math_pow);
 	vm->registerNativeFunction("math_abs", StdLib::math_abs);

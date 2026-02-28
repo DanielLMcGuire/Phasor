@@ -41,7 +41,7 @@ Current Config:
 
 func build(src: string, dest: string, comp: string, args: string) -> bool {
     putf("Using compiler: %s\n\nBuilding Phasor Binary: %s -> %s", comp, src, dest)
-    return to_bool(sys_execute(c_fmt("%s %s", comp, c_fmt(args, dest, src))))
+    return to_bool(sys_shell(c_fmt("%s %s", comp, c_fmt(args, dest, src))))
 }
 
 if (sys_argc() >= 2) {

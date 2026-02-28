@@ -1,6 +1,6 @@
 #pragma once
 #include "../../Codegen/CodeGen.hpp"
-#include "../Value.hpp"
+#include <Value.hpp>
 #include <vector>
 #include <filesystem>
 #include <functional>
@@ -127,7 +127,7 @@ class VM
 	Value  getRegister(uint8_t index);
 	size_t getRegisterCount();
 
-	/// @brief Named register aliases (r0–r31)
+	/// @brief Enum for registers
 	enum Register
 	{
 		r0,
@@ -162,7 +162,6 @@ class VM
 		r29,
 		r30,
 		r31
-		// 32 registers per frame. If you need more, I highly suggest that you reconsider.
 	};
 	#define REGISTER1 VM::Register::r0
 	#define REGISTER2 VM::Register::r1

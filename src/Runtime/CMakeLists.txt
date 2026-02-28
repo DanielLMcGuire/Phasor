@@ -1,5 +1,5 @@
 set(RUNTIME_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Value.hpp
+    ${CMAKE_SOURCE_DIR}/include/Value.hpp
     ${CMAKE_SOURCE_DIR}/src/include/sscanf.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FFI/ffi.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h

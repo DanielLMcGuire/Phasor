@@ -86,3 +86,53 @@ int PHASORstd_sys_run(const char *name, int argc, char **argv)
 	free(args);
 	return ret;
 }
+
+int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
+{
+	char **args = (char **)malloc((argc + 2) * sizeof(char *));
+	if (!args)
+		return -1;
+
+	args[0] = (char *)name;
+	for (int i = 0; i < argc; i++)
+		args[i + 1] = argv[i];
+	args[argc + 1] = NULL;
+
+#ifdef _WIN32
+
+	int ret = (int)_spawnvp(_P_NOWAIT, name, (const char *const *)args);
+	if (ret == -1)
+		perror(name);
+
+	free(args);
+	return ret;
+
+#else
+
+	pid_t pid = fork();
+	if (pid < 0)
+	{
+		free(args);
+		return -1;
+	}
+
+	if (pid == 0)
+	{
+		setsid();
+
+		pid_t pid2 = fork();
+		if (pid2 < 0)
+			exit(1);
+
+		if (pid2 > 0)
+			exit(0);
+
+		execvp(name, args);
+		exit(1);
+	}
+	
+	free(args);
+	return 0;
+
+#endif
+}
