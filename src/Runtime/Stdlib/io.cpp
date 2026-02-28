@@ -14,6 +14,7 @@ Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "include_stdio");
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
+	vm->registerNativeFunction("clear", StdLib::io_clear);
 	vm->registerNativeFunction("prints", StdLib::io_prints);
 	vm->registerNativeFunction("printf", StdLib::io_printf);
 	vm->registerNativeFunction("puts", StdLib::io_puts);
@@ -24,6 +25,12 @@ Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
+Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 0, "clear");
+	vm->regRun(OpCode::PRINT_R, "\033[2J\033[H");
+	return Value();
+}
 Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 {
 	if (args.empty())
@@ -78,8 +85,7 @@ Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 Value StdLib::io_prints(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "prints");
-	vm->setRegister(VM::Register::r1, args[0]);       // Load string into r1
-	vm->operation(OpCode::PRINT_R, VM::Register::r1); // Print register r1
+	vm->regRun(OpCode::PRINT_R, args[0]);
 	return Value("");
 }
 
@@ -87,8 +93,7 @@ Value StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "printf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	vm->setRegister(VM::Register::r1, io_c_format(formatArgs, vm));
-	vm->operation(OpCode::PRINT_R, VM::Register::r1);
+	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
 	return Value("");
 }
 
@@ -96,8 +101,7 @@ Value StdLib::io_puts(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts", true);
 	std::string input = args[0].toString();
-	vm->setRegister(VM::Register::r1, input + "\n");  // Load string into r1
-	vm->operation(OpCode::PRINT_R, VM::Register::r1); // Print register r1
+	vm->regRun(OpCode::PRINT_R, input + "\n");
 	return Value("");
 }
 
@@ -106,8 +110,7 @@ Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "putf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	std::string        input = io_c_format(formatArgs, vm).toString();
-	vm->setRegister(VM::Register::r1, input + "\n");  // Load string into r1
-	vm->operation(OpCode::PRINT_R, VM::Register::r1); // Print register r1
+	vm->regRun(OpCode::PRINT_R, input + "\n");
 	return Value("");
 }
 
@@ -123,8 +126,7 @@ Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts_error", true);
 	std::string input = args[0].toString();
-	vm->setRegister(VM::Register::r1, input + "\n");              // Load string into r1
-	return vm->operation(OpCode::PRINTERROR_R, VM::Register::r1); // Print register r1
+	return vm->regRun(OpCode::PRINTERROR_R, input + "\n");
 }
 
 Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
@@ -132,7 +134,6 @@ Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "putf_error", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	std::string        input = io_c_format(formatArgs, vm).toString();
-	vm->setRegister(VM::Register::r1, input + "\n");
-	return vm->operation(OpCode::PRINTERROR_R, VM::Register::r1);
+	return vm->regRun(OpCode::PRINTERROR_R, input + "\n");
 }
 } // namespace Phasor

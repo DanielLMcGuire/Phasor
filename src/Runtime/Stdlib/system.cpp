@@ -23,20 +23,18 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("time", StdLib::sys_time);
 	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
 	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
-	vm->registerNativeFunction("clear", StdLib::sys_clear);
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 	vm->registerNativeFunction("sys_get_memory", StdLib::system_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
-	vm->registerNativeFunction("sys_execute", StdLib::sys_exec);
+	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
+	vm->registerNativeFunction("sys_fork", StdLib::sys_fork);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
-	vm->registerNativeFunction("sys_exec_output", StdLib::sys_exec_get_output);
-	vm->registerNativeFunction("sys_exec_error", StdLib::sys_exec_get_error);
 	return true;
 }
 
@@ -79,12 +77,6 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 	int64_t ms = args[0].asInt();
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 	return Value(" ");
-}
-
-Value StdLib::sys_clear(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 0, "clear");
-	return io_prints(std::vector<Value>{"\033[2J\033[H"}, vm);
 }
 
 Value StdLib::sys_os(const std::vector<Value> &args, VM *)
@@ -146,7 +138,7 @@ Value StdLib::sys_argc(const std::vector<Value> &args, VM *)
 Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_get_memory");
-	return static_cast<int64_t>(getAvailableMemory());
+	return static_cast<int64_t>(PHASORstd_sys_getAvailableMemory());
 }
 
 Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
@@ -156,25 +148,23 @@ Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
 	return Value("");
 }
 
-Value StdLib::sys_exec(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sys_execute");
-	vm->setRegister(VM::Register::r1, args[0]); // Load string into r1
-	return vm->operation(OpCode::SYSTEM_R, VM::Register::r1);
+	checkArgCount(args, 1, "sys_shell");
+	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-Value StdLib::sys_exec_get_output(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sys_exec_output");
-	vm->setRegister(VM::Register::r1, args[0]); // Load string into r1
-	return vm->operation(OpCode::SYSTEM_OUT_R, VM::Register::r1);
-}
-
-Value StdLib::sys_exec_get_error(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "sys_exec_error");
-	vm->setRegister(VM::Register::r1, args[0]); // Load string into r1
-	return vm->operation(OpCode::SYSTEM_ERR_R, VM::Register::r1);
+	checkArgCount(args, 1, "sys_fork", true);
+	const char         *executable = args[0].c_str();
+	int                 argc = (int)args.size() - 1;
+	std::vector<char *> v_argv(argc);
+	for (int i = 0; i < argc; ++i)
+	{
+		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
+	}
+	return PHASORstd_sys_run(executable, argc, v_argv.data());
 }
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)

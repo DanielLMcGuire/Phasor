@@ -117,6 +117,10 @@ class VM
 		r25 // If you are here to try adding more, step back and think about what got you here in the first place
 	};
 
+	#define REGISTER1 VM::Register::r0
+	#define REGISTER2 VM::Register::r1
+	#define REGISTER3 VM::Register::r2
+
 	class Halt : public std::exception
 	{
 	  public:
@@ -158,6 +162,13 @@ class VM
 
 	int status = 0;
 
+	template <typename... Args> inline Value regRun( OpCode opcode, Args &&...args)
+	{
+		int regIndex = 0;
+		(setRegister(regIndex++, std::forward<Args>(args)), ...);
+		return operation(opcode);
+	}
+
   private:
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
@@ -175,7 +186,7 @@ class VM
 	std::vector<Value> variables;
 
 	/// @brief Bytecode to execute
-	const Bytecode *m_bytecode;
+	const Bytecode *m_bytecode{};
 
 	/// @brief Program counter
 	size_t pc = 0;

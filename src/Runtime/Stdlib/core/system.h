@@ -3,6 +3,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <process.h>
+#include <stdlib.h>
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <mach/mach.h>
 #include <mach/host_info.h>
@@ -18,7 +20,11 @@
 extern "C"
 {
 #endif
-	size_t getAvailableMemory();
+
+	size_t PHASORstd_sys_getAvailableMemory();
+
+	int PHASORstd_sys_run(const char *name, int argc, char **argv);
+
 #ifdef __cplusplus
 }
 #endif
