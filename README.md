@@ -10,11 +10,9 @@ Phasor is still in beta, as I wish for a **smooth, stable experience** for the f
 
 > [!NOTE]
 > 
-> This software will not available in the US state of California starting January 1st, 2027.
+> This software may not be entirely available in the US state of California starting January 1st, 2027.
 >
-> This software will not available in the US state of Colorado starting January 1st, 2028.
->
-> [See more](https://github.com/DanielLMcGuire/Phasor/wiki/Political-Disclaimer)
+> This software may not be entirely available in the US state of Colorado starting January 1st, 2028.
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
