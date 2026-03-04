@@ -73,6 +73,10 @@ shutdown(code); // from stdsys
 > **Q** - How is it somewhat fast without JIT?
 >
 > **A** - Easy! Just pray the entire core end up into L1/L2, then just let the CPU handle it! (Yes, this actually works, no joke)
+>
+> **Q** - Is this AI generated?
+>
+> **A** - Yes, i am good at coding, i just thought i would try this ai stuff
 
 ## Quick Start
 
