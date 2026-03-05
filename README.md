@@ -16,10 +16,6 @@ Phasor is still in beta, as I wish for a **smooth, stable experience** for the f
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
-```print "Hello World!\n";```
-
----
-
 ## Language Features
 
 - **Variables** dynamically typed with integers, floats (IEEE 754, double), strings, booleans, and null. ```var x = 21```
@@ -59,23 +55,9 @@ shutdown(code); // from stdsys
 
 ---
 
-## Q/A
+Anything below this line may be partially AI generated, I don't care about docs
 
-> **Q** - Are you just ripping off the best from every language?
->
-> **A** - No, the idea started before I knew much about other languages, some inspiration however did come from the majority of the programming languages I use. <sub>(Like C++, Python, TS, C to name a few)</sub>
->
-> **Q** - What is this? Why would I even need this?
->
-> **A** - You probably don't.
->
-> **Q** - Is this better than 'Java' or '.NET'?
->
-> **A** - Phasor doesn't beat anything without PGO (which even this is determinisic)
->
-> **Q** - How is it somewhat fast without JIT?
->
-> **A** - Easy! Just pray the entire core end up into L1/L2, then just let the CPU handle it! (Yes, this actually works, no joke)
+---
 
 ## Quick Start
 
