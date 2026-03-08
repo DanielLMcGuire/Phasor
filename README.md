@@ -4,12 +4,6 @@ A statically typed, compiled programming language with a hybrid stack/register-b
 
 Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
 
-> [!NOTE]
-> 
-> This software may not be entirely available in the US state of California starting January 1st, 2027.
->
-> This software may not be entirely available in the US state of Colorado starting January 1st, 2028.
-
 You can check out the [website](https://phasor.pages.dev/) as well.
 
 ## Language Features
