@@ -32,7 +32,8 @@ int64_t asm_ineg(int64_t a)
 {
 	return -a;
 }
-int64_t asm_flneg(double a)
+
+double asm_flneg(double a)
 {
 	return -a;
 }

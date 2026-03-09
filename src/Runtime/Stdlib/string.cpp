@@ -138,7 +138,7 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 	}
 	std::string s = args[0].asString();
 	int64_t     start = args[1].asInt();
-	int64_t     len = args.size() == 3 ? args[2].asInt() : s.length() - start;
+	int64_t     len = (int64_t)args.size() == 3 ? args[2].asInt() : (int64_t)s.length() - start;
 
 	if (start < 0 || start >= static_cast<int64_t>(s.length()))
 	{

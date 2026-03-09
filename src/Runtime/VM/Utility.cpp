@@ -87,13 +87,13 @@ std::string VM::getInformation()
 void VM::log(const Value &msg)
 {
 	std::string s = msg.toString();
-	asm_print_stdout(s.c_str(), s.length());
+	asm_print_stdout(s.c_str(), (int64_t)s.length());
 }
 
 void VM::logerr(const Value &msg)
 {
 	std::string s = msg.toString();
-	asm_print_stderr(s.c_str(), s.length());
+	asm_print_stderr(s.c_str(), (int64_t)s.length());
 }
 
 void VM::flush() 
