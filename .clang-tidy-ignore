@@ -2,3 +2,7 @@ include/json.hpp
 *.pmake*
 scripts/winapi.h
 *posix/main.c
+*.in
+*pmake_main.cpp
+*NativeRuntime_static_main.cpp
+*NativeRuntime_dynamic_main.cpp
