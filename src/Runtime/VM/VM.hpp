@@ -50,7 +50,7 @@ class VM
 	void setImportHandler(const ImportHandler &handler);
 
 	/// @brief Free a variable in the VM
-	void freeVariable(const size_t index);
+	void freeVariable(size_t index);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add
@@ -60,10 +60,10 @@ class VM
 	/// @brief Set a variable in the VM
 	/// @param index The index of the variable
 	/// @param value The value to set
-	void setVariable(const size_t index, const Value &value);
+	void setVariable(size_t index, const Value &value);
 
 	/// @brief Get a variable from the VM
-	Value getVariable(const size_t index);
+	Value getVariable(size_t index);
 
 	/// @brief Get the number of variables in the VM
 	size_t getVariableCount();
@@ -87,7 +87,7 @@ class VM
 	size_t getRegisterCount();
 
 	/// @brief Enum for registers
-	enum Register
+	enum Register : uint8_t
 	{
 		r0,
 		r1,

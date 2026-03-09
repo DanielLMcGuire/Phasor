@@ -15,7 +15,7 @@
 
 #include <PhasorFFI.h>
 
-typedef void (*FFIFunction)(const PhasorAPI *api, PhasorVM *vm);
+using FFIFunction = void (*)(const PhasorAPI *api, PhasorVM *vm);
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
