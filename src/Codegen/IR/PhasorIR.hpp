@@ -43,7 +43,7 @@ class PhasorIR
 
   private:
 	/// @brief Operand types for instructions
-	enum class OperandType
+	enum class OperandType : uint8_t
 	{
 		NONE, ///< No operand
 		INT,  ///< Integer operand

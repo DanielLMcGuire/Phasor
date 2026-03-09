@@ -7,7 +7,7 @@
 namespace Phasor
 {
 /// @brief Token types for the lexer
-enum class TokenType
+enum class TokenType : uint8_t
 {
 	Identifier,
 	Number,
@@ -151,7 +151,7 @@ struct NullExpr : public Expression
 };
 
 /// @brief Unary operator types
-enum class UnaryOp
+enum class UnaryOp : uint8_t
 {
 	Negate,     // -x
 	Not,        // !x
@@ -160,7 +160,7 @@ enum class UnaryOp
 };
 
 /// @brief Binary operator types
-enum class BinaryOp
+enum class BinaryOp : uint8_t
 {
 	Add,
 	Subtract,
@@ -178,7 +178,7 @@ enum class BinaryOp
 };
 
 /// @brief Postfix operator types
-enum class PostfixOp
+enum class PostfixOp : uint8_t
 {
 	Increment, // x++
 	Decrement  // x--
