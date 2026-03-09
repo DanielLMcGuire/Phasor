@@ -1,7 +1,11 @@
 #ifndef PHASOR_RT_H
 #define PHASOR_RT_H
 
-#include <stddef.h> // For size_t
+#ifdef __cplusplus
+#include <cstddef>
+#else
+#include <stddef.h>
+#endif
 
 #ifdef _WIN32
 #ifdef PHASOR_EXPORTS
