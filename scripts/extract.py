@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Experimental script to extract bytecode data from Phasor binary files
+"""
 import pefile
 import sys
 import struct
