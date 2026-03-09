@@ -17,8 +17,7 @@ ULONG MulDiv(ULONG nNumber, ULONG nNumerator, ULONG nDenominator);
 int   MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 int   MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
 int  MessageBoxTimeoutA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
-int  MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId,
-                        DWORD dwMilliseconds);
+int  MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
 BOOL SetCursorPos(int X, int Y);
 BOOL GetCursorPos(LPPOINT lpPoint);
 int  GetSystemMetrics(int nIndex);
