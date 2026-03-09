@@ -1,0 +1,13 @@
+Checks: >
+  -*,
+  performance-*,
+  readability-*,
+  misc-include-cleaner,
+  modernize-*,
+  bugprone-*,
+  -misc-include-cleaner,
+  -readability-identifier-length,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -modernize-use-designated-initializers
