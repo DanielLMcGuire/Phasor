@@ -14,7 +14,7 @@ extern "C"
 	int64_t asm_imul(int64_t a, int64_t b);
 	double  asm_flmul(double a, double b);
 	/// @brief Native negation
-	int64_t asm_flneg(double a);
+	double asm_flneg(double a);
 	/// @brief Native division
 	int64_t asm_idiv(int64_t a, int64_t b);
 	double  asm_fldiv(double a, double b);

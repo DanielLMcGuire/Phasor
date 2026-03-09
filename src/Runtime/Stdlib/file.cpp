@@ -341,10 +341,6 @@ Value StdLib::file_statistics(const std::vector<Value> &args, VM *)
 		{
 			mode |= 0x4000; // Directory
 		}
-		else if (std::filesystem::is_regular_file(status))
-		{
-			mode |= 0x8000; // Regular file
-		}
 		else if (std::filesystem::is_symlink(status))
 		{
 			mode |= 0xA000; // Symbolic link

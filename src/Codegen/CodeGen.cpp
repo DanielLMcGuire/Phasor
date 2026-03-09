@@ -350,7 +350,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 		if (auto strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
 		{
 			// Constant fold len("literal")
-			int64_t len = strExpr->value.length();
+			int64_t len = (int64_t)strExpr->value.length();
 			int     constIndex = bytecode.addConstant(Value(len));
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 			return;
@@ -523,6 +523,7 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 		}
 		catch (...)
 		{
+			std::cerr << "Unknown error in Phasor::CodeGenerator::generateBinaryExpr().\n";
 		}
 	}
 

@@ -9,8 +9,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	uint8_t rA = static_cast<uint8_t>(operand1);
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
-//      uint8_t rD = static_cast<uint8_t>(operand4);
-//      uint8_t rE = static_cast<uint8_t>(operand5);
+//  uint8_t rD = static_cast<uint8_t>(operand4);
+//  uint8_t rE = static_cast<uint8_t>(operand5);
 #ifdef _DEBUG
 	log(std::string("OP: " + std::to_string(static_cast<int>(op)) + " operands=[" + std::to_string(operand1) + ", " + std::to_string(operand2) + ", " + std::to_string(operand3)
 	          + "] stack=" + std::to_string(stack.size()) + "\n"));
@@ -293,14 +293,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::PRINT: {
 		Value       v = pop();
 		std::string s = v.toString();
-		asm_print_stdout(s.c_str(), s.length());
+		asm_print_stdout(s.c_str(), (int64_t)s.length());
 		break;
 	}
 
 	case OpCode::PRINTERROR: {
 		Value       v = pop();
 		std::string s = v.toString();
-		asm_print_stderr(s.c_str(), s.length());
+		asm_print_stderr(s.c_str(), (int64_t)s.length());
 		flusherr();
 		break;
 	}
@@ -665,13 +665,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	// Register I/O
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
-		asm_print_stdout(s.c_str(), s.length());
+		asm_print_stdout(s.c_str(), (int64_t)s.length());
 		break;
 	}
 
 	case OpCode::PRINTERROR_R: {
 		std::string s = registers[rA].toString();
-		asm_print_stderr(s.c_str(), s.length());
+		asm_print_stderr(s.c_str(), (int64_t)s.length());
 		break;
 	}
 
