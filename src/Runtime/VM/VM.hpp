@@ -114,21 +114,27 @@ class VM
 
 	/// @brief Destroy an instance and release its memory
 	void destroyInstance(InstanceHandle handle);
-
 	
 	void   freeVariable(const size_t index);
+
 	size_t addVariable(const Value &value);
+
 	void   setVariable(const size_t index, const Value &value);
+
 	Value  getVariable(const size_t index);
+
 	size_t getVariableCount();
 
 	void   setRegister(uint8_t index, const Value &value);
+
 	void   freeRegister(uint8_t index);
+
 	Value  getRegister(uint8_t index);
+	
 	size_t getRegisterCount();
 
 	/// @brief Enum for registers
-	enum Register
+	enum Register : uint8_t
 	{
 		r0,
 		r1,

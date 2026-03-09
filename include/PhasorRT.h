@@ -36,7 +36,7 @@ extern "C"
 	 * @param argv An array of strings representing the command-line arguments.
 	 */
 	PHASOR_API void exec(const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize, const char *moduleName,
-	                     const void *nativeFunctionsVector, const int argc, const char **argv);
+	                     const void *nativeFunctionsVector, int argc, const char **argv);
 
 	/**
 	 * @brief Executes a Phasor script using Just-In-Time (JIT) compilation.
