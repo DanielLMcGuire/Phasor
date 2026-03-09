@@ -11,6 +11,7 @@
 /docs/html
 /out/build
 .pmake
+*fix.ps1
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,visualstudio,visualstudiocode,windows,macos,linux,c++,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,visualstudio,visualstudiocode,windows,macos,linux,c++,cmake

@@ -768,7 +768,7 @@ bool PhasorIR::saveToFile(const Bytecode &bytecode, const std::filesystem::path 
 		std::ofstream        file(filename, std::ios::binary);
 		if (!file.is_open())
 			return false;
-		file.write(reinterpret_cast<const char *>(data.data()), data.size());
+		file.write(reinterpret_cast<const char *>(data.data()), (std::streamsize)data.size());
 		return true;
 	}
 	catch (...)
