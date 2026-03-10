@@ -1,5 +1,5 @@
 #pragma once
-#if (defined(__ORBIS__) || defined(_GAMING_XBOX_XBOXONE)
+#if defined(__ORBIS__) || defined(_GAMING_XBOX_XBOXONE)
 #define PLATFORM_LEGACY_GAME
 #elif defined(_GAMING_DESKTOP)
 #define PLATFORM_DESKTOP_GAME
