@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include <iostream>
 #include <stdexcept>
+#include <platform.h>
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -180,7 +181,7 @@ class VM
 	ImportHandler importHandler;
 
 	/// @brief Virtual registers for register-based operations (v2.0)
-	std::array<Value, 32> registers;
+	std::array<Value, MAX_REGISTERS> registers;
 
 	/// @brief Stack for function calls
 	std::vector<Value> stack;
