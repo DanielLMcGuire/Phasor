@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <platform.h>
+
 namespace Phasor
 {
 /// @brief Instruction with up to 5 operands
@@ -114,7 +116,7 @@ class CodeGenerator
 	/// @brief Allocate a new register
 	uint8_t allocateRegister()
 	{
-		for (size_t i = 0; i < 32; i++)
+		for (size_t i = 0; i < MAX_REGISTERS; i++)
 		{
 			if (i >= registerInUse.size())
 			{
