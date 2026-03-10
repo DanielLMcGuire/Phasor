@@ -1,4 +1,5 @@
 #include "ffi.hpp"
+#include <PhasorFFI.h>
 
 namespace Phasor
 {

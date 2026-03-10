@@ -106,9 +106,9 @@ int VM::run(Instance &instance)
 			m_instance = nullptr;
 			return status;
 		}
-		catch (const std::exception &ex)
+		catch (const std::exception &)
 		{
-			std::cerr << ex.what() << "\n\n" << getInformation() << "\n";
+			std::cerr << getInformation() << "\n";
 			m_instance = nullptr;
 			throw;
 		}

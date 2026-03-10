@@ -35,7 +35,7 @@ struct Frame
 {
 	std::vector<Value>    stack;
 	std::size_t           pc = 0;
-	std::array<Value, 32> registers;
+	std::array<Value, MAX_REGISTERS> registers;
 	InstanceHandle        returnToInstance = NULL_HANDLE;
 	std::size_t           returnPc = 0;
 
