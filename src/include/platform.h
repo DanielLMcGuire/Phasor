@@ -1,9 +1,9 @@
 #pragma once
-#if (defined(__ORBIS__) || defined(_XBOX_UNIT)) && !defined(_XBOX_SCARLET)
+#if defined(__ORBIS__) || defined(_GAMING_XBOX_XBOXONE)
 #define PLATFORM_LEGACY_GAME
 #elif defined(_GAMING_DESKTOP)
 #define PLATFORM_DESKTOP_GAME
-#elif defined(_GAMING_XBOX) || defined(__PROSPERO__)
+#elif defined(_GAMING_XBOX_SCARLETT) || defined(__PROSPERO__)
 #define PLATFORM_MODERN_GAME
 #else
 #define PLATFORM_DESKTOP_STANDARD
