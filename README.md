@@ -111,7 +111,7 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 ## Applications
 
-- **phasor** - Combines the JIT Runtime, VM Runtime, and REPL, as well as adding pipe-in for raw scripts, and supports shabangs
+- **phasor** - Combines the JIT Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
 - **phasor-lsp** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
 - **REPL** ([`phasorrepl`](https://phasor-docs.pages.dev/man?f=phasorrepl.1)) - Interactive interpreter
 - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
