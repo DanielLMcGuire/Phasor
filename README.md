@@ -56,19 +56,21 @@ Anything below this line may be partially AI generated, I don't care about docs
 
 ```bash
 # Compile and run a program
-phasorjit input.phs # or use 'phasor input.phs'
+$ phasorjit input.phs # or use 'phasor input.phs'
 
 # Interactive REPL 
-phasorrepl # or use 'phasor'
+$ phasorrepl # or use 'phasor'
 
 # Compile to bytecode
-phasorcompiler input.phs (-o, --output output.phsb)
+$ phasorcompiler input.phs (-o, --output output.phsb)
 
 # Run bytecode
-phasorvm output.phsb # or use 'phasor output.phsb'
+$ phasorvm output.phsb # or use 'phasor output.phsb'
 
 # Run a script raw
-cat input.phs | phasor
+$ echo "print \"Hello World!\\n\"" | phasor
+Hello World!
+$
 ```
 
 ### Example Program
