@@ -6,6 +6,8 @@ Phasor is still in beta, as I wish for a **smooth, stable experience** for the f
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
+[Download Phasor](https://phasor.pages.dev/downloads?version=latest)
+
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
