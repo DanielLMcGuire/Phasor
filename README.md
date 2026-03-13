@@ -10,6 +10,8 @@ Phasor is still in beta, as I wish for a **smooth, stable experience** for the f
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
+[Download Phasor](https://phasor.pages.dev/downloads?version=latest)
+
 ## Language Features
 
 - **Variables** dynamically typed with integers, floats (IEEE 754, double), strings, booleans, and null. ```var x = 21```
@@ -57,19 +59,21 @@ Anything below this line may be partially AI generated, I don't care about docs
 
 ```bash
 # Compile and run a program
-phasorjit input.phs # or use 'phasor input.phs'
+$ phasorjit input.phs # or use 'phasor input.phs'
 
 # Interactive REPL 
-phasorrepl # or use 'phasor'
+$ phasorrepl # or use 'phasor'
 
 # Compile to bytecode
-phasorcompiler input.phs (-o, --output output.phsb)
+$ phasorcompiler input.phs (-o, --output output.phsb)
 
 # Run bytecode
-phasorvm output.phsb # or use 'phasor output.phsb'
+$ phasorvm output.phsb # or use 'phasor output.phsb'
 
 # Run a script raw
-cat input.phs | phasor
+$ echo "print \"Hello World!\\n\"" | phasor
+Hello World!
+$
 ```
 
 ### Example Program
@@ -110,7 +114,7 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 ## Applications
 
-- **phasor** - Combines the JIT Runtime, VM Runtime, and REPL, as well as adding pipe-in for raw scripts, and supports shabangs
+- **phasor** - Combines the JIT Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
 - **phasor-lsp** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
 - **REPL** ([`phasorrepl`](https://phasor-docs.pages.dev/man?f=phasorrepl.1)) - Interactive interpreter
 - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
@@ -171,6 +175,8 @@ This repo contains:
 - Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
+
+Phasor may not be available in the U.S. states of Colorado effective 1-1-2028 and California effective 1-1-2027 due to lack of array support, thus lacking D-Bus compatibility.
 
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
