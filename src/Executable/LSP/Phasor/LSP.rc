@@ -1,0 +1,36 @@
+#include <windows.h>
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 3,0,0,0
+ PRODUCTVERSION 3,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0" // Language: US English, Codepage: Unicode
+        BEGIN
+            VALUE "CompanyName", "Phasor"
+            VALUE "FileDescription", "Phasor Language Server Protocol Host"
+            VALUE "FileVersion", "3.0.0.0"
+            VALUE "InternalName", "phasor-lsp.exe"
+            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
+            VALUE "OriginalFilename", "phasor-lsp.exe"
+            VALUE "ProductName", "Phasor Programming Language"
+            VALUE "ProductVersion", "3.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END
+
