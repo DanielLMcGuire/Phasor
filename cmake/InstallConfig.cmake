@@ -1,4 +1,11 @@
-if(WIN32)
+if(IS_XBOX)
+    install(TARGETS
+        phasor_main
+        pulsar_main
+        phasor_native_runtime
+        RUNTIME DESTINATION bin
+    )
+elseif(WIN32)
     install(TARGETS
         phasor_main
         phasor_compiler

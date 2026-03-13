@@ -22,6 +22,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_D
 
 option(ASSEMBLY "Enable assembly for core code" ON)
 
+if(IS_XBOX)
+    add_compile_definitions(PLATFORM_OVERRIDE)
+    add_compile_definitions(PLATFORM_MODERN_GAME)
+endif()
+
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
 endif()
@@ -38,8 +43,9 @@ include(cmake/AssemblyConfig.cmake)
 
 # Build
 add_subdirectory(src)
-
+if(NOT IS_XBOX)
 add_subdirectory(thirdparty)
+endif()
 
 # Install
 include(cmake/InstallConfig.cmake)

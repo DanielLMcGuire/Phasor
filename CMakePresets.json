@@ -185,7 +185,20 @@
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
-
+        {
+            "name": "xbox-series",
+            "displayName": "Xbox",
+            "inherits": "base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_XBOX": "1"
+            }
+        },
         {
             "name": "linux-64-dbg",
             "displayName": "Linux (x64 Debug)",
