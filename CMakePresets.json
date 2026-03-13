@@ -186,8 +186,8 @@
             }
         },
         {
-            "name": "xbox-series",
-            "displayName": "Xbox",
+            "name": "xbox-one",
+            "displayName": "Durango",
             "inherits": "base",
             "architecture": {
                 "value": "x64",
@@ -196,7 +196,24 @@
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_XBOX": "1"
+                "IS_XBOX": "1",
+                "IS_XDURANGO": "1"
+
+            }
+        },
+        {
+            "name": "xbox-series",
+            "displayName": "Scarlet",
+            "inherits": "base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_XBOX": "1",
+                "IS_XSCARLET": "1"
             }
         },
         {
