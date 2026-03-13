@@ -72,7 +72,7 @@ elseif(APPLE)
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
-        DESTINATION Library/Application Support/org.Phasor.Phasor/man
+        DESTINATION "Library/Application Support/org.Phasor.Phasor/man"
         PATTERN "*.sh" EXCLUDE
     )
 else()
