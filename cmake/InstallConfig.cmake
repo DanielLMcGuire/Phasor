@@ -4,6 +4,13 @@ if(IS_XBOX)
         pulsar_main
         phasor_native_runtime
         RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+    install(FILES
+        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
+        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+        DESTINATION include
     )
 elseif(WIN32)
     install(TARGETS
@@ -30,6 +37,11 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
         ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
         DESTINATION include
+    )
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/docs/man/
+        DESTINATION man
+        PATTERN "*.sh" EXCLUDE
     )
 elseif(APPLE)
     install(TARGETS
@@ -58,6 +70,11 @@ elseif(APPLE)
         ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
         DESTINATION usr/local/include
     )
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/docs/man/
+        DESTINATION Library/Application Support/org.Phasor.Phasor/man
+        PATTERN "*.sh" EXCLUDE
+    )
 else()
     install(TARGETS
         phasor_main
@@ -83,5 +100,10 @@ else()
         ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
         ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
         DESTINATION usr/include
+    )
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/docs/man/
+        DESTINATION usr/share/man/
+        PATTERN "*.sh" EXCLUDE
     )
 endif()
