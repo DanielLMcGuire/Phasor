@@ -210,7 +210,7 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "ASSEMBLY": "OFF",
+                "ASSEMBLY": "ON",
                 "CMAKE_BUILD_TYPE": "Release",
                 "IS_XBOX": "1",
                 "IS_XSCARLET": "1"
