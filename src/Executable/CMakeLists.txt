@@ -54,6 +54,7 @@ set_target_properties(pulsar_compiler PROPERTIES OUTPUT_NAME pulsarcompiler)
 
 add_executable(phasor_lsp
     ${CMAKE_CURRENT_SOURCE_DIR}/LSP/Phasor/LSP_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LSP/Phasor/LSP.rc
 )
 target_link_libraries(phasor_lsp phasor_lsp_lib)
 set_target_properties(phasor_lsp PROPERTIES OUTPUT_NAME phasor-lsp)
