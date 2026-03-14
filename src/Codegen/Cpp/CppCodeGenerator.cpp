@@ -76,27 +76,41 @@ void CppCodeGenerator::generateModuleName()
 
 void CppCodeGenerator::generateEmbeddedBytecode()
 {
-	output << "inline constexpr unsigned char embeddedBytecode[] = {\n";
+#ifdef _WIN32
+    output << "#pragma section(\".phsb\", read)\n";
+    output << "__declspec(allocate(\".phsb\")) ";
+#else
+    output << "__attribute__((section(\".phsb\"))) ";
+#endif
 
-	// Write bytecode as hex array
-	for (size_t i = 0; i < serializedBytecode.size(); i++)
-	{
-		if (i % 16 == 0)
-			output << "\t";
+    output << "volatile const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
 
-		output << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(serializedBytecode[i]);
+#ifdef _WIN32
+    output << "__declspec(allocate(\".phsb\")) ";
+#else
+    output << "__attribute__((section(\".phsb\"))) ";
+#endif
 
-		if (i < serializedBytecode.size() - 1)
-			output << ",";
+    output << "constexpr unsigned char embeddedBytecode[] = {\n";
 
-		if (i % 16 == 15)
-			output << "\n";
-		else if (i < serializedBytecode.size() - 1)
-			output << " ";
-	}
+    for (size_t i = 0; i < serializedBytecode.size(); i++)
+    {
+        if (i % 16 == 0)
+            output << "\t";
 
-	output << std::dec << "\n};\n";
-	output << "inline const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
+        output << "0x" << std::hex << std::setw(2) << std::setfill('0')
+               << static_cast<int>(serializedBytecode[i]);
+
+        if (i < serializedBytecode.size() - 1)
+            output << ",";
+
+        if (i % 16 == 15)
+            output << "\n";
+        else if (i < serializedBytecode.size() - 1)
+            output << " ";
+    }
+
+    output << std::dec << "\n};\n";
 }
 
 std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const std::string &input)
