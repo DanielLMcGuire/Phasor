@@ -93,7 +93,7 @@ def find_size(sec_data: bytes, sz_width: int, endian: str) -> Optional[int]:
 def main():
     ap = argparse.ArgumentParser(description="Extract phasor bytecode from a compiled binary.")
     ap.add_argument("binary", help="Path to the compiled binary")
-    ap.add_argument("-o", "--output", default="bytecode.phasor", help="Output file")
+    ap.add_argument("-o", "--output", default="out.phsb", help="Output file")
     args = ap.parse_args()
 
     binary_path = Path(args.binary)
@@ -117,12 +117,12 @@ def main():
 
     N = find_size(sec_data, sz_width, endian)
     if N is None:
-        print("Error: could not locate size_t in .phasor section.")
+        print("Error: could not locate size_t in .phsb section.")
         sys.exit(1)
 
     phsb_off = sec_data.find(b"\x50\x48\x53\x42")
     if phsb_off == -1:
-        print("Error: PHSB magic not found in .phasor section.")
+        print("Error: PHSB magic not found in .phsb section.")
         sys.exit(1)
 
     output_path = Path(args.output)
