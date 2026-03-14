@@ -30,7 +30,7 @@ build() {
     cd "$startdir"
     python "$startdir/pmake-bootstrap.py"
     chmod +x "$startdir/pmake"
-    "$startdir/pmake" -s "$startdir" -b
+    "$startdir/pmake" linux-64-rel -s "$startdir" -b
 }
 
 package() {
