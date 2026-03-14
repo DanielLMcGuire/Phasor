@@ -1,10 +1,28 @@
 if(MSVC)
+if(IS_XBOX)
+    if(IS_XDURANGO)
+        set(CMAKE_C_FLAGS_RELEASE
+            "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:SSE2 /Qspectre-"
+        )
+        set(CMAKE_CXX_FLAGS_RELEASE
+            "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:SSE2 /EHsc /permissive- /DNOMINMAX"
+        )
+    else()
+        set(CMAKE_C_FLAGS_RELEASE
+            "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /Qspectre-"
+        )
+        set(CMAKE_CXX_FLAGS_RELEASE
+            "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
+        )
+    endif()
+else()
     set(CMAKE_C_FLAGS_RELEASE
-        "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /Qspectre-"
+        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /Qspectre-"
     )
     set(CMAKE_CXX_FLAGS_RELEASE
-        "/O2 /Oi /Ot /GL /Gy /MT /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
+        "/O2 /Oi /Ot /GL /Gy /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX"
     )
+endif()
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE
         "/LTCG /OPT:REF /OPT:ICF"
     )
