@@ -28,23 +28,13 @@ pkgver() {
 
 build() {
     cd "$startdir"
-    "$startdir/pmake-bootstrap.sh"
-    "$startdir/pmake" linux-64-rel -s "$startdir" -b
+    cmake -S "$startdir" -B "$startdir/build"
+    cmake --build "$startdir/build"
 }
 
 package() {
     cd "$startdir"
-    "$startdir/pmake" -i "$pkgdir"
-    
-    # Install man pages
-    for section in 1 3 5 7; do
-        src="$startdir/docs/man/man$section"
-        dest="$pkgdir/usr/share/man/man$section"
-        mkdir -p "$dest"
-        for file in "$src"/*."$section"; do
-            [ -f "$file" ] && install -Dm644 "$file" "$dest"/
-        done
-    done
+    cmake --install "$startdir/build" --prefix  "$pkgdir"
     
     install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
         "$pkgdir/usr/share/file/magic/phasor"
