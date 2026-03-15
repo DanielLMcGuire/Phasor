@@ -61,6 +61,17 @@ print_progress("[----------]", f"SYNC pmake {commit_hash}")
 run("git submodule update --init", silent=True)
 print_progress("[----------]", "SYNC done")
 
+pulsar_exe = shutil.which("pulsar") # for build.pul
+phasor_exe = shutil.which("phasor") or shutil.which("phasorvm") # for running pmake
+phasorcompiler_exe = shutil.which("phasorcompiler") # for compiling (required by pmake.conf)
+
+if pulsar_exe and phasor_exe and phasorcompiler_exe:
+    print_progress("[==========]", f"Build via Phasor Toolchain")
+    run(f'"{pulsar_exe}" scripts/build.pul scripts/pmake.conf', silent=True)
+    print_progress("[==========]", "DONE")
+    print()
+    sys.exit(0)
+
 if OS_NAME == "windows" and "VSCMD_VER" not in os.environ:
     vswhere_path = os.path.join(os.environ.get("ProgramFiles(x86)"), "Microsoft Visual Studio", "Installer", "vswhere.exe")
     if not os.path.exists(vswhere_path):
