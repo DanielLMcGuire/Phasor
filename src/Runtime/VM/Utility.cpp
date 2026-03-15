@@ -91,7 +91,7 @@ int VM::run(Instance &instance)
 		const Instruction &instr = instance.code.instructions[instance.activeFrame().pc++];
 
 #ifdef _DEBUG
-		log(std::string("EXEC idx=" + std::to_string(instance.activeFrame().pc - 1) +
+		log(std::string("\nEXEC idx=" + std::to_string(instance.activeFrame().pc - 1) +
 		                " op=" + std::to_string(static_cast<int>(instr.op)) +
 		                " stack=" + std::to_string(instance.activeFrame().stack.size()) + "\n"));
 		flush();

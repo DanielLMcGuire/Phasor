@@ -76,15 +76,35 @@ void CppCodeGenerator::generateModuleName()
 
 void CppCodeGenerator::generateEmbeddedBytecode()
 {
-	output << "inline constexpr unsigned char embeddedBytecode[] = {\n";
+#if defined(_WIN32)
+	const std::string sectionPrefixPragma = "#pragma section(\".phsb\", read)\n";
+	const std::string sectionAttr = "__declspec(allocate(\".phsb\")) ";
+#elif defined(__APPLE__)
+	const std::string sectionPrefixPragma = "";
+	const std::string sectionAttr = "__attribute__((section(\"__DATA,__phsb\"))) ";
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+	const std::string sectionPrefixPragma = "";
+	const std::string sectionAttr = "__attribute__((section(\".phsb\"))) ";
+#else
+	const std::string sectionPrefixPragma = "";
+	const std::string sectionAttr = "";
+#endif
 
-	// Write bytecode as hex array
+	if (!sectionPrefixPragma.empty())
+		output << sectionPrefixPragma;
+
+	output << sectionAttr << "volatile const size_t embeddedBytecodeSize = "
+	       << serializedBytecode.size() << ";\n";
+
+	output << sectionAttr << "constexpr unsigned char embeddedBytecode[] = {\n";
+
 	for (size_t i = 0; i < serializedBytecode.size(); i++)
 	{
 		if (i % 16 == 0)
 			output << "\t";
 
-		output << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(serializedBytecode[i]);
+		output << "0x" << std::hex << std::setw(2) << std::setfill('0')
+		       << static_cast<int>(serializedBytecode[i]);
 
 		if (i < serializedBytecode.size() - 1)
 			output << ",";
@@ -96,7 +116,6 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 	}
 
 	output << std::dec << "\n};\n";
-	output << "inline const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
 }
 
 std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const std::string &input)
