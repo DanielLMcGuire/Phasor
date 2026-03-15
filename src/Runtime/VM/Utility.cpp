@@ -20,7 +20,7 @@ int VM::run(const Bytecode &bc)
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
 #ifdef _DEBUG
-		log(std::string("EXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
+		log(std::string("\nEXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
 		flush();
 #endif
 		try

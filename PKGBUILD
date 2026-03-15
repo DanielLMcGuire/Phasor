@@ -7,7 +7,7 @@ pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
 license=('0BSD')
-makedepends=('git' 'gcc' 'cmake' 'ninja')
+makedepends=('git' 'gcc' 'cmake' 'ninja' 'python')
 optdepends=('gcc: For building Phasor Native wrappers.')
 conflicts=('phasor' 'phasor-git')
 options=(strip !debug)
@@ -28,13 +28,14 @@ pkgver() {
 
 build() {
     cd "$startdir"
-    cmake -S "$startdir" -B "$startdir/build"
-    cmake --build "$startdir/build"
+    python "$startdir/pmake-bootstrap.py"
+    chmod +x "$startdir/pmake"
+    "$startdir/pmake" linux-64-rel -s "$startdir" -b
 }
 
 package() {
     cd "$startdir"
-    cmake --install "$startdir/build" --prefix  "$pkgdir"
+    "$startdir/pmake" -i "$pkgdir"
     
     install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
         "$pkgdir/usr/share/file/magic/phasor"
