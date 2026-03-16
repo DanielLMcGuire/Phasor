@@ -4,9 +4,8 @@
 namespace Phasor
 {
 
-Value StdLib::registerStringFunctions(const std::vector<Value> &args, VM *vm)
+void StdLib::registerStringFunctions(VM *vm)
 {
-	checkArgCount(args, 0, "include_stdstr");
 	vm->registerNativeFunction("find", StdLib::str_find);
 	vm->registerNativeFunction("len", StdLib::str_len);
 	vm->registerNativeFunction("char_at", StdLib::str_char_at);
@@ -17,13 +16,11 @@ Value StdLib::registerStringFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("starts_with", StdLib::str_starts_with);
 	vm->registerNativeFunction("ends_with", StdLib::str_ends_with);
 
-	// StringBuilder
 	vm->registerNativeFunction("sb_new", StdLib::sb_new);
 	vm->registerNativeFunction("sb_append", StdLib::sb_append);
 	vm->registerNativeFunction("sb_to_string", StdLib::sb_to_string);
 	vm->registerNativeFunction("sb_free", StdLib::sb_free);
 	vm->registerNativeFunction("sb_clear", StdLib::sb_clear);
-	return true;
 }
 
 // StringBuilder Pool

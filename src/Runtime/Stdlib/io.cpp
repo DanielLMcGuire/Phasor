@@ -10,7 +10,7 @@ static std::string toHex(int value)
 namespace Phasor
 {
 
-Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
+void StdLib::registerIOFunctions(VM *vm)
 {
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
 	vm->registerNativeFunction("clear", StdLib::io_clear);
@@ -21,7 +21,6 @@ Value StdLib::registerIOFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("gets", StdLib::io_gets);
 	vm->registerNativeFunction("puts_error", StdLib::io_puts_error);
 	vm->registerNativeFunction("putf_error", StdLib::io_putf_error);
-	return true;
 }
 
 Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)

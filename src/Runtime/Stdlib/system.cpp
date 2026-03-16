@@ -17,9 +17,8 @@
 namespace Phasor
 {
 
-Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
+void StdLib::registerSysFunctions(VM *vm)
 {
-	checkArgCount(args, 0, "include_stdsys");
 	vm->registerNativeFunction("time", StdLib::sys_time);
 	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
 	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
@@ -36,7 +35,6 @@ Value StdLib::registerSysFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
-	return true;
 }
 
 Value StdLib::sys_time(const std::vector<Value> &args, VM *)

@@ -7,11 +7,6 @@ char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
 
-void StdLib::registerFunctions(VM &vm)
-{
-	vm.registerNativeFunction("using", std_import);
-}
-
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 {
 	if (!name || !argp)
@@ -67,12 +62,12 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 			return false;
 		}
 		auto moduleName = arg.asString();
-		if (moduleName == "stdio") registerIOFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdsys") registerSysFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdmath") registerMathFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdstr") registerStringFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdtype") registerTypeConvFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdfile") registerFileFunctions(std::vector<Value>{}, vm);
+		if (moduleName == "stdio") registerIOFunctions(vm);
+		else if (moduleName == "stdsys") registerSysFunctions(vm);
+		else if (moduleName == "stdmath") registerMathFunctions(vm);
+		else if (moduleName == "stdstr") registerStringFunctions(vm);
+		else if (moduleName == "stdtype") registerTypeConvFunctions(vm);
+		else if (moduleName == "stdfile") registerFileFunctions(vm);
 		else
 		{
 			throw std::runtime_error("Unknown standard library module: " + moduleName);

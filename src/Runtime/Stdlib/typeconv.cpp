@@ -3,14 +3,12 @@
 namespace Phasor
 {
 
-Value StdLib::registerTypeConvFunctions(const std::vector<Value> &args, VM *vm)
+void StdLib::registerTypeConvFunctions(VM *vm)
 {
-	checkArgCount(args, 0, "include_stdtype");
 	vm->registerNativeFunction("to_int", StdLib::to_int);
 	vm->registerNativeFunction("to_float", StdLib::to_float);
 	vm->registerNativeFunction("to_string", StdLib::to_string);
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
-	return true;
 }
 
 Value StdLib::to_int(const std::vector<Value> &args, VM *)

@@ -7,7 +7,7 @@
 namespace Phasor
 {
 
-Value StdLib::registerFileFunctions(const std::vector<Value> &args, VM *vm)
+void StdLib::registerFileFunctions(VM *vm)
 {
 	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
 	vm->registerNativeFunction("fread", StdLib::file_read);
@@ -28,8 +28,6 @@ Value StdLib::registerFileFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("frmdir", StdLib::file_remove_directory);
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);
 	vm->registerNativeFunction("fstat", StdLib::file_statistics);
-
-	return true;
 }
 
 Value StdLib::file_absolute(const std::vector<Value> &args, VM *)

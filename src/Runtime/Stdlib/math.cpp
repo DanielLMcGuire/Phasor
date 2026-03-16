@@ -3,7 +3,7 @@
 namespace Phasor
 {
 
-Value StdLib::registerMathFunctions(const std::vector<Value> &args, VM *vm)
+void StdLib::registerMathFunctions(VM *vm)
 {
 	vm->registerNativeFunction("math_sqrt", StdLib::math_sqrt);
 	vm->registerNativeFunction("math_pow", StdLib::math_pow);
@@ -18,7 +18,6 @@ Value StdLib::registerMathFunctions(const std::vector<Value> &args, VM *vm)
 	vm->registerNativeFunction("math_sin", StdLib::math_sin);
 	vm->registerNativeFunction("math_cos", StdLib::math_cos);
 	vm->registerNativeFunction("math_tan", StdLib::math_tan);
-	return true;
 }
 
 Value StdLib::math_sqrt(const std::vector<Value> &args, VM *)
