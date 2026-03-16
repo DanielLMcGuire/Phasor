@@ -24,10 +24,11 @@ class Disassembler
 		std::filesystem::path program;
 		bool                  noLogo = false;
 		bool                  showHelp = false;
+		bool				  silent = false;
 	} m_args;
 
-	bool       parseArguments(int argc, char *argv[]);
-	bool showHelp();
+	bool parseArguments(int argc, char *argv[]);
+	void showHelp();
 	bool decompileBinary();
 };
 

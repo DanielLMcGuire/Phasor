@@ -30,7 +30,13 @@ int Disassembler::run()
 		return 0;
 	}
 
-	return (int)!decompileBinary();
+	if (decompileBinary()) {
+		if (!m_args.silent) std::cout << "Success! Output to " << m_args.outputFile << '\n';
+		return 0;
+	} else {
+		std::cout << "Failed to disassemble program!\n";
+		return 1;
+	}
 }
 
 bool Disassembler::parseArguments(int argc, char *argv[])
@@ -62,6 +68,11 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 		{
 			m_args.noLogo = true;
 		}
+		if (arg == "-s" || arg == "--silent")
+		{
+			m_args.noLogo = true;
+			m_args.silent = true;
+		}
 		else if (arg[0] == '-')
 		{
 			std::cerr << "Error: Unknown option: " << arg << "\n";
@@ -83,15 +94,15 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-bool Disassembler::showHelp()
+void Disassembler::showHelp()
 {
 	std::cout << "Usage:\n";
 	std::cout << "  " << m_args.program.stem().string() << " [options] <input.phsb>\n\n";
 	std::cout << "Options:\n";
 	std::cout << "  -o, --output <file>   Output file\n";
 	std::cout << "  -h, --help            Show this help message\n";
-	std::cout << "  -n, --nologo          Do not show banner\n\n";
-	return true;
+	std::cout << "  -n, --nologo          Do not show banner\n";
+	std::cout << "  -s, --silent          Do not print anything except errors (no stdout)\n\n";
 }
 
 bool Disassembler::decompileBinary()
