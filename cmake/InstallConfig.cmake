@@ -24,6 +24,7 @@ elseif(WIN32)
         pulsar_main
         pulsar_compiler
 
+        phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
@@ -55,6 +56,7 @@ elseif(APPLE)
         pulsar_main
         pulsar_compiler
 
+        phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
@@ -87,6 +89,7 @@ else()
         pulsar_main
         pulsar_compiler
 
+        phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime

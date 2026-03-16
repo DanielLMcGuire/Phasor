@@ -66,6 +66,13 @@ add_executable(phasor_disasm
 target_link_libraries(phasor_disasm phasor_disasm_lib)
 set_target_properties(phasor_disasm PROPERTIES OUTPUT_NAME phasordecomp)
 
+add_executable(phasor_asm
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Assembler.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Assembler_main.cpp
+)
+target_link_libraries(phasor_asm phasor_asm_lib)
+set_target_properties(phasor_asm PROPERTIES OUTPUT_NAME phasorasm)
+
 add_executable(phasor_cxx_transpiler
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CppCompiler.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CppCompiler_main.cpp
