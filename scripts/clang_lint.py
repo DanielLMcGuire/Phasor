@@ -15,7 +15,6 @@ DEFAULT_IGNORE      = ".clang-tidy-ignore"
 DEFAULT_EXTENSIONS  = {".cpp", ".hpp", ".c", ".h"}
 DEFAULT_WORKERS     = 8
 
-
 def load_ignore_patterns(ignore_file: str) -> list[str]:
     path = Path(ignore_file)
     if not path.exists():
@@ -26,7 +25,6 @@ def load_ignore_patterns(ignore_file: str) -> list[str]:
         if line and not line.startswith("#"):
             patterns.append(line)
     return patterns
-
 
 def is_ignored(file_path: Path, patterns: list[str]) -> bool:
     path_str = str(file_path.resolve()).replace("\\", "/")
@@ -40,7 +38,6 @@ def is_ignored(file_path: Path, patterns: list[str]) -> bool:
         if fnmatch.fnmatch(name_str, pattern):
             return True
     return False
-
 
 def collect_files(root: str, extensions: set[str], patterns: list[str]) -> list[Path]:
     root_path = Path(root).resolve()
@@ -56,7 +53,6 @@ def collect_files(root: str, extensions: set[str], patterns: list[str]) -> list[
             kept.append(p)
 
     return kept
-
 
 def run_tidy(file: Path, build_dir: str) -> tuple[Path, str]:
     result = subprocess.run(
@@ -100,11 +96,10 @@ def main() -> None:
                 pct = int((done / total) * 100)
                 print(f"\r[{done}/{total} {pct}%]", end="", flush=True)
 
-    print();
+    print()
     log_path = Path(args.log)
     log_path.write_text("\n".join(all_output), encoding="utf-8")
     print(f"\nDone — {total} file(s) processed. Output saved to '{log_path}'")
-
 
 if __name__ == "__main__":
     main()
