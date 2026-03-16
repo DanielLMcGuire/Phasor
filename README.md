@@ -179,7 +179,7 @@ This repo contains:
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-Phasor may not be available in the U.S. states of Colorado effective 1-1-2028 and California effective 1-1-2027 due to lack of array support, thus lacking D-Bus compatibility.
+To avoid legal complications, Phasor will not be officially available on Linux-based (and many Unix-based) operating systems in the U.S. states of Colorado effective 1-1-2028 and California effective 1-1-2027 due to lack of stable struct/array support, therefore lacking D-Bus / OS specific compatibility without unofficial plugins.
 
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
