@@ -22,11 +22,11 @@ BEGIN
         BLOCK "040904b0" // Language: US English, Codepage: Unicode
         BEGIN
             VALUE "CompanyName", "Phasor"
-            VALUE "FileDescription", "Phasor Bytecode Disassembler"
+            VALUE "FileDescription", "Phasor ISA Assembler"
             VALUE "FileVersion", "3.1.0.0"
-            VALUE "InternalName", "phasordecomp.exe"
+            VALUE "InternalName", "phasorasm.exe"
             VALUE "LegalCopyright", "© 2026 Daniel McGuire"
-            VALUE "OriginalFilename", "phasordecomp.exe"
+            VALUE "OriginalFilename", "phasorasm.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
             VALUE "ProductVersion", "3.1.0.0"
         END
@@ -37,6 +37,6 @@ BEGIN
     END
 END
 
-IDI_APP_ICON ICON "..\\assets\\CppCompiler.ico"
+IDI_APP_ICON ICON "..\\assets\\Compiler.ico"
 
 
