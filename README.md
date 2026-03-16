@@ -144,6 +144,8 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
+- Python module `scripts/phasor`
+
 ---
 
 ## Building
