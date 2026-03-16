@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phasor"
+version = "3.1.0"
+description = "Python library for reading, writing, and manipulating Phasor VM bytecode"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+dependencies = ["lief>=0.14"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[project.urls]
+Repository = "https://github.com/DanielLMcGuire/Phasor"
+Issues     = "https://github.com/DanielLMcGuire/Phasor/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["phasor*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-ra -q"
+
+[tool.coverage.run]
+source = ["phasor"]
+
+[tool.coverage.report]
+show_missing = true

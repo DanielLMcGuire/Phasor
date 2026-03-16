@@ -707,3 +707,4 @@ phasor.key
 src/utils/Shell.phir
 !build.phs
 dist_linux.pul
+/scripts/phasor/phasor.egg-info
