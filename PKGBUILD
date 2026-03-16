@@ -28,7 +28,7 @@ pkgver() {
 
 build() {
     cd "$startdir"
-    python "$startdir/pmake-bootstrap.py"
+    python "$startdir/pmake-bootstrap.py" --native
     chmod +x "$startdir/pmake"
     "$startdir/pmake" linux-64-rel -s "$startdir" -b
 }
