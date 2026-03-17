@@ -1,0 +1,145 @@
+.TH PHASOR\-LSP 1 "March 2026" "Phasor 3.1.0" "Phasor Manual"
+.SH NAME
+phasor\-lsp \- Phasor Language Server Protocol server
+.SH SYNOPSIS
+.B phasor\-lsp
+.SH DESCRIPTION
+.B phasor\-lsp
+is a Language Server Protocol (LSP) server for the Phasor programming language. It communicates with LSP-compatible editors and IDEs over standard input and output using the JSON-RPC 2.0 protocol, providing intelligent code features such as diagnostics, hover information, and go-to-definition support.
+.PP
+The server lexes and parses Phasor source files on document open and change events, reports syntax errors as diagnostics, and builds an in-memory symbol table for each open document to support code intelligence features.
+.PP
+.B phasor\-lsp
+is not intended to be invoked directly by end users. It should be launched automatically by an LSP-aware editor or IDE via the appropriate language server configuration.
+.SH PROTOCOL
+The server implements a subset of the Language Server Protocol using the JSON-RPC 2.0 message format. Messages are framed with an HTTP-style
+.B Content-Length
+header:
+.PP
+.nf
+.RS
+Content-Length: <N>\r\n
+\r\n
+<N bytes of JSON>
+.RE
+.fi
+.PP
+On Windows, stdin and stdout are switched to binary mode to prevent CR/LF translation from corrupting the framing.
+.SH CAPABILITIES
+The server advertises the following capabilities during initialization:
+.RS
+.IP \(bu 2
+.B textDocumentSync
+(incremental) \(em the server is notified of document open, change, and close events
+.IP \(bu 2
+.B hoverProvider
+\(em hover information for symbols, functions, and structs
+.IP \(bu 2
+.B definitionProvider
+\(em go-to-definition for globally declared symbols
+.RE
+.SH SUPPORTED METHODS
+.TP
+.B initialize
+Handshake with the client. Returns server capabilities and version information. Server name is
+.I phasor-lsp
+version
+.IR 0.1.0 .
+.TP
+.B initialized
+Notification acknowledging successful initialization. No action is taken.
+.TP
+.B shutdown
+Gracefully stops the server after sending a response to the client.
+.TP
+.B exit
+Terminates the server process immediately.
+.TP
+.B textDocument/didOpen
+Parses the document and publishes diagnostics for any lexer or parser errors found.
+.TP
+.B textDocument/didChange
+Re-parses the document with the new full text content and republishes diagnostics.
+.TP
+.B textDocument/didClose
+Removes the document from memory and clears its diagnostics.
+.TP
+.B textDocument/hover
+Returns a markdown-formatted hover tooltip for the symbol or declaration under the cursor.
+Hover content is wrapped in a Phasor fenced code block. Returns
+.I null
+if no symbol is found at the given position.
+.TP
+.B textDocument/definition
+Returns the source location of the declaration for the symbol under the cursor. Returns
+.I null
+if the symbol cannot be resolved.
+.SH DIAGNOSTICS
+Syntax errors produced by the Phasor lexer or parser are reported to the client via
+.B textDocument/publishDiagnostics
+notifications immediately after each open or change event. Diagnostics carry severity level 1 (Error) and include start and end source positions.
+.SH HOVER INFORMATION
+Hover responses are generated from the AST node at the cursor position. The server produces human-readable signatures for:
+.RS
+.IP \(bu 2
+.B Functions
+\(em includes parameter names, types, pointer and array qualifiers, and return type
+.IP \(bu 2
+.B Structs
+\(em lists field names and their types
+.IP \(bu 2
+.B Variables
+\(em shows the variable name with a
+.I var
+prefix
+.RE
+.SH GO-TO-DEFINITION
+Definition lookup resolves cursor positions to globally declared symbols (functions, structs, and variables). The returned location points to the declaration site in the same document. Cross-file definition lookup is not currently supported.
+.SH SYMBOL TABLE
+On each successful parse, the server builds a global symbol table for the document covering all top-level declarations and exported symbols. The table is used to back hover and definition requests.
+.SH EXAMPLES
+Configure
+.B phasor\-lsp
+as a language server in Neovim using nvim-lspconfig:
+.PP
+.nf
+.RS
+require('lspconfig').phasor_lsp.setup({
+  cmd = { 'phasor-lsp' },
+  filetypes = { 'phasor' },
+  root_dir = require('lspconfig.util').find_git_ancestor,
+})
+.RE
+.fi
+.PP
+Configure in VS Code via a custom extension manifest:
+.PP
+.nf
+.RS
+"languageServer": {
+  "command": "phasor-lsp",
+  "filetypes": ["phasor"]
+}
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Clean shutdown after receiving a
+.B shutdown
+or
+.B exit
+request, or when stdin reaches EOF
+.SH NOTES
+The server processes only full document content changes (whole-document sync). Incremental delta changes are not supported; clients should send the complete updated document text on each change event.
+.PP
+JSON-RPC parse errors result in an error response with code \-32700. Requests for unimplemented methods receive an error response with code \-32601.
+.SH SEE ALSO
+.BR LSP (3),
+.BR phasor (1),
+.BR phasorjit (1),
+.BR phasorcompiler (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

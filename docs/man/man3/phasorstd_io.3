@@ -6,6 +6,7 @@ phasorstd_io \- Phasor standard I/O functions
 .B using("stdio");
 .PP
 .B c_fmt(format, ...)
+.B clear()
 .B prints(string)
 .B printf(format, ...)
 .B puts(string)
@@ -46,6 +47,18 @@ Values to format (variadic)
 .PP
 .B Returns:
 Formatted string
+.RE
+.PP
+.TP
+.BR clear ()
+Clear the console screen using ANSI escape codes (\fB\e033[2J\e033[H\fR).
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+Null value
 .RE
 .PP
 .TP

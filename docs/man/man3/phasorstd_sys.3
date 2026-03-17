@@ -8,14 +8,16 @@ phasorstd_sys \- Phasor system and runtime functions
 .B time()
 .B timef(format)
 .B sleep(milliseconds)
-.B clear()
 .B sys_os()
 .B sys_env(name)
 .B sys_argv([index])
 .B sys_argc()
 .B sys_get_memory()
 .B wait_for_input()
-.B sys_execute(command)
+.B sys_shell(command)
+.B sys_fork(executable, ...)
+.B sys_fork_detached(executable, ...)
+.B sys_pid()
 .B error(message)
 .B reset()
 .B shutdown(exit_code)
@@ -139,15 +141,6 @@ Integer count of arguments (1 being the script/program name)
 .RE
 .SH CONSOLE FUNCTIONS
 .TP
-.BR clear ()
-Clear the console screen using ANSI escape codes.
-.RS
-.PP
-.B Returns:
-Empty string
-.RE
-.PP
-.TP
 .BR wait_for_input ()
 Wait for user to press Enter.
 .RS
@@ -157,8 +150,8 @@ Empty string
 .RE
 .SH PROCESS CONTROL
 .TP
-.BR sys_execute (command)
-Execute a shell command.
+.BR sys_shell (command)
+Execute a shell command and wait for it to complete.
 .RS
 .PP
 .B Arguments:
@@ -169,6 +162,49 @@ Shell command to execute
 .PP
 .B Returns:
 Command exit code
+.RE
+.PP
+.TP
+.BR sys_fork (executable, ...)
+Run a native executable as a child process and wait for it to exit.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBexecutable\fR 12
+Path to the executable
+.IP \fB...\fR 12
+Additional arguments passed to the process (variadic)
+.RE
+.PP
+.B Returns:
+Exit code of the child process
+.RE
+.PP
+.TP
+.BR sys_fork_detached (executable, ...)
+Run a native executable as a detached (background) process.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBexecutable\fR 12
+Path to the executable
+.IP \fB...\fR 12
+Additional arguments passed to the process (variadic)
+.RE
+.PP
+.B Returns:
+Result of the detached launch
+.RE
+.PP
+.TP
+.BR sys_pid ()
+Get the process ID of the current process.
+.RS
+.PP
+.B Returns:
+Integer process ID
 .RE
 .PP
 .TP
@@ -297,8 +333,19 @@ wait_for_input();
 .nf
 .RS
 // Execute shell command
-var result = sys_execute("ls -la");
+var result = sys_shell("ls -la");
 putf("Command exit code: %d", result);
+
+// Launch a child process and wait
+var code = sys_fork("/usr/bin/gzip", "file.txt");
+putf("gzip exited with: %d", code);
+
+// Launch a background process
+sys_fork_detached("/usr/bin/myservice", "--daemon");
+
+// Get current PID
+var pid = sys_pid();
+putf("My PID: %d", pid);
 
 // Controlled error
 if (invalid_condition) {
@@ -342,7 +389,7 @@ is not guaranteed to be precise on all systems
 .B clear()
 uses ANSI escape codes (may not work in all terminals)
 .IP \(bu 2
-.B sys_execute()
+.B sys_shell()
 runs commands through the system shell
 .IP \(bu 2
 .B error()
@@ -354,7 +401,7 @@ immediately exits the program
 Command-line arguments include the program name at index 0
 .SH SECURITY CONSIDERATIONS
 .IP \(bu 2
-.B sys_execute()
+.B sys_shell()
 can run arbitrary shell commands - validate input carefully
 .IP \(bu 2
 Environment variables may contain sensitive information

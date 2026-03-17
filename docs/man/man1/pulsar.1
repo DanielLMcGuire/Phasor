@@ -1,0 +1,77 @@
+.TH PULSAR 1 "March 2026" "Phasor 3.1.0" "Phasor Manual"
+.SH NAME
+pulsar \- Pulsar scripting language runtime and REPL
+.SH SYNOPSIS
+.B pulsar
+.I file
+[\fISCRIPT_ARGS\fR...]
+.br
+.B pulsar
+.SH DESCRIPTION
+.B pulsar
+is the runtime for the Pulsar scripting language. It executes Pulsar scripts when a file argument is provided, or launches an interactive Read-Eval-Print Loop (REPL) when invoked without arguments.
+.PP
+Pulsar is a scripting language in the Phasor language family. Its runtime shares tooling infrastructure with the broader Phasor ecosystem but is maintained as a distinct language and interpreter.
+.SH EXECUTION MODES
+.TP
+.B Script mode
+When one or more arguments are provided, the first argument is treated as the path to a Pulsar script file. The interpreter loads and executes the file, forwarding all arguments (including argv[0]) to the running script.
+.TP
+.B REPL mode
+When invoked without arguments,
+.B pulsar
+starts an interactive REPL session via the Pulsar frontend. Users can enter and evaluate expressions and statements interactively. The REPL maintains state across inputs and provides immediate feedback.
+.SH ARGUMENTS
+.TP
+.I file
+Path to a Pulsar script file to execute.
+.TP
+.I SCRIPT_ARGS
+Additional arguments passed to the script. Accessible within the script through the interpreter's standard argument handling.
+.SH EXAMPLES
+Execute a Pulsar script:
+.PP
+.nf
+.RS
+pulsar hello.pulsar
+.RE
+.fi
+.PP
+Execute a script with arguments:
+.PP
+.nf
+.RS
+pulsar script.pulsar arg1 arg2
+.RE
+.fi
+.PP
+Launch the interactive REPL:
+.PP
+.nf
+.RS
+pulsar
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful execution or clean REPL exit
+.TP
+.B 1
+Runtime error or unhandled exception
+.SH DIAGNOSTICS
+Errors are printed to standard error. Unhandled C++ exceptions produce a message of the form:
+.PP
+.nf
+.RS
+Error: <message>
+.RE
+.fi
+.SH SEE ALSO
+.BR phasor (1),
+.BR phasorrepl (1),
+.BR phasorjit (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

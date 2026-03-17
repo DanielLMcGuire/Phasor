@@ -1,0 +1,156 @@
+.TH PHASOR 1 "March 2026" "Phasor 3.1.0" "Phasor Manual"
+.SH NAME
+phasor \- unified Phasor language runtime and entry point
+.SH SYNOPSIS
+.B phasor
+.I file.phs
+[\fISCRIPT_ARGS\fR...]
+.br
+.B phasor
+.I file.phsb
+[\fISCRIPT_ARGS\fR...]
+.br
+.B phasor
+.br
+.I <text>
+.B |
+.B phasor
+.SH DESCRIPTION
+.B phasor
+is the primary unified entry point for the Phasor programming language. It automatically selects the appropriate runtime based on input: executing Phasor source files with the scripting runtime, running pre-compiled bytecode with the binary runtime, or launching the interactive REPL when invoked without arguments.
+.PP
+When standard input is not a terminal (i.e., input is piped), the runtime reads all content from stdin and executes it as a Phasor script.
+.SH EXECUTION MODES
+.TP
+.B A. Pipe mode
+If stdin is not a terminal, all content is read from standard input and executed as a Phasor script via the scripting runtime.
+.TP
+.B B. JIT / Bytecode mode
+If a file argument is provided,
+.B phasor
+dispatches based on the file extension:
+.RS
+.IP \(bu 2
+.I .phs
+\(em Executes source through the scripting runtime (lexing, parsing, code generation, and VM execution in one step)
+.IP \(bu 2
+.I .phsb
+\(em Loads and executes pre-compiled bytecode via the binary runtime
+.IP \(bu 2
+.I .phir
+\(em Phasor IR execution is not yet implemented
+.RE
+.TP
+.B C. REPL mode
+If invoked without arguments and stdin is a terminal,
+.B phasor
+launches the interactive Read-Eval-Print Loop. See
+.BR phasorrepl (1)
+for details on the REPL environment.
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help ", " \-? ", " /help ", " /h
+Display usage information and exit. These flags are recognised when no valid file path is given as the first argument.
+.SH ARGUMENTS
+.TP
+.I file.phs
+A Phasor source file to execute with the scripting runtime.
+.TP
+.I file.phsb
+A pre-compiled Phasor bytecode file to execute with the binary runtime.
+.TP
+.I SCRIPT_ARGS
+Additional arguments forwarded to the running script or bytecode program. Accessible within the program through the standard library's argument handling functions (argc, argv).
+.SH FILES
+.TP
+.I *.phs
+Phasor source files \fBPHS(5)\fR
+.TP
+.I *.phsb
+Phasor compiled bytecode files \fBPHSB(5)\fR
+.TP
+.I *.phir
+Phasor intermediate representation files \fBPHIR(5)\fR
+.SH EXAMPLES
+Execute a Phasor source file:
+.PP
+.nf
+.RS
+phasor hello.phs
+.RE
+.fi
+.PP
+Execute a pre-compiled bytecode file:
+.PP
+.nf
+.RS
+phasor hello.phsb
+.RE
+.fi
+.PP
+Pass arguments to a script:
+.PP
+.nf
+.RS
+phasor script.phs arg1 arg2
+.RE
+.fi
+.PP
+Execute a script from a pipe (Unix):
+.PP
+.nf
+.RS
+echo "print(\"Hello!\\n\");" | phasor
+.RE
+.fi
+.PP
+Execute a script from a pipe (Windows CMD):
+.PP
+.nf
+.RS
+echo print("Hello!"); | phasor
+.RE
+.fi
+.PP
+Launch the interactive REPL:
+.PP
+.nf
+.RS
+phasor
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful execution
+.TP
+.B 1
+Runtime error, parse error, unknown file extension, or file not found
+.SH DIAGNOSTICS
+Errors are printed to standard error. When a file argument is supplied but the path does not exist,
+.B phasor
+reports whether the argument was interpreted as an unknown option or a missing file.
+.SH NOTES
+.B phasor
+does not perform ahead-of-time compilation. To compile a source file to bytecode for repeated execution, use
+.BR phasorcompiler (1)
+and
+.BR phasorvm (1).
+For native executable generation, see
+.BR phasornative (1).
+.SH SEE ALSO
+.BR PHS (5),
+.BR PHSB (5),
+.BR ScriptingRuntime (3),
+.BR BinaryRuntime (3),
+.BR Repl (3),
+.BR phasorcompiler (1),
+.BR phasorvm (1),
+.BR phasorjit (1),
+.BR phasorrepl (1),
+.BR phasornative (1),
+.BR phasor\-lsp (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
