@@ -18,12 +18,13 @@
  * C-compatible interface.
  *
  * USAGE:
- * 1. Include this header in your C or C++ source file.
- * 2. Implement the entry point function:
+ * 1. Define PHASOR_FFI_BUILD_DLL.
+ * 2. Include this header in your C or C++ source file.
+ * 3. Implement the entry point function:
  *    void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm);
- * 3. Inside this function, use the provided `api` object to register
+ * 4. Inside this function, use the provided `api` object to register
  *    your own native functions.
- * 4. Compile your code as a shared library (.dll, .so, .dylib).
+ * 5. Compile your code as a shared library (.dll, .so, .dylib).
  */
 
 #if defined(_WIN32) && defined(PHASOR_FFI_BUILD_DLL)
