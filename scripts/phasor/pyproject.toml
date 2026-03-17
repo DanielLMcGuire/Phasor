@@ -21,9 +21,11 @@ dev = [
 Repository = "https://github.com/DanielLMcGuire/Phasor"
 Issues     = "https://github.com/DanielLMcGuire/Phasor/issues"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["phasor*"]
+[tool.setuptools]
+packages = ["phasor"]
+
+[tool.setuptools.package-dir]
+phasor = "."
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
