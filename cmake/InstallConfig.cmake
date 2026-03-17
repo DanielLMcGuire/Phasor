@@ -43,6 +43,11 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION man
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.1" EXCLUDE
+        PATTERN "*.3" EXCLUDE
+        PATTERN "*.5" EXCLUDE
+        PATTERN "*.7" EXCLUDE
+        PATTERN "*.md5" EXCLUDE
     )
 elseif(APPLE)
     install(TARGETS
@@ -76,6 +81,8 @@ elseif(APPLE)
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION "Library/Application Support/org.Phasor.Phasor/man"
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.pdf" EXCLUDE
+        PATTERN "*.md5" EXCLUDE
     )
 else()
     install(TARGETS
@@ -108,5 +115,7 @@ else()
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/share/man/
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.pdf" EXCLUDE
+        PATTERN "*.md5" EXCLUDE
     )
 endif()
