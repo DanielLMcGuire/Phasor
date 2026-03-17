@@ -135,45 +135,7 @@ int Phasor::Frontend::runRepl(VM *vm)
 			std::cout << "\n> ";
 			if (!std::getline(std::cin, line))
 				break;
-			if (startsWith(line, "vm_pop"))
-			{
-				line = "let popx = " + vm->pop().toString();
-				continue;
-			}
-			if (startsWith(line, "vm_push"))
-			{
-				vm->push(line.substr(4));
-				continue;
-			}
-			if (startsWith(line, "vm_peek"))
-			{
-				line = "let peekx = " + vm->peek().toString();
-			}
-			if (startsWith(line, "vm_op"))
-			{
-				char         instruction[64];
-				unsigned int operand;
-				sscanf(line.c_str(), "vm_op %63s %u", instruction, &operand);
-				vm->operation(PhasorIR::stringToOpCode(std::string(instruction)), operand);
-				continue;
-			}
-			if (startsWith(line, "vm_getvar"))
-			{
-				int index;
-				sscanf(line.c_str(), "vm_getvar %d", &index);
-				line = "let getvarx = " + vm->getVariable(index).toString();
-			}
-			if (startsWith(line, "vm_setvar"))
-			{
-				char value[64];
-				sscanf(line.c_str(), "vm_setvar %63s", value);
-				line = "var setvarx = " + std::to_string(vm->addVariable(value));
-			}
-			if (startsWith(line, "vm_reset"))
-			{
-				vm->reset(true, true, true);
-				continue;
-			}
+				
 			if (startsWith(line, "exit"))
 			{
 				cleanExit = true;
