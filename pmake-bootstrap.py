@@ -78,7 +78,7 @@ def try_phasor_toolchain():
 
 commit_hash = subprocess.check_output(f"git -C {os.path.join(SCRIPT_DIR, 'thirdparty/pmake')} rev-parse --short HEAD", shell=True).decode().strip()
 print_progress("[----------]", f"SYNC pmake {commit_hash}")
-run("git submodule update --init", silent=True)
+run("git submodule update --init --recursive", silent=True)
 print_progress("[----------]", "SYNC done")
 
 try_phasor_toolchain()
