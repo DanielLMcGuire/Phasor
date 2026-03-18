@@ -849,7 +849,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	default:
 		throw std::runtime_error("Unknown opcode");
+		return Value();
 	}
-	return Value(operand1);
+	return Value(registers[operand1]);
 }
 } // namespace Phasor

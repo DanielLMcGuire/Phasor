@@ -115,16 +115,15 @@ Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "gets");
-	vm->operation(OpCode::READLINE_R, VM::Register::r1);
-	std::string ret = vm->getRegister(VM::Register::r1).toString();
-	return ret;
+	return vm->regRun(OpCode::READLINE_R, Value());
 }
 
 Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts_error", true);
 	std::string input = args[0].toString();
-	return vm->regRun(OpCode::PRINTERROR_R, input + "\n");
+	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
+	return Value("");
 }
 
 Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
@@ -132,6 +131,7 @@ Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "putf_error", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	std::string        input = io_c_format(formatArgs, vm).toString();
-	return vm->regRun(OpCode::PRINTERROR_R, input + "\n");
+	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
+	return Value("");
 }
 } // namespace Phasor

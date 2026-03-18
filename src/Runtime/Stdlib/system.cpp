@@ -183,7 +183,7 @@ Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "error", true);
 	vm->reset();
-	vm->status = -1;
+	vm->setStatus(-1);
 	throw std::runtime_error(args[0].asString());
 }
 
@@ -199,7 +199,7 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "shutdown");
 	vm->reset();
 	int ret = static_cast<int>(args[0].asInt());
-	vm->status = ret;
+	vm->setStatus(ret);
 	throw VM::Halt();
 	return Value();
 }

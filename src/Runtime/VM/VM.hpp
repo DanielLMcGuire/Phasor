@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include <array>
+#include <ranges>
 #include "core/core.h"
 #include <iostream>
 #include <stdexcept>
@@ -31,12 +32,25 @@ class VM
 	            const int &operand4 = 0, const int &operand5 = 0)
 	{
 		operation(op, operand1, operand2, operand3, operand4, operand5);
+
 	}
 	~VM()
 	{
 		flush();
 		flusherr();
 	}
+
+	/// @class Halt
+	/// @brief Throws when the HALT opcode is reached
+	class Halt : public std::exception
+	{
+	  public:
+		const char *what() const noexcept override
+		{
+			return "";
+		}
+	};
+
 	/// @brief Run the virtual machine
 	/// Exits -11654 on unknown error
 	int run(const Bytecode &bytecode);
@@ -48,6 +62,7 @@ class VM
 	void registerNativeFunction(const std::string &name, NativeFunction fn);
 
 	using ImportHandler = std::function<void(const std::filesystem::path &path)>;
+	/// @brief Set the import handler for importing modules
 	void setImportHandler(const ImportHandler &handler);
 
 	/// @brief Free a variable in the VM
@@ -128,15 +143,6 @@ class VM
 	#define REGISTER2 VM::Register::r1
 	#define REGISTER3 VM::Register::r2
 
-	class Halt : public std::exception
-	{
-	  public:
-		const char *what() const noexcept override
-		{
-			return "";
-		}
-	};
-
 #ifdef _WIN32
 	/// @brief Execute a single operation
 	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
@@ -161,22 +167,54 @@ class VM
 	/// @brief Get VM information for debugging
 	std::string getInformation();
 
-	/// @brief Use the VM's logging via print opcode
+	/// @brief Log a Value to stdout
 	void log(const Value &msg);
+
+	/// @brief Log a Value to stderr
 	void logerr(const Value &msg);
+
+	/// @brief Flush stdout
 	void flush();
+
+	/// @brief Flush stderr
 	void flusherr();
+	
+	/// @brief Set VM exit code
+	inline void setStatus(int newStatus) { status = newStatus; }
 
-	int status = 0;
-
-	template <typename... Args> inline Value regRun( OpCode opcode, Args &&...args)
+	/** 
+	 * @brief Run an opcode with arguments pre-loaded into registers
+	 * @tparam Args Argument types
+	 * @param opcode Opcode to run
+	 * @param args Arguments to load into registers
+	 * @return Return value of the operation
+	*/
+	template <typename... Args> inline Value regRun(OpCode opcode, Args &&...args)
 	{
 		int regIndex = 0;
 		(setRegister(regIndex++, std::forward<Args>(args)), ...);
 		return operation(opcode);
 	}
 
+	/**
+	 * @brief Run an opcode with values pushed to the stack
+	 * @tparam Args Argument types
+	 * @param opcode Opcode to run
+	 * @param args Arguments to push to the stack
+	 * @return Value returned to stack
+	 */
+	template <typename... Args> inline Value stackRun(OpCode opcode, Args&&... args) {
+		Value arr[] = {Value(std::forward<Args>(args))...};
+		for (Value& v : arr | std::views::reverse)
+			push(v);
+		operation(opcode);
+		return pop();
+	}
+
   private:
+    /// @brief Exit code
+	int status = 0;
+
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
 
