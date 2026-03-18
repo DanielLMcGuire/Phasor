@@ -7,8 +7,8 @@ pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
 license=('0BSD')
-makedepends=('git' 'gcc' 'cmake' 'ninja' 'python')
-optdepends=('gcc: For building Phasor Native wrappers.')
+makedepends=('git' 'gcc' 'cmake' 'ninja' 'python' 'python-build')
+optdepends=('gcc: For building Phasor Native wrappers.' 'python: For manipulating bytecode' 'lief: For extracting native bytecode')
 conflicts=('phasor' 'phasor-git')
 options=(strip !debug)
 install=scripts/phasor.install
@@ -26,11 +26,24 @@ pkgver() {
     fi
 }
 
+prepare() {
+    cd "$startdir"
+    git clone https://github.com/DanielLMcGuire/Phasor
+    cd Phasor
+    git submodule update --init --recursive
+    if [ -x /usr/bin/python ]; then
+        "/usr/bin/python" -m pip install build
+    fi
+}
+
 build() {
     cd "$startdir"
     python "$startdir/pmake-bootstrap.py" --native
     chmod +x "$startdir/pmake"
     "$startdir/pmake" linux-64-rel -s "$startdir" -b
+
+    cd "$startdir/src/Extensions/py/phasor"
+    "/usr/bin/python" -m build
 }
 
 package() {
@@ -39,4 +52,6 @@ package() {
     
     install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
         "$pkgdir/usr/share/file/magic/phasor"
+
+    pip install --root="$pkgdir" --no-deps "$startdir/src/Extensions/py/phasor/dist/*.whl"
 }

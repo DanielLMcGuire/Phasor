@@ -1,0 +1,543 @@
+.TH PHASOR-PY 3 "March 2026" "phasor" "Phasor Programming Language"
+.SH NAME
+phasor \- Python module for reading, writing, and manipulating Phasor VM bytecode
+.SH SYNOPSIS
+.nf
+.B from phasor import Bytecode, Value, OpCode
+.fi
+.SH DESCRIPTION
+.B phasor
+provides an in-memory representation of compiled Phasor VM programs
+(\fI.phsb\fR files), together with serialisation, deserialisation,
+and programmatic construction facilities.
+.PP
+A
+.I .phsb
+file consists of a 16-byte header (magic number, version, flags, and a
+CRC-32 checksum) followed by four sections: constants, variables,
+functions, and instructions.
+Each instruction occupies exactly 21 bytes on disk: one
+.B uint8
+opcode and five
+.B int32
+operands.
+.PP
+The module exposes the following public names:
+.RS 4
+.TP
+.B Bytecode
+In-memory program representation.
+.TP
+.B BytecodeDeserializer
+Low-level \fI.phsb\fR reader.
+.TP
+.B BytecodeSerializer
+Low-level \fI.phsb\fR writer.
+.TP
+.B Instruction
+A single VM instruction.
+.TP
+.B OpCode
+Enumeration of all VM opcodes.
+.TP
+.B Value
+A typed constant-pool entry.
+.TP
+.B ValueType
+Enumeration of constant-pool value types.
+.RE
+.SH CLASSES
+.SS Bytecode
+.PP
+An in-memory representation of a compiled Phasor program.
+Implemented as a Python
+.B dataclass
+with the following attributes:
+.TP
+.B instructions
+Ordered list of
+.B Instruction
+objects forming the program.
+.TP
+.B constants
+Constant pool; entries are indexed by
+.B PUSH_CONST
+and
+.BR LOAD_CONST_R .
+.TP
+.B variables
+Mapping of variable name strings to integer slot indices.
+.TP
+.B function_entries
+Mapping of function name strings to the index of the function's first instruction.
+.TP
+.B next_var_index
+Next available variable slot counter; serialised as part of the variables section.
+.PP
+\fBClass methods:\fR
+.TP
+.BI "Bytecode.load(" path )
+Read a
+.I .phsb
+file from disk and return a deserialised
+.B Bytecode
+instance.
+.TP
+.BI "Bytecode.from_bytes(" data )
+Deserialise a
+.B Bytecode
+from a raw
+.I .phsb
+byte buffer.
+.TP
+.BI "Bytecode.from_native_binary(" path )
+Extract and deserialise bytecode from the
+.B .phsb
+section of an ELF, PE, or MachO native binary.
+Requires the
+.B lief
+package.
+.PP
+\fBInstance methods:\fR
+.TP
+.BI "emit(" op ", " op1 ", " op2 ", " op3 ", " op4 ", " op5 )
+Append a new
+.B Instruction
+to the program and return its zero-based index.
+Unused operands default to
+.BR 0 .
+.TP
+.BI "add_constant(" value )
+Append
+.I value
+to the constant pool and return its index.
+.TP
+.BI "find_or_add_constant(" value )
+Return the index of an existing equal constant, or add a new one.
+.TP
+.BI "get_or_create_var(" name )
+Return the slot index for the named variable, creating it if absent.
+.TP
+.BI "patch_operand1(" instr_index ", " value )
+Overwrite
+.B operand1
+of the instruction at
+.I instr_index
+in-place.
+Typically used to back-patch forward-jump offsets after the jump target is known.
+.TP
+.B disassemble()
+Return a human-readable disassembly of the instruction stream.
+Function entry points are printed as
+.I <name>:
+labels above their first instruction.
+.TP
+.BI "save(" path )
+Serialise this object and write it to a
+.I .phsb
+file at
+.IR path .
+.TP
+.B to_bytes()
+Serialise this object and return the raw
+.I .phsb
+bytes.
+.SS BytecodeDeserializer
+Low-level parser for
+.I .phsb
+byte streams.
+.TP
+.BI "deserialize(" data )
+Parse raw
+.I .phsb
+bytes into a
+.B Bytecode
+object.
+Raises
+.B ValueError
+if the magic number, version, CRC-32, or any section tag is invalid.
+.TP
+.BI "load_from_file(" path )
+Read a
+.I .phsb
+file from disk and deserialise it.
+.SS BytecodeSerializer
+Converts a
+.B Bytecode
+object into its binary
+.I .phsb
+representation.
+.TP
+.BI "serialize(" bytecode )
+Return the complete
+.I .phsb
+binary as a
+.B bytes
+object.
+.TP
+.BI "save_to_file(" bytecode ", " path )
+Serialise
+.I bytecode
+and write it to
+.IR path .
+Parent directories are created automatically if they do not exist.
+.SS Instruction
+A single Phasor VM instruction.
+Holds an
+.B OpCode
+and up to five
+.B int32
+operands (unused operands default to
+.BR 0 ).
+.PP
+\fBFactory class methods:\fR
+.TP
+.BI "Instruction.halt()"
+Return a
+.B HALT
+instruction.
+.TP
+.BI "Instruction.push_const(" const_index )
+Return a
+.B PUSH_CONST
+instruction that pushes
+.I constants[const_index]
+onto the stack.
+.TP
+.BI "Instruction.load_var(" var_index )
+Return a
+.B LOAD_VAR
+instruction that pushes the variable at slot
+.I var_index
+onto the stack.
+.TP
+.BI "Instruction.store_var(" var_index )
+Return a
+.B STORE_VAR
+instruction that pops the top-of-stack into slot
+.IR var_index .
+.TP
+.BI "Instruction.jump(" offset )
+Return an unconditional
+.B JUMP
+to instruction
+.IR offset .
+.TP
+.BI "Instruction.jump_if_false(" offset )
+Return a
+.B JUMP_IF_FALSE
+instruction that branches to
+.I offset
+and pops TOS when it is falsy.
+.TP
+.BI "Instruction.jump_if_true(" offset )
+Return a
+.B JUMP_IF_TRUE
+instruction that branches to
+.I offset
+and pops TOS when it is truthy.
+.TP
+.BI "Instruction.call(" name_const_index ", " arg_count )
+Return a
+.B CALL
+instruction.
+.I name_const_index
+is the constant-pool index of the function name string;
+.I arg_count
+is the number of arguments already pushed onto the stack (default
+.BR 0 ).
+.SS Value
+A typed constant-pool entry.
+Use the class-method constructors rather than setting
+.B type
+and
+.B _data
+directly.
+.PP
+\fBConstructors:\fR
+.TP
+.B Value.null()
+Return a new Null-typed value.
+.TP
+.BI "Value.from_bool(" v )
+Return a new Bool-typed value.
+.TP
+.BI "Value.from_int(" v )
+Return a new Int-typed value.
+.TP
+.BI "Value.from_float(" v )
+Return a new Float-typed value.
+.TP
+.BI "Value.from_string(" v )
+Return a new String-typed value.
+.PP
+\fBAccessors:\fR (raise
+.B TypeError
+if the type does not match)
+.TP
+.B as_bool()
+.TP
+.B as_int()
+.TP
+.B as_float()
+.TP
+.B as_string()
+.SS OpCode
+.B IntEnum
+of all Phasor VM opcodes.
+Selected members are listed below; consult the package source for the full list.
+.PP
+\fBStack / control:\fR
+.TS
+l l.
+PUSH_CONST (0)	Push constants[operand1] onto the stack
+POP (1)	Discard top of stack
+LOAD_VAR (42)	Push variable slot operand1 onto the stack
+STORE_VAR (41)	Pop TOS into variable slot operand1
+HALT (47)	Terminate execution
+JUMP (37)	Unconditional jump to operand1
+JUMP_IF_FALSE (38)	Branch to operand1 if TOS is falsy; pop TOS
+JUMP_IF_TRUE (39)	Branch to operand1 if TOS is truthy; pop TOS
+JUMP_BACK (40)	Backward unconditional jump
+CALL (49)	Call function named by constants[operand1]
+CALL_NATIVE (48)	Call a native (host) function
+RETURN (53)	Return from the current function
+IMPORT (46)	Import a module
+.TE
+.PP
+\fBInteger arithmetic:\fR
+.TS
+l l.
+IADD (2)	Integer add
+ISUBTRACT (3)	Integer subtract
+IMULTIPLY (4)	Integer multiply
+IDIVIDE (5)	Integer divide
+IMODULO (6)	Integer modulo
+.TE
+.PP
+\fBFloat arithmetic:\fR
+.TS
+l l.
+FLADD (7)	Float add
+FLSUBTRACT (8)	Float subtract
+FLMULTIPLY (9)	Float multiply
+FLDIVIDE (10)	Float divide
+FLMODULO (11)	Float modulo
+.TE
+.PP
+\fBMath functions:\fR
+.TS
+l l.
+SQRT (12)	Square root
+POW (13)	Power
+LOG (14)	Natural logarithm
+EXP (15)	Exponential (e^x)
+SIN (16)	Sine
+COS (17)	Cosine
+TAN (18)	Tangent
+NEGATE (19)	Arithmetic negation
+NOT (20)	Logical NOT
+.TE
+.PP
+\fBComparison (integer / float):\fR
+.TS
+l l.
+IEQUAL (25) / FLEQUAL (31)	Equal
+INOT_EQUAL (26) / FLNOT_EQUAL (32)	Not equal
+ILESS_THAN (27) / FLLESS_THAN (33)	Less than
+IGREATER_THAN (28) / FLGREATER_THAN (34)	Greater than
+ILESS_EQUAL (29) / FLLESS_EQUAL (35)	Less than or equal
+IGREATER_EQUAL (30) / FLGREATER_EQUAL (36)	Greater than or equal
+.TE
+.PP
+\fBLogical:\fR
+.TS
+l l.
+IAND (21) / FLAND (23)	Logical AND
+IOR (22) / FLOR (24)	Logical OR
+.TE
+.PP
+\fBStrings / I/O:\fR
+.TS
+l l.
+LEN (57)	String or collection length
+CHAR_AT (58)	Character at index
+SUBSTR (59)	Substring
+PRINT (43)	Print to stdout (stack variant)
+PRINTERROR (44)	Print to stderr (stack variant)
+READLINE (45)	Read a line from stdin
+SYSTEM (50)	Execute system command
+SYSTEM_OUT (51)	Capture stdout of system command
+SYSTEM_ERR (52)	Capture stderr of system command
+.TE
+.PP
+\fBStruct / object:\fR
+.TS
+l l.
+NEW_STRUCT (60)	Create a new struct instance
+NEW_STRUCT_INSTANCE_STATIC (63)	Create a statically-typed struct instance
+GET_FIELD (61)	Load a struct field (dynamic)
+SET_FIELD (62)	Store a struct field (dynamic)
+GET_FIELD_STATIC (64)	Load a struct field (static)
+SET_FIELD_STATIC (65)	Store a struct field (static)
+.TE
+.PP
+\fBMiscellaneous:\fR
+.TS
+l l.
+TRUE_P (54)	Push boolean true
+FALSE_P (55)	Push boolean false
+NULL_VAL (56)	Push null
+MOV (66)	Register move
+.TE
+.PP
+Register-based variants of most opcodes exist with an
+.B _R
+suffix (e.g.\&
+.BR IADD_R ,\  FLADD_R ,\  PUSH_R ,\  POP_R ).
+.SS ValueType
+.B IntEnum
+encoding the type of a constant-pool
+.B Value
+entry.
+.TS
+l l.
+Null (0)	No value
+Bool (1)	Boolean
+Int (2)	Integer
+Float (3)	Floating-point
+String (4)	String
+.TE
+.SH MODULE-LEVEL DATA
+.TP
+.B MAGIC
+Magic number for
+.I .phsb
+files:
+.BR 0x424D5850 \ (1112754256).
+.TP
+.B VERSION
+Format version word:
+.BR 0x03000000 \ (50331648).
+.SH FUNCTIONS
+.TP
+.BI "extract_phsb_bytes(" path )
+Extract the raw
+.I .phsb
+bytecode payload from an ELF, PE, or MachO native binary.
+Locates the
+.B .phsb
+section using the
+.B lief
+library and returns the bytes beginning at the
+.B MAGIC
+marker.
+.RS
+.TP
+\fBRaises:\fR
+.B ImportError
+if
+.B lief
+is not installed;
+.B FileNotFoundError
+if
+.I path
+does not exist;
+.B RuntimeError
+if the binary cannot be parsed, no
+.B .phsb
+section is found, the magic bytes are absent, or the payload size cannot be determined.
+.RE
+.SH EXAMPLES
+Load and print a disassembly:
+.PP
+.RS 4
+.nf
+from phasor import Bytecode
+
+bc = Bytecode.load("program.phsb")
+print(bc.disassemble())
+.fi
+.RE
+.PP
+Round-trip through bytes:
+.PP
+.RS 4
+.nf
+bc.save("copy.phsb")
+bc2 = Bytecode.from_bytes(bc.to_bytes())
+assert bc == bc2
+.fi
+.RE
+.PP
+Build a program programmatically:
+.PP
+.RS 4
+.nf
+from phasor import Bytecode, Value, OpCode
+
+bc = Bytecode()
+ci = bc.add_constant(Value.from_int(42))
+bc.emit(OpCode.PUSH_CONST, ci)
+bc.emit(OpCode.HALT)
+bc.save("hello.phsb")
+.fi
+.RE
+.PP
+Compile a simple conditional (pseudocode: \fBif x > 0: print("pos")\fR):
+.PP
+.RS 4
+.nf
+from phasor import Bytecode, Value, OpCode
+
+bc = Bytecode()
+
+# constants
+ci_0   = bc.add_constant(Value.from_int(0))
+ci_pos = bc.add_constant(Value.from_string("pos"))
+
+# load x (slot 0) and compare
+x_slot = bc.get_or_create_var("x")
+bc.emit(OpCode.LOAD_VAR, x_slot)
+bc.emit(OpCode.PUSH_CONST, ci_0)
+bc.emit(OpCode.IGREATER_THAN)
+
+# conditional jump (target patched below)
+jmp_idx = bc.emit(OpCode.JUMP_IF_FALSE, 0)
+
+bc.emit(OpCode.PUSH_CONST, ci_pos)
+bc.emit(OpCode.PRINT)
+
+# back-patch the jump to point past PRINT
+bc.patch_operand1(jmp_idx, len(bc.instructions))
+bc.emit(OpCode.HALT)
+bc.save("cond.phsb")
+.fi
+.RE
+.PP
+Extract bytecode from a compiled binary (requires \fBlief\fR):
+.PP
+.RS 4
+.nf
+bc = Bytecode.from_native_binary("program")
+print(bc.disassemble())
+.fi
+.RE
+.SH FILES
+.TP
+.I *.phsb
+Phasor VM bytecode files consumed and produced by this module.
+.SH DEPENDENCIES
+.TP
+.B lief
+Optional.  Required only for
+.B Bytecode.from_native_binary()
+and
+.BR extract_phsb_bytes() .
+.SH SEE ALSO
+.BR python3 (1)
+.BR PHSB (5)
+.SH AUTHORS
+See the
+.B phasor
+package metadata for information.
