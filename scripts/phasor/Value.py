@@ -1,5 +1,5 @@
 """
-phasor.values
+phasor.Value
 =============
 Runtime value types stored in the constant pool.
 """

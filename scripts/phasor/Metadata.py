@@ -1,7 +1,7 @@
 """
-phasor.metadata
-===============
-Binary format constants shared by the serializer and deserializer.
+phasor.Metadata
+================
+Binary format constants shared by the Serializer and Deserializer.
 """
 
 def _ascii_to_u32_le(s: str) -> int:

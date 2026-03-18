@@ -1,6 +1,6 @@
 """
-phasor.bytecode
-===============
+phasor.Bytecode
+================
 in-memory representation of a compiled
 Phasor program.
 """
@@ -11,9 +11,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .instructions import Instruction
-from .opcodes import OpCode
-from .value import Value
+from .Instruction import Instruction
+from .OpCode import OpCode
+from .Value import Value
 
 
 @dataclass
@@ -25,8 +25,8 @@ class Bytecode:
     points, and the next free variable slot counter.
 
     Attributes:
-        instructions: Ordered list of :class:`~phasor.instructions.Instruction` objects forming the program.
-        constants: Constant pool; entries are indexed by :attr:`~phasor.opcodes.OpCode.PUSH_CONST` / :attr:`~phasor.opcodes.OpCode.LOAD_CONST_R`.
+        instructions: Ordered list of :class:`~phasor.Instruction.Instruction` objects forming the program.
+        constants: Constant pool; entries are indexed by :attr:`~phasor.OpCode.OpCode.PUSH_CONST` / :attr:`~phasor.OpCode.OpCode.LOAD_CONST_R`.
         variables: Maps each variable name to its integer slot index.
         function_entries: Maps each function name to the index of its first instruction.
         next_var_index: Next available variable slot; serialised as part of the variables section.
@@ -61,10 +61,10 @@ class Bytecode:
     def emit(self, op: OpCode,
              op1: int = 0, op2: int = 0, op3: int = 0,
              op4: int = 0, op5: int = 0) -> int:
-        """Append a new :class:`~phasor.instructions.Instruction` to :attr:`instructions` and return its index.
+        """Append a new :class:`~phasor.Instruction.Instruction` to :attr:`instructions` and return its index.
 
         Args:
-            op: The :class:`~phasor.opcodes.OpCode` for this instruction.
+            op: The :class:`~phasor.OpCode.OpCode` for this instruction.
             op1 … op5: Operand values; unused operands should be left as ``0``.
 
         Returns:
@@ -88,41 +88,41 @@ class Bytecode:
     def save(self, path: Path | str) -> None:
         """Serialise this object and write it to a ``.phsb`` file at *path*.
 
-        Delegates to :class:`~phasor.serializer.BytecodeSerializer`.
+        Delegates to :class:`~phasor.Serializer.BytecodeSerializer`.
         """
-        from .serializer import BytecodeSerializer
+        from .Serializer import BytecodeSerializer
         BytecodeSerializer().save_to_file(self, Path(path))
 
     @classmethod
     def load(cls, path: Path | str) -> "Bytecode":
         """Read a ``.phsb`` file at *path* and return a deserialised :class:`Bytecode`.
 
-        Delegates to :class:`~phasor.deserializer.BytecodeDeserializer`.
+        Delegates to :class:`~phasor.Deserializer.BytecodeDeserializer`.
         """
-        from .deserializer import BytecodeDeserializer
+        from .Deserializer import BytecodeDeserializer
         return BytecodeDeserializer().load_from_file(Path(path))
 
     @classmethod
     def from_bytes(cls, data: bytes | bytearray) -> "Bytecode":
         """Deserialise a :class:`Bytecode` from a raw ``.phsb`` byte buffer.
 
-        Delegates to :class:`~phasor.deserializer.BytecodeDeserializer`.
+        Delegates to :class:`~phasor.Deserializer.BytecodeDeserializer`.
         """
-        from .deserializer import BytecodeDeserializer
+        from .Deserializer import BytecodeDeserializer
         return BytecodeDeserializer().deserialize(bytes(data))
 
     def to_bytes(self) -> bytes:
         """Serialise this object to a raw ``.phsb`` byte buffer.
 
-        Delegates to :class:`~phasor.serializer.BytecodeSerializer`.
+        Delegates to :class:`~phasor.Serializer.BytecodeSerializer`.
         """
-        from .serializer import BytecodeSerializer
+        from .Deserializer import BytecodeSerializer
         return bytes(BytecodeSerializer().serialize(self))
 
     @classmethod
     def from_native_binary(cls, path: Path | str) -> "Bytecode":
         """Extract and deserialise bytecode from an ELF/PE/MachO binary's ``.phsb`` section."""
-        from .native import extract_phsb_bytes
+        from .Native import extract_phsb_bytes
         raw = extract_phsb_bytes(Path(path))
         return cls.from_bytes(raw)
 
