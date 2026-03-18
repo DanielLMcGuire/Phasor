@@ -1027,7 +1027,8 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = src \
-                         include
+                         include \
+                         scripts/phasor
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1388,7 +1389,7 @@ CLANG_OPTIONS          =
 # Note: The availability of this option depends on whether or not Doxygen was
 # generated with the -Duse_libclang=ON option for CMake.
 
-CLANG_DATABASE_PATH    =
+CLANG_DATABASE_PATH    = .pmake/CMakeBuild
 
 #---------------------------------------------------------------------------
 # Configuration options related to the alphabetical class index
@@ -2542,7 +2543,7 @@ ENABLE_PREPROCESSING   = YES
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES then
 # the macro expansion is limited to the macros specified with the PREDEFINED and
@@ -2550,7 +2551,7 @@ MACRO_EXPANSION        = NO
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES, the include files in the
 # INCLUDE_PATH will be searched if a #include is found.
@@ -2565,7 +2566,8 @@ SEARCH_INCLUDES        = YES
 # RECURSIVE has no effect here.
 # This tag requires that the tag SEARCH_INCLUDES is set to YES.
 
-INCLUDE_PATH           =
+INCLUDE_PATH           = include \
+                         src/include
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the
