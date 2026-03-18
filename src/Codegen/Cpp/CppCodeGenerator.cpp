@@ -79,12 +79,16 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 #if defined(_WIN32)
 	const std::string sectionPrefixPragma = "#pragma section(\".phsb\", read)\n";
 	const std::string sectionAttr = "__declspec(allocate(\".phsb\")) ";
+// Apparently not working? Will need to look into this
+/// @todo What the fuck?
+/*
 #elif defined(__APPLE__)
 	const std::string sectionPrefixPragma = "";
 	const std::string sectionAttr = "__attribute__((section(\"__DATA,__phsb\"))) ";
 #elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 	const std::string sectionPrefixPragma = "";
 	const std::string sectionAttr = "__attribute__((section(\".phsb\"))) ";
+*/
 #else
 	const std::string sectionPrefixPragma = "";
 	const std::string sectionAttr = "";
