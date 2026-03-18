@@ -33,9 +33,8 @@ prepare() {
 
 build() {
     cd "$startdir"
-    python "$startdir/pmake-bootstrap.py" --native
-    chmod +x "$startdir/pmake"
-    "$startdir/pmake" linux-64-rel -s "$startdir" -b
+    cmake -S "$startdir" -B "$startdir/build" -G Ninja --preset linux-64-rel
+    cmake --build "$startdir/build"
 
     cd "$startdir/src/Extensions/py/phasor"
     "/usr/bin/python" -m build --wheel --no-isolation
@@ -43,7 +42,7 @@ build() {
 
 package() {
     cd "$startdir"
-    "$startdir/pmake" -i "$pkgdir"
+    cmake --install "$startdir/build" --prefix "$pkgdir"
     
     install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
         "$pkgdir/usr/share/file/magic/phasor"
