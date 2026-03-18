@@ -5,6 +5,7 @@ Binary format constants shared by the serializer and deserializer.
 """
 
 def _ascii_to_u32_le(s: str) -> int:
+    """Pack a 4-character ASCII string into a little-endian uint32 magic number."""
     b = s.encode("ascii")
     return b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)
 

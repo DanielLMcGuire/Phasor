@@ -11,6 +11,8 @@ from enum import IntEnum
 
 
 class OpCode(IntEnum):
+    """Phasor VM instruction opcodes"""
+
     PUSH_CONST = 0x00   # Push constant from constant pool
     POP        = 0x01   # Pop top of stack
 

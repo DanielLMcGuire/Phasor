@@ -18,19 +18,18 @@ from .value import Value
 
 @dataclass
 class Bytecode:
-    """
-    Attributes
-    ----------
-    instructions:
-        List of VM instructions.
-    constants:
-        Constant pool (indexed by ``PUSH_CONST`` / ``LOAD_CONST_R``).
-    variables:
-        Variable name → slot-index mapping.
-    function_entries:
-        Function name → instruction index (entry point).
-    next_var_index:
-        Next free variable slot (serialised as part of the variables section).
+    """In-memory representation of a compiled Phasor program.
+
+    Holds all data needed to run or serialise the program: the instruction
+    stream, the constant pool, the variable name→slot mapping, function entry
+    points, and the next free variable slot counter.
+
+    Attributes:
+        instructions: Ordered list of :class:`~phasor.instructions.Instruction` objects forming the program.
+        constants: Constant pool; entries are indexed by :attr:`~phasor.opcodes.OpCode.PUSH_CONST` / :attr:`~phasor.opcodes.OpCode.LOAD_CONST_R`.
+        variables: Maps each variable name to its integer slot index.
+        function_entries: Maps each function name to the index of its first instruction.
+        next_var_index: Next available variable slot; serialised as part of the variables section.
     """
 
     instructions:    List[Instruction]       = field(default_factory=list)
@@ -62,44 +61,77 @@ class Bytecode:
     def emit(self, op: OpCode,
              op1: int = 0, op2: int = 0, op3: int = 0,
              op4: int = 0, op5: int = 0) -> int:
-        """Append an instruction and return its index."""
+        """Append a new :class:`~phasor.instructions.Instruction` to :attr:`instructions` and return its index.
+
+        Args:
+            op: The :class:`~phasor.opcodes.OpCode` for this instruction.
+            op1 … op5: Operand values; unused operands should be left as ``0``.
+
+        Returns:
+            The zero-based index of the newly appended instruction.
+        """
         self.instructions.append(Instruction(op, op1, op2, op3, op4, op5))
         return len(self.instructions) - 1
 
     def patch_operand1(self, instr_index: int, value: int) -> None:
-        """Overwrite ``operand1`` of the instruction at *instr_index*."""
+        """Overwrite ``operand1`` of the instruction at *instr_index* in-place.
+
+        Typically used to back-patch forward-jump offsets after the jump target
+        is known.
+
+        Args:
+            instr_index: Index into :attr:`instructions` of the instruction to patch.
+            value: New value for ``operand1``.
+        """
         self.instructions[instr_index].operand1 = value
 
     def save(self, path: Path | str) -> None:
-        """Serialise and write to a ``.phsb`` file."""
+        """Serialise this object and write it to a ``.phsb`` file at *path*.
+
+        Delegates to :class:`~phasor.serializer.BytecodeSerializer`.
+        """
         from .serializer import BytecodeSerializer
         BytecodeSerializer().save_to_file(self, Path(path))
 
     @classmethod
     def load(cls, path: Path | str) -> "Bytecode":
-        """Deserialise from a ``.phsb`` file."""
+        """Read a ``.phsb`` file at *path* and return a deserialised :class:`Bytecode`.
+
+        Delegates to :class:`~phasor.deserializer.BytecodeDeserializer`.
+        """
         from .deserializer import BytecodeDeserializer
         return BytecodeDeserializer().load_from_file(Path(path))
 
     @classmethod
     def from_bytes(cls, data: bytes | bytearray) -> "Bytecode":
-        """Deserialise from a raw byte buffer."""
+        """Deserialise a :class:`Bytecode` from a raw ``.phsb`` byte buffer.
+
+        Delegates to :class:`~phasor.deserializer.BytecodeDeserializer`.
+        """
         from .deserializer import BytecodeDeserializer
         return BytecodeDeserializer().deserialize(bytes(data))
 
     def to_bytes(self) -> bytes:
-        """Serialise to a raw byte buffer."""
+        """Serialise this object to a raw ``.phsb`` byte buffer.
+
+        Delegates to :class:`~phasor.serializer.BytecodeSerializer`.
+        """
         from .serializer import BytecodeSerializer
         return bytes(BytecodeSerializer().serialize(self))
 
     @classmethod
     def from_native_binary(cls, path: Path | str) -> "Bytecode":
+        """Extract and deserialise bytecode from an ELF/PE/MachO binary's ``.phsb`` section."""
         from .native import extract_phsb_bytes
         raw = extract_phsb_bytes(Path(path))
         return cls.from_bytes(raw)
 
     def disassemble(self) -> str:
-        """Return a human-readable disassembly of the instruction list."""
+        """Return a human-readable disassembly of :attr:`instructions`.
+
+        Function entry points from :attr:`function_entries` are printed as
+        ``<function name>:`` labels above their first instruction.
+        """
         lines: List[str] = []
         for i, instr in enumerate(self.instructions):
             for name, addr in self.function_entries.items():
@@ -113,6 +145,7 @@ class Bytecode:
         return "\n".join(lines)
 
     def __repr__(self) -> str:
+        """Return a summary showing instruction, constant, variable, and function counts."""
         return (
             f"Bytecode("
             f"{len(self.instructions)} instructions, "
