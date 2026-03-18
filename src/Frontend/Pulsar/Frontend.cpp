@@ -72,12 +72,14 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 		return status;
 	}
 
-	return vm->run(bytecode);
+	status = vm->run(bytecode);
 
 	if (ownVM)
 	{
 		delete vm;
 	}
+
+	return status;
 }
 
 int pulsar::Frontend::runRepl(Phasor::VM *vm)
