@@ -28,8 +28,6 @@ pkgver() {
 
 prepare() {
     cd "$startdir"
-    git clone https://github.com/DanielLMcGuire/Phasor
-    cd Phasor
     git submodule update --init --recursive
     if [ -x /usr/bin/python ]; then
         "/usr/bin/python" -m pip install build
