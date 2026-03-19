@@ -99,7 +99,10 @@ void CodeGenerator::generateStatement(const AST::Statement *stmt)
 	{
 		generatePrintStmt(printStmt);
 	}
-
+	else if (auto includeStmt = dynamic_cast<const AST::IncludeStmt *>(stmt))
+	{
+		// Precompiler statement
+	}
 	else if (auto importStmt = dynamic_cast<const AST::ImportStmt *>(stmt))
 	{
 		generateImportStmt(importStmt);

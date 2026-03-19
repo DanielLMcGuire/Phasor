@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <filesystem>
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -437,6 +438,19 @@ struct PrintStmt : public Statement
 	{
 		std::cout << std::string(indent, ' ') << "PrintStmt:\n";
 		expression->print(indent + 2);
+	}
+};
+
+/// @brief Include Statement Node
+struct IncludeStmt : public Statement
+{
+	std::filesystem::path modulePath;
+	IncludeStmt(std::filesystem::path path) : modulePath(path)
+	{
+	}
+	void print(int indent = 0) const override
+	{
+		std::cout << std::format("{:>{}}IncludeStmt: {}\n", "", indent, modulePath.string());
 	}
 };
 
