@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <format>
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
