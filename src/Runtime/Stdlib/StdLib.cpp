@@ -53,6 +53,17 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
+#ifdef _DEBUG
+	std::string argsText;
+	for (auto &arg : args) {
+		argsText += '"';
+		argsText += arg.toString();
+		argsText += '"';
+		if (arg != args.back()) argsText += ", ";
+	}
+	vm->log(std::format("{}({})\n", __func__, argsText));
+	vm->flush();
+#endif
 	checkArgCount(args, 1, "using", true);
 	for (const auto &arg : args)
 	{

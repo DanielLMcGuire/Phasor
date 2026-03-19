@@ -3,23 +3,17 @@
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "Frontend.hpp"
-
-#include <version.h>
-
 #include "../../Runtime/FFI/ffi.hpp"
-#include <sscanf.h>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <version.h>
+#include <sscanf.h>
 
-#ifdef _WIN32
-#include <Windows.h>
-#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
-#else
-#define error(msg) std::cerr << "Error: " << msg << std::endl
-#endif
+#include "Frontend.hpp"
+#include <nativeerror.h>
 
 bool startsWith(const std::string &input, const std::string &prefix)
 {
@@ -33,16 +27,12 @@ bool startsWith(const std::string &input, const std::string &prefix)
 int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 {
 	int status = 0;
-	Lexer lexer(source);
-	auto  tokens = lexer.tokenize();
-
-	Parser parser(tokens);
-	auto   program = parser.parse();
-
-	CodeGenerator codegen;
-	auto          bytecode = codegen.generate(*program);
-
 	bool ownVM = false;
+	CodeGenerator codegen;
+	Lexer lexer(source);
+	Parser parser(lexer.tokenize());
+	auto   program = parser.parse();
+	auto          bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
 	{
@@ -87,10 +77,10 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 
 int Phasor::Frontend::runRepl(VM *vm)
 {
-	std::cout << "Phasor REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
-	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
 	int status = 0;
 	bool ownVM = false;
+	CodeGenerator              codegen;
+
 	if (vm == nullptr)
 	{
 		ownVM = true;
@@ -119,15 +109,19 @@ int Phasor::Frontend::runRepl(VM *vm)
 
 	if (status != 0) {
 		if (ownVM) delete vm;
+		std::cout << "Failed to create FFI handler!";
 		return status;
 	}
 
 	std::map<std::string, int> globalVars;
-	int                        nextVarIdx = 0;
-	CodeGenerator              codegen;
-
+	int                        nextVarIdx = 0;	
 	std::string line;
 	bool cleanExit = false;
+
+	std::cout << "Phasor REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
+	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
+
+	
 	while (true)
 	{
 		try
@@ -148,14 +142,11 @@ int Phasor::Frontend::runRepl(VM *vm)
 			}
 
 			Lexer lexer(line);
-			auto  tokens = lexer.tokenize();
-
-			Parser parser(tokens);
+			Parser parser(lexer.tokenize());
+			
 			auto   program = parser.parse();
-
 			auto bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
 
-			// Update persistent state
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 

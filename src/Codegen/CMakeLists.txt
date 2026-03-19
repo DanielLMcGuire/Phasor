@@ -3,6 +3,7 @@ set(CODEGEN_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeSerializer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ISA/map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Cpp/CppCodeGenerator.cpp
 )
 

@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <memory>
 #include <vector>
+#include <format>
+#include <string>
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -100,6 +103,29 @@ class Value
 		if (std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
 			return ValueType::Array;
 		return ValueType::Null; // Should not be reached if default constructed
+	}
+
+	inline static Value typeToString(const ValueType &type)
+	{
+		switch (type)
+		{
+		case ValueType::Null:
+			return Value("null");
+		case ValueType::Bool:
+			return Value("bool");
+		case ValueType::Int:
+			return Value("int");
+		case ValueType::Float:
+			return Value("float");
+		case ValueType::String:
+			return Value("string");
+		case ValueType::Struct:
+			return Value("struct");
+		case ValueType::Array:
+			return Value("array");
+		default:
+			return Value("unknown");
+		}
 	}
 
 	/// @brief Check if the value is null
@@ -458,3 +484,133 @@ class Value
 	}
 };
 } // namespace Phasor
+
+template <>
+struct std::formatter<Phasor::Value>
+{
+    enum class Style { Value, TypeOnly, TypeValue, Debug, Quoted };
+    Style       style    = Style::Value;
+    std::string passthrough;
+
+    constexpr auto parse(std::format_parse_context &ctx)
+    {
+        auto it  = ctx.begin();
+        auto end = ctx.end();
+
+        std::string_view full(it, end);
+        if (auto close = full.find('}'); close != std::string_view::npos)
+            full = full.substr(0, close);
+
+        std::string_view inner = full;
+        if (!full.empty())
+        {
+            switch (full.back())
+            {
+            case 't': style = Style::TypeOnly;  inner = full.substr(0, full.size() - 1); break;
+            case 'T': style = Style::TypeValue; inner = full.substr(0, full.size() - 1); break;
+            case '?': style = Style::Debug;     inner = full.substr(0, full.size() - 1); break;
+            case 'q': style = Style::Quoted;    inner = full.substr(0, full.size() - 1); break;
+            default:  break;
+            }
+        }
+
+        passthrough = std::string(inner);
+        return it + full.size();
+    }
+
+    template <typename FormatContext>
+    auto format(const Phasor::Value &v, FormatContext &ctx) const
+    {
+        std::string fmtstr = "{:" + passthrough + "}";
+
+        auto fwd = [&]<typename T>(const T &val) {
+            return std::vformat_to(ctx.out(), fmtstr, std::make_format_args(val));
+        };
+
+        using namespace Phasor;
+
+        switch (style)
+        {
+        case Style::TypeOnly:
+            return fwd(Value::typeToString(v.getType()).asString());
+
+        case Style::TypeValue:
+            return fwd(Value::typeToString(v.getType()).asString()
+                       + "(" + v.toString() + ")");
+
+        case Style::Debug:
+            return fwd(debug_repr(v));
+
+        case Style::Quoted:
+            if (v.isString())
+                return fwd("\"" + escape(v.asString()) + "\"");
+            [[fallthrough]];
+
+        case Style::Value:
+        default:
+            switch (v.getType())
+            {
+            case ValueType::Null:   return std::format_to(ctx.out(), "null");
+            case ValueType::Bool:   return fwd(v.asBool());
+            case ValueType::Int:    return fwd(v.asInt());    // int64_t — gets {:08d}, {:x}, etc.
+            case ValueType::Float:  return fwd(v.asFloat());  // double  — gets {:.2f}, {:e}, etc.
+            case ValueType::String: return fwd(v.asString()); // string  — gets fill/align/width
+            case ValueType::Array:  return fwd(v.toString());
+            case ValueType::Struct: return fwd(v.toString());
+            }
+        }
+        return ctx.out(); // unreachable
+    }
+
+  private:
+    static std::string debug_repr(const Phasor::Value &v)
+    {
+        using Phasor::ValueType;
+        switch (v.getType())
+        {
+        case ValueType::Null:   return "null";
+        case ValueType::String: return "\"" + escape(v.asString()) + "\"";
+        case ValueType::Array:
+        {
+            const auto &arr = *v.asArray();
+            std::string out = "[";
+            for (std::size_t i = 0; i < arr.size(); ++i)
+            {
+                out += debug_repr(arr[i]);
+                if (i + 1 < arr.size()) out += ", ";
+            }
+            return out + "]";
+        }
+        case ValueType::Struct:
+        {
+            const auto &s = *v.asStruct();
+            std::string out = s.structName + " { ";
+            bool first = true;
+            for (const auto &[k, val] : s.fields)
+            {
+                if (!first) out += ", ";
+                out += k + ": " + debug_repr(val);
+                first = false;
+            }
+            return out + " }";
+        }
+        default: return v.toString();
+        }
+    }
+
+    static std::string escape(const std::string &s)
+    {
+        std::string out;
+        out.reserve(s.size());
+        for (char c : s)
+            switch (c)
+            {
+            case '"':  out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\n': out += "\\n";  break;
+            case '\t': out += "\\t";  break;
+            default:   out += c;
+            }
+        return out;
+    }
+};

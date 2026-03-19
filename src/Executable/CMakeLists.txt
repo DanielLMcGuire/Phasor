@@ -1,7 +1,6 @@
 add_executable(phasor_main 
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
-    ${CMAKE_SOURCE_DIR}/src/Repl/Phasor/Repl.cpp
 )
 target_link_libraries(phasor_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
@@ -35,7 +34,7 @@ add_executable(phasor_repl
     ${CMAKE_CURRENT_SOURCE_DIR}/Repl/Phasor/Repl.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Repl/Phasor/Repl_main.cpp
 )
-target_link_libraries(phasor_repl phasor_repl_lib)
+target_link_libraries(phasor_repl PhasorFrontend)
 set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
 
 add_executable(phasor_compiler

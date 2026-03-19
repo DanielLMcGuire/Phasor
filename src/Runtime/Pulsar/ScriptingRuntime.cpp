@@ -10,13 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
-#ifdef _WIN32
-#include <Windows.h>
-#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor VM Runtime Error", MB_OK | MB_ICONERROR)
-#else
-#define error(msg) std::cerr << "Error: " << msg << std::endl
-#endif
+#include <nativeerror.h>
 
 namespace pulsar
 {

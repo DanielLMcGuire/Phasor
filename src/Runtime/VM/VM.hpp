@@ -12,6 +12,11 @@
 #include <stdexcept>
 #include <platform.h>
 
+#ifdef _DEBUG
+#include <format>
+#include "../../ISA/map.hpp"
+#endif
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -23,9 +28,17 @@ class VM
   public:
 	explicit VM()
 	{
+#ifdef _DEBUG
+		log(std::format("VM instance created at {:#x}\n", (uintptr_t)this));
+		flush();
+#endif
 	}
 	explicit VM(const Bytecode &bytecode)
 	{
+#ifdef _DEBUG
+		log(std::format("Live VM instance created at {:#x}\n", (uintptr_t)this));
+		flush();
+#endif
 		run(bytecode);
 	}
 	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
@@ -36,8 +49,11 @@ class VM
 	}
 	~VM()
 	{
+#ifdef _DEBUG
+		log(std::format("Deconstructing VM at {:#x}\n", (uintptr_t)this));
 		flush();
-		flusherr();
+#endif
+		cleanup();
 	}
 
 	/// @class Halt
@@ -161,6 +177,9 @@ class VM
 	/// @brief Peek at the top value on the stack
 	Value peek();
 
+	/// @brief Clean up the virtual machine
+	void cleanup();
+
 	/// @brief Reset the virtual machine
 	void reset(const bool &resetStack = true, const bool &resetFunctions = true, const bool &resetVariables = true);
 
@@ -238,6 +257,40 @@ class VM
 
 	/// @brief Native function registry
 	std::map<std::string, NativeFunction> nativeFunctions;
+
+#ifdef _DEBUG
+	inline std::string escapeString(const std::string& input) {
+		std::string output;
+		output.reserve(input.size());
+
+		for (char c : input) {
+			switch (c) {
+				case '\n': output += "\\n";  break;
+				case '\t': output += "\\t";  break;
+				case '\r': output += "\\r";  break;
+				case '\0': output += "\\0";  break;
+				case '\\': output += "\\\\"; break;
+				case '\"': output += "\\\""; break;
+				case '\'': output += "\\'";  break;
+				case '\a': output += "\\a";  break;
+				case '\b': output += "\\b";  break;
+				case '\f': output += "\\f";  break;
+				case '\v': output += "\\v";  break;
+				default:
+					if (c < 0x20 || c == 0x7F) {
+						char buf[5];
+						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+						output += buf;
+					} else {
+						output += c;
+					}
+					break;
+			}
+		}
+
+    return output;
+}
+#endif
 };
 } // namespace Phasor
 

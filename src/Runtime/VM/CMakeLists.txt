@@ -5,6 +5,7 @@ set(VM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/IO/IO.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../ISA/map.cpp
 )
 
 if(ASSEMBLY)

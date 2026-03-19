@@ -85,7 +85,7 @@ enum class OpCode : uint8_t
 	FALSE_P,  ///< Push false
 	NULL_VAL, ///< Push null
 
-	// String operatoins
+	// String operations
 	LEN,     ///< Pop s, push len(s)
 	CHAR_AT, ///< Pop index, pop s, push s[index]
 	SUBSTR,  ///< Pop len, pop start, pop s, push s.substr(start, len)
@@ -98,12 +98,12 @@ enum class OpCode : uint8_t
 	GET_FIELD_STATIC,           ///< Pop struct instance, push field by static offset (structIndex, fieldOffset)
 	SET_FIELD_STATIC,           ///< Pop value and struct instance, set field by static offset
 
-	// Register-based operations (v2.0)
+	// Register operations
 	// Data movement
 	MOV,          ///< Copy register to register: R[rA] = R[rB]
 	LOAD_CONST_R, ///< Load constant to register: R[rA] = constants[immediate]
 	LOAD_VAR_R,   ///< Load variable to register: R[rA] = variables[immediate]
-	STORE_VAR_R,  ///< Store register to variable: variables[immediate] = R[rA]
+	STORE_VAR_R,  ///< Store register to varible: variables[immediate] = R[rA]
 	PUSH_R,       ///< Push register to stack: push(R[rA])
 	PUSH2_R,      ///< Push 2 registers to stack: push2(R[rA], R[rB])
 	POP_R,        ///< Pop stack to register: R[rA] = pop()
@@ -158,4 +158,5 @@ enum class OpCode : uint8_t
 	SYSTEM_OUT_R, /// Run shell command and get output: system_out(R[rA], R[rB])
 	SYSTEM_ERR_R  /// Run shell command and get error output: system_err(R[rA], R[rB])
 };
+
 } // namespace Phasor

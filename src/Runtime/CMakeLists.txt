@@ -4,6 +4,7 @@ set(RUNTIME_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/FFI/ffi.hpp
     ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
     ${CMAKE_SOURCE_DIR}/src/ISA/ISA.hpp
+    ${CMAKE_SOURCE_DIR}/src/ISA/map.hpp
     ${CMAKE_BINARY_DIR}/include/version.h
 )
 

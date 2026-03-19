@@ -17,6 +17,12 @@ int VM::run(const Bytecode &bc)
 	stack.clear();
 	callStack.clear();
 
+#ifdef _DEBUG
+	log(std::format("{}():\nProgram: Constants {}, Variables {}, Functions {}, Instructions: {}\n\n", __func__, m_bytecode->constants.size(),
+	m_bytecode->variables.size(), m_bytecode->functionEntries.size(), m_bytecode->instructions.size()));
+	flush();
+#endif
+
 	registers.fill(Value());
 	variables.resize(m_bytecode->nextVarIndex);
 
@@ -24,7 +30,7 @@ int VM::run(const Bytecode &bc)
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
 #ifdef _DEBUG
-		log(std::string("EXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
+		log(std::format("DISPATCH: RUN (pc={})\n", pc - 1));
 		flush();
 #endif
 		try
@@ -34,8 +40,9 @@ int VM::run(const Bytecode &bc)
 		catch (const VM::Halt &)
 		{
 #ifdef _DEBUG
-			log(getInformation());
-			assert(status != 0);
+			log(std::format("DISPATCH: HALT (status={})\n{}", status, getInformation()));
+			flush();
+			assert(status == 0);
 #endif
 			return status;
 		}
@@ -50,11 +57,31 @@ int VM::run(const Bytecode &bc)
 
 void VM::setImportHandler(const ImportHandler &handler)
 {
+#ifdef _DEBUG
+	log(std::format("{}()\n", __func__));
+	flush();
+#endif
 	importHandler = handler;
+}
+
+void VM::cleanup() {
+#ifdef _DEBUG
+	log(std::format("{}()\n", __func__));
+	flush();
+#endif
+	for (auto &i : registers) { i = Value(); }
+	for (auto &i : variables) { i = Value(); }
+	flush();
+	flusherr();
+	reset(true, true, true);
 }
 
 void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &resetVariables)
 {
+#ifdef _DEBUG
+	log(std::format("{}()\n", __func__));
+	flush();
+#endif
 	if (resetStack)
 	{
 		stack.clear();
@@ -74,28 +101,23 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 
 std::string VM::getInformation()
 {
-	int    callStackTop = callStack.empty() ? -1 : callStack.back();
-	size_t programCounter = pc;
-	std::string info;
+    int callStackTop = callStack.empty() ? -1 : callStack.back();
+    std::string info;
 
-	if (!stack.empty())
-	{
-		info += "Stack Top: ";
-		info += peek().toString();
-		info += '\n';
-	}
+    if (!stack.empty())
+        info = std::format("Stack Top: {}: {}\n", escapeString(peek().toString()), Value::typeToString(peek().getType()));
 
-	info += "R0: ";
-	info += registers[0].toString();
-	info += "\n R1: ";
-	info += registers[1].toString();
-	info += "\n R2: ";
-	info += registers[2].toString();
-	info += "\n R3: ";
-	info += registers[3].toString();
-	info += "\n Current Program Counter: " + std::to_string(programCounter);
-	info += "\n PC Stack Top: " + std::to_string(callStackTop);
-	return info;
+    info += std::format(
+        "R0: {}: {}\nR1: {}: {}\nR2: {}: {}\nR3: {}: {}\nCurrent Program Counter: {}\nPC Stack Top: {}\n\n",
+        registers[0], Value::typeToString(registers[0].getType()), 
+        registers[1], Value::typeToString(registers[1].getType()),
+        registers[2], Value::typeToString(registers[2].getType()),
+        registers[3], Value::typeToString(registers[3].getType()),
+        pc,
+        callStackTop
+    );
+
+    return info;
 }
 
 void VM::log(const Value &msg)
