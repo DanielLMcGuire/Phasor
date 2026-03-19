@@ -258,7 +258,6 @@ class VM
 	/// @brief Native function registry
 	std::map<std::string, NativeFunction> nativeFunctions;
 
-#ifdef _DEBUG
 	inline std::string escapeString(const std::string& input) {
 		std::string output;
 		output.reserve(input.size());
@@ -290,7 +289,6 @@ class VM
 
     return output;
 }
-#endif
 };
 } // namespace Phasor
 
