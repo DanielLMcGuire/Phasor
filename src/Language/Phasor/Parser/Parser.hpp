@@ -14,6 +14,12 @@ class Parser
   public:
 	Parser(const std::vector<Token> &tokens);
 	Parser(const std::vector<Token> &tokens, const std::filesystem::path &sourcePath);
+
+	inline void setSourcePath(const std::filesystem::path &path)
+	{
+		sourcePath = path;
+	}
+
 	std::unique_ptr<AST::Program> parse();
 	
 	struct Error

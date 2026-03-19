@@ -24,13 +24,17 @@ bool startsWith(const std::string &input, const std::string &prefix)
 	return false;
 }
 
-int Phasor::Frontend::runScript(const std::string &source, VM *vm)
+int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::filesystem::path &path)
 {
 	int status = 0;
 	bool ownVM = false;
 	CodeGenerator codegen;
 	Lexer lexer(source);
 	Parser parser(lexer.tokenize());
+	if (!path.empty() && std::filesystem::exists(path)) {
+		parser.setSourcePath(path);
+	} 
+	
 	auto   program = parser.parse();
 	auto          bytecode = codegen.generate(*program);
 
@@ -49,7 +53,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([vm](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -57,7 +61,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		runScript(buffer.str(), vm, path);
 	});
 
 	if (status != 0) {
@@ -65,12 +69,17 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm)
 		return status;
 	}
 
-	status = vm->run(bytecode);
-
-	if (ownVM)
+	try
 	{
-		delete vm;
+		status = vm->run(bytecode);
 	}
+	catch (...)
+	{
+		if (ownVM) delete vm;
+		throw;
+	}
+
+	if (ownVM) delete vm;
 
 	return status;
 }
@@ -96,7 +105,7 @@ int Phasor::Frontend::runRepl(VM *vm)
 	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([vm](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -104,7 +113,7 @@ int Phasor::Frontend::runRepl(VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		runScript(buffer.str(), vm, path);
 	});
 
 	if (status != 0) {
