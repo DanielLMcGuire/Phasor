@@ -2,7 +2,7 @@
 
 A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
 
-Phasor has NO garbage collector, the VM instead uses RAII and our unified type system.
+Phasor has NO garbage collector, the entire toolchain our unified safe type system for RAII purposes.
 
 Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
 
