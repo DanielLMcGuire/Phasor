@@ -155,9 +155,7 @@ class BytecodeDeserializer:
             op1    = self._read_int32()
             op2    = self._read_int32()
             op3    = self._read_int32()
-            op4    = self._read_int32()
-            op5    = self._read_int32()
-            bytecode.instructions.append(Instruction(opcode, op1, op2, op3, op4, op5))
+            bytecode.instructions.append(Instruction(opcode, op1, op2, op3))
 
     def _read_value(self) -> Value:
         """Read a type-tagged value and return the corresponding :class:`~phasor.Value.Value`."""

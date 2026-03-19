@@ -191,8 +191,6 @@ void BytecodeSerializer::writeInstructions(const std::vector<Instruction> &instr
 		writeInt32(instr.operand1);
 		writeInt32(instr.operand2);
 		writeInt32(instr.operand3);
-		writeInt32(instr.operand4);
-		writeInt32(instr.operand5);
 	}
 }
 

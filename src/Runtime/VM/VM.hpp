@@ -145,11 +145,11 @@ class VM
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
 	                           const int &operand3 = 0, const int &operand4 = 0, const int &operand5 = 0);
 #else
 	/// @brief Execute a single operation
-	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
+	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
 	                const int &operand4 = 0, const int &operand5 = 0);
 #endif
 	/// @brief Push a value onto the stack
@@ -240,3 +240,6 @@ class VM
 	std::map<std::string, NativeFunction> nativeFunctions;
 };
 } // namespace Phasor
+
+#define OPS_ARE_INCLUDED
+#include "Operations.cc.inl"

@@ -115,7 +115,7 @@ Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "gets");
-	return vm->regRun(OpCode::READLINE_R, Value());
+	return vm->regRun(OpCode::READLINE_R, REGISTER1);
 }
 
 Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)

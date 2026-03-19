@@ -1,6 +1,10 @@
+#ifndef CMAKE
 #include "VM.hpp"
+#endif
 #include <iostream>
 #include <stdexcept>
+#include <format>
+#include <cassert>
 #include "core/core.h"
 
 namespace Phasor
@@ -20,15 +24,19 @@ int VM::run(const Bytecode &bc)
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
 #ifdef _DEBUG
-		log(std::string("\nEXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
+		log(std::string("EXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
 		flush();
 #endif
 		try
 		{
-			operation(instr.op, instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5);
+			operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
 		}
 		catch (const VM::Halt &)
 		{
+#ifdef _DEBUG
+			log(getInformation());
+			assert(status != 0);
+#endif
 			return status;
 		}
 		catch (const std::exception &)
@@ -68,19 +76,25 @@ std::string VM::getInformation()
 {
 	int    callStackTop = callStack.empty() ? -1 : callStack.back();
 	size_t programCounter = pc;
+	std::string info;
 
-	std::string info = "Stack Top: ";
-	info += peek().toString();
-	info += " | R0: ";
+	if (!stack.empty())
+	{
+		info += "Stack Top: ";
+		info += peek().toString();
+		info += '\n';
+	}
+
+	info += "R0: ";
 	info += registers[0].toString();
-	info += " | R1: ";
+	info += "\n R1: ";
 	info += registers[1].toString();
-	info += " | R2: ";
+	info += "\n R2: ";
 	info += registers[2].toString();
-	info += " | R3: ";
+	info += "\n R3: ";
 	info += registers[3].toString();
-	info += " | Current Program Counter: " + std::to_string(programCounter);
-	info += " | PC Stack Top: " + std::to_string(callStackTop);
+	info += "\n Current Program Counter: " + std::to_string(programCounter);
+	info += "\n PC Stack Top: " + std::to_string(callStackTop);
 	return info;
 }
 

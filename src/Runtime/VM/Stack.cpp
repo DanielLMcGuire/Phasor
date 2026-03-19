@@ -1,5 +1,6 @@
+#ifndef CMAKE
 #include "VM.hpp"
-#include <stdexcept>
+#endif
 
 namespace Phasor
 {

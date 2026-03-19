@@ -504,7 +504,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 		instrLine << opCodeToString(instr.op);
 
 		int     operandCount = getOperandCount(instr.op);
-		int32_t operands[5] = {instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5};
+		int32_t operands[3] = {instr.operand1, instr.operand2, instr.operand3};
 
 		std::string comment;
 
@@ -714,7 +714,7 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 
 				OpCode  op = stringToOpCode(opStr);
 				int     operandCount = getOperandCount(op);
-				int32_t operands[5] = {0, 0, 0, 0, 0};
+				int32_t operands[3] = {0, 0, 0};
 
 				for (int j = 0; j < operandCount; ++j)
 				{
@@ -752,7 +752,7 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 					;
 
 				bytecode.instructions.push_back(
-				    Instruction(op, operands[0], operands[1], operands[2], operands[3], operands[4]));
+				    Instruction(op, operands[0], operands[1], operands[2]));
 			}
 		}
 	}

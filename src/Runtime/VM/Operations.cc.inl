@@ -1,18 +1,16 @@
-#include "VM.hpp"
-#include <iostream>
+#ifndef OPS_ARE_INCLUDED
+#include "VM.hpp" // avoid breaking IDEs
+#endif
 
-namespace Phasor
-{
-Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3,
-                    const int & /*operand4*/, const int & /*operand5*/)
+namespace Phasor {
+
+Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3, const int &, const int &)
 {
 	uint8_t rA = static_cast<uint8_t>(operand1);
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
-//  uint8_t rD = static_cast<uint8_t>(operand4);
-//  uint8_t rE = static_cast<uint8_t>(operand5);
 #ifdef _DEBUG
-	log(std::string("\nOP: " + std::to_string(static_cast<int>(op)) + " operands=[" + std::to_string(operand1) + ", " + std::to_string(operand2) + ", " + std::to_string(operand3)
+	log(std::string("OP: " + std::to_string(static_cast<int>(op)) + " operands=[" + std::to_string(operand1) + ", " + std::to_string(operand2) + ", " + std::to_string(operand3)
 	          + "] stack=" + std::to_string(stack.size()) + "\n"));
 #endif
 	switch (op)
@@ -397,7 +395,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::LOAD_CONST_R: {
 		// LOAD_CONST_R rA, constIndex
-		int constIndex = operand2;
+		auto constIndex = operand2;
 		if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index");
 		registers[rA] = m_bytecode->constants[constIndex];
@@ -406,7 +404,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::LOAD_VAR_R: {
 		// LOAD_VAR_R rA, varIndex
-		int varIndex = operand2;
+		auto varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
 			throw std::runtime_error("Invalid variable index");
 		registers[rA] = variables[varIndex];
@@ -415,7 +413,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::STORE_VAR_R: {
 		// STORE_VAR_R rA, varIndex - store register rA to variable varIndex
-		int varIndex = operand2;
+		auto varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
 			throw std::runtime_error("Invalid variable index");
 		variables[varIndex] = registers[rA];
@@ -793,7 +791,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
 		const StructInfo &info = m_bytecode->structs[operand1];
-		int               fieldOffset = operand2;
+		auto               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
@@ -807,7 +805,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
 		const StructInfo &info = m_bytecode->structs[operand1];
-		int               fieldOffset = operand2;
+		auto               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
@@ -846,11 +844,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		push(obj.getField(fieldName));
 		break;
 	}
-
 	default:
 		throw std::runtime_error("Unknown opcode");
 		return Value();
 	}
-	return Value(registers[operand1]);
+	return Value(operand1);
 }
+
 } // namespace Phasor

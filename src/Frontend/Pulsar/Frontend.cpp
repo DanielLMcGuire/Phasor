@@ -115,8 +115,10 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 		runScript(buffer.str());
 	});
 
-	if (status != 0) {
-		if (ownVM) delete vm;
+	if (status != 0)
+	{
+		if (ownVM)
+			delete vm;
 		return status;
 	}
 
@@ -148,7 +150,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 
-			return vm->run(bytecode);
+			status = vm->run(bytecode);
 		}
 		catch (const std::exception &e)
 		{

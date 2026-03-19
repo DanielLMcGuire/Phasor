@@ -36,8 +36,6 @@ class Instruction:
     operand1: int = 0
     operand2: int = 0
     operand3: int = 0
-    operand4: int = 0
-    operand5: int = 0
 
     @classmethod
     def halt(cls) -> "Instruction":
@@ -86,8 +84,7 @@ class Instruction:
 
     def __repr__(self) -> str:
         """Return a concise debug representation showing the opcode name and non-zero operands."""
-        ops = [self.operand1, self.operand2, self.operand3,
-               self.operand4, self.operand5]
+        ops = [self.operand1, self.operand2, self.operand3]
         non_zero = [str(o) for o in ops if o != 0]
         suffix = (", " + ", ".join(non_zero)) if non_zero else ""
         return f"Instruction({self.op.name}{suffix})"

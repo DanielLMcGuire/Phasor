@@ -105,8 +105,6 @@ class BytecodeSerializer:
             self._write_int32(instr.operand1)
             self._write_int32(instr.operand2)
             self._write_int32(instr.operand3)
-            self._write_int32(instr.operand4)
-            self._write_int32(instr.operand5)
 
     def _write_value(self, value: Value) -> None:
         """Write a :class:`~phasor.Value.Value` as a ``uint8`` type tag followed by its payload.
