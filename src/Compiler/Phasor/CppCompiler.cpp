@@ -315,7 +315,7 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 			if (m_args.verbose)
 				std::cout << "Parsing...\n";
 
-			Parser parser(tokens);
+			Parser parser(tokens, sourcePath);
 			auto   program = parser.parse();
 
 			// Generate bytecode

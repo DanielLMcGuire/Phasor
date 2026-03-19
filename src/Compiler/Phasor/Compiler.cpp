@@ -56,7 +56,7 @@ int Compiler::compileToBytecode()
 	try
 	{
 		Lexer         lexer(source);
-		Parser        parser(lexer.tokenize());
+		Parser        parser(lexer.tokenize(), m_args.inputFile);
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);
@@ -109,7 +109,7 @@ int Compiler::compileToIR()
 	try
 	{
 		Lexer         lexer(source);
-		Parser        parser(lexer.tokenize());
+		Parser        parser(lexer.tokenize(), m_args.inputFile);
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);

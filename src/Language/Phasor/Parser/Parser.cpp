@@ -1,12 +1,72 @@
 #include "Parser.hpp"
+#include "../Lexer/Lexer.hpp"
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 
 namespace Phasor
 {
 
+static std::vector<Token> tokenizeFile(const std::filesystem::path &path)
+{
+	std::ifstream file(path);
+	if (!file.is_open())
+	{
+		throw std::runtime_error("Could not open file " + path.string());
+	}
+	std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	file.close();
+
+	Lexer lexer(source);
+	return lexer.tokenize();
+}
+
+static std::vector<std::unique_ptr<AST::Statement>>
+resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir);
+
+static std::vector<std::unique_ptr<AST::Statement>>
+resolveIncludesInternal(std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir)
+{
+	std::vector<std::unique_ptr<AST::Statement>> result;
+
+	for (size_t i = 0; i < stmts.size(); ++i)
+	{
+		if (auto includeStmt = dynamic_cast<AST::IncludeStmt *>(stmts[i].get()))
+		{
+			auto includePath = (baseDir / includeStmt->modulePath).lexically_normal();
+			auto tokens = tokenizeFile(includePath);
+			Parser parser(tokens, includePath);
+			auto program = parser.parse();
+
+			auto resolved = resolveIncludes(program->statements, includePath.parent_path());
+			for (auto &stmt : resolved)
+			{
+				result.push_back(std::move(stmt));
+			}
+		}
+		else
+		{
+			result.push_back(std::move(stmts[i]));
+		}
+	}
+
+	return result;
+}
+
+static std::vector<std::unique_ptr<AST::Statement>>
+resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir)
+{
+	return resolveIncludesInternal(stmts, baseDir);
+}
+
+
 using namespace AST;
 
 Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens)
+{
+}
+
+Parser::Parser(const std::vector<Token> &tokens, const std::filesystem::path &sourcePath) : tokens(tokens), sourcePath(sourcePath)
 {
 }
 
@@ -17,6 +77,9 @@ std::unique_ptr<Program> Parser::parse()
 	{
 		program->statements.push_back(declaration());
 	}
+
+	program->statements = Phasor::resolveIncludes(program->statements, sourcePath.parent_path());
+
 	return program;
 }
 
@@ -215,6 +278,20 @@ std::unique_ptr<Statement> Parser::statement()
 		advance();
 		consume(TokenType::Symbol, ";", "Expect ';' after 'continue'.");
 		auto node = std::make_unique<ContinueStmt>();
+		node->line = start.line;
+		node->column = start.column;
+		return node;
+	}
+	if (check(TokenType::Keyword) && peek().lexeme == "include")
+	{
+		Token start = peek();
+		advance();
+
+		Token pathToken = consume(TokenType::String, "Expect file path after 'include'.");
+
+		consume(TokenType::Symbol, ";", "Expect ';' after include.");
+
+		auto node = std::make_unique<IncludeStmt>(pathToken.lexeme);
 		node->line = start.line;
 		node->column = start.column;
 		return node;

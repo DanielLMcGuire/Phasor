@@ -63,7 +63,7 @@ int main(int argc, char *argv[], char *envp[])
 			if (!source.empty())
 			{
 				Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
-				Phasor::Frontend::runScript(source);
+				Phasor::Frontend::runScript(source, nullptr, "");
 				return 0;
 			}
 		}

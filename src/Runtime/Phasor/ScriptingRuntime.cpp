@@ -43,9 +43,10 @@ int ScriptingRuntime::runSource()
 	buffer << file.rdbuf();
 	std::string source = buffer.str();
 
+	auto vm = createVm();
+
 	try
 	{
-		auto vm = createVm();
 		runSourceString(source, *vm);
 	}
 	catch (const std::exception &e)
@@ -60,9 +61,10 @@ int ScriptingRuntime::runSource()
 
 int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 {
+	int status = 0;
 	Lexer  lexer(source);
 	auto   tokens = lexer.tokenize();
-	Parser parser(tokens);
+	Parser parser(tokens, m_args.inputFile);
 	auto   program = parser.parse();
 
 	if (m_args.verbose)

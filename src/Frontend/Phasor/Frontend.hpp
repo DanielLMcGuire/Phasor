@@ -11,9 +11,10 @@ namespace Frontend
  * @brief Run a script
  * @param source The source code to run
  * @param vm The virtual machine to run the script on
+ * @param path The optional path of the source file
  * @return The result of the script
  */
-int runScript(const std::string &source, VM *vm = nullptr);
+int runScript(const std::string &source, VM *vm, const std::filesystem::path &path = "");
 
 /**
  * @brief Run an REPL

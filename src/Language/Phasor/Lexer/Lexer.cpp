@@ -172,7 +172,7 @@ Token Lexer::identifier()
 
 	static const std::vector<std::string> keywords = {"var",    "fn",       "if",     "else", "while",  "for",
 	                                                  "return", "true",     "false",  "null", "throw",  "print",
-	                                                  "break",  "continue", "switch", "case", "default"};
+	                                                  "break",  "continue", "switch", "case", "default", "include"};
 
 	for (const auto &kw : keywords)
 	{

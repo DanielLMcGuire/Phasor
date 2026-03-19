@@ -574,7 +574,7 @@ struct std::formatter<Phasor::Value>
 
         case Style::Quoted:
             if (v.isString())
-                return fwd("\"" + escape(v.asString()) + "\"");
+                return fwd("\"" + escapeString(v.asString()) + "\"");
             [[fallthrough]];
 
         case Style::Value:
@@ -585,7 +585,7 @@ struct std::formatter<Phasor::Value>
             case ValueType::Bool:   return fwd(v.asBool());
             case ValueType::Int:    return fwd(v.asInt());
             case ValueType::Float:  return fwd(v.asFloat());
-            case ValueType::String: return fwd(v.asString());
+            case ValueType::String: return fwd(escapeString(v.asString()));
             case ValueType::Array:  return fwd(v.toString());
             case ValueType::Struct: return fwd(v.toString());
             }
@@ -600,7 +600,7 @@ struct std::formatter<Phasor::Value>
         switch (v.getType())
         {
         case ValueType::Null:   return "null";
-        case ValueType::String: return "\"" + escape(v.asString()) + "\"";
+        case ValueType::String: return "\"" + escapeString(v.asString()) + "\"";
         case ValueType::Array:
         {
             const auto &arr = *v.asArray();

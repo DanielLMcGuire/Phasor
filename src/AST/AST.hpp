@@ -3,6 +3,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <format>
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -81,10 +84,10 @@ struct TypeNode : public Node
 	}
 	void print(int indent = 0) const override
 	{
-		std::cout << std::string(indent, ' ') << "Type: " << name << (isPointer ? "*" : "") << "\n";
+		std::cout << std::format("{:>{}}Type: {}\n", "", indent, name);
 		for (int dim : arrayDimensions)
 		{
-			std::cout << std::string(indent + 2, ' ') << "ArrayDim: " << dim << "\n";
+			std::cout << std::format("{:>{}}ArrayDim: {}\n", "", indent + 2, dim);
 		}
 	}
 };
@@ -98,7 +101,7 @@ struct NumberExpr : public Expression
 	}
 	void print(int indent = 0) const override
 	{
-		std::cout << std::string(indent, ' ') << "Number: " << value << "\n";
+		std::cout << std::format("{:>{}}Number: {}\n", "", indent, value);
 	}
 };
 
@@ -111,7 +114,8 @@ struct StringExpr : public Expression
 	}
 	void print(int indent = 0) const override
 	{
-		std::cout << std::string(indent, ' ') << "String: " << value << "\n";
+		
+		std::cout << std::format("{:>{}}String: {}\n", "", indent, value);
 	}
 };
 
@@ -124,7 +128,7 @@ struct IdentifierExpr : public Expression
 	}
 	void print(int indent = 0) const override
 	{
-		std::cout << std::string(indent, ' ') << "Identifier: " << name << "\n";
+		std::cout << std::format("{:>{}}Identifier: {}\n", "", indent, name);
 	}
 };
 
@@ -137,7 +141,7 @@ struct BooleanExpr : public Expression
 	}
 	void print(int indent = 0) const override
 	{
-		std::cout << std::string(indent, ' ') << "Boolean: " << (value ? "true" : "false") << "\n";
+		std::cout << std::format("{:>{}}Boolean: {}\n", "", indent, value);
 	}
 };
 
@@ -437,6 +441,19 @@ struct PrintStmt : public Statement
 	{
 		std::cout << std::string(indent, ' ') << "PrintStmt:\n";
 		expression->print(indent + 2);
+	}
+};
+
+/// @brief Include Statement Node
+struct IncludeStmt : public Statement
+{
+	std::filesystem::path modulePath;
+	IncludeStmt(std::filesystem::path path) : modulePath(path)
+	{
+	}
+	void print(int indent = 0) const override
+	{
+		std::cout << std::format("{:>{}}IncludeStmt: {}\n", "", indent, modulePath.string());
 	}
 };
 
