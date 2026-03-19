@@ -197,10 +197,9 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, vm, 1, "shutdown");
-	vm->reset();
 	int ret = static_cast<int>(args[0].asInt());
 	vm->setStatus(ret);
-	return Value();
+	throw VM::Halt();
 }
 
 Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
