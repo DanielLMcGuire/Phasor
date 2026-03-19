@@ -21,11 +21,28 @@
                 "rhs": "Darwin"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
+                "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_APPLE_SILICON_PROCESSOR": "arm64"
             }
         },
+        {
+            "name": "macos-arm-dbg_trace",
+            "displayName": "macOS (arm64 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
+                "IS_TRACING": "1"
+            }
+        },
+
         {
             "name": "macos-arm-rel",
             "displayName": "macOS (arm64 Release)",
@@ -36,9 +53,25 @@
                 "rhs": "Darwin"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
+                "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_APPLE_SILICON_PROCESSOR": "arm64"
+            }
+        },
+        {
+            "name": "macos-arm-rel_trace",
+            "displayName": "macOS (arm64 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
+                "IS_TRACING": "1"
             }
         },
 
@@ -60,6 +93,25 @@
             }
         },
         {
+            "name": "macos-x64-dbg_trace",
+            "displayName": "macOS (x64 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
+        {
             "name": "macos-x64-rel",
             "displayName": "macOS (x64 Release)",
             "inherits": "base",
@@ -74,6 +126,24 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "macos-x64-rel_trace",
+            "displayName": "macOS (x64 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
             }
         },
 
@@ -95,6 +165,25 @@
             }
         },
         {
+            "name": "windows-64-dbg_trace",
+            "displayName": "Windows (x64 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
+        {
             "name": "windows-64-rel",
             "displayName": "Windows (x64 Release)",
             "inherits": "base",
@@ -109,6 +198,24 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "windows-64-rel_trace",
+            "displayName": "Windows (x64 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
             }
         },
 
@@ -126,10 +233,30 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
+                "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
+        {
+            "name": "windows-32-dbg_trace",
+            "displayName": "Windows (x86 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
         {
             "name": "windows-32-rel",
             "displayName": "Windows (x86 Release)",
@@ -144,8 +271,27 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
+                "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "windows-32-rel_trace",
+            "displayName": "Windows (x86 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
             }
         },
 
@@ -163,10 +309,30 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
+                "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
+        {
+            "name": "windows-arm64-dbg_trace",
+            "displayName": "Windows (arm64 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
         {
             "name": "windows-arm64-rel",
             "displayName": "Windows (arm64 Release)",
@@ -181,10 +347,30 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-				"ASSEMBLY": "OFF",
+                "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
+        {
+            "name": "windows-arm64-rel_trace",
+            "displayName": "Windows (arm64 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
+            }
+        },
+
         {
             "name": "xbox-one",
             "displayName": "Durango",
@@ -198,9 +384,25 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "IS_XBOX": "1",
                 "IS_XDURANGO": "1"
-
             }
         },
+        {
+            "name": "xbox-one_trace",
+            "displayName": "Durango Trace",
+            "inherits": "base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "OFF",
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_XBOX": "1",
+                "IS_XDURANGO": "1",
+                "IS_TRACING": "1"
+            }
+        },
+
         {
             "name": "xbox-series",
             "displayName": "Scarlet",
@@ -216,6 +418,23 @@
                 "IS_XSCARLET": "1"
             }
         },
+        {
+            "name": "xbox-series_trace",
+            "displayName": "Scarlet Trace",
+            "inherits": "base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "ASSEMBLY": "ON",
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_XBOX": "1",
+                "IS_XSCARLET": "1",
+                "IS_TRACING": "1"
+            }
+        },
+
         {
             "name": "linux-64-dbg",
             "displayName": "Linux (x64 Debug)",
@@ -234,6 +453,25 @@
             }
         },
         {
+            "name": "linux-64-dbg_trace",
+            "displayName": "Linux (x64 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
+        {
             "name": "linux-64-rel",
             "displayName": "Linux (x64 Release)",
             "inherits": "base",
@@ -248,6 +486,24 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "linux-64-rel_trace",
+            "displayName": "Linux (x64 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
             }
         },
 
@@ -269,6 +525,25 @@
             }
         },
         {
+            "name": "linux-32-dbg_trace",
+            "displayName": "Linux (x86 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
+        {
             "name": "linux-32-rel",
             "displayName": "Linux (x86 Release)",
             "inherits": "base",
@@ -283,6 +558,24 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "linux-32-rel_trace",
+            "displayName": "Linux (x86 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
             }
         },
 
@@ -304,6 +597,25 @@
             }
         },
         {
+            "name": "linux-arm64-dbg_trace",
+            "displayName": "Linux (arm64 Debug) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "IS_TRACING": "1"
+            }
+        },
+
+        {
             "name": "linux-arm64-rel",
             "displayName": "Linux (arm64 Release)",
             "inherits": "base",
@@ -318,6 +630,24 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "linux-arm64-rel_trace",
+            "displayName": "Linux (arm64 Release) Trace",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "IS_TRACING": "1"
             }
         }
     ]

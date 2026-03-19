@@ -4,7 +4,7 @@
 
 void Phasor::VM::registerNativeFunction(const std::string &name, NativeFunction fn)
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}(\"{}\")\n", __func__, name));
 	flush();
 #endif

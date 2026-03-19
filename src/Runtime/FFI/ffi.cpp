@@ -27,7 +27,7 @@ namespace Phasor
  */
 bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	vm->log(std::format("{}({})\n", __func__, library.string()));
 	vm->flush();
 #endif

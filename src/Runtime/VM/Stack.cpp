@@ -7,8 +7,8 @@ namespace Phasor
 
 void VM::push(const Value &value)
 {
-#ifdef _DEBUG
-	log(std::format("{}('{}': {})\n", __func__, escapeString(value.toString()), Value::typeToString(value.getType())));
+#ifdef TRACING
+	log(std::format("{}({:T})\n", __func__, value));
 	flush();
 #endif
 	stack.push_back(value);
@@ -16,16 +16,20 @@ void VM::push(const Value &value)
 
 Value VM::pop()
 {
-#ifdef _DEBUG
-	log(std::format("{}()\n", __func__));
-	flush();
-#endif
 	if (stack.empty())
 	{
+#ifdef TRACING
+		log(std::format("{}() : <empty stack>\n", __func__));
+		flush();
+#endif
 		std::string msg = "Stack underflow at pc=" + std::to_string(pc);
 		throw std::runtime_error(msg);
 		return Value();
 	}
+#ifdef TRACING
+	log(std::format("{}() : {:T}\n", __func__, stack.back()));
+	flush();
+#endif
 	Value value = stack.back();
 	stack.pop_back();
 	return value;
@@ -33,16 +37,20 @@ Value VM::pop()
 
 Value VM::peek()
 {
-#ifdef _DEBUG
-	log(std::format("{}()\n", __func__));
-	flush();
-#endif
 	if (stack.empty())
 	{
+#ifdef TRACING
+		log(std::format("{}() : <empty stack>\n", __func__));
+		flush();
+#endif
 		std::string msg = "Stack is empty at pc=" + std::to_string(pc);
 		throw std::runtime_error(msg);
 		return Value();
 	}
+#ifdef TRACING
+	log(std::format("{}() : {:T}\n", __func__, stack.back()));
+	flush();
+#endif
 	return stack.back();
 }
 

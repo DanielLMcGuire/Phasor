@@ -7,8 +7,8 @@ namespace Phasor
 
 void VM::setRegister(const uint8_t index, const Value &value)
 {
-#ifdef _DEBUG
-	log(std::format("{}('{}', {}: {})\n", __func__, index, value, Value::typeToString(value.getType())));
+#ifdef TRACING
+	log(std::format("{}(r{}, {:T})\n", __func__, index, value));
 	flush();
 #endif
 	registers[index] = value;
@@ -16,8 +16,8 @@ void VM::setRegister(const uint8_t index, const Value &value)
 
 void VM::freeRegister(const uint8_t index)
 {
-#ifdef _DEBUG
-	log(std::format("{}({})\n", __func__, index));
+#ifdef TRACING
+	log(std::format("{}(r{})\n", __func__, index));
 	flush();
 #endif
 	registers[index] = Value();
@@ -25,8 +25,8 @@ void VM::freeRegister(const uint8_t index)
 
 Value VM::getRegister(const uint8_t index)
 {
-#ifdef _DEBUG
-	log(std::format("{}({})\n", __func__, index));
+#ifdef TRACING
+	log(std::format("{}(r{}) : {}\n", __func__, index, registers[index]));
 	flush();
 #endif
 	return registers[index];
@@ -34,8 +34,8 @@ Value VM::getRegister(const uint8_t index)
 
 size_t VM::getRegisterCount()
 {
-#ifdef _DEBUG
-	log(std::format("{}()\n", __func__));
+#ifdef TRACING
+	log(std::format("{}() : {}\n", __func__, registers.size()));
 	flush();
 #endif
 	return registers.size();

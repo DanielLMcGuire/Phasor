@@ -7,8 +7,8 @@ namespace Phasor
 
 size_t VM::addVariable(const Value &value)
 {
-#ifdef _DEBUG
-	log(std::format("{}('{}': {})\n", __func__, escapeString(value.toString()), Value::typeToString(value.getType())));
+#ifdef TRACING
+	log(std::format("{}({:T})\n", __func__, value));
 	flush();
 #endif
 	variables.push_back(value);
@@ -17,7 +17,7 @@ size_t VM::addVariable(const Value &value)
 
 void VM::freeVariable(const size_t index)
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}({})\n", __func__, index));
 	flush();
 #endif
@@ -29,8 +29,8 @@ void VM::freeVariable(const size_t index)
 
 void VM::setVariable(const size_t index, const Value &value)
 {
-#ifdef _DEBUG
-	log(std::format("{}('{}', {}: {})\n", __func__, index, escapeString(value.toString()), Value::typeToString(value.getType())));
+#ifdef TRACING
+	log(std::format("{}({}, {:T})\n", __func__, index, value));
 	flush();
 #endif
 	if (index >= variables.size())
@@ -42,7 +42,7 @@ void VM::setVariable(const size_t index, const Value &value)
 
 Value VM::getVariable(const size_t index)
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}({})\n", __func__, index));
 	flush();
 #endif
@@ -55,7 +55,7 @@ Value VM::getVariable(const size_t index)
 
 size_t VM::getVariableCount()
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}()\n", __func__));
 	flush();
 #endif

@@ -8,6 +8,38 @@
 #include <format>
 #include <string>
 
+inline std::string escapeString(const std::string& input) {
+		std::string output;
+		output.reserve(input.size());
+
+		for (char c : input) {
+			switch (c) {
+				case '\n': output += "\\n";  break;
+				case '\t': output += "\\t";  break;
+				case '\r': output += "\\r";  break;
+				case '\0': output += "\\0";  break;
+				case '\\': output += "\\\\"; break;
+				case '\"': output += "\\\""; break;
+				case '\'': output += "\\'";  break;
+				case '\a': output += "\\a";  break;
+				case '\b': output += "\\b";  break;
+				case '\f': output += "\\f";  break;
+				case '\v': output += "\\v";  break;
+				default:
+					if (c < 0x20 || c == 0x7F) {
+						char buf[5];
+						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+						output += buf;
+					} else {
+						output += c;
+					}
+					break;
+			}
+		}
+
+    return output;
+}
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -308,13 +340,7 @@ class Value
 		if (isFloat())
 			return asFloat() != 0.0;
 		if (isString())
-		{
-			if (asString() == "true" || asString() == "1")
-				return true;
-			else if (asString() == "false" || asString() == "0")
-				return false;
-			return !asString().empty();
-		}
+    		return !asString().empty();
 		return false;
 	}
 
@@ -489,39 +515,44 @@ template <>
 struct std::formatter<Phasor::Value>
 {
     enum class Style { Value, TypeOnly, TypeValue, Debug, Quoted };
-    Style       style    = Style::Value;
-    std::string passthrough;
+    Style            style       = Style::Value;
+    std::string_view passthrough;
 
     constexpr auto parse(std::format_parse_context &ctx)
-    {
-        auto it  = ctx.begin();
-        auto end = ctx.end();
+	{
+		auto it  = ctx.begin();
+		auto end = ctx.end();
 
-        std::string_view full(it, end);
-        if (auto close = full.find('}'); close != std::string_view::npos)
-            full = full.substr(0, close);
+		auto close = it;
+		while (close != end && *close != '}') ++close;
 
-        std::string_view inner = full;
-        if (!full.empty())
-        {
-            switch (full.back())
-            {
-            case 't': style = Style::TypeOnly;  inner = full.substr(0, full.size() - 1); break;
-            case 'T': style = Style::TypeValue; inner = full.substr(0, full.size() - 1); break;
-            case '?': style = Style::Debug;     inner = full.substr(0, full.size() - 1); break;
-            case 'q': style = Style::Quoted;    inner = full.substr(0, full.size() - 1); break;
-            default:  break;
-            }
-        }
+		std::string_view full(&*it, static_cast<size_t>(close - it));
+		std::string_view inner = full;
 
-        passthrough = std::string(inner);
-        return it + full.size();
-    }
+		if (!full.empty())
+		{
+			switch (full.back())
+			{
+			case 't': style = Style::TypeOnly;  inner = full.substr(0, full.size() - 1); break;
+			case 'T': style = Style::TypeValue; inner = full.substr(0, full.size() - 1); break;
+			case '?': style = Style::Debug;     inner = full.substr(0, full.size() - 1); break;
+			case 'q': style = Style::Quoted;    inner = full.substr(0, full.size() - 1); break;
+			default:  break;
+			}
+		}
+
+		passthrough = inner;
+		return close;
+	}
 
     template <typename FormatContext>
     auto format(const Phasor::Value &v, FormatContext &ctx) const
     {
-        std::string fmtstr = "{:" + passthrough + "}";
+        std::string fmtstr;
+        fmtstr.reserve(passthrough.size() + 3);
+        fmtstr += "{:";
+        fmtstr += passthrough;
+        fmtstr += '}';
 
         auto fwd = [&]<typename T>(const T &val) {
             return std::vformat_to(ctx.out(), fmtstr, std::make_format_args(val));
@@ -536,7 +567,7 @@ struct std::formatter<Phasor::Value>
 
         case Style::TypeValue:
             return fwd(Value::typeToString(v.getType()).asString()
-                       + "(" + v.toString() + ")");
+                       + "(" + escapeString(v.toString()) + ")");
 
         case Style::Debug:
             return fwd(debug_repr(v));
@@ -552,14 +583,14 @@ struct std::formatter<Phasor::Value>
             {
             case ValueType::Null:   return std::format_to(ctx.out(), "null");
             case ValueType::Bool:   return fwd(v.asBool());
-            case ValueType::Int:    return fwd(v.asInt());    // int64_t — gets {:08d}, {:x}, etc.
-            case ValueType::Float:  return fwd(v.asFloat());  // double  — gets {:.2f}, {:e}, etc.
-            case ValueType::String: return fwd(v.asString()); // string  — gets fill/align/width
+            case ValueType::Int:    return fwd(v.asInt());
+            case ValueType::Float:  return fwd(v.asFloat());
+            case ValueType::String: return fwd(v.asString());
             case ValueType::Array:  return fwd(v.toString());
             case ValueType::Struct: return fwd(v.toString());
             }
         }
-        return ctx.out(); // unreachable
+        return ctx.out();
     }
 
   private:

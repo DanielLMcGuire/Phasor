@@ -25,7 +25,7 @@ void StdLib::registerIOFunctions(VM *vm)
 
 Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "clear");
+	checkArgCount(args, vm, 0, "clear");
 	vm->regRun(OpCode::PRINT_R, "\033[2J\033[H");
 	return Value();
 }
@@ -82,14 +82,14 @@ Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 
 Value StdLib::io_prints(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "prints");
+	checkArgCount(args, vm, 1, "prints");
 	vm->regRun(OpCode::PRINT_R, args[0]);
 	return Value("");
 }
 
 Value StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "printf", true);
+	checkArgCount(args, vm, 1, "printf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
 	return Value("");
@@ -97,7 +97,7 @@ Value StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::io_puts(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "puts", true);
+	checkArgCount(args, vm, 1, "puts", true);
 	std::string input = args[0].toString();
 	vm->regRun(OpCode::PRINT_R, input + "\n");
 	return Value("");
@@ -105,7 +105,7 @@ Value StdLib::io_puts(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "putf", true);
+	checkArgCount(args, vm, 1, "putf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	std::string        input = io_c_format(formatArgs, vm).toString();
 	vm->regRun(OpCode::PRINT_R, input + "\n");
@@ -114,13 +114,13 @@ Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "gets");
+	checkArgCount(args, vm, 0, "gets");
 	return vm->regRun(OpCode::READLINE_R, REGISTER1);
 }
 
 Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "puts_error", true);
+	checkArgCount(args, vm, 1, "puts_error", true);
 	std::string input = args[0].toString();
 	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
 	return Value("");
@@ -128,7 +128,7 @@ Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "putf_error", true);
+	checkArgCount(args, vm, 1, "putf_error", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	std::string        input = io_c_format(formatArgs, vm).toString();
 	vm->regRun(OpCode::PRINTERROR_R, input + "\n");

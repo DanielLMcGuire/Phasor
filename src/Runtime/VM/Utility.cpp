@@ -17,8 +17,8 @@ int VM::run(const Bytecode &bc)
 	stack.clear();
 	callStack.clear();
 
-#ifdef _DEBUG
-	log(std::format("{}():\nProgram: Constants {}, Variables {}, Functions {}, Instructions: {}\n\n", __func__, m_bytecode->constants.size(),
+#ifdef TRACING
+	log(std::format("{}():\nProgram: Constants {}, Variables {}, Functions {}, Instructions: {}\n", __func__, m_bytecode->constants.size(),
 	m_bytecode->variables.size(), m_bytecode->functionEntries.size(), m_bytecode->instructions.size()));
 	flush();
 #endif
@@ -29,8 +29,8 @@ int VM::run(const Bytecode &bc)
 	while (pc < m_bytecode->instructions.size())
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
-#ifdef _DEBUG
-		log(std::format("DISPATCH: RUN (pc={})\n", pc - 1));
+#ifdef TRACING
+		log(std::format("\nDISPATCH: RUN (pc={})\n", pc - 1));
 		flush();
 #endif
 		try
@@ -39,10 +39,12 @@ int VM::run(const Bytecode &bc)
 		}
 		catch (const VM::Halt &)
 		{
-#ifdef _DEBUG
-			log(std::format("DISPATCH: HALT (status={})\n{}", status, getInformation()));
+#ifdef TRACING
+			log(std::format("\nDISPATCH: HALT (status={})\n{}", status, getInformation()));
 			flush();
+	#ifdef _DEBUG
 			assert(status == 0);
+	#endif
 #endif
 			return status;
 		}
@@ -57,7 +59,7 @@ int VM::run(const Bytecode &bc)
 
 void VM::setImportHandler(const ImportHandler &handler)
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}()\n", __func__));
 	flush();
 #endif
@@ -65,7 +67,7 @@ void VM::setImportHandler(const ImportHandler &handler)
 }
 
 void VM::cleanup() {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}()\n", __func__));
 	flush();
 #endif
@@ -78,7 +80,7 @@ void VM::cleanup() {
 
 void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &resetVariables)
 {
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}()\n", __func__));
 	flush();
 #endif
@@ -105,14 +107,14 @@ std::string VM::getInformation()
     std::string info;
 
     if (!stack.empty())
-        info = std::format("Stack Top: {}: {}\n", escapeString(peek().toString()), Value::typeToString(peek().getType()));
+        info = std::format("Stack Top: {:T}\n", peek());
 
     info += std::format(
-        "R0: {}: {}\nR1: {}: {}\nR2: {}: {}\nR3: {}: {}\nCurrent Program Counter: {}\nPC Stack Top: {}\n\n",
-        registers[0], Value::typeToString(registers[0].getType()), 
-        registers[1], Value::typeToString(registers[1].getType()),
-        registers[2], Value::typeToString(registers[2].getType()),
-        registers[3], Value::typeToString(registers[3].getType()),
+        "R0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nCurrent Program Counter: {}\nPC Stack Top: {}\n\n",
+        registers[0],
+        registers[1],
+        registers[2],
+        registers[3],
         pc,
         callStackTop
     );

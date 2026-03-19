@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <platform.h>
 
-#ifdef _DEBUG
+#ifdef TRACING
 #include <format>
 #include "../../ISA/map.hpp"
 #endif
@@ -28,14 +28,14 @@ class VM
   public:
 	explicit VM()
 	{
-#ifdef _DEBUG
+#ifdef TRACING
 		log(std::format("VM instance created at {:#x}\n", (uintptr_t)this));
 		flush();
 #endif
 	}
 	explicit VM(const Bytecode &bytecode)
 	{
-#ifdef _DEBUG
+#ifdef TRACING
 		log(std::format("Live VM instance created at {:#x}\n", (uintptr_t)this));
 		flush();
 #endif
@@ -49,11 +49,11 @@ class VM
 	}
 	~VM()
 	{
-#ifdef _DEBUG
-		log(std::format("Deconstructing VM at {:#x}\n", (uintptr_t)this));
+		cleanup();
+#ifdef TRACING
+		log(std::format("Deconstructed VM at {:#x}\n", (uintptr_t)this));
 		flush();
 #endif
-		cleanup();
 	}
 
 	/// @class Halt
@@ -257,38 +257,6 @@ class VM
 
 	/// @brief Native function registry
 	std::map<std::string, NativeFunction> nativeFunctions;
-
-	inline std::string escapeString(const std::string& input) {
-		std::string output;
-		output.reserve(input.size());
-
-		for (char c : input) {
-			switch (c) {
-				case '\n': output += "\\n";  break;
-				case '\t': output += "\\t";  break;
-				case '\r': output += "\\r";  break;
-				case '\0': output += "\\0";  break;
-				case '\\': output += "\\\\"; break;
-				case '\"': output += "\\\""; break;
-				case '\'': output += "\\'";  break;
-				case '\a': output += "\\a";  break;
-				case '\b': output += "\\b";  break;
-				case '\f': output += "\\f";  break;
-				case '\v': output += "\\v";  break;
-				default:
-					if (c < 0x20 || c == 0x7F) {
-						char buf[5];
-						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
-						output += buf;
-					} else {
-						output += c;
-					}
-					break;
-			}
-		}
-
-    return output;
-}
 };
 } // namespace Phasor
 

@@ -34,7 +34,7 @@ class StdLib
 	static int    argc; ///< Number of command line arguments
 	static char **envp; ///< Environment variables
 
-	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+	static void checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
 
   private:

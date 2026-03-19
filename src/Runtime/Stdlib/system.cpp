@@ -37,18 +37,18 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 }
 
-Value StdLib::sys_time(const std::vector<Value> &args, VM *)
+Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "time");
+	checkArgCount(args, vm, 0, "time");
 	auto   now = std::chrono::steady_clock::now();
 	auto   duration = now.time_since_epoch();
 	double millis = std::chrono::duration<double, std::milli>(duration).count();
 	return millis;
 }
 
-Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
+Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "timef");
+	checkArgCount(args, vm, 1, "timef");
 	std::string format = args[0].asString();
 
 	auto        now = std::chrono::system_clock::now();
@@ -70,17 +70,17 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 	return std::string(buffer);
 }
 
-Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
+Value StdLib::sys_sleep(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sleep");
+	checkArgCount(args, vm, 1, "sleep");
 	int64_t ms = args[0].asInt();
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 	return Value(" ");
 }
 
-Value StdLib::sys_os(const std::vector<Value> &args, VM *)
+Value StdLib::sys_os(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "sys_os");
+	checkArgCount(args, vm, 0, "sys_os");
 #if defined(_WIN32)
 	return Value("win32");
 #elif defined(__linux__)
@@ -97,16 +97,16 @@ Value StdLib::sys_os(const std::vector<Value> &args, VM *)
 	return false;
 }
 
-Value StdLib::sys_env(const std::vector<Value> &args, VM *)
+Value StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sys_env");
+	checkArgCount(args, vm, 1, "sys_env");
 	std::string key = args[0].asString();
 	std::string value;
 	dupenv(value, key.c_str(), envp);
 	return value;
 }
 
-Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
+Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 {
 	if (args.size() == 0)
 	{
@@ -120,7 +120,7 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 		return Value(l_argv);
 	}
 
-	checkArgCount(args, 1, "sys_argv");
+	checkArgCount(args, vm, 1, "sys_argv");
 	int64_t index = args[0].asInt();
 	if (argv != nullptr)
 		return argv[index];
@@ -128,34 +128,34 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 		return Value();
 }
 
-Value StdLib::sys_argc(const std::vector<Value> &args, VM *)
+Value StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "sys_argc");
+	checkArgCount(args, vm, 0, "sys_argc");
 	return argc;
 }
 
-Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *)
+Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "sys_get_memory");
+	checkArgCount(args, vm, 0, "sys_get_memory");
 	return static_cast<int64_t>(PHASORstd_sys_getAvailableMemory());
 }
 
 Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "wait_for_input");
+	checkArgCount(args, vm, 0, "wait_for_input");
 	io_gets({}, vm);
 	return Value("");
 }
 
 Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sys_shell");
+	checkArgCount(args, vm, 1, "sys_shell");
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
+Value StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sys_fork", true);
+	checkArgCount(args, vm, 1, "sys_fork", true);
 	const char         *executable = args[0].c_str();
 	int                 argc = (int)args.size() - 1;
 	std::vector<char *> v_argv(argc);
@@ -166,9 +166,9 @@ Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
 	return PHASORstd_sys_run(executable, argc, v_argv.data());
 }
 
-Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
+Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "sys_fork_detached", true);
+	checkArgCount(args, vm, 1, "sys_fork_detached", true);
 	const char         *executable = args[0].c_str();
 	int                 argc = (int)args.size() - 1;
 	std::vector<char *> v_argv(argc);
@@ -181,7 +181,7 @@ Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "error", true);
+	checkArgCount(args, vm, 1, "error", true);
 	vm->reset();
 	vm->setStatus(-1);
 	throw std::runtime_error(args[0].asString());
@@ -189,24 +189,23 @@ Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "reset");
+	checkArgCount(args, vm, 0, "reset");
 	vm->reset();
 	return Value();
 }
 
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "shutdown");
+	checkArgCount(args, vm, 1, "shutdown");
 	vm->reset();
 	int ret = static_cast<int>(args[0].asInt());
 	vm->setStatus(ret);
-	throw VM::Halt();
 	return Value();
 }
 
-Value StdLib::sys_pid(const std::vector<Value> &args, VM *)
+Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "sys_pid");
+	checkArgCount(args, vm, 0, "sys_pid");
 #if defined(_WIN32)
 	return static_cast<int64_t>(GetCurrentProcessId());
 #else

@@ -9,7 +9,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	uint8_t rA = static_cast<uint8_t>(operand1);
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
-#ifdef _DEBUG
+#ifdef TRACING
 	log(std::format("{}({}, {}, {}, {}) stack.size={}\n", __func__, opCodeToString(op), operand1, operand2, operand3, stack.size()));
 	flush();
 #endif
@@ -321,6 +321,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 	case OpCode::HALT:
 		pc = m_bytecode->instructions.size(); // stop execution
+		throw VM::Halt();
 		break;
 
 	case OpCode::CALL_NATIVE: {
