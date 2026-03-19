@@ -3,7 +3,7 @@
   "publisher": "phasor",
   "displayName": "Phasor Programming Language",
   "description": "Function VM Based Programming Language",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "icon": "logo.png",
   "repository": {
     "type": "git",
@@ -108,11 +108,6 @@
       }
     }
   },
-  "activationEvents": [
-    "onLanguage:phasor",
-    "onLanguage:pulsar",
-    "onLanguage:phasor-ir"
-  ],
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   },

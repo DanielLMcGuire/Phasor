@@ -24,6 +24,7 @@ elseif(WIN32)
         pulsar_main
         pulsar_compiler
 
+        phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
@@ -42,6 +43,11 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION man
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.1" EXCLUDE
+        PATTERN "*.3" EXCLUDE
+        PATTERN "*.5" EXCLUDE
+        PATTERN "*.7" EXCLUDE
+        PATTERN "*.md5" EXCLUDE
     )
 elseif(APPLE)
     install(TARGETS
@@ -55,6 +61,7 @@ elseif(APPLE)
         pulsar_main
         pulsar_compiler
 
+        phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
@@ -74,6 +81,8 @@ elseif(APPLE)
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION "Library/Application Support/org.Phasor.Phasor/man"
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.pdf" EXCLUDE
+        PATTERN "*.md5" EXCLUDE
     )
 else()
     install(TARGETS
@@ -87,6 +96,7 @@ else()
         pulsar_main
         pulsar_compiler
 
+        phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
@@ -105,5 +115,7 @@ else()
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/share/man/
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.pdf" EXCLUDE
+        PATTERN "*.md5" EXCLUDE
     )
 endif()

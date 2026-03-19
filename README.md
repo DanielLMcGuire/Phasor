@@ -6,6 +6,8 @@
 
 A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
 
+Phasor has NO garbage collector, the VM instead uses RAII and our unified type system.
+
 Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
 
 You can check out the [website](https://phasor.pages.dev/) as well.
@@ -147,6 +149,8 @@ This repo contains:
 - Extensions:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
+
+- Python module `scripts/phasor`
 
 ---
 

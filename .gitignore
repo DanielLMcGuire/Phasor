@@ -12,6 +12,26 @@
 /out/build
 .pmake
 *fix.ps1
+doxman/
+RC[a-z][0-9][0-9][0-9][0-9][0-9]
+*.md5
+*.pdf
+*.AppImage
+package-lock.json
+*.js
+*.js.map
+build/
+phasor.pem
+phasor.key
+!win32
+/archbuild
+/pkg
+*pkg.tar.zst
+src/utils/Shell.phir
+!build.phs
+dist_linux.pul
+/src/Extensions/py/phasor/phasor.egg-info
+*.tracelog
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,visualstudio,visualstudiocode,windows,macos,linux,c++,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,visualstudio,visualstudiocode,windows,macos,linux,c++,cmake
@@ -689,21 +709,5 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudio,visualstudiocode,windows,macos,linux,c++,cmake
 
-doxman/
-RC[a-z][0-9][0-9][0-9][0-9][0-9]
-*.md5
-*.pdf
-*.AppImage
-package-lock.json
-*.js
-*.js.map
-build/
-phasor.pem
-phasor.key
-!win32
-/archbuild
-/pkg
-*pkg.tar.zst
-src/utils/Shell.phir
-!build.phs
-dist_linux.pul
+
+

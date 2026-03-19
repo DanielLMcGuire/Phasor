@@ -1,0 +1,92 @@
+.TH phasorasm 1 "March 2026" "Phasor 3.1.0" "Phasor Manual"
+.SH NAME
+phasorasm \- Phasor intermediate representation assembler
+.SH SYNOPSIS
+.B phasorasm
+[\fIOPTIONS\fR]
+.I input.phir
+.SH DESCRIPTION
+.B phasorasm
+reads a Phasor intermediate representation file (.phir) and assembles it into a compiled Phasor bytecode file (.phsb) suitable for execution by
+.BR phasorvm (1)
+or
+.BR phasor (1).
+.PP
+This tool is the counterpart to
+.BR phasordisassembler (1),
+which performs the reverse operation. Together they allow inspection, hand-editing, and round-tripping of compiled Phasor binaries through a human-readable intermediate form.
+.SH OPTIONS
+.TP
+.BR \-o ", " \-\-output " " \fIFILE\fR
+Specify the output file path. If not provided, the output file is placed alongside the input file with the same base name and a
+.I .phsb
+extension.
+.TP
+.BR \-n ", " \-\-nologo
+Suppress the banner and copyright information.
+.TP
+.BR \-s ", " \-\-silent
+Suppress all output except errors. Implies
+.BR \-\-nologo .
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.SH ARGUMENTS
+.TP
+.I input.phir
+The Phasor intermediate representation file to assemble. Only one input file may be specified.
+.SH FILES
+.TP
+.I *.phir
+Phasor intermediate representation files \fBPHIR(5)\fR
+.TP
+.I *.phsb
+Phasor compiled bytecode output files \fBPHSB(5)\fR
+.SH EXAMPLES
+Assemble an IR file to bytecode (output written to program.phsb):
+.PP
+.nf
+.RS
+phasorasm program.phir
+.RE
+.fi
+.PP
+Assemble with an explicit output path:
+.PP
+.nf
+.RS
+phasorasm program.phir -o release/program.phsb
+.RE
+.fi
+.PP
+Assemble silently (no stdout, errors only):
+.PP
+.nf
+.RS
+phasorasm -s program.phir -o program.phsb
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Successful assembly
+.TP
+.B 1
+Assembly failed due to an invalid or unreadable input file, a write error, or invalid arguments
+.SH DIAGNOSTICS
+On success,
+.B phasorasm
+prints the output file path to standard output unless
+.BR \-\-silent
+is specified. Errors are always written to standard error.
+.SH SEE ALSO
+.BR PHIR (5),
+.BR PHSB (5),
+.BR phasordecomp (1),
+.BR phasorcompiler (1),
+.BR phasorvm (1),
+.BR phasor (1)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

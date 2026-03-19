@@ -5,6 +5,41 @@
 #include <unordered_map>
 #include <memory>
 #include <vector>
+#include <format>
+#include <string>
+
+inline std::string escapeString(const std::string& input) {
+		std::string output;
+		output.reserve(input.size());
+
+		for (char c : input) {
+			switch (c) {
+				case '\n': output += "\\n";  break;
+				case '\t': output += "\\t";  break;
+				case '\r': output += "\\r";  break;
+				case '\0': output += "\\0";  break;
+				case '\\': output += "\\\\"; break;
+				case '\"': output += "\\\""; break;
+				case '\'': output += "\\'";  break;
+				case '\a': output += "\\a";  break;
+				case '\b': output += "\\b";  break;
+				case '\f': output += "\\f";  break;
+				case '\v': output += "\\v";  break;
+				default:
+					if (c < 0x20 || c == 0x7F) {
+						char buf[5];
+						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+						output += buf;
+					} else {
+						output += c;
+					}
+					break;
+			}
+		}
+
+    return output;
+}
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -100,6 +135,29 @@ class Value
 		if (std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
 			return ValueType::Array;
 		return ValueType::Null; // Should not be reached if default constructed
+	}
+
+	inline static Value typeToString(const ValueType &type)
+	{
+		switch (type)
+		{
+		case ValueType::Null:
+			return Value("null");
+		case ValueType::Bool:
+			return Value("bool");
+		case ValueType::Int:
+			return Value("int");
+		case ValueType::Float:
+			return Value("float");
+		case ValueType::String:
+			return Value("string");
+		case ValueType::Struct:
+			return Value("struct");
+		case ValueType::Array:
+			return Value("array");
+		default:
+			return Value("unknown");
+		}
 	}
 
 	/// @brief Check if the value is null
@@ -282,13 +340,7 @@ class Value
 		if (isFloat())
 			return asFloat() != 0.0;
 		if (isString())
-		{
-			if (asString() == "true" || asString() == "1")
-				return true;
-			else if (asString() == "false" || asString() == "0")
-				return false;
-			return !asString().empty();
-		}
+    		return !asString().empty();
 		return false;
 	}
 
@@ -458,3 +510,138 @@ class Value
 	}
 };
 } // namespace Phasor
+
+template <>
+struct std::formatter<Phasor::Value>
+{
+    enum class Style { Value, TypeOnly, TypeValue, Debug, Quoted };
+    Style            style       = Style::Value;
+    std::string_view passthrough;
+
+    constexpr auto parse(std::format_parse_context &ctx)
+	{
+		auto it  = ctx.begin();
+		auto end = ctx.end();
+
+		auto close = it;
+		while (close != end && *close != '}') ++close;
+
+		std::string_view full(&*it, static_cast<size_t>(close - it));
+		std::string_view inner = full;
+
+		if (!full.empty())
+		{
+			switch (full.back())
+			{
+			case 't': style = Style::TypeOnly;  inner = full.substr(0, full.size() - 1); break;
+			case 'T': style = Style::TypeValue; inner = full.substr(0, full.size() - 1); break;
+			case '?': style = Style::Debug;     inner = full.substr(0, full.size() - 1); break;
+			case 'q': style = Style::Quoted;    inner = full.substr(0, full.size() - 1); break;
+			default:  break;
+			}
+		}
+
+		passthrough = inner;
+		return close;
+	}
+
+    template <typename FormatContext>
+    auto format(const Phasor::Value &v, FormatContext &ctx) const
+    {
+        std::string fmtstr;
+        fmtstr.reserve(passthrough.size() + 3);
+        fmtstr += "{:";
+        fmtstr += passthrough;
+        fmtstr += '}';
+
+        auto fwd = [&]<typename T>(const T &val) {
+            return std::vformat_to(ctx.out(), fmtstr, std::make_format_args(val));
+        };
+
+        using namespace Phasor;
+
+        switch (style)
+        {
+        case Style::TypeOnly:
+            return fwd(Value::typeToString(v.getType()).asString());
+
+        case Style::TypeValue:
+            return fwd(Value::typeToString(v.getType()).asString()
+                       + "(" + escapeString(v.toString()) + ")");
+
+        case Style::Debug:
+            return fwd(debug_repr(v));
+
+        case Style::Quoted:
+            if (v.isString())
+                return fwd("\"" + escape(v.asString()) + "\"");
+            [[fallthrough]];
+
+        case Style::Value:
+        default:
+            switch (v.getType())
+            {
+            case ValueType::Null:   return std::format_to(ctx.out(), "null");
+            case ValueType::Bool:   return fwd(v.asBool());
+            case ValueType::Int:    return fwd(v.asInt());
+            case ValueType::Float:  return fwd(v.asFloat());
+            case ValueType::String: return fwd(v.asString());
+            case ValueType::Array:  return fwd(v.toString());
+            case ValueType::Struct: return fwd(v.toString());
+            }
+        }
+        return ctx.out();
+    }
+
+  private:
+    static std::string debug_repr(const Phasor::Value &v)
+    {
+        using Phasor::ValueType;
+        switch (v.getType())
+        {
+        case ValueType::Null:   return "null";
+        case ValueType::String: return "\"" + escape(v.asString()) + "\"";
+        case ValueType::Array:
+        {
+            const auto &arr = *v.asArray();
+            std::string out = "[";
+            for (std::size_t i = 0; i < arr.size(); ++i)
+            {
+                out += debug_repr(arr[i]);
+                if (i + 1 < arr.size()) out += ", ";
+            }
+            return out + "]";
+        }
+        case ValueType::Struct:
+        {
+            const auto &s = *v.asStruct();
+            std::string out = s.structName + " { ";
+            bool first = true;
+            for (const auto &[k, val] : s.fields)
+            {
+                if (!first) out += ", ";
+                out += k + ": " + debug_repr(val);
+                first = false;
+            }
+            return out + " }";
+        }
+        default: return v.toString();
+        }
+    }
+
+    static std::string escape(const std::string &s)
+    {
+        std::string out;
+        out.reserve(s.size());
+        for (char c : s)
+            switch (c)
+            {
+            case '"':  out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\n': out += "\\n";  break;
+            case '\t': out += "\\t";  break;
+            default:   out += c;
+            }
+        return out;
+    }
+};

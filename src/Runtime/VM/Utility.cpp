@@ -1,6 +1,10 @@
+#ifndef CMAKE
 #include "VM.hpp"
+#endif
 #include <iostream>
 #include <stdexcept>
+#include <format>
+#include <cassert>
 #include "core/core.h"
 
 namespace Phasor
@@ -13,22 +17,35 @@ int VM::run(const Bytecode &bc)
 	stack.clear();
 	callStack.clear();
 
+#ifdef TRACING
+	log(std::format("{}():\nProgram: Constants {}, Variables {}, Functions {}, Instructions: {}\n", __func__, m_bytecode->constants.size(),
+	m_bytecode->variables.size(), m_bytecode->functionEntries.size(), m_bytecode->instructions.size()));
+	flush();
+#endif
+
 	registers.fill(Value());
 	variables.resize(m_bytecode->nextVarIndex);
 
 	while (pc < m_bytecode->instructions.size())
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
-#ifdef _DEBUG
-		log(std::string("\nEXEC idx=" + std::to_string(pc - 1) + " op=" + std::to_string(static_cast<int>(instr.op)) + " stack=" + std::to_string(stack.size()) + "\n"));
+#ifdef TRACING
+		log(std::format("\nDISPATCH: RUN (pc={})\n", pc - 1));
 		flush();
 #endif
 		try
 		{
-			operation(instr.op, instr.operand1, instr.operand2, instr.operand3, instr.operand4, instr.operand5);
+			operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
 		}
 		catch (const VM::Halt &)
 		{
+#ifdef TRACING
+			log(std::format("\nDISPATCH: HALT (status={})\n{}", status, getInformation()));
+			flush();
+	#ifdef _DEBUG
+			assert(status == 0);
+	#endif
+#endif
 			return status;
 		}
 		catch (const std::exception &)
@@ -42,11 +59,31 @@ int VM::run(const Bytecode &bc)
 
 void VM::setImportHandler(const ImportHandler &handler)
 {
+#ifdef TRACING
+	log(std::format("{}()\n", __func__));
+	flush();
+#endif
 	importHandler = handler;
+}
+
+void VM::cleanup() {
+#ifdef TRACING
+	log(std::format("{}()\n", __func__));
+	flush();
+#endif
+	for (auto &i : registers) { i = Value(); }
+	for (auto &i : variables) { i = Value(); }
+	flush();
+	flusherr();
+	reset(true, true, true);
 }
 
 void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &resetVariables)
 {
+#ifdef TRACING
+	log(std::format("{}()\n", __func__));
+	flush();
+#endif
 	if (resetStack)
 	{
 		stack.clear();
@@ -66,22 +103,23 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 
 std::string VM::getInformation()
 {
-	int    callStackTop = callStack.empty() ? -1 : callStack.back();
-	size_t programCounter = pc;
+    int callStackTop = callStack.empty() ? -1 : callStack.back();
+    std::string info;
 
-	std::string info = "Stack Top: ";
-	info += peek().toString();
-	info += " | R0: ";
-	info += registers[0].toString();
-	info += " | R1: ";
-	info += registers[1].toString();
-	info += " | R2: ";
-	info += registers[2].toString();
-	info += " | R3: ";
-	info += registers[3].toString();
-	info += " | Current Program Counter: " + std::to_string(programCounter);
-	info += " | PC Stack Top: " + std::to_string(callStackTop);
-	return info;
+    if (!stack.empty())
+        info = std::format("Stack Top: {:T}\n", peek());
+
+    info += std::format(
+        "R0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nCurrent Program Counter: {}\nPC Stack Top: {}\n\n",
+        registers[0],
+        registers[1],
+        registers[2],
+        registers[3],
+        pc,
+        callStackTop
+    );
+
+    return info;
 }
 
 void VM::log(const Value &msg)

@@ -7,11 +7,6 @@ char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
 
-void StdLib::registerFunctions(VM &vm)
-{
-	vm.registerNativeFunction("using", std_import);
-}
-
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 {
 	if (!name || !argp)
@@ -41,9 +36,18 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	return 0;
 }
 
-void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+void StdLib::checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
 {
+#ifdef TRACING
+	std::string argsText;
+	for (auto &arg : args) {
+		argsText += std::format("{:T}", arg);
+		if (arg != args.back()) argsText += ", ";
+	}
+	vm->log(std::format("\nSTDLIB: FFI({}({}))\n", name, argsText));
+	vm->flush();
+#endif
 	if (args.size() < minimumArguments)
 	{
 		throw std::runtime_error("Function '" + name + "' expects at least " + std::to_string(minimumArguments) +
@@ -58,7 +62,16 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "using", true);
+#ifdef TRACING
+	std::string argsText;
+	for (auto &arg : args) {
+		argsText += std::format("{:T}", arg);
+		if (arg != args.back()) argsText += ", ";
+	}
+	vm->log(std::format("{}({})\n", __func__, argsText));
+	vm->flush();
+#endif
+	checkArgCount(args, vm, 1, "using", true);
 	for (const auto &arg : args)
 	{
 		if (arg.getType() != ValueType::String)
@@ -67,12 +80,12 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 			return false;
 		}
 		auto moduleName = arg.asString();
-		if (moduleName == "stdio") registerIOFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdsys") registerSysFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdmath") registerMathFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdstr") registerStringFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdtype") registerTypeConvFunctions(std::vector<Value>{}, vm);
-		else if (moduleName == "stdfile") registerFileFunctions(std::vector<Value>{}, vm);
+		if (moduleName == "stdio") registerIOFunctions(vm);
+		else if (moduleName == "stdsys") registerSysFunctions(vm);
+		else if (moduleName == "stdmath") registerMathFunctions(vm);
+		else if (moduleName == "stdstr") registerStringFunctions(vm);
+		else if (moduleName == "stdtype") registerTypeConvFunctions(vm);
+		else if (moduleName == "stdfile") registerFileFunctions(vm);
 		else
 		{
 			throw std::runtime_error("Unknown standard library module: " + moduleName);

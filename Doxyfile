@@ -1,4 +1,4 @@
-# Doxyfile 1.15.0
+# Doxyfile 1.16.1
 
 # This file describes the settings to be used by the documentation system
 # Doxygen (www.doxygen.org) for a project.
@@ -48,7 +48,7 @@ PROJECT_NAME           = Phasor
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = 3.0.0
+PROJECT_NUMBER         = 3.1.0
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewers a
@@ -406,8 +406,8 @@ AUTOLINK_SUPPORT       = YES
 
 # This tag specifies a list of words that, when matching the start of a word in
 # the documentation, will suppress auto links generation, if it is enabled via
-# AUTOLINK_SUPPORT. This list does not affect links explicitly created using \#
-# or the \link or commands.
+# AUTOLINK_SUPPORT. This list does not affect links explicitly created using #
+# or the \link or \ref commands.
 # This tag requires that the tag AUTOLINK_SUPPORT is set to YES.
 
 AUTOLINK_IGNORE_WORDS  =
@@ -793,6 +793,27 @@ GENERATE_BUGLIST       = YES
 
 GENERATE_DEPRECATEDLIST= YES
 
+# The GENERATE_REQUIREMENTS tag can be used to enable (YES) or disable (NO) the
+# requirements page. When enabled, this page is automatically created when at
+# least one comment block with a \requirement command appears in the input.
+# The default value is: YES.
+
+GENERATE_REQUIREMENTS  = YES
+
+# The REQ_TRACEABILITY_INFO tag controls if traceability information is shown on
+# the requirements page (only relevant when using \requirement comment blocks).
+# The setting NO will disable the traceablility information altogether. The
+# setting UNSATISFIED_ONLY will show a list of requirements that are missing a
+# satisfies relation (through the command: \satisfies). Similarly the setting
+# UNVERIFIED_ONLY will show a list of requirements that are missing a verifies
+# relation (through the command: \verifies). Setting the tag to YES (the
+# default) will show both lists if applicable.
+# Possible values are: YES, NO, UNSATISFIED_ONLY and UNVERIFIED_ONLY.
+# The default value is: YES.
+# This tag requires that the tag GENERATE_REQUIREMENTS is set to YES.
+
+REQ_TRACEABILITY_INFO  = YES
+
 # The ENABLED_SECTIONS tag can be used to enable conditional documentation
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
 # ... \endcond blocks.
@@ -1127,7 +1148,7 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = json.hpp
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -1367,7 +1388,7 @@ CLANG_OPTIONS          =
 # Note: The availability of this option depends on whether or not Doxygen was
 # generated with the -Duse_libclang=ON option for CMake.
 
-CLANG_DATABASE_PATH    =
+CLANG_DATABASE_PATH    = .pmake/CMakeBuild
 
 #---------------------------------------------------------------------------
 # Configuration options related to the alphabetical class index
@@ -2521,7 +2542,7 @@ ENABLE_PREPROCESSING   = YES
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES then
 # the macro expansion is limited to the macros specified with the PREDEFINED and
@@ -2529,7 +2550,7 @@ MACRO_EXPANSION        = NO
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES, the include files in the
 # INCLUDE_PATH will be searched if a #include is found.
@@ -2544,7 +2565,8 @@ SEARCH_INCLUDES        = YES
 # RECURSIVE has no effect here.
 # This tag requires that the tag SEARCH_INCLUDES is set to YES.
 
-INCLUDE_PATH           =
+INCLUDE_PATH           = include \
+                         src/include
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the

@@ -1,7 +1,7 @@
 """
-phasor.deserializer
+phasor.Deserializer
 ===================
-Reads the binary  into an object.
+Deserialises the binary ``.phsb`` format into a :class:`~phasor.Bytecode.Bytecode` object.
 """
 
 from __future__ import annotations
@@ -10,24 +10,37 @@ import struct
 import zlib
 from pathlib import Path
 
-from .bytecode import Bytecode
-from .instructions import Instruction
-from .metadata import (
+from .Bytecode import Bytecode
+from .Instruction import Instruction
+from .Metadata import (
     HEADER_SIZE, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
     SEC_INSTRUCTIONS, SEC_VARIABLES, VERSION,
 )
-from .opcodes import OpCode
-from .value import Value, ValueType
+from .OpCode import OpCode
+from .Value import Value, ValueType
 
 
 class BytecodeDeserializer:
-    """Deserialises ``.phsb`` into :class:`~phasor.bytecode.Bytecode`."""
+    """Deserialises ``.phsb`` into :class:`~phasor.Bytecode.Bytecode`."""
 
     def __init__(self) -> None:
+        """Initialise the deserializer with an empty data buffer and zero read position."""
         self._data: bytes = b""
         self._pos:  int   = 0
 
     def deserialize(self, data: bytes) -> Bytecode:
+        """Parse a raw ``.phsb`` byte buffer into a :class:`~phasor.Bytecode.Bytecode` object.
+
+        Args:
+            data: Raw bytes of a ``.phsb`` file.
+
+        Returns:
+            A fully populated :class:`~phasor.Bytecode.Bytecode` instance.
+
+        Raises:
+            ValueError: If the magic number, version, or CRC-32 checksum is invalid,
+                or if any section tag is unexpected.
+        """
         self._data = data
         self._pos  = 0
         bytecode = Bytecode()
@@ -49,10 +62,28 @@ class BytecodeDeserializer:
         return bytecode
 
     def load_from_file(self, path: Path) -> Bytecode:
+        """Read a ``.phsb`` file from disk and deserialise it.
+
+        Args:
+            path: Path to the ``.phsb`` file to load.
+
+        Returns:
+            A fully populated :class:`~phasor.Bytecode.Bytecode` instance.
+        """
         data = Path(path).read_bytes()
         return self.deserialize(data)
 
     def _read_header(self) -> int:
+        """Read and validate the 16-byte file header.
+
+        Returns:
+            The CRC-32 checksum stored in the header, to be verified against
+            the actual data after reading.
+
+        Raises:
+            ValueError: If the magic number does not equal :data:`~phasor.Metadata.MAGIC`
+                or the version does not equal :data:`~phasor.Metadata.VERSION`.
+        """
         magic = self._read_uint32()
         if magic != MAGIC:
             raise ValueError(
@@ -70,6 +101,7 @@ class BytecodeDeserializer:
         return checksum
 
     def _read_constant_pool(self, bytecode: Bytecode) -> None:
+        """Read the :data:`~phasor.Metadata.SEC_CONSTANTS` section and append entries to :attr:`bytecode.constants <phasor.Bytecode.Bytecode.constants>`."""
         section_id = self._read_uint8()
         if section_id != SEC_CONSTANTS:
             raise ValueError(
@@ -81,6 +113,7 @@ class BytecodeDeserializer:
             bytecode.constants.append(self._read_value())
 
     def _read_variable_mapping(self, bytecode: Bytecode) -> None:
+        """Read the :data:`~phasor.Metadata.SEC_VARIABLES` section and populate :attr:`bytecode.variables <phasor.Bytecode.Bytecode.variables>` and :attr:`~phasor.Bytecode.Bytecode.next_var_index`."""
         section_id = self._read_uint8()
         if section_id != SEC_VARIABLES:
             raise ValueError(
@@ -95,6 +128,7 @@ class BytecodeDeserializer:
             bytecode.variables[name] = index
 
     def _read_function_entries(self, bytecode: Bytecode) -> None:
+        """Read the :data:`~phasor.Metadata.SEC_FUNCTIONS` section and populate :attr:`bytecode.function_entries <phasor.Bytecode.Bytecode.function_entries>`."""
         section_id = self._read_uint8()
         if section_id != SEC_FUNCTIONS:
             raise ValueError(
@@ -108,6 +142,7 @@ class BytecodeDeserializer:
             bytecode.function_entries[name] = address
 
     def _read_instructions(self, bytecode: Bytecode) -> None:
+        """Read the :data:`~phasor.Metadata.SEC_INSTRUCTIONS` section and populate :attr:`bytecode.instructions <phasor.Bytecode.Bytecode.instructions>`."""
         section_id = self._read_uint8()
         if section_id != SEC_INSTRUCTIONS:
             raise ValueError(
@@ -120,11 +155,10 @@ class BytecodeDeserializer:
             op1    = self._read_int32()
             op2    = self._read_int32()
             op3    = self._read_int32()
-            op4    = self._read_int32()
-            op5    = self._read_int32()
-            bytecode.instructions.append(Instruction(opcode, op1, op2, op3, op4, op5))
+            bytecode.instructions.append(Instruction(opcode, op1, op2, op3))
 
     def _read_value(self) -> Value:
+        """Read a type-tagged value and return the corresponding :class:`~phasor.Value.Value`."""
         tag = self._read_uint8()
         if tag == 0:
             return Value.null()
@@ -139,6 +173,7 @@ class BytecodeDeserializer:
         raise ValueError(f"Unknown value type tag: {tag}")
 
     def _require(self, n: int) -> None:
+        """Raise ``ValueError`` if fewer than *n* bytes remain in the buffer."""
         if self._pos + n > len(self._data):
             raise ValueError(
                 f"Unexpected end of data at offset {self._pos} "
@@ -146,42 +181,49 @@ class BytecodeDeserializer:
             )
 
     def _read_uint8(self) -> int:
+        """Read and return the next unsigned byte from the buffer."""
         self._require(1)
         v = self._data[self._pos]
         self._pos += 1
         return v
 
     def _read_uint16(self) -> int:
+        """Read and return the next little-endian unsigned 16-bit integer from the buffer."""
         self._require(2)
         (v,) = struct.unpack_from("<H", self._data, self._pos)
         self._pos += 2
         return v
 
     def _read_uint32(self) -> int:
+        """Read and return the next little-endian unsigned 32-bit integer from the buffer."""
         self._require(4)
         (v,) = struct.unpack_from("<I", self._data, self._pos)
         self._pos += 4
         return v
 
     def _read_int32(self) -> int:
+        """Read and return the next little-endian signed 32-bit integer from the buffer."""
         self._require(4)
         (v,) = struct.unpack_from("<i", self._data, self._pos)
         self._pos += 4
         return v
 
     def _read_int64(self) -> int:
+        """Read and return the next little-endian signed 64-bit integer from the buffer."""
         self._require(8)
         (v,) = struct.unpack_from("<q", self._data, self._pos)
         self._pos += 8
         return v
 
     def _read_double(self) -> float:
+        """Read and return the next little-endian IEEE 754 double from the buffer."""
         self._require(8)
         (v,) = struct.unpack_from("<d", self._data, self._pos)
         self._pos += 8
         return v
 
     def _read_string(self) -> str:
+        """Read a length-prefixed UTF-8 string (uint16 length + bytes) and return it."""
         length = self._read_uint16()
         self._require(length)
         s = self._data[self._pos : self._pos + length].decode("utf-8")

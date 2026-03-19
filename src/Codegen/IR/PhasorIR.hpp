@@ -29,12 +29,6 @@ class PhasorIR
 	/// @brief Load bytecode from .phir file
 	static Bytecode loadFromFile(const std::filesystem::path &filename);
 
-	/// @brief Helper to convert OpCode to string
-	static std::string opCodeToString(OpCode op);
-
-	/// @brief Helper to convert string to OpCode
-	static OpCode stringToOpCode(const std::string &str);
-
 	/// @brief Helper to escape strings for text format
 	static std::string escapeString(const std::string &str);
 

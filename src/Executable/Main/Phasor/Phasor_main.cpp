@@ -1,4 +1,3 @@
-#include "../../../Repl/Phasor/Repl.hpp"
 #include "../../../Runtime/Phasor/ScriptingRuntime.hpp"
 #include "../../../Runtime/Shared/BinaryRuntime.hpp"
 #include "../../../Frontend/Phasor/Frontend.hpp"
@@ -70,8 +69,7 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		if (argc < 2)
 		{
-			Phasor::Repl Repl(argc, argv, envp);
-			return Repl.run();
+			return Phasor::Frontend::runRepl();
 		}
 
 		const fs::path program = argv[0];

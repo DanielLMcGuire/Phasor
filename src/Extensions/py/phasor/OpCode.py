@@ -1,6 +1,6 @@
 """
-phasor.opcodes
-==============
+phasor.OpCode
+=============
 OpCode enumeration — mirrors ISA.hpp exactly.
 
 Values are assigned in declaration order starting at 0, matching the C++
@@ -11,6 +11,8 @@ from enum import IntEnum
 
 
 class OpCode(IntEnum):
+    """Phasor VM instruction opcodes"""
+
     PUSH_CONST = 0x00   # Push constant from constant pool
     POP        = 0x01   # Pop top of stack
 

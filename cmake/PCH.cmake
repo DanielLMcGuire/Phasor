@@ -1,0 +1,12 @@
+function(apply_global_pch pch_file)
+    add_library(global_pch_lib INTERFACE)
+    target_precompile_headers(global_pch_lib INTERFACE "${pch_file}")
+
+    get_property(all_targets GLOBAL PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(target IN LISTS all_targets)
+        get_target_property(type ${target} TYPE)
+        if(type MATCHES "^(EXECUTABLE|STATIC_LIBRARY|SHARED_LIBRARY|MODULE_LIBRARY|OBJECT_LIBRARY)$")
+            target_link_libraries(${target} PRIVATE global_pch_lib)
+        endif()
+    endforeach()
+endfunction()

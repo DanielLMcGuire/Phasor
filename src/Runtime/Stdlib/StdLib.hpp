@@ -25,13 +25,16 @@ using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *v
 class StdLib
 {
   public:
-	static void registerFunctions(VM &vm);
+	inline static void registerFunctions(VM &vm)
+	{
+		vm.registerNativeFunction("using", std_import);
+	}
 
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
 	static char **envp; ///< Environment variables
 
-	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+	static void checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
 
   private:
@@ -39,12 +42,12 @@ class StdLib
 
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
 
-	static Value registerMathFunctions(const std::vector<Value> &args, VM *vm);
-	static Value registerStringFunctions(const std::vector<Value> &args, VM *vm);
-	static Value registerTypeConvFunctions(const std::vector<Value> &args, VM *vm);
-	static Value registerFileFunctions(const std::vector<Value> &args, VM *vm);
-	static Value registerSysFunctions(const std::vector<Value> &args, VM *vm);
-	static Value registerIOFunctions(const std::vector<Value> &args, VM *vm);
+	static void registerMathFunctions(VM *vm);
+	static void registerStringFunctions(VM *vm);
+	static void registerTypeConvFunctions(VM *vm);
+	static void registerFileFunctions(VM *vm);
+	static void registerSysFunctions(VM *vm);
+	static void registerIOFunctions(VM *vm);
 
 	// Math functions
 	static Value math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root

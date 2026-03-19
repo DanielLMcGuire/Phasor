@@ -5,21 +5,15 @@
 #include "../../Runtime/VM/VM.hpp"
 #include "../../Runtime/FFI/ffi.hpp"
 
-#include <version.h>
-#include <sscanf.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <version.h>
+#include <sscanf.h>
 
 #include "Frontend.hpp"
-
-#ifdef _WIN32
-#include <Windows.h>
-#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
-#else
-#define error(msg) std::cerr << "Error: " << msg << std::endl
-#endif
+#include <nativeerror.h>
 
 bool startsWith(const std::string &input, const std::string &prefix)
 {
@@ -32,28 +26,27 @@ bool startsWith(const std::string &input, const std::string &prefix)
 
 int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 {
-	Lexer                 lexer(source);
-	Parser                parser(lexer.tokenize());
-	Phasor::CodeGenerator codegen;
-	auto                  program = parser.parse();
-	auto                  bytecode = codegen.generate(*program);
-
 	int status = 0;
 	bool ownVM = false;
+	CodeGenerator codegen;
+	Lexer lexer(source);
+	Parser parser(lexer.tokenize());
+	auto program = parser.parse();
+	auto bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
 	{
 		ownVM = true;
-		vm = new Phasor::VM();
-		Phasor::StdLib::registerFunctions(*vm);
+		vm = new VM();
+		StdLib::registerFunctions(*vm);
 	}
 
 #if defined(_WIN32)
-	Phasor::FFI ffi("plugins", vm);
+	FFI ffi("plugins", vm);
 #elif defined(__APPLE__)
-	Phasor::FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
 #elif defined(__linux__)
-	Phasor::FFI("/opt/Phasor/plugins", vm);
+	FFI("/opt/Phasor/plugins", vm);
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
@@ -72,34 +65,35 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 		return status;
 	}
 
-	return vm->run(bytecode);
+	status = vm->run(bytecode);
 
 	if (ownVM)
 	{
 		delete vm;
 	}
+
+	return status;
 }
 
 int pulsar::Frontend::runRepl(Phasor::VM *vm)
 {
-	std::cout << "Pulsar REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
-	std::cout << "Type 'exit()' to quit. Function declarations will not work.\n";
-
 	int status = 0;
 	bool ownVM = false;
+	CodeGenerator              codegen;
+
 	if (vm == nullptr)
 	{
 		ownVM = true;
-		vm = new Phasor::VM();
-		Phasor::StdLib::registerFunctions(*vm);
+		vm = new VM();
+		StdLib::registerFunctions(*vm);
 	}
 
 #if defined(_WIN32)
-	Phasor::FFI ffi("plugins", vm);
+	FFI ffi("plugins", vm);
 #elif defined(__APPLE__)
-	Phasor::FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
 #elif defined(__linux__)
-	Phasor::FFI ffi("/opt/Phasor/plugins", vm);
+	FFI ffi("/opt/Phasor/plugins", vm);
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
@@ -115,14 +109,19 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 
 	if (status != 0) {
 		if (ownVM) delete vm;
+		std::cout << "Failed to create FFI handler!";
 		return status;
 	}
 
 	std::map<std::string, int> globalVars;
-	int                        nextVarIdx = 0;
-	Phasor::CodeGenerator      codegen;
-
+	int                        nextVarIdx = 0;	
 	std::string line;
+	bool cleanExit = false;
+
+	std::cout << "Pulsar REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
+	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
+
+	
 	while (true)
 	{
 		try
@@ -130,62 +129,28 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			std::cout << "\n> ";
 			if (!std::getline(std::cin, line))
 				break;
-			if (startsWith(line, "vm_pop"))
-			{
-				line = "let popx = " + vm->pop().toString();
-				continue;
-			}
-			if (startsWith(line, "vm_push"))
-			{
-				vm->push(line.substr(4));
-				continue;
-			}
-			if (startsWith(line, "vm_peek"))
-			{
-				line = "let peekx = " + vm->peek().toString();
-			}
-			if (startsWith(line, "vm_op"))
-			{
-				char         instruction[64];
-				unsigned int operand;
-				sscanf(line.c_str(), "vm_op %63s %u", instruction, &operand);
-				vm->operation(Phasor::PhasorIR::stringToOpCode(std::string(instruction)), operand);
-				continue;
-			}
-			if (startsWith(line, "vm_getvar"))
-			{
-				int index;
-				sscanf(line.c_str(), "vm_getvar %d", &index);
-				line = "let getvarx = " + vm->getVariable(index).toString();
-			}
-			if (startsWith(line, "vm_setvar"))
-			{
-				char value[64];
-				sscanf(line.c_str(), "vm_setvar %63s", value);
-				line = "var setvarx = " + std::to_string(vm->addVariable(value));
-			}
-			if (startsWith(line, "vm_reset"))
-			{
-				vm->reset(true, true, true);
-				continue;
-			}
+				
 			if (startsWith(line, "exit"))
+			{
+				cleanExit = true;
 				break;
+			}
 			if (line.empty())
 			{
 				std::cerr << "Empty line\n";
 				continue;
 			}
 
-			Lexer  lexer(line);
+			Lexer lexer(line);
 			Parser parser(lexer.tokenize());
+			
 			auto   program = parser.parse();
-			auto   bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
+			auto bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
 
 			globalVars = bytecode.variables;
 			nextVarIdx = bytecode.nextVarIndex;
 
-			return vm->run(bytecode);
+			status = vm->run(bytecode);
 		}
 		catch (const std::exception &e)
 		{
@@ -193,9 +158,12 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			error(errorMsg);
 		}
 	}
+
 	if (ownVM)
-	{
 		delete vm;
-	}
-	return 0;
+
+	if (cleanExit)
+		return 0;
+
+	return status;
 }

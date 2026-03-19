@@ -38,7 +38,7 @@ int Compiler::compileToBytecode()
 {
 	if (std::filesystem::path(m_args.inputFile).extension() == ".phsb")
 	{
-		std::cerr << "Error: Cannot compile a bytecode file\n";
+		std::cerr << "Error: Cannot compile a bytecode file (use phasordecomp)\n";
 		return 1;
 	}
 
@@ -91,7 +91,7 @@ int Compiler::compileToIR()
 {
 	if (std::filesystem::path(m_args.inputFile).extension() == ".phir")
 	{
-		std::cerr << "Error: Cannot compile a Phasor IR file\n";
+		std::cerr << "Error: Cannot compile a Phasor IR file (use phasorasm)\n";
 		return 1;
 	}
 

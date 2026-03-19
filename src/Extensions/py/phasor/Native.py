@@ -1,6 +1,6 @@
 """
-phasor.native
-=============
+phasor.Native
+==============
 Extract bytecode from a ELF / PE / MachO binary.
 """
 
@@ -13,6 +13,16 @@ from typing import Optional, Tuple
 _MAGIC_BYTES = b"\x50\x48\x53\x42"
 
 def _arch_info(binary) -> Tuple[int, str]:
+    """Detect the pointer width and byte order of a parsed ``lief`` binary.
+
+    Args:
+        binary: A ``lief.Binary`` instance (ELF, PE, or MachO).
+
+    Returns:
+        A ``(pointer_width, endian)`` tuple where *pointer_width* is ``4`` or ``8``
+        bytes and *endian* is ``"<"`` (little-endian) or ``">"`` (big-endian).
+        Falls back to ``(8, "<")`` if detection fails.
+    """
     try:
         import lief
         fmt = binary.format
@@ -39,6 +49,17 @@ def _arch_info(binary) -> Tuple[int, str]:
 
 
 def _find_phasor_section(binary) -> Optional[object]:
+    """Locate the ``.phsb`` or ``phsb`` section in a parsed ``lief`` binary.
+
+    Checks top-level sections first; for MachO binaries it also searches
+    sections nested inside segments.
+
+    Args:
+        binary: A ``lief.Binary`` instance (ELF, PE, or MachO).
+
+    Returns:
+        The matching ``lief`` section object, or ``None`` if not found.
+    """
     candidates = {".phsb", "phsb"}
     try:
         for sec in binary.sections:
@@ -57,6 +78,15 @@ def _find_phasor_section(binary) -> Optional[object]:
 
 
 def _find_all(data: bytes, pattern: bytes) -> list[int]:
+    """Return every byte offset at which *pattern* appears in *data*.
+
+    Args:
+        data: The byte buffer to search.
+        pattern: The byte sequence to look for.
+
+    Returns:
+        A list of integer offsets in ascending order; empty if *pattern* is not found.
+    """
     offsets, start = [], 0
     while True:
         pos = data.find(pattern, start)
@@ -68,6 +98,21 @@ def _find_all(data: bytes, pattern: bytes) -> list[int]:
 
 
 def _find_payload_size(sec_data: bytes, sz_width: int, endian: str) -> Optional[int]:
+    """Heuristically determine the bytecode payload size encoded in the ``.phsb`` section.
+
+    Scans *sec_data* for an integer field that plausibly encodes the length of a
+    contiguous non-zero region — the strategy used by the Phasor linker to store
+    the bytecode size alongside the payload.
+
+    Args:
+        sec_data: Raw bytes of the ``.phsb`` binary section.
+        sz_width: Width of the size field in bytes (``4`` or ``8``, from :func:`_arch_info`).
+        endian: Struct endian character (``"<"`` or ``">"``, from :func:`_arch_info`).
+
+    Returns:
+        The detected payload length in bytes, or ``None`` if no consistent size
+        field could be located.
+    """
     fmt      = endian + ("Q" if sz_width == 8 else "I")
     L        = len(sec_data)
     non_zero = [i for i in range(L) if sec_data[i] != 0]
@@ -101,6 +146,26 @@ def _find_payload_size(sec_data: bytes, sz_width: int, endian: str) -> Optional[
     return None
 
 def extract_phsb_bytes(path: Path) -> bytes:
+    """Extract the raw ``.phsb`` bytecode payload from a native binary.
+
+    Parses the ELF, PE, or MachO binary at *path* using ``lief``, locates the
+    ``.phsb`` section, and returns the bytecode payload starting at the
+    :data:`_MAGIC_BYTES` marker.
+
+    Args:
+        path: Path to the compiled native binary.
+
+    Returns:
+        The raw ``.phsb`` bytes, suitable for passing to
+        :meth:`~phasor.Bytecode.Bytecode.from_bytes`.
+
+    Raises:
+        ImportError: If the ``lief`` package is not installed.
+        FileNotFoundError: If *path* does not exist.
+        RuntimeError: If the binary cannot be parsed, no ``.phsb`` section is
+            found, the PHSB magic bytes are absent, or the payload size cannot
+            be determined.
+    """
     try:
         import lief
     except ImportError as exc:

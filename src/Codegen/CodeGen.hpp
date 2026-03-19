@@ -12,7 +12,7 @@
 namespace Phasor
 {
 /// @brief Instruction with up to 5 operands
-/// Format: instruction operand1, operand2, operand3, operand4, operand5
+/// Format: instruction operand1, operand2, operand3
 /// Each instruction uses only the operands it needs
 struct Instruction
 {
@@ -20,17 +20,15 @@ struct Instruction
 	int32_t operand1; ///< First operand
 	int32_t operand2; ///< Second operand
 	int32_t operand3; ///< Third operand
-	int32_t operand4; ///< Fourth operand
-	int32_t operand5; ///< Fifth operand
 
 	// Default constructor
-	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0), operand4(0), operand5(0)
+	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0)
 	{
 	}
 
 	// Full constructor
-	Instruction(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0, int32_t op4 = 0, int32_t op5 = 0)
-	    : op(op), operand1(op1), operand2(op2), operand3(op3), operand4(op4), operand5(op5)
+	Instruction(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
+	    : op(op), operand1(op1), operand2(op2), operand3(op3)
 	{
 	}
 };
@@ -79,9 +77,9 @@ struct Bytecode
 	}
 
 	/// @brief Emit an instruction with operands
-	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0, int32_t op4 = 0, int32_t op5 = 0)
+	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
 	{
-		instructions.push_back(Instruction(op, op1, op2, op3, op4, op5));
+		instructions.push_back(Instruction(op, op1, op2, op3));
 	}
 };
 

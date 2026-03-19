@@ -2,8 +2,8 @@
 #include <winver.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,0,0,0
- PRODUCTVERSION 3,0,0,0
+ FILEVERSION 3,1,0,0
+ PRODUCTVERSION 3,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -20,12 +20,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Phasor"
             VALUE "FileDescription", "Phasor Language Server Protocol Host"
-            VALUE "FileVersion", "3.0.0.0"
+            VALUE "FileVersion", "3.1.0.0"
             VALUE "InternalName", "phasor-lsp.exe"
             VALUE "LegalCopyright", "© 2026 Daniel McGuire"
             VALUE "OriginalFilename", "phasor-lsp.exe"
             VALUE "ProductName", "Phasor Programming Language"
-            VALUE "ProductVersion", "3.0.0.0"
+            VALUE "ProductVersion", "3.1.0.0"
         END
     END
     BLOCK "VarFileInfo"

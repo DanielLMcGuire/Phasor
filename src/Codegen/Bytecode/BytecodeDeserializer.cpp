@@ -225,9 +225,7 @@ void BytecodeDeserializer::readInstructions(Bytecode &bytecode)
 		int32_t op1 = readInt32();
 		int32_t op2 = readInt32();
 		int32_t op3 = readInt32();
-		int32_t op4 = readInt32();
-		int32_t op5 = readInt32();
-		bytecode.instructions.push_back(Instruction(static_cast<OpCode>(opcode), op1, op2, op3, op4, op5));
+		bytecode.instructions.push_back(Instruction(static_cast<OpCode>(opcode), op1, op2, op3));
 	}
 }
 

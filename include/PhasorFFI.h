@@ -18,12 +18,13 @@
  * C-compatible interface.
  *
  * USAGE:
- * 1. Include this header in your C or C++ source file.
- * 2. Implement the entry point function:
+ * 1. Define PHASOR_FFI_BUILD_DLL.
+ * 2. Include this header in your C or C++ source file.
+ * 3. Implement the entry point function:
  *    void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm);
- * 3. Inside this function, use the provided `api` object to register
+ * 4. Inside this function, use the provided `api` object to register
  *    your own native functions.
- * 4. Compile your code as a shared library (.dll, .so, .dylib).
+ * 5. Compile your code as a shared library (.dll, .so, .dylib).
  */
 
 #if defined(_WIN32) && defined(PHASOR_FFI_BUILD_DLL)
@@ -39,10 +40,10 @@ extern "C"
 {
 #endif
 
-	// Opaque pointer to the Phasor Virtual Machine.
+	/// @brief Phasor Virtual Machine pointer.
 	typedef struct PhasorVM PhasorVM;
 
-	// An enumeration of possible types a PhasorValue can hold.
+	/// @brief PhasorValue types.
 	typedef enum
 	{
 		PHASOR_TYPE_NULL,
@@ -55,11 +56,10 @@ extern "C"
 		// for simplicity, but can be added in the future.
 	} PhasorValueType;
 
-	// Forward declare for self-reference in the union
+	/// @brief Forward declare for self-reference in the union
 	typedef struct PhasorValue PhasorValue;
 
-	// Represents a value in the Phasor VM.
-	// It's a tagged union holding one of several possible types.
+	/// @brief Represents a value in the Phasor VM.
 	struct PhasorValue
 	{
 		PhasorValueType type;
@@ -185,16 +185,16 @@ extern "C"
 	// FFI API Definitions
 	// -----------------------------------------------------------------------------
 
-	// Signature for a native C function that can be registered with the Phasor VM.
+	/// @brief Signature for a native C function that can be registered with the Phasor VM.
 	typedef PhasorValue (*PhasorNativeFunction)(PhasorVM *vm, int argc, const PhasorValue *argv);
 
-	// Function pointer type for the function that registers a native function with the VM.
+	/// @brief Function pointer type for the function that registers a native function with the VM.
 	typedef void (*PhasorRegisterFunction)(PhasorVM *vm, const char *name, PhasorNativeFunction func);
 
-	// The collection of API functions that the Phasor host provides to the plugin.
+	/// @brief The collection of API functions that the Phasor host provides to the plugin.
 	typedef struct
 	{
-		// Registers a native C function with the given name.
+		/// @brief Registers a native C function with the given name.
 		PhasorRegisterFunction register_function;
 	} PhasorAPI;
 

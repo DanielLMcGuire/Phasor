@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <filesystem>
+#include <format>
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
 #elif defined(__linux__)
@@ -26,6 +27,10 @@ namespace Phasor
  */
 bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 {
+#ifdef TRACING
+	vm->log(std::format("{}({})\n", __func__, library.string()));
+	vm->flush();
+#endif
 	using PluginEntryFunc = void (*)(const PhasorAPI *, PhasorVM *);
 
 #if defined(_WIN32)

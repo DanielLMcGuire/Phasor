@@ -30,14 +30,14 @@ Build bytecode programmatically::
     bc.save("hello.phsb")
 """
 
-from .bytecode      import Bytecode
-from .deserializer  import BytecodeDeserializer
-from .instructions  import Instruction
-from .metadata      import MAGIC, VERSION
-from .native        import extract_phsb_bytes
-from .opcodes       import OpCode
-from .serializer    import BytecodeSerializer
-from .value        import Value, ValueType
+from .Bytecode      import Bytecode
+from .Deserializer  import BytecodeDeserializer
+from .Instruction  import Instruction
+from .Metadata      import MAGIC, VERSION
+from .Native        import extract_phsb_bytes
+from .OpCode       import OpCode
+from .Serializer    import BytecodeSerializer
+from .Value         import Value, ValueType
 
 __all__ = [
     "Bytecode",
