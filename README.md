@@ -1,6 +1,6 @@
 # Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
-A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
+A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system for ease of maintenance, and also RAII purposes.
 
