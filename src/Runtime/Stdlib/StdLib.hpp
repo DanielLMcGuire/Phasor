@@ -32,6 +32,7 @@ class StdLib
 		vm.flush();
 #endif
 		vm.registerNativeFunction("using", std_import);
+		vm.registerNativeFunction("assert", std_assert);
 	}
 
 	static char **argv; ///< Command line arguments
@@ -43,6 +44,7 @@ class StdLib
 
   private:
 	static Value std_import(const std::vector<Value> &args, VM *vm);
+	static Value std_assert(const std::vector<Value> &args, VM *vm);
 
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
 

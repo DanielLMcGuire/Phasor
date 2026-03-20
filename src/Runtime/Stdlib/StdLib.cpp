@@ -1,4 +1,5 @@
 #include "StdLib.hpp"
+#include <cassert>
 
 namespace Phasor
 {
@@ -75,6 +76,30 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		}
 	}
 	return true;
+}
+
+Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)
+{
+	checkArgCount(args, 1, "assert");
+
+#ifdef TRACING
+#ifndef NDEBUG
+	vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
+#else
+	vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
+#endif
+	vm->flush();
+#endif
+
+#ifndef NDEBUG
+	if (!args[0].isTruthy())
+	{
+		vm->logerr(std::format("StdLib::{}({:T}): Assertion failed!\n", __func__, args[0]));
+		vm->flusherr();
+	}
+	assert(args[0].isTruthy());
+#endif
+	return Value();
 }
 
 } // namespace Phasor
