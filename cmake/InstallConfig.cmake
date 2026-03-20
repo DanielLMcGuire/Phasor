@@ -13,7 +13,7 @@ if(IS_XBOX)
         DESTINATION include
     )
 elseif(WIN32)
-    install(TARGETS
+    set(NON_STATIC_TARGETS
         phasor_main
         phasor_compiler
         phasor_repl
@@ -28,11 +28,21 @@ elseif(WIN32)
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
+    )
+    install(TARGETS 
+        ${NON_STATIC_TARGETS}
         phasor_native_runtime_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
     )
+    foreach(TARGET ${NON_STATIC_TARGETS})
+        install(
+            FILES "$<TARGET_PDB_FILE:${TARGET}>"
+            DESTINATION bin
+            OPTIONAL
+        )
+    endforeach()
     install(FILES
         ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
         ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
