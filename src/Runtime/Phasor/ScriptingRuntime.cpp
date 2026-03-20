@@ -61,7 +61,6 @@ int ScriptingRuntime::runSource()
 
 int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 {
-	int status = 0;
 	Lexer  lexer(source);
 	auto   tokens = lexer.tokenize();
 	Parser parser(tokens, m_args.inputFile);
