@@ -18,8 +18,7 @@ int VM::run(const Bytecode &bc)
 	callStack.clear();
 
 #ifdef TRACING
-	log(std::format("\nVM::{}(Bytecode: Constants {}, Variables {}, Functions {}, Instructions: {})\n", __func__, m_bytecode->constants.size(),
-	m_bytecode->variables.size(), m_bytecode->functionEntries.size(), m_bytecode->instructions.size()));
+	log(std::format("\nVM::{}():\n\n{}\n", __func__, getBytecodeInformation()));
 	flush();
 #endif
 
@@ -40,7 +39,7 @@ int VM::run(const Bytecode &bc)
 		catch (const VM::Halt &)
 		{
 #ifdef TRACING
-			log(std::format("\nVM::{}(): HALT (status={})\n{}", __func__, status, getInformation()));
+			log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n\n", __func__, status, getInformation()));
 			flush();
 #endif
 #ifdef _DEBUG
@@ -51,7 +50,7 @@ int VM::run(const Bytecode &bc)
 		catch (const std::exception &e)
 		{
 #ifdef TRACING
-			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n", __func__, getInformation()));
+			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n\n", __func__, getInformation()));
 			flusherr();
 #endif
 			status = 1;
@@ -118,7 +117,7 @@ std::string VM::getInformation()
         info = std::format("Stack Top: {:T}\n", peek());
 
     info += std::format(
-        "R0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nPC: {}\nCS: {}\n\n",
+        "VM INFORMATION:\nR0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nPC: {}\nCS: {}",
         registers[0],
         registers[1],
         registers[2],
@@ -128,6 +127,42 @@ std::string VM::getInformation()
     );
 
     return info;
+}
+
+std::string VM::getBytecodeInformation()
+{
+	std::string info;
+	std::string constants;
+	std::string variables;
+	std::string functions;
+	std::string instructions;
+
+	for (const auto &constant : m_bytecode->constants)
+	{
+		constants += std::format("{:T}\n", constant);
+	}
+	for (const auto &variable : m_bytecode->variables)
+	{
+		variables += std::format("{} = {:T}\n", variable.first, getVariable(variable.second));
+	}
+	for (const auto &function : m_bytecode->functionEntries)
+	{
+		functions += std::format("{}() PC = {}\n", function.first, function.second);
+	}
+#ifdef TRACING
+	for (const auto &instruction : m_bytecode->instructions)
+	{
+		instructions += std::format("{}({}, {}, {})\n", opCodeToString(instruction.op), instruction.operand1,
+									instruction.operand2, instruction.operand3);
+	}
+#endif
+
+	info = std::format("BYTECODE INFORMATION:\n\nConstants: {}\n{}\nVariables: {}\n{}\nFunctions: {}\n{}\nInstructions: {}\n{}",
+	m_bytecode->constants.size(), constants, 
+	m_bytecode->variables.size(), variables, 
+	m_bytecode->functionEntries.size(), functions,
+	m_bytecode->instructions.size(), instructions);
+	return info;
 }
 
 void VM::log(const Value &msg)

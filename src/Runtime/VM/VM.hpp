@@ -195,6 +195,9 @@ class VM
 	/// @brief Get VM information for debugging
 	std::string getInformation();
 
+	/// @brief Get bytecode information for debugging
+	std::string getBytecodeInformation();
+
 	/// @brief Log a Value to stdout
 	void log(const Value &msg);
 
