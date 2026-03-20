@@ -54,7 +54,7 @@ jobs:
 
     - name: Test 
       shell: bash
-      run: echo "using(\"stdio\"); putf(\"%d + %d = %d\n\", 12, 24, 12 + 24);" | ./build/src/Executable/phasor
+      run: ./build/src/Executable/phasor scripts/unittests.phs
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v6
