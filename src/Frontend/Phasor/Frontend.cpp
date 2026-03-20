@@ -173,8 +173,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 		}
 		catch (const std::exception &e)
 		{
-			std::string errorMsg = std::string(e.what()) + " | " + vm->getInformation() + "\n";
-			error(errorMsg);
+			error(std::format("{}\n", e.what()));
 		}
 	}
 

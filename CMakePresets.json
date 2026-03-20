@@ -39,7 +39,7 @@
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -71,7 +71,7 @@
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -107,7 +107,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -143,7 +143,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -179,7 +179,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -215,7 +215,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -253,7 +253,7 @@
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -291,7 +291,7 @@
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -329,7 +329,7 @@
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -367,7 +367,7 @@
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -399,7 +399,7 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "IS_XBOX": "1",
                 "IS_XDURANGO": "1",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -431,7 +431,7 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "IS_XBOX": "1",
                 "IS_XSCARLET": "1",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -467,7 +467,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -503,7 +503,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -539,7 +539,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -575,7 +575,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -611,7 +611,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         },
 
@@ -647,7 +647,7 @@
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "1"
+                "IS_TRACING": "ON"
             }
         }
     ]

@@ -48,9 +48,17 @@ int VM::run(const Bytecode &bc)
 #endif
 			return status;
 		}
-		catch (const std::exception &)
+		catch (const std::exception &e)
 		{
-			std::cerr << getInformation() << "\n";
+#ifdef TRACING
+			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n", __func__, getInformation()));
+			flusherr();
+#endif
+			status = -1;
+#ifdef _DEBUG
+			logerr(std::format("{}\n", e.what()));
+			assert(false);
+#endif
 			throw;
 		}
 	}
