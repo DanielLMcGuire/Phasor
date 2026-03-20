@@ -585,7 +585,7 @@ struct std::formatter<Phasor::Value>
             case ValueType::Bool:   return fwd(v.asBool());
             case ValueType::Int:    return fwd(v.asInt());
             case ValueType::Float:  return fwd(v.asFloat());
-            case ValueType::String: return fwd(escapeString(v.asString()));
+            case ValueType::String: return fwd(debug_repr(escapeString(v.asString())));
             case ValueType::Array:  return fwd(v.toString());
             case ValueType::Struct: return fwd(v.toString());
             }

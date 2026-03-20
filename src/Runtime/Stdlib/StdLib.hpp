@@ -27,6 +27,10 @@ class StdLib
   public:
 	inline static void registerFunctions(VM &vm)
 	{
+#ifdef TRACING
+		vm.log(std::format("StdLib::{}(): using VM {:#x}\n", __func__, reinterpret_cast<std::uintptr_t>(&vm)));
+		vm.flush();
+#endif
 		vm.registerNativeFunction("using", std_import);
 	}
 

@@ -10,7 +10,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
 #ifdef TRACING
-	log(std::format("{}({}, {}, {}, {}) stack.size={}\n", __func__, opCodeToString(op), operand1, operand2, operand3, stack.size()));
+	log(std::format("VM::{}({}, {}, {}, {}) stack.size={}\n", __func__, opCodeToString(op), operand1, operand2, operand3, stack.size()));
 	flush();
 #endif
 	switch (op)
@@ -336,7 +336,20 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		for (int i = argCount - 1; i >= 0; --i)
 			args[i] = pop();
 
+#ifdef TRACING
+		std::string argsText;
+		for (auto &arg : args)
+		{
+			argsText += std::format("{:T}", arg);
+			if (arg != args.back())
+				argsText += ", ";
+		}
+		log(std::format("VM::{}(): {}({})\n", __func__, funcName, argsText));
+		flush();
+#endif
+
 		push(it->second(args, this));
+
 		break;
 	}
 	case OpCode::TRUE_P:
@@ -719,7 +732,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			idx = static_cast<int64_t>(idxVal.asFloat());
 		else if (idxVal.isString())
 		{
-			// Try to parse numeric string
 			try
 			{
 				idx = std::stoll(idxVal.asString());
@@ -767,12 +779,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
-		// operand1: structIndex into bytecode->structs
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
 
 		const StructInfo &info = m_bytecode->structs[operand1];
-		// Create struct instance by name, then apply default values from constants
 		Value instance = Value::createStruct(info.name);
 		for (int i = 0; i < info.fieldCount; ++i)
 		{
@@ -788,7 +798,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::GET_FIELD_STATIC: {
-		// operand1: structIndex, operand2: fieldOffset
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
 		const StructInfo &info = m_bytecode->structs[operand1];
@@ -802,7 +811,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SET_FIELD_STATIC: {
-		// operand1: structIndex, operand2: fieldOffset
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
 		const StructInfo &info = m_bytecode->structs[operand1];

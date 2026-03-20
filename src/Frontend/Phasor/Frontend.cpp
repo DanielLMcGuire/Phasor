@@ -15,16 +15,7 @@
 #include "Frontend.hpp"
 #include <nativeerror.h>
 
-bool startsWith(const std::string &input, const std::string &prefix)
-{
-	if (input.size() >= prefix.size() && input.compare(0, prefix.size(), prefix) == 0)
-	{
-		return true;
-	}
-	return false;
-}
-
-int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::filesystem::path &path)
+int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::filesystem::path &path, bool verbose)
 {
 	int status = 0;
 	bool ownVM = false;
@@ -36,6 +27,16 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	} 
 	
 	auto   program = parser.parse();
+#ifndef TRACING
+	if (verbose)
+	{
+#endif
+		std::cout << "AST:\n";
+		program->print();
+		std::cout << "\n";
+#ifndef TRACING
+	}
+#endif
 	auto          bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
@@ -84,7 +85,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	return status;
 }
 
-int Phasor::Frontend::runRepl(VM *vm)
+int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 {
 	int status = 0;
 	bool ownVM = false;
@@ -129,7 +130,6 @@ int Phasor::Frontend::runRepl(VM *vm)
 
 	std::cout << "Phasor REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
 	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
-
 	
 	while (true)
 	{
@@ -139,7 +139,7 @@ int Phasor::Frontend::runRepl(VM *vm)
 			if (!std::getline(std::cin, line))
 				break;
 				
-			if (startsWith(line, "exit"))
+			if (line.starts_with("exit"))
 			{
 				cleanExit = true;
 				break;
@@ -154,6 +154,16 @@ int Phasor::Frontend::runRepl(VM *vm)
 			Parser parser(lexer.tokenize());
 			
 			auto   program = parser.parse();
+#ifndef TRACING
+			if (verbose)
+			{
+#endif
+				std::cout << "AST:\n";
+				program->print();
+				std::cout << "\n";
+#ifndef TRACING
+			}
+#endif
 			auto bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
 
 			globalVars = bytecode.variables;

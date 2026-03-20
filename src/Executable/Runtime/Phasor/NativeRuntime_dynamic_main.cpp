@@ -1,9 +1,3 @@
-// #include "yourheader.h"
-// PROVIDES:
-// inline const unsigned char embeddedBytecode[]
-// inline const size_t embeddedBytecodeSize
-// std::string moduleName
-
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -22,9 +16,6 @@
 #include <unistd.h>
 #endif
 
-// New functionality: Pass bytecode and size as raw args to exec to both windows and other
-
-// Main entry point
 int main(int argc, char *argv[])
 {
 	std::string tempFile;

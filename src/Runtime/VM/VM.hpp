@@ -29,14 +29,14 @@ class VM
 	explicit VM()
 	{
 #ifdef TRACING
-		log(std::format("VM instance created at {:#x}\n", (uintptr_t)this));
+		log(std::format("VM::{}(): normal instance created {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 	}
 	explicit VM(const Bytecode &bytecode)
 	{
 #ifdef TRACING
-		log(std::format("Live VM instance created at {:#x}\n", (uintptr_t)this));
+		log(std::format("VM::{}(): fast instance created {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 		run(bytecode);
@@ -44,6 +44,10 @@ class VM
 	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
 	            const int &operand4 = 0, const int &operand5 = 0)
 	{
+#ifdef TRACING
+		log(std::format("VM::{}(): operation instance created {:#x}\n", __func__, (uintptr_t)this));
+		flush();
+#endif
 		operation(op, operand1, operand2, operand3, operand4, operand5);
 
 	}
@@ -51,7 +55,7 @@ class VM
 	{
 		cleanup();
 #ifdef TRACING
-		log(std::format("Deconstructed VM at {:#x}\n", (uintptr_t)this));
+		log(std::format("VM::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 	}
