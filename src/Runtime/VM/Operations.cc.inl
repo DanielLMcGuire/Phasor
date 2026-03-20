@@ -292,7 +292,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value       v = pop();
 		std::string s = v.toString();
 #ifdef _TRACING
-		log(std::format("VM::{}(): PRINT({})\n", __func__, s));
+		log(std::format("PRINT: {:T}\n", v));
 #else
 		asm_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
@@ -302,14 +302,25 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::PRINTERROR: {
 		Value       v = pop();
 		std::string s = v.toString();
+#ifdef _TRACING
+		log(std::format("PRINTERROR: {:T}\n", v));
+#else
 		asm_print_stderr(s.c_str(), (int64_t)s.length());
+#endif
 		flusherr();
 		break;
 	}
 
 	case OpCode::READLINE: {
 		std::string s;
+#ifdef TRACING
+		log("READLINE:");
+		flush();
+#endif
 		std::getline(std::cin, s);
+#ifdef TRACING
+		log(std::format("\nREADLINE: {}\n", s));
+#endif
 		push(s);
 		break;
 	}
@@ -391,17 +402,38 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SYSTEM: {
-		asm_system(registers[rA].c_str());
+#ifdef TRACING
+		Value cmd = pop();
+		int ret = asm_system(cmd.c_str());
+		log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
+		push(ret);
+#else
+		push(asm_system(pop().c_str()));
+#endif
 		break;
 	}
 
 	case OpCode::SYSTEM_OUT: {
-		push(asm_system_out(registers[rA].c_str()));
+#ifdef TRACING
+		Value cmd = pop();
+		std::string ret = asm_system_out(cmd.c_str());
+		log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
+		push(ret);
+#else
+		push(asm_system_out(pop().c_str()));
+#endif
 		break;
 	}
 
 	case OpCode::SYSTEM_ERR: {
-		push(asm_system_err(registers[rA].c_str()));
+#ifdef TRACING
+		Value cmd = pop();
+		std::string ret = asm_system_err(cmd.c_str());
+		log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
+		push(ret);
+#else
+		push(asm_system_err(pop().c_str()));
+#endif
 		break;
 	}
 
@@ -681,8 +713,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	// Register I/O
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
-#ifdef _TRACING
-		log(std::format("VM::{}(): PRINT_R({})\n", __func__, s));
+#ifdef TRACING
+		log(std::format("PRINT_R: {:T}\n", registers[rA]));
 #else
 		asm_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
@@ -691,29 +723,62 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::PRINTERROR_R: {
 		std::string s = registers[rA].toString();
+#ifdef TRACING
+		log(std::format("PRINTERROR_R: {:T}\n", registers[rA]));
+#else
 		asm_print_stderr(s.c_str(), (int64_t)s.length());
+#endif
+		flusherr();
 		break;
 	}
 
 	case OpCode::READLINE_R: {
 		std::string s;
+#ifdef TRACING
+		log("READLINE_R:");
+		flush();
+#endif
 		std::getline(std::cin, s);
+#ifdef TRACING
+		log(std::format("\nREADLINE_R: {}\n", s));
+#endif
 		registers[rA] = s;
 		break;
 	}
 
 	case OpCode::SYSTEM_R: {
+#ifdef TRACING
+		Value cmd = registers[rA];
+		int ret = asm_system(cmd.c_str());
+		log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
+		registers[rA] = ret;
+#else
 		registers[rA] = asm_system(registers[rA].c_str());
+#endif
 		break;
 	}
 
 	case OpCode::SYSTEM_OUT_R: {
+#ifdef TRACING
+		Value cmd = registers[rA];
+		std::string ret = asm_system_out(cmd.c_str());
+		log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
+		registers[rA] = ret;
+#else
 		registers[rA] = asm_system_out(registers[rA].c_str());
+#endif
 		break;
 	}
 
 	case OpCode::SYSTEM_ERR_R: {
+#ifdef TRACING
+		Value cmd = registers[rA];
+		std::string ret = asm_system_err(cmd.c_str());
+		log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
+		registers[rA] = ret;
+#else
 		registers[rA] = asm_system_err(registers[rA].c_str());
+#endif
 		break;
 	}
 
