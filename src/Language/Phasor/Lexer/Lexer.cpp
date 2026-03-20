@@ -8,6 +8,7 @@ namespace Phasor
 
 Lexer::Lexer(const std::string &source) : source(source)
 {
+	this->source.erase(std::remove(this->source.begin(), this->source.end(), '\r'), this->source.end());
 }
 
 void Lexer::skipShebang()
