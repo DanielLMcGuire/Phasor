@@ -77,7 +77,7 @@ class VM
 	};
 
 	/// @brief Run the virtual machine
-	/// Exits -11654 on unknown error
+	/// Exits -1 on uncaught exception
 	int run(const Bytecode &bytecode);
 
 	/// @brief Native function signature

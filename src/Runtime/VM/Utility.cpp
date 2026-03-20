@@ -42,9 +42,9 @@ int VM::run(const Bytecode &bc)
 #ifdef TRACING
 			log(std::format("\nVM::{}(): HALT (status={})\n{}", __func__, status, getInformation()));
 			flush();
-	#ifdef _DEBUG
+#endif
+#ifdef _DEBUG
 			assert(status == 0);
-	#endif
 #endif
 			return status;
 		}
@@ -54,7 +54,7 @@ int VM::run(const Bytecode &bc)
 			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n", __func__, getInformation()));
 			flusherr();
 #endif
-			status = -1;
+			status = 1;
 #ifdef _DEBUG
 			logerr(std::format("{}\n", e.what()));
 			assert(false);
@@ -62,7 +62,7 @@ int VM::run(const Bytecode &bc)
 			throw;
 		}
 	}
-	return 1;
+	return -1;
 }
 
 void VM::setImportHandler(const ImportHandler &handler)
