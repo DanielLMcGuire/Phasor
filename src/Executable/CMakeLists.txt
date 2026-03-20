@@ -130,7 +130,3 @@ else()
         RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
 endif()
-
-if(NOT IS_XBOX)
-add_subdirectory(utils)
-endif()

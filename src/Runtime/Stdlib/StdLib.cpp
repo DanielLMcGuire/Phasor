@@ -36,18 +36,9 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	return 0;
 }
 
-void StdLib::checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimumArguments, const std::string &name,
+void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
 {
-#ifdef TRACING
-	std::string argsText;
-	for (auto &arg : args) {
-		argsText += std::format("{:T}", arg);
-		if (arg != args.back()) argsText += ", ";
-	}
-	vm->log(std::format("\nSTDLIB: FFI({}({}))\n", name, argsText));
-	vm->flush();
-#endif
 	if (args.size() < minimumArguments)
 	{
 		throw std::runtime_error("Function '" + name + "' expects at least " + std::to_string(minimumArguments) +
@@ -62,16 +53,7 @@ void StdLib::checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimu
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
-#ifdef TRACING
-	std::string argsText;
-	for (auto &arg : args) {
-		argsText += std::format("{:T}", arg);
-		if (arg != args.back()) argsText += ", ";
-	}
-	vm->log(std::format("{}({})\n", __func__, argsText));
-	vm->flush();
-#endif
-	checkArgCount(args, vm, 1, "using", true);
+	checkArgCount(args, 1, "using", true);
 	for (const auto &arg : args)
 	{
 		if (arg.getType() != ValueType::String)

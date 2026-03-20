@@ -14,13 +14,12 @@ namespace Frontend
  * @param path The optional path of the source file
  * @return The result of the script
  */
-int runScript(const std::string &source, VM *vm, const std::filesystem::path &path = "");
-
-/**
+int runScript(const std::string &source, VM *vm, const std::filesystem::path &path = "", bool verbose = false);
+    /**
  * @brief Run an REPL
  * @param vm The virtual machine to run the REPL on
  */
-int runRepl(VM *vm = nullptr);
+int runRepl(VM *vm = nullptr, bool verbose = false);
 } // namespace Frontend
 
 } // namespace Phasor

@@ -18,7 +18,7 @@ int VM::run(const Bytecode &bc)
 	callStack.clear();
 
 #ifdef TRACING
-	log(std::format("{}():\nProgram: Constants {}, Variables {}, Functions {}, Instructions: {}\n", __func__, m_bytecode->constants.size(),
+	log(std::format("\nVM::{}(Bytecode: Constants {}, Variables {}, Functions {}, Instructions: {})\n", __func__, m_bytecode->constants.size(),
 	m_bytecode->variables.size(), m_bytecode->functionEntries.size(), m_bytecode->instructions.size()));
 	flush();
 #endif
@@ -30,7 +30,7 @@ int VM::run(const Bytecode &bc)
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
 #ifdef TRACING
-		log(std::format("\nDISPATCH: RUN (pc={})\n", pc - 1));
+		log(std::format("\nVM::{}(): RUN (pc={})\n", __func__, pc - 1));
 		flush();
 #endif
 		try
@@ -40,7 +40,7 @@ int VM::run(const Bytecode &bc)
 		catch (const VM::Halt &)
 		{
 #ifdef TRACING
-			log(std::format("\nDISPATCH: HALT (status={})\n{}", status, getInformation()));
+			log(std::format("\nVM::{}(): HALT (status={})\n{}", __func__, status, getInformation()));
 			flush();
 	#ifdef _DEBUG
 			assert(status == 0);
@@ -48,9 +48,17 @@ int VM::run(const Bytecode &bc)
 #endif
 			return status;
 		}
-		catch (const std::exception &)
+		catch (const std::exception &e)
 		{
-			std::cerr << getInformation() << "\n";
+#ifdef TRACING
+			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n", __func__, getInformation()));
+			flusherr();
+#endif
+			status = -1;
+#ifdef _DEBUG
+			logerr(std::format("{}\n", e.what()));
+			assert(false);
+#endif
 			throw;
 		}
 	}
@@ -60,7 +68,7 @@ int VM::run(const Bytecode &bc)
 void VM::setImportHandler(const ImportHandler &handler)
 {
 #ifdef TRACING
-	log(std::format("{}()\n", __func__));
+	log(std::format("VM::{}()\n", __func__));
 	flush();
 #endif
 	importHandler = handler;
@@ -68,7 +76,7 @@ void VM::setImportHandler(const ImportHandler &handler)
 
 void VM::cleanup() {
 #ifdef TRACING
-	log(std::format("{}()\n", __func__));
+	log(std::format("VM::{}()\n", __func__));
 	flush();
 #endif
 	for (auto &i : registers) { i = Value(); }
@@ -81,7 +89,7 @@ void VM::cleanup() {
 void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &resetVariables)
 {
 #ifdef TRACING
-	log(std::format("{}()\n", __func__));
+	log(std::format("VM::{}()\n", __func__));
 	flush();
 #endif
 	if (resetStack)
@@ -110,7 +118,7 @@ std::string VM::getInformation()
         info = std::format("Stack Top: {:T}\n", peek());
 
     info += std::format(
-        "R0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nCurrent Program Counter: {}\nPC Stack Top: {}\n\n",
+        "R0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nPC: {}\nCS: {}\n\n",
         registers[0],
         registers[1],
         registers[2],

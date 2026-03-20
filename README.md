@@ -4,9 +4,9 @@
 >
 > This branch contains compilable, but non-functional code. Use at your own risk.
 
-A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine, *designed* for flexibility.
+A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine.
 
-Phasor has NO garbage collector, the entire toolchain our unified safe type system for RAII purposes.
+Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system for ease of maintenance, and also RAII purposes.
 
 Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
 

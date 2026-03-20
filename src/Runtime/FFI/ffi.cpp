@@ -28,8 +28,8 @@ namespace Phasor
 bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 {
 #ifdef TRACING
-	vm->log(std::format("{}({})\n", __func__, library.string()));
-	vm->flush();
+	vm_->log(std::format("FFI::{}(\"{}\")\n", __func__, library.string()));
+	vm_->flush();
 #endif
 	using PluginEntryFunc = void (*)(const PhasorAPI *, PhasorVM *);
 
@@ -78,6 +78,10 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 
 bool FFI::addPlugin(const std::filesystem::path &pluginPath)
 {
+#ifdef TRACING
+	vm_->log(std::format("FFI::{}(\"{}\")\n", __func__, pluginPath.string()));
+	vm_->flush();
+#endif
 	return loadPlugin(pluginPath, vm_);
 }
 
@@ -86,6 +90,10 @@ bool FFI::addPlugin(const std::filesystem::path &pluginPath)
  */
 std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 {
+#ifdef TRACING
+	vm_->log(std::format("FFI::{}(\"{}\")\n", __func__, folder.string()));
+	vm_->flush();
+#endif
 	if (folder.empty())
 		return {};
 
@@ -149,8 +157,16 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
  */
 void FFI::unloadAll()
 {
+#ifdef TRACING
+	vm_->log(std::format("FFI::{}()\n", __func__));
+	vm_->flush();
+#endif
 	for (auto &plugin : plugins_)
 	{
+#ifdef TRACING
+		vm_->log(std::format("FFI::{}(): \"{}\"\n", __func__, plugin.path));
+		vm_->flush();
+#endif
 #if defined(_WIN32)
 		FreeLibrary(plugin.handle);
 #else
@@ -162,7 +178,11 @@ void FFI::unloadAll()
 
 FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(pluginFolder), vm_(vm)
 {
-	vm->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
+#ifdef TRACING
+	vm_->log(std::format("FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
+	vm_->flush();
+#endif
+	vm_->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
 	auto plugins = scanPlugins(pluginFolder_);
 	for (const auto &pluginPath : plugins)
 	{
@@ -179,6 +199,10 @@ FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(plug
 
 FFI::~FFI()
 {
+#ifdef TRACING
+	vm_->log(std::format("FFI::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
+	vm_->flush();
+#endif
 	unloadAll();
 }
 

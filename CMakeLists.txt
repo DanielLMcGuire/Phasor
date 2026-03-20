@@ -21,6 +21,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 
 option(ASSEMBLY "Enable assembly for core code" ON)
+option(IS_TRACING "Enable VM tracing to stdout" OFF)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)

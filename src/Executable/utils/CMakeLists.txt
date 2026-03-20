@@ -1,2 +1,0 @@
-add_subdirectory(coreutils)
-add_subdirectory(Shell)

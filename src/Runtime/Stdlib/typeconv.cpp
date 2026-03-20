@@ -13,7 +13,7 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 
 Value StdLib::to_int(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "to_int");
+	checkArgCount(args, 1, "to_int");
 	if (args[0].isInt())
 		return args[0];
 	if (args[0].isFloat())
@@ -36,19 +36,19 @@ Value StdLib::to_int(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::to_float(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "to_float");
+	checkArgCount(args, 1, "to_float");
 	return args[0].asFloat();
 }
 
 Value StdLib::to_string(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "to_string");
+	checkArgCount(args, 1, "to_string");
 	return args[0].toString();
 }
 
 Value StdLib::to_bool(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "to_bool");
+	checkArgCount(args, 1, "to_bool");
 	if (args[0].isBool())
 		return args[0];
 	if (args[0].isInt())
