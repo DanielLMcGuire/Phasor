@@ -291,7 +291,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::PRINT: {
 		Value       v = pop();
 		std::string s = v.toString();
+#ifdef _TRACING
+		log(std::format("VM::{}(): PRINT({})\n", __func__, s));
+#else
 		asm_print_stdout(s.c_str(), (int64_t)s.length());
+#endif
 		break;
 	}
 
@@ -677,7 +681,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	// Register I/O
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
+#ifdef _TRACING
+		log(std::format("VM::{}(): PRINT_R({})\n", __func__, s));
+#else
 		asm_print_stdout(s.c_str(), (int64_t)s.length());
+#endif
 		break;
 	}
 
