@@ -11,7 +11,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <platform.h>
-#include "../FFI/FFI.hpp"
+#include "../FFI/ffi.hpp"
 
 #ifdef TRACING
 #include <format>
