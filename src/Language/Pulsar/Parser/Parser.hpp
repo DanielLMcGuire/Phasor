@@ -25,13 +25,13 @@ class Parser
 	Token previous();
 	Token advance();
 	bool  isAtEnd();
-	bool  check(TokenType type);
+	bool  check(Phasor::TokenType type);
 	Token peekNext();
-	bool  match(TokenType type);
-	bool  match(TokenType type, std::string lexeme);
-	Token consume(TokenType type, std::string message);
-	Token consume(TokenType type, std::string lexeme, std::string message);
-	Token expect(TokenType type, const std::string &message);
+	bool  match(Phasor::TokenType type);
+	bool  match(Phasor::TokenType type, std::string lexeme);
+	Token consume(Phasor::TokenType type, std::string message);
+	Token consume(Phasor::TokenType type, std::string lexeme, std::string message);
+	Token expect(Phasor::TokenType type, const std::string &message);
 
 	std::unique_ptr<Statement>  declaration();
 	std::unique_ptr<Statement>  varDeclaration();

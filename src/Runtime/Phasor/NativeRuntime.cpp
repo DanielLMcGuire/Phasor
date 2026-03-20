@@ -77,11 +77,11 @@ int NativeRuntime::run()
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		FFI ffi("plugins", m_vm.get());
+		m_vm->initFFI("plugins");
 #elif defined(__APPLE__)
-		FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", m_vm.get());
+		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-		FFI ffi("/opt/Phasor/plugins", m_vm.get());
+		m_vm->initFFI("/opt/Phasor/plugins");
 #endif
 		m_vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());

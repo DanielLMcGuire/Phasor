@@ -3,7 +3,6 @@
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -42,11 +41,11 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm);
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI("/opt/Phasor/plugins", vm);
+	vm->initFFI("/opt/Phasor/plugins");
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
@@ -89,11 +88,11 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm);
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm);
+	vm->initFFI("/opt/Phasor/plugins");
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {

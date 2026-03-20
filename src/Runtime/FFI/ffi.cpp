@@ -1,4 +1,5 @@
 #include "ffi.hpp"
+#include "../VM/VM.hpp"
 #include <vector>
 #include <iostream>
 #include <memory>

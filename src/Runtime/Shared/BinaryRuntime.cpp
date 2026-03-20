@@ -52,11 +52,11 @@ int BinaryRuntime::run()
 		StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
-		FFI ffi("plugins", vm.get());
+		vm->initFFI("plugins");
 #elif defined(__APPLE__)
-		FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+		vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-		FFI ffi("/opt/Phasor/plugins", vm.get());
+		vm->initFFI("/opt/Phasor/plugins");
 #endif
 
 		vm->setImportHandler([](const std::filesystem::path &path) {

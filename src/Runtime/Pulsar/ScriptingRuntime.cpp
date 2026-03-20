@@ -84,11 +84,11 @@ std::unique_ptr<Phasor::VM> Interpreter::createVm()
 	Phasor::StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
-	Phasor::FFI ffi("plugins", vm.get());
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	Phasor::FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	Phasor::FFI ffi("/opt/Phasor/plugins", vm.get());
+	vm->initFFI("/opt/Phasor/plugins");
 #endif
 
 	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {

@@ -3,7 +3,6 @@
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -47,11 +46,11 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm);
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm);
+	vm->initFFI("/opt/Phasor/plugins");
 #endif
 
 	vm->setImportHandler([vm](const std::filesystem::path &path) {
@@ -99,11 +98,11 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm);
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm);
+	vm->initFFI("/opt/Phasor/plugins", vm);
 #endif
 
 	vm->setImportHandler([vm](const std::filesystem::path &path) {

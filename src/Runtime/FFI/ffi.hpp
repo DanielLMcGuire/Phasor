@@ -2,18 +2,22 @@
 
 #include <functional>
 #include <Value.hpp>
-#include "../VM/VM.hpp"
 
 #include <vector>
 #include <string>
 
+
 #if defined(_WIN32)
 #include <windows.h>
-#else
+#else 
 #include <dlfcn.h>
 #endif
 
 #include <PhasorFFI.h>
+
+namespace Phasor {
+    class VM;
+}
 
 using FFIFunction = void (*)(const PhasorAPI *api, PhasorVM *vm);
 /// @brief The Phasor Programming Language and Runtime

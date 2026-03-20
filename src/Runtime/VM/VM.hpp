@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <platform.h>
+#include "../FFI/FFI.hpp"
 
 #ifdef TRACING
 #include <format>
@@ -58,6 +59,10 @@ class VM
 		log(std::format("VM::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
+	}
+
+	inline void initFFI(const std::filesystem::path &path) {
+		ffi = std::make_unique<FFI>(path, this);
 	}
 
 	/// @class Halt
@@ -235,6 +240,9 @@ class VM
 	}
 
   private:
+	/// @brief FFI
+	std::unique_ptr<FFI> ffi;
+
     /// @brief Exit code
 	int status = 0;
 
