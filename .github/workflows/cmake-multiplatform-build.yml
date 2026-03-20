@@ -52,6 +52,10 @@ jobs:
       shell: bash
       run: cmake --install build --prefix install
 
+    - name: Test 
+      shell: bash
+      run: echo "using(\"stdio\"); putf(\"%d + %d = %d\n\", 12, 24, 12 + 24);" | ./build/src/Executable/phasor
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v6
       with:
