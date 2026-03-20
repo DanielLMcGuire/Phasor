@@ -29,7 +29,7 @@ static std::vector<size_t>      sbFreeIndices;
 
 Value StdLib::str_find(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 2, "find", true);
+	checkArgCount(args, 2, "find", true);
 	std::string s = args[0].asString();
 	std::string sub = args[1].asString();
 	size_t pos;
@@ -56,7 +56,7 @@ Value StdLib::str_find(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sb_new(const std::vector<Value> &args, VM *vm)
 {
-	StdLib::checkArgCount(args, vm, 0, "sb_new");
+	StdLib::checkArgCount(args, 0, "sb_new");
 	size_t idx;
 	if (!sbFreeIndices.empty())
 	{
@@ -74,7 +74,7 @@ Value StdLib::sb_new(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sb_append(const std::vector<Value> &args, VM *vm)
 {
-	StdLib::checkArgCount(args, vm, 2, "sb_append");
+	StdLib::checkArgCount(args, 2, "sb_append");
 	int64_t idx = args[0].asInt();
 	if (idx < 0 || idx >= static_cast<int64_t>(sbPool.size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
@@ -85,7 +85,7 @@ Value StdLib::sb_append(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sb_to_string(const std::vector<Value> &args, VM *vm)
 {
-	StdLib::checkArgCount(args, vm, 1, "sb_to_string");
+	StdLib::checkArgCount(args, 1, "sb_to_string");
 	int64_t idx = args[0].asInt();
 	if (idx < 0 || idx >= static_cast<int64_t>(sbPool.size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
@@ -95,7 +95,7 @@ Value StdLib::sb_to_string(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sb_free(const std::vector<Value> &args, VM *vm)
 {
-	StdLib::checkArgCount(args, vm, 1, "sb_free");
+	StdLib::checkArgCount(args, 1, "sb_free");
 	size_t      idx = args[0].asInt();
 	std::string value = sbPool[idx];
 	sbFreeIndices.push_back(idx);
@@ -104,7 +104,7 @@ Value StdLib::sb_free(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::sb_clear(const std::vector<Value> &args, VM *vm)
 {
-	StdLib::checkArgCount(args, vm, 1, "sb_clear");
+	StdLib::checkArgCount(args, 1, "sb_clear");
 	size_t idx = args[0].asInt();
 	if (idx >= sbPool.size())
 		throw std::runtime_error("Invalid StringBuilder handle");
@@ -114,7 +114,7 @@ Value StdLib::sb_clear(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_char_at(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 2, "char_at");
+	checkArgCount(args, 2, "char_at");
 	if (args[0].isString())
 	{
 		const std::string &s = args[0].asString();
@@ -128,7 +128,7 @@ Value StdLib::str_char_at(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_substr(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 2, "substr", true);
+	checkArgCount(args, 2, "substr", true);
 	if (args.size() < 2 || args.size() > 3)
 	{
 		throw std::runtime_error("substr() expects 2 or 3 arguments");
@@ -147,7 +147,7 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_concat(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 2, "concat");
+	checkArgCount(args, 2, "concat");
 	std::string result = "";
 	for (const auto &arg : args)
 	{
@@ -158,14 +158,14 @@ Value StdLib::str_concat(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_len(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "len");
+	checkArgCount(args, 1, "len");
 	std::string s = args[0].toString();
 	return static_cast<int64_t>(s.length());
 }
 
 Value StdLib::str_upper(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "to_upper");
+	checkArgCount(args, 1, "to_upper");
 	std::string s = args[0].asString();
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
 	return Value(s);
@@ -173,7 +173,7 @@ Value StdLib::str_upper(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_lower(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "to_lower");
+	checkArgCount(args, 1, "to_lower");
 	std::string s = args[0].asString();
 	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 	return Value(s);
@@ -181,7 +181,7 @@ Value StdLib::str_lower(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_starts_with(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 2, "starts_with");
+	checkArgCount(args, 2, "starts_with");
 	std::string s = args[0].asString();
 	std::string prefix = args[1].asString();
 	if (s.length() >= prefix.length())
@@ -193,7 +193,7 @@ Value StdLib::str_starts_with(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::str_ends_with(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 2, "ends_with");
+	checkArgCount(args, 2, "ends_with");
 	std::string s = args[0].asString();
 	std::string suffix = args[1].asString();
 	if (s.length() >= suffix.length())

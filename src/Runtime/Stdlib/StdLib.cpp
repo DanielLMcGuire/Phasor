@@ -36,7 +36,7 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	return 0;
 }
 
-void StdLib::checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimumArguments, const std::string &name,
+void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
 {
 	if (args.size() < minimumArguments)
@@ -53,7 +53,7 @@ void StdLib::checkArgCount(const std::vector<Value> &args, VM *vm, size_t minimu
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, vm, 1, "using", true);
+	checkArgCount(args, 1, "using", true);
 	for (const auto &arg : args)
 	{
 		if (arg.getType() != ValueType::String)

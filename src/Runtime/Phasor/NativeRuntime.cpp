@@ -101,7 +101,7 @@ int NativeRuntime::run()
 Value NativeRuntime::runScript(const std::vector<Value> &args, VM *vm)
 {
 	VM newVM;
-	StdLib::checkArgCount(args, vm, 1, "phasor_eval");
+	StdLib::checkArgCount(args, 1, "phasor_eval");
 	Lexer lexer(args[1].asString());
 	Parser parser(lexer.tokenize());
 	CodeGenerator codegen;
