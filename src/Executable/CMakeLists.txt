@@ -118,7 +118,7 @@ if(WIN32)
         OUTPUT_NAME winapi_phs
     )
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
-    install(FILES "$<TARGET_PDB_FILE:phasor_winapi_bindings>" DESTINATION ${PLUGIN_INSTALL_DIR})
+    install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
 else()
     add_library(phasor_posix_bindings SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c

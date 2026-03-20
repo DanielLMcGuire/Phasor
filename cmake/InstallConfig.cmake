@@ -38,7 +38,7 @@ elseif(WIN32)
     )
     foreach(TARGET ${NON_STATIC_TARGETS})
         install(
-            FILES "$<TARGET_PDB_FILE:${TARGET}>"
+            FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:${TARGET}>>"
             DESTINATION bin
             OPTIONAL
         )
