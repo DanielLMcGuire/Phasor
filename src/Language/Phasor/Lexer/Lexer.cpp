@@ -1,6 +1,7 @@
 #include "Lexer.hpp"
 #include <cctype>
 #include <sstream>
+#include <algorithm>
 #include <stdexcept>
 
 namespace Phasor
