@@ -143,7 +143,7 @@ std::string VM::getBytecodeInformation()
 	}
 	for (const auto &variable : m_bytecode->variables)
 	{
-		variables += std::format("{} = {:T}\n", variable.first, variable.second);
+		variables += std::format("{}\n", variable.first);
 	}
 	for (const auto &function : m_bytecode->functionEntries)
 	{
