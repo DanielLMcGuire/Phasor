@@ -4,3 +4,10 @@
 *.ts linguist-detectable=false
 *.tsx linguist-detectable=false
 *.zig linguist-detectable=false
+*.1 eol=lf
+*.3 eol=lf
+*.5 eol=lf
+*.7 eol=lf
+*.sh eol=lf
+*.bat eol=crlf
+*.cmd eol=crlf
