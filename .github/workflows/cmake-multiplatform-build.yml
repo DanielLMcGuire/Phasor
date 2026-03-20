@@ -54,7 +54,7 @@ jobs:
 
     - name: Test 
       shell: bash
-      run: ./build/src/Executable/phasor scripts/unittests.phs
+      run: ./build/src/Executable/phasor ./scripts/unittest.phs
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v6
