@@ -14,7 +14,7 @@ options=(strip !debug)
 install=phasor.install
 depends=()
 source=("https://github.com/DanielLMcGuire/Phasor/archive/refs/tags/3.1.0.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('ec2417e74dcc7c84fc695899ac7974869f192b88aded4adffb717dc76e2a5dc4')
 
 build() {
     cd "$srcdir/Phasor-3.1.0"
@@ -27,5 +27,5 @@ package() {
     cmake --install . --prefix "$pkgdir"
 	
 	install -Dm644 "$srcdir/Phasor-3.1.0/src/Extensions/unix/phasor.magic" \
-        "$pkgdir/usr/share/file/magic/phasor"
+        "$pkgdir/usr/share/file/misc/magic/phasor"
 }
