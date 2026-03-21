@@ -38,7 +38,7 @@ else()
         "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
     )
     set(COMMON_FP
-        "-ffast-math"
+        "-fno-fast-math"
     )
     set(COMMON_WARN
         "-Wall -Wextra -pedantic -Wno-nan-infinity-disabled"
