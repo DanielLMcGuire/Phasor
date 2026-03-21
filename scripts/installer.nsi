@@ -91,6 +91,28 @@ SetOutPath "$INSTDIR"
 WriteUninstaller "$INSTDIR\uninstall.exe"
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
+
+SetRegView 64
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.exe"         "" "$INSTDIR\bin\phasor.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.exe"         "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"      "" "$INSTDIR\bin\phasorasm.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"      "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe" "" "$INSTDIR\bin\phasorcompiler.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe" "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"   "" "$INSTDIR\bin\phasordecomp.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"   "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorjit.exe"      "" "$INSTDIR\bin\phasorjit.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorjit.exe"      "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"       "" "$INSTDIR\bin\phasorvm.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"       "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-lsp.exe"     "" "$INSTDIR\bin\phasor-lsp.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-lsp.exe"     "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsar.exe"         "" "$INSTDIR\bin\pulsar.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsar.exe"         "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsarcompiler.exe" "" "$INSTDIR\bin\pulsarcompiler.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsarcompiler.exe" "Path" "$INSTDIR\bin"
+SetRegView 32
+
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "InstallLocation" "$INSTDIR"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "UninstallString" "$INSTDIR\uninstall.exe"
@@ -126,11 +148,52 @@ DownloadVC:
 
 EndVC:
 
+WriteRegStr HKCR "Applications\phasor.exe"         "FriendlyAppName" "Phasor"
+WriteRegStr HKCR "Applications\phasor.exe\DefaultIcon" "" "$INSTDIR\bin\phasor.exe"
+WriteRegStr HKCR "Applications\phasor.exe\SupportedTypes" ".phsb" ""
+WriteRegStr HKCR "Applications\phasor.exe\SupportedTypes" ".phs"  ""
+WriteRegStr HKCR "Applications\phasor.exe\shell\open\command" "" '"$INSTDIR\bin\phasor.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\phasorasm.exe"         "FriendlyAppName" "Phasor Assembler"
+WriteRegStr HKCR "Applications\phasorasm.exe\DefaultIcon" "" "$INSTDIR\bin\phasorasm.exe"
+WriteRegStr HKCR "Applications\phasorasm.exe\SupportedTypes" ".phir" ""
+WriteRegStr HKCR "Applications\phasorasm.exe\shell\open\command" "" '"$INSTDIR\bin\phasorasm.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\phasorcompiler.exe"         "FriendlyAppName" "Phasor Compiler"
+WriteRegStr HKCR "Applications\phasorcompiler.exe\DefaultIcon" "" "$INSTDIR\bin\phasorcompiler.exe"
+WriteRegStr HKCR "Applications\phasorcompiler.exe\SupportedTypes" ".phs" ""
+WriteRegStr HKCR "Applications\phasorcompiler.exe\shell\open\command" "" '"$INSTDIR\bin\phasorcompiler.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\phasordecomp.exe"         "FriendlyAppName" "Phasor Decompiler"
+WriteRegStr HKCR "Applications\phasordecomp.exe\DefaultIcon" "" "$INSTDIR\bin\phasordecomp.exe"
+WriteRegStr HKCR "Applications\phasordecomp.exe\SupportedTypes" ".phsb" ""
+WriteRegStr HKCR "Applications\phasordecomp.exe\shell\open\command" "" '"$INSTDIR\bin\phasordecomp.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\phasorjit.exe"         "FriendlyAppName" "Phasor JIT"
+WriteRegStr HKCR "Applications\phasorjit.exe\DefaultIcon" "" "$INSTDIR\bin\phasorjit.exe"
+WriteRegStr HKCR "Applications\phasorjit.exe\SupportedTypes" ".phs" ""
+WriteRegStr HKCR "Applications\phasorjit.exe\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\phasorvm.exe"         "FriendlyAppName" "Phasor VM"
+WriteRegStr HKCR "Applications\phasorvm.exe\DefaultIcon" "" "$INSTDIR\bin\phasorvm.exe"
+WriteRegStr HKCR "Applications\phasorvm.exe\SupportedTypes" ".phsb" ""
+WriteRegStr HKCR "Applications\phasorvm.exe\shell\open\command" "" '"$INSTDIR\bin\phasorvm.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\pulsar.exe"         "FriendlyAppName" "Pulsar"
+WriteRegStr HKCR "Applications\pulsar.exe\DefaultIcon" "" "$INSTDIR\bin\pulsar.exe"
+WriteRegStr HKCR "Applications\pulsar.exe\SupportedTypes" ".pul" ""
+WriteRegStr HKCR "Applications\pulsar.exe\shell\open\command" "" '"$INSTDIR\bin\pulsar.exe" "%1" %*'
+
+WriteRegStr HKCR "Applications\pulsarcompiler.exe"         "FriendlyAppName" "Pulsar Compiler"
+WriteRegStr HKCR "Applications\pulsarcompiler.exe\DefaultIcon" "" "$INSTDIR\bin\pulsarcompiler.exe"
+WriteRegStr HKCR "Applications\pulsarcompiler.exe\SupportedTypes" ".pul" ""
+WriteRegStr HKCR "Applications\pulsarcompiler.exe\shell\open\command" "" '"$INSTDIR\bin\pulsarcompiler.exe" "%1" %*'
+
+
 WriteRegStr HKCU "Software\Classes\.phir" "" "PhasorASM.PHIR"
 WriteRegStr HKCU "Software\Classes\.phs"  "" "Phasor.PHS"
 WriteRegStr HKCU "Software\Classes\.phsb" "" "Phasor.PHSB"
 WriteRegStr HKCU "Software\Classes\.pul"  "" "Pulsar.PUL"
-
 
 WriteRegStr HKCU "Software\Classes\Phasor.PHSB" "" "Phasor Binary File"
 WriteRegStr HKCU "Software\Classes\Phasor.PHSB\DefaultIcon" "" "$INSTDIR\${MAIN_APP_EXE}"
@@ -253,6 +316,27 @@ RmDir /r "$INSTDIR"
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
+
+SetRegView 64
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorjit.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-lsp.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsar.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsarcompiler.exe"
+SetRegView 32
+
+DeleteRegKey HKCR "Applications\phasor.exe"
+DeleteRegKey HKCR "Applications\phasorasm.exe"
+DeleteRegKey HKCR "Applications\phasorcompiler.exe"
+DeleteRegKey HKCR "Applications\phasordecomp.exe"
+DeleteRegKey HKCR "Applications\phasorjit.exe"
+DeleteRegKey HKCR "Applications\phasorvm.exe"
+DeleteRegKey HKCR "Applications\pulsar.exe"
+DeleteRegKey HKCR "Applications\pulsarcompiler.exe"
 
 DeleteRegKey HKCU "Software\Classes\.phir"
 DeleteRegKey HKCU "Software\Classes\.phs"
