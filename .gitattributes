@@ -11,3 +11,5 @@
 *.sh eol=lf
 *.bat eol=crlf
 *.cmd eol=crlf
+thirdparty/include/*.h linguist-detectable=false
+thirdparty/include/*.hpp linguist-detectable=false
