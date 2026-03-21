@@ -101,7 +101,8 @@ void generateWrapper(const Function &f, std::ostream &out)
 		return;
 
 	out << "// " << f.rawLine << " @ln:" << f.lineNumber << "\n";
-	out << "static PhasorValue win32_" << f.name << "(PhasorVM* vm, int argc, const PhasorValue* argv) {\n";
+	out << "static PhasorValue win32_" << f.name
+		<< "([[maybe_unused]] PhasorVM* vm, [[maybe_unused]] int argc, [[maybe_unused]] const PhasorValue* argv) {\n";
 
 	for (size_t i = 0; i < f.params.size(); ++i)
 	{

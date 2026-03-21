@@ -98,15 +98,12 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayIcon" "$INSTDIR\phasor.ico"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayVersion" "${VERSION}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 
-; Ensure 64-bit registry view
 SetRegView 64
 ClearErrors
 
-; Read Installed DWORD
 ReadRegDWORD $R0 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
-SetRegView 32 ; restore default
+SetRegView 32
 
-; Check if read failed or value is not 1
 IfErrors DownloadVC
 IntCmp $R0 1 SkipDownload DownloadVC
 
@@ -129,30 +126,73 @@ DownloadVC:
 
 EndVC:
 
-; .phir -> PhasorIR
-WriteRegStr HKCU "Software\Classes\.phir" "" "PhasorIR"
-; .phs -> PhasorSource
-WriteRegStr HKCU "Software\Classes\.phs" "" "PhasorSource"
-; .phsb -> PhasorBinary
-WriteRegStr HKCU "Software\Classes\.phsb" "" "PhasorBinary"
-; .pul -> PulsarScript
-WriteRegStr HKCU "Software\Classes\.pul" "" "PulsarScript"
+WriteRegStr HKCU "Software\Classes\.phir" "" "PhasorASM.PHIR"
+WriteRegStr HKCU "Software\Classes\.phs"  "" "Phasor.PHS"
+WriteRegStr HKCU "Software\Classes\.phsb" "" "Phasor.PHSB"
+WriteRegStr HKCU "Software\Classes\.pul"  "" "Pulsar.PUL"
 
-; PhasorBinary
-WriteRegStr HKCU "Software\Classes\PhasorBinary" "" "Phasor Binary File"
-WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open" "Icon" "$INSTDIR\${MAIN_APP_EXE}"
-WriteRegStr HKCU "Software\Classes\PhasorBinary\shell\open\command" "" '"$INSTDIR\${MAIN_APP_EXE}" "%1" %*'
-; PhasorIR
-WriteRegStr HKCU "Software\Classes\PhasorIR" "" "Phasor IR File"
-WriteRegStr HKCU "Software\Classes\PhasorIR\shell\open" "Icon" "$INSTDIR\bin\phasorasm.exe"
-; PhasorSource
-WriteRegStr HKCU "Software\Classes\PhasorSource" "" "Phasor Source File"
-WriteRegStr HKCU "Software\Classes\PhasorSource\shell\open" "Icon" "$INSTDIR\bin\phasorjit.exe"
-WriteRegStr HKCU "Software\Classes\PhasorSource\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
-; PulsarScript
-WriteRegStr HKCU "Software\Classes\PulsarScript" "" "Pulsar Script File"
-WriteRegStr HKCU "Software\Classes\PulsarScript\shell\open" "Icon" "$INSTDIR\bin\pulsar.exe"
-WriteRegStr HKCU "Software\Classes\PulsarScript\shell\open\command" "" '"$INSTDIR\bin\pulsar.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\Phasor.PHSB" "" "Phasor Binary File"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSB\DefaultIcon" "" "$INSTDIR\${MAIN_APP_EXE}"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSB\shell\open" "FriendlyAppName" "Phasor"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSB\shell\open\command" "" '"$INSTDIR\${MAIN_APP_EXE}" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\PhasorDecomp.PHSB" "" "Phasor Binary File"
+WriteRegStr HKCU "Software\Classes\PhasorDecomp.PHSB\DefaultIcon" "" "$INSTDIR\bin\phasordecomp.exe"
+WriteRegStr HKCU "Software\Classes\PhasorDecomp.PHSB\shell\open" "FriendlyAppName" "Phasor Decompiler"
+WriteRegStr HKCU "Software\Classes\PhasorDecomp.PHSB\shell\open\command" "" '"$INSTDIR\bin\phasordecomp.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB" "" "Phasor Binary File"
+WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\DefaultIcon" "" "$INSTDIR\bin\phasorvm.exe"
+WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\shell\open" "FriendlyAppName" "Phasor VM"
+WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\shell\open\command" "" '"$INSTDIR\bin\phasorvm.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "Phasor.PHSB"        ""
+WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "PhasorDecomp.PHSB" ""
+WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "PhasorVM.PHSB"     ""
+
+
+WriteRegStr HKCU "Software\Classes\Phasor.PHS" "" "Phasor Source File"
+WriteRegStr HKCU "Software\Classes\Phasor.PHS\DefaultIcon" "" "$INSTDIR\${MAIN_APP_EXE}"
+WriteRegStr HKCU "Software\Classes\Phasor.PHS\shell\open" "FriendlyAppName" "Phasor"
+WriteRegStr HKCU "Software\Classes\Phasor.PHS\shell\open\command" "" '"$INSTDIR\${MAIN_APP_EXE}" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS" "" "Phasor Source File"
+WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\DefaultIcon" "" "$INSTDIR\bin\phasorcompiler.exe"
+WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open" "FriendlyAppName" "Phasor Compiler"
+WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open\command" "" '"$INSTDIR\bin\phasorcompiler.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS" "" "Phasor Source File"
+WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS\DefaultIcon" "" "$INSTDIR\bin\phasorjit.exe"
+WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS\shell\open" "FriendlyAppName" "Phasor JIT"
+WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "Phasor.PHS"          ""
+WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "PhasorCompiler.PHS" ""
+WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "PhasorJIT.PHS"      ""
+
+
+WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR" "" "Phasor IR File"
+WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\DefaultIcon" "" "$INSTDIR\bin\phasorasm.exe"
+WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\shell\open" "FriendlyAppName" "Phasor Assembler"
+WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\shell\open\command" "" '"$INSTDIR\bin\phasorasm.exe" "%1" %*'
+
+
+WriteRegStr HKCU "Software\Classes\.phir\OpenWithProgids" "PhasorASM.PHIR" ""
+
+
+WriteRegStr HKCU "Software\Classes\Pulsar.PUL" "" "Pulsar Script File"
+WriteRegStr HKCU "Software\Classes\Pulsar.PUL\DefaultIcon" "" "$INSTDIR\bin\pulsar.exe"
+WriteRegStr HKCU "Software\Classes\Pulsar.PUL\shell\open" "FriendlyAppName" "Pulsar"
+WriteRegStr HKCU "Software\Classes\Pulsar.PUL\shell\open\command" "" '"$INSTDIR\bin\pulsar.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\PulsarCompiler.PUL" "" "Pulsar Script File"
+WriteRegStr HKCU "Software\Classes\PulsarCompiler.PUL\DefaultIcon" "" "$INSTDIR\bin\pulsarcompiler.exe"
+WriteRegStr HKCU "Software\Classes\PulsarCompiler.PUL\shell\open" "FriendlyAppName" "Pulsar Compiler"
+WriteRegStr HKCU "Software\Classes\PulsarCompiler.PUL\shell\open\command" "" '"$INSTDIR\bin\pulsarcompiler.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\.pul\OpenWithProgids" "Pulsar.PUL"           ""
+WriteRegStr HKCU "Software\Classes\.pul\OpenWithProgids" "PulsarCompiler.PUL" ""
 
 EnVar::SetHKLM
 EnVar::AddValue "PATH" "$INSTDIR\bin"
@@ -170,27 +210,20 @@ RmDir /r "$INSTDIR"
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
 
-; Remove type associations
 DeleteRegKey HKCU "Software\Classes\.phir"
 DeleteRegKey HKCU "Software\Classes\.phs"
 DeleteRegKey HKCU "Software\Classes\.phsb"
+DeleteRegKey HKCU "Software\Classes\.pul"
 
-; Remove PhasorBinary
-DeleteRegKey HKCU "Software\Classes\PhasorBinary\shell\open\command"
-DeleteRegKey HKCU "Software\Classes\PhasorBinary\shell\open"
-DeleteRegKey HKCU "Software\Classes\PhasorBinary\shell"
-DeleteRegKey HKCU "Software\Classes\PhasorBinary"
-
-; Remove PhasorIR
-DeleteRegKey HKCU "Software\Classes\PhasorIR\shell\open"
-DeleteRegKey HKCU "Software\Classes\PhasorIR\shell"
-DeleteRegKey HKCU "Software\Classes\PhasorIR"
-
-; Remove PhasorScript
-DeleteRegKey HKCU "Software\Classes\PhasorScript\shell\open\command"
-DeleteRegKey HKCU "Software\Classes\PhasorScript\shell\open"
-DeleteRegKey HKCU "Software\Classes\PhasorScript\shell"
-DeleteRegKey HKCU "Software\Classes\PhasorScript"
+DeleteRegKey HKCU "Software\Classes\Phasor.PHSB"
+DeleteRegKey HKCU "Software\Classes\PhasorDecomp.PHSB"
+DeleteRegKey HKCU "Software\Classes\PhasorVM.PHSB"
+DeleteRegKey HKCU "Software\Classes\Phasor.PHS"
+DeleteRegKey HKCU "Software\Classes\PhasorCompiler.PHS"
+DeleteRegKey HKCU "Software\Classes\PhasorJIT.PHS"
+DeleteRegKey HKCU "Software\Classes\PhasorASM.PHIR"
+DeleteRegKey HKCU "Software\Classes\Pulsar.PUL"
+DeleteRegKey HKCU "Software\Classes\PulsarCompiler.PUL"
 
 EnVar::SetHKLM
 EnVar::DeleteValue "PATH" "$INSTDIR\bin"
@@ -199,4 +232,3 @@ System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
 
 ######################################################################
-

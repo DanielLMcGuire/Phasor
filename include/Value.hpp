@@ -474,7 +474,7 @@ class Value
 
 	static Value createStruct(const std::string &name)
 	{
-		return Value(std::make_shared<StructInstance>(StructInstance{name}));
+		return Value(std::make_shared<StructInstance>(StructInstance{.structName = name, .fields = {}}));
 	}
 
 	static Value createArray(std::vector<Value> elements = {})
