@@ -87,7 +87,7 @@ elseif(APPLE)
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
-        DESTINATION "Library/Application Support/org.Phasor.Phasor/man"
+        DESTINATION usr/local/share/man
         PATTERN "*.sh" EXCLUDE
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
