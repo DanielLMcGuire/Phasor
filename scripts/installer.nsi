@@ -29,7 +29,7 @@ Caption "${APP_NAME}"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${COMP_NAME}"
 XPStyle on
-InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
+InstallDirRegKey "${REG_ROOT}" "${UNINSTALL_PATH}" "InstallLocation"
 InstallDir "$PROGRAMFILES64\Phasor Programming Language"
 
 
@@ -92,6 +92,7 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "InstallLocation" "$INSTDIR"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "UninstallString" "$INSTDIR\uninstall.exe"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayIcon" "$INSTDIR\phasor.ico"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayVersion" "${VERSION}"
