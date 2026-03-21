@@ -177,7 +177,6 @@ WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\DefaultIcon" "" "$INSTDIR\bin\
 WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\shell\open" "FriendlyAppName" "Phasor Assembler"
 WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\shell\open\command" "" '"$INSTDIR\bin\phasorasm.exe" "%1" %*'
 
-
 WriteRegStr HKCU "Software\Classes\.phir\OpenWithProgids" "PhasorASM.PHIR" ""
 
 
@@ -193,6 +192,51 @@ WriteRegStr HKCU "Software\Classes\PulsarCompiler.PUL\shell\open\command" "" '"$
 
 WriteRegStr HKCU "Software\Classes\.pul\OpenWithProgids" "Pulsar.PUL"           ""
 WriteRegStr HKCU "Software\Classes\.pul\OpenWithProgids" "PulsarCompiler.PUL" ""
+
+SetRegView 64
+
+WriteRegStr HKLM "Software\Phasor\phasor\Capabilities" "ApplicationName"        "Phasor"
+WriteRegStr HKLM "Software\Phasor\phasor\Capabilities" "ApplicationDescription" "Phasor runtime"
+WriteRegStr HKLM "Software\Phasor\phasor\Capabilities\FileAssociations" ".phsb" "Phasor.PHSB"
+WriteRegStr HKLM "Software\Phasor\phasor\Capabilities\FileAssociations" ".phs"  "Phasor.PHS"
+WriteRegStr HKLM "Software\RegisteredApplications" "Phasor" "Software\Phasor\phasor\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\phasorasm\Capabilities" "ApplicationName"        "Phasor Assembler"
+WriteRegStr HKLM "Software\Phasor\phasorasm\Capabilities" "ApplicationDescription" "Phasor IR assembler"
+WriteRegStr HKLM "Software\Phasor\phasorasm\Capabilities\FileAssociations" ".phir" "PhasorASM.PHIR"
+WriteRegStr HKLM "Software\RegisteredApplications" "PhasorASM" "Software\Phasor\phasorasm\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\phasorcompiler\Capabilities" "ApplicationName"        "Phasor Compiler"
+WriteRegStr HKLM "Software\Phasor\phasorcompiler\Capabilities" "ApplicationDescription" "Phasor source compiler"
+WriteRegStr HKLM "Software\Phasor\phasorcompiler\Capabilities\FileAssociations" ".phs" "PhasorCompiler.PHS"
+WriteRegStr HKLM "Software\RegisteredApplications" "PhasorCompiler" "Software\Phasor\phasorcompiler\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities" "ApplicationName"        "Phasor Decompiler"
+WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities" "ApplicationDescription" "Phasor binary decompiler"
+WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities\FileAssociations" ".phsb" "PhasorDecomp.PHSB"
+WriteRegStr HKLM "Software\RegisteredApplications" "PhasorDecomp" "Software\Phasor\phasordecomp\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\phasorjit\Capabilities" "ApplicationName"        "Phasor JIT"
+WriteRegStr HKLM "Software\Phasor\phasorjit\Capabilities" "ApplicationDescription" "Phasor JIT runner"
+WriteRegStr HKLM "Software\Phasor\phasorjit\Capabilities\FileAssociations" ".phs" "PhasorJIT.PHS"
+WriteRegStr HKLM "Software\RegisteredApplications" "PhasorJIT" "Software\Phasor\phasorjit\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\phasorvm\Capabilities" "ApplicationName"        "Phasor VM"
+WriteRegStr HKLM "Software\Phasor\phasorvm\Capabilities" "ApplicationDescription" "Phasor virtual machine"
+WriteRegStr HKLM "Software\Phasor\phasorvm\Capabilities\FileAssociations" ".phsb" "PhasorVM.PHSB"
+WriteRegStr HKLM "Software\RegisteredApplications" "PhasorVM" "Software\Phasor\phasorvm\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\pulsar\Capabilities" "ApplicationName"        "Pulsar"
+WriteRegStr HKLM "Software\Phasor\pulsar\Capabilities" "ApplicationDescription" "Pulsar runtime"
+WriteRegStr HKLM "Software\Phasor\pulsar\Capabilities\FileAssociations" ".pul" "Pulsar.PUL"
+WriteRegStr HKLM "Software\RegisteredApplications" "Pulsar" "Software\Phasor\pulsar\Capabilities"
+
+WriteRegStr HKLM "Software\Phasor\pulsarcompiler\Capabilities" "ApplicationName"        "Pulsar Compiler"
+WriteRegStr HKLM "Software\Phasor\pulsarcompiler\Capabilities" "ApplicationDescription" "Pulsar script compiler"
+WriteRegStr HKLM "Software\Phasor\pulsarcompiler\Capabilities\FileAssociations" ".pul" "PulsarCompiler.PUL"
+WriteRegStr HKLM "Software\RegisteredApplications" "PulsarCompiler" "Software\Phasor\pulsarcompiler\Capabilities"
+
+SetRegView 32
 
 EnVar::SetHKLM
 EnVar::AddValue "PATH" "$INSTDIR\bin"
@@ -224,6 +268,18 @@ DeleteRegKey HKCU "Software\Classes\PhasorJIT.PHS"
 DeleteRegKey HKCU "Software\Classes\PhasorASM.PHIR"
 DeleteRegKey HKCU "Software\Classes\Pulsar.PUL"
 DeleteRegKey HKCU "Software\Classes\PulsarCompiler.PUL"
+
+SetRegView 64
+DeleteRegKey  HKLM "Software\Phasor"
+DeleteRegValue HKLM "Software\RegisteredApplications" "Phasor"
+DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorASM"
+DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorCompiler"
+DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorDecomp"
+DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorJIT"
+DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorVM"
+DeleteRegValue HKLM "Software\RegisteredApplications" "Pulsar"
+DeleteRegValue HKLM "Software\RegisteredApplications" "PulsarCompiler"
+SetRegView 32
 
 EnVar::SetHKLM
 EnVar::DeleteValue "PATH" "$INSTDIR\bin"
