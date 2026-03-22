@@ -164,7 +164,7 @@ This repo contains:
 ### Plugin locations
 (Like win32 api, posix) are available in different locations based on your OS:
 
-- Unix - `/opt/Phasor/plugins/`
+- Unix - `/usr/lib/phasor/plugins/`
 - macOS - `/library/Application Support/org.Phasor.Phasor/plugins/`
 - Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\` 
 

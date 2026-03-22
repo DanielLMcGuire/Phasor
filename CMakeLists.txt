@@ -15,7 +15,7 @@ if(WIN32)
 elseif(APPLE)
     set(PLUGIN_INSTALL_DIR "Library/Application Support/org.Phasor.Phasor/plugins")
 else()
-    set(PLUGIN_INSTALL_DIR "opt/Phasor/plugins")
+    set(PLUGIN_INSTALL_DIR "usr/lib/phasor/plugins")
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/include)

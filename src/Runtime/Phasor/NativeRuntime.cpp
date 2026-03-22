@@ -81,7 +81,7 @@ int NativeRuntime::run()
 #elif defined(__APPLE__)
 		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-		m_vm->initFFI("/opt/Phasor/plugins");
+		m_vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 		m_vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());

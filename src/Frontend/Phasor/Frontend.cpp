@@ -50,7 +50,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 #elif defined(__APPLE__)
 	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	vm->initFFI("/opt/Phasor/plugins");
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 	vm->setImportHandler([vm](const std::filesystem::path &path) {
@@ -102,7 +102,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 #elif defined(__APPLE__)
 	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	vm->initFFI("/opt/Phasor/plugins");
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 	vm->setImportHandler([vm](const std::filesystem::path &path) {

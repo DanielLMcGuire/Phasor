@@ -92,7 +92,7 @@ std::unique_ptr<VM> ScriptingRuntime::createVm()
 #elif defined(__APPLE__)
 	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	vm->initFFI("/opt/Phasor/plugins");
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {
