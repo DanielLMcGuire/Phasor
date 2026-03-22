@@ -122,13 +122,13 @@ std::string VM::getInformation()
 	for (const auto &reg : registers)
 	{
 		if (reg.getType() != ValueType::Null) {
-			registersStr += std::format("R{}: {:T}", regCount, reg);
+			registersStr += std::format("R{}: {:T}\n", regCount, reg);
 		}
 		regCount++;
 	}
 
     info += std::format(
-        "VM INFORMATION:\n{}\nPC: {}\nCS: {}",
+        "VM INFORMATION:\n{}PC: {}\nCS: {}",
         registersStr,
         pc,
         callStackTop
