@@ -117,7 +117,7 @@ std::string VM::getInformation()
         info = std::format("Stack Top: {:T}\n", peek());
 
 	std::string registersStr;
-	int regCount;
+	int regCount = 0;
 
 	for (const auto &reg : registers)
 	{
