@@ -10,6 +10,8 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 [Download Phasor](https://phasor.pages.dev/downloads?version=latest)
 
+[Download Phasor Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
+
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
