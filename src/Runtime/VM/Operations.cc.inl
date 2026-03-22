@@ -364,7 +364,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			if (arg != args.back())
 				argsText += ", ";
 		}
-		log(std::format("VM::{}(): {}({})\n", __func__, funcName, argsText));
+		log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
 		flush();
 #endif
 
