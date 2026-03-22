@@ -52,13 +52,4 @@ jobs:
       shell: bash
       run: ./build/src/Executable/phasor ./scripts/unittest.phs
 
-    - name: Install 
-      shell: bash
-      run: cmake --install build --prefix install
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v6
-      with:
-        name: build-${{ matrix.os }}
-        path: ${{ github.workspace }}/install
-        retention-days: 10
