@@ -45,7 +45,7 @@ package() {
     cd "$startdir"
     "$startdir/pmake" -i "$pkgdir/usr/" 
     
-    install -Dm644 "$srcdir/Phasor-3.1.0/src/Extensions/unix/phasor.magic" \
+    install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
         "$pkgdir/usr/share/file/misc/magic/phasor"
 
     python -m installer --destdir="$pkgdir" "$startdir/src/Extensions/py/phasor/dist/"*.whl
