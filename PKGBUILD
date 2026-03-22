@@ -43,7 +43,7 @@ build() {
 
 package() {
     cd "$startdir"
-    "$startdir/pmake" -i "$pkgdir/usr/" 
+    "$startdir/pmake" -i "$pkgdir" 
     
     install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
         "$pkgdir/usr/share/file/misc/magic/phasor"
