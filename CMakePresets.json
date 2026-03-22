@@ -10,10 +10,9 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
             }
         },
-
         {
-            "name": "macos-arm-dbg",
-            "displayName": "macOS (arm64 Debug)",
+            "name": "cfg-macos-arm",
+            "hidden": true,
             "inherits": "base",
             "condition": {
                 "type": "equals",
@@ -22,93 +21,12 @@
             },
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_APPLE_SILICON_PROCESSOR": "arm64"
             }
         },
         {
-            "name": "macos-arm-dbg_trace",
-            "displayName": "macOS (arm64 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "macos-arm-rel",
-            "displayName": "macOS (arm64 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64"
-            }
-        },
-        {
-            "name": "macos-arm-rel_trace",
-            "displayName": "macOS (arm64 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
-                "IS_TRACING": "ON"
-            }
-        },
-        {
-            "name": "macos-arm-tst",
-            "displayName": "macOS (arm64 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64"
-            }
-        },
-        {
-            "name": "macos-arm-tst_trace",
-            "displayName": "macOS (arm64 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "CMAKE_APPLE_SILICON_PROCESSOR": "arm64",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "macos-x64-dbg",
-            "displayName": "macOS (x64 Debug)",
+            "name": "cfg-macos-x64",
+            "hidden": true,
             "inherits": "base",
             "condition": {
                 "type": "equals",
@@ -118,104 +36,11 @@
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "macos-x64-dbg_trace",
-            "displayName": "macOS (x64 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "macos-x64-rel",
-            "displayName": "macOS (x64 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "macos-x64-rel_trace",
-            "displayName": "macOS (x64 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
-        },
-        {
-            "name": "macos-x64-tst",
-            "displayName": "macOS (x64 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
-        {
-            "name": "macos-x64-tst_trace",
-            "displayName": "macOS (x64 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "windows-64-dbg",
-            "displayName": "Windows (x64 Debug)",
+            "name": "cfg-windows-x64",
+            "hidden": true,
             "inherits": "base",
             "condition": {
                 "type": "equals",
@@ -225,104 +50,11 @@
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "windows-64-dbg_trace",
-            "displayName": "Windows (x64 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "windows-64-rel",
-            "displayName": "Windows (x64 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "windows-64-rel_trace",
-            "displayName": "Windows (x64 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
-        },
-        {
-            "name": "windows-64-tst",
-            "displayName": "Windows (x64 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
-        {
-            "name": "windows-64-tst_trace",
-            "displayName": "Windows (x64 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "windows-32-dbg",
-            "displayName": "Windows (x86 Debug)",
+            "name": "cfg-windows-x86",
+            "hidden": true,
             "inherits": "base",
             "condition": {
                 "type": "equals",
@@ -334,108 +66,12 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug"
+                "ASSEMBLY": "OFF"
             }
         },
         {
-            "name": "windows-32-dbg_trace",
-            "displayName": "Windows (x86 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "windows-32-rel",
-            "displayName": "Windows (x86 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "windows-32-rel_trace",
-            "displayName": "Windows (x86 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
-        },
-        {
-            "name": "windows-32-tst",
-            "displayName": "Windows (x86 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
-        {
-            "name": "windows-32-tst_trace",
-            "displayName": "Windows (x86 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "windows-arm64-dbg",
-            "displayName": "Windows (arm64 Debug)",
+            "name": "cfg-windows-arm64",
+            "hidden": true,
             "inherits": "base",
             "condition": {
                 "type": "equals",
@@ -447,454 +83,703 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug"
+                "ASSEMBLY": "OFF"
             }
         },
         {
-            "name": "windows-arm64-dbg_trace",
-            "displayName": "Windows (arm64 Debug) Trace",
+            "name": "cfg-linux-x64",
+            "hidden": true,
             "inherits": "base",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
-                "rhs": "Windows"
+                "rhs": "Linux"
             },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "windows-arm64-rel",
-            "displayName": "Windows (arm64 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "windows-arm64-rel_trace",
-            "displayName": "Windows (arm64 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
-        },
-        {
-            "name": "windows-arm64-tst",
-            "displayName": "Windows (arm64 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
-        {
-            "name": "windows-arm64-tst_trace",
-            "displayName": "Windows (arm64 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
-        },
-
-        {
-            "name": "xbox-one",
-            "displayName": "Durango",
-            "inherits": "base",
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
+            }
+        },
+        {
+            "name": "cfg-linux-x86",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
             },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "cfg-linux-arm64",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "cfg-xbox",
+            "hidden": true,
+            "inherits": "cfg-windows-x64",
+            "cacheVariables": {
+                "IS_XBOX": "1"
+            }
+        },
+        {
+            "name": "cfg-xbox-one",
+            "hidden": true,
+            "inherits": "cfg-xbox",
             "cacheVariables": {
                 "ASSEMBLY": "OFF",
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_XBOX": "1",
                 "IS_XDURANGO": "1"
             }
         },
         {
-            "name": "xbox-series",
-            "displayName": "Scarlet",
-            "inherits": "base",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
+            "name": "cfg-xbox-series",
+            "hidden": true,
+            "inherits": "cfg-xbox",
             "cacheVariables": {
                 "ASSEMBLY": "ON",
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_XBOX": "1",
                 "IS_XSCARLET": "1"
             }
         },
         {
-            "name": "linux-64-dbg",
-            "displayName": "Linux (x64 Debug)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
+            "name": "cfg-dbg",
+            "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
+        },
+        {
+            "name": "cfg-rel",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "cfg-tst",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "cfg-trace",
+            "hidden": true,
+            "cacheVariables": {
+                "IS_TRACING": "ON"
+            }
+        },
+        {
+            "name": "cfg-tracestack",
+            "hidden": true,
+            "cacheVariables": {
+                "IS_TRACING_STACK": "ON"
+            }
+        },
+        {
+            "name": "macos-arm-dbg",
+            "displayName": "macOS (arm64 Debug)",
+            "inherits": [
+                "cfg-macos-arm",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "macos-arm-dbg_trace",
+            "displayName": "macOS (arm64 Debug) Trace",
+            "inherits": [
+                "macos-arm-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-dbg_tracestack",
+            "displayName": "macOS (arm64 Debug) TraceStack",
+            "inherits": [
+                "macos-arm-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "macos-arm-rel",
+            "displayName": "macOS (arm64 Release)",
+            "inherits": [
+                "cfg-macos-arm",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "macos-arm-rel_trace",
+            "displayName": "macOS (arm64 Release) Trace",
+            "inherits": [
+                "macos-arm-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-rel_tracestack",
+            "displayName": "macOS (arm64 Release) TraceStack",
+            "inherits": [
+                "macos-arm-rel_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "macos-arm-tst",
+            "displayName": "macOS (arm64 RelWithDebInfo)",
+            "inherits": [
+                "cfg-macos-arm",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "macos-arm-tst_trace",
+            "displayName": "macOS (arm64 RelWithDebInfo) Trace",
+            "inherits": [
+                "macos-arm-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-tst_tracestack",
+            "displayName": "macOS (arm64 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "macos-arm-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "macos-x64-dbg",
+            "displayName": "macOS (x64 Debug)",
+            "inherits": [
+                "cfg-macos-x64",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "macos-x64-dbg_trace",
+            "displayName": "macOS (x64 Debug) Trace",
+            "inherits": [
+                "macos-x64-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-dbg_tracestack",
+            "displayName": "macOS (x64 Debug) TraceStack",
+            "inherits": [
+                "macos-x64-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "macos-x64-rel",
+            "displayName": "macOS (x64 Release)",
+            "inherits": [
+                "cfg-macos-x64",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "macos-x64-rel_trace",
+            "displayName": "macOS (x64 Release) Trace",
+            "inherits": [
+                "macos-x64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-rel_tracestack",
+            "displayName": "macOS (x64 Release) TraceStack",
+            "inherits": [
+                "macos-x64-rel_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "macos-x64-tst",
+            "displayName": "macOS (x64 RelWithDebInfo)",
+            "inherits": [
+                "cfg-macos-x64",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "macos-x64-tst_trace",
+            "displayName": "macOS (x64 RelWithDebInfo) Trace",
+            "inherits": [
+                "macos-x64-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-tst_tracestack",
+            "displayName": "macOS (x64 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "macos-x64-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-64-dbg",
+            "displayName": "Windows (x64 Debug)",
+            "inherits": [
+                "cfg-windows-x64",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "windows-64-dbg_trace",
+            "displayName": "Windows (x64 Debug) Trace",
+            "inherits": [
+                "windows-64-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-dbg_tracestack",
+            "displayName": "Windows (x64 Debug) TraceStack",
+            "inherits": [
+                "windows-64-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-64-rel",
+            "displayName": "Windows (x64 Release)",
+            "inherits": [
+                "cfg-windows-x64",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "windows-64-rel_trace",
+            "displayName": "Windows (x64 Release) Trace",
+            "inherits": [
+                "windows-64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-rel_tracestack",
+            "displayName": "Windows (x64 Release) TraceStack",
+            "inherits": [
+                "windows-64-rel_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-64-tst",
+            "displayName": "Windows (x64 RelWithDebInfo)",
+            "inherits": [
+                "cfg-windows-x64",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "windows-64-tst_trace",
+            "displayName": "Windows (x64 RelWithDebInfo) Trace",
+            "inherits": [
+                "windows-64-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-tst_tracestack",
+            "displayName": "Windows (x64 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "windows-64-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-32-dbg",
+            "displayName": "Windows (x86 Debug)",
+            "inherits": [
+                "cfg-windows-x86",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "windows-32-dbg_trace",
+            "displayName": "Windows (x86 Debug) Trace",
+            "inherits": [
+                "windows-32-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-dbg_tracestack",
+            "displayName": "Windows (x86 Debug) TraceStack",
+            "inherits": [
+                "windows-32-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-32-rel",
+            "displayName": "Windows (x86 Release)",
+            "inherits": [
+                "cfg-windows-x86",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "windows-32-rel_trace",
+            "displayName": "Windows (x86 Release) Trace",
+            "inherits": [
+                "windows-32-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-rel_tracestack",
+            "displayName": "Windows (x86 Release) TraceStack",
+            "inherits": [
+                "windows-32-rel_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-32-tst",
+            "displayName": "Windows (x86 RelWithDebInfo)",
+            "inherits": [
+                "cfg-windows-x86",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "windows-32-tst_trace",
+            "displayName": "Windows (x86 RelWithDebInfo) Trace",
+            "inherits": [
+                "windows-32-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-tst_tracestack",
+            "displayName": "Windows (x86 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "windows-32-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-arm64-dbg",
+            "displayName": "Windows (arm64 Debug)",
+            "inherits": [
+                "cfg-windows-arm64",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "windows-arm64-dbg_trace",
+            "displayName": "Windows (arm64 Debug) Trace",
+            "inherits": [
+                "windows-arm64-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-dbg_tracestack",
+            "displayName": "Windows (arm64 Debug) TraceStack",
+            "inherits": [
+                "windows-arm64-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-arm64-rel",
+            "displayName": "Windows (arm64 Release)",
+            "inherits": [
+                "cfg-windows-arm64",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "windows-arm64-rel_trace",
+            "displayName": "Windows (arm64 Release) Trace",
+            "inherits": [
+                "windows-arm64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-rel_tracestack",
+            "displayName": "Windows (arm64 Release) TraceStack",
+            "inherits": [
+                "windows-arm64-rel_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "windows-arm64-tst",
+            "displayName": "Windows (arm64 RelWithDebInfo)",
+            "inherits": [
+                "cfg-windows-arm64",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "windows-arm64-tst_trace",
+            "displayName": "Windows (arm64 RelWithDebInfo) Trace",
+            "inherits": [
+                "windows-arm64-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-tst_tracestack",
+            "displayName": "Windows (arm64 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "windows-arm64-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "linux-64-dbg",
+            "displayName": "Linux (x64 Debug)",
+            "inherits": [
+                "cfg-linux-x64",
+                "cfg-dbg"
+            ]
         },
         {
             "name": "linux-64-dbg_trace",
             "displayName": "Linux (x64 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-64-dbg",
+                "cfg-trace"
+            ]
         },
-
+        {
+            "name": "linux-64-dbg_tracestack",
+            "displayName": "Linux (x64 Debug) TraceStack",
+            "inherits": [
+                "linux-64-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
         {
             "name": "linux-64-rel",
             "displayName": "Linux (x64 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+            "inherits": [
+                "cfg-linux-x64",
+                "cfg-rel"
+            ]
         },
         {
             "name": "linux-64-rel_trace",
             "displayName": "Linux (x64 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-64-rel_tracestack",
+            "displayName": "Linux (x64 Release) TraceStack",
+            "inherits": [
+                "linux-64-rel_trace",
+                "cfg-tracestack"
+            ]
         },
         {
             "name": "linux-64-tst",
             "displayName": "Linux (x64 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
+            "inherits": [
+                "cfg-linux-x64",
+                "cfg-tst"
+            ]
         },
         {
             "name": "linux-64-tst_trace",
             "displayName": "Linux (x64 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-64-tst",
+                "cfg-trace"
+            ]
         },
-
+        {
+            "name": "linux-64-tst_tracestack",
+            "displayName": "Linux (x64 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "linux-64-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
         {
             "name": "linux-32-dbg",
             "displayName": "Linux (x86 Debug)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
+            "inherits": [
+                "cfg-linux-x86",
+                "cfg-dbg"
+            ]
         },
         {
             "name": "linux-32-dbg_trace",
             "displayName": "Linux (x86 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-32-dbg",
+                "cfg-trace"
+            ]
         },
-
+        {
+            "name": "linux-32-dbg_tracestack",
+            "displayName": "Linux (x86 Debug) TraceStack",
+            "inherits": [
+                "linux-32-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
         {
             "name": "linux-32-rel",
             "displayName": "Linux (x86 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+            "inherits": [
+                "cfg-linux-x86",
+                "cfg-rel"
+            ]
         },
         {
             "name": "linux-32-rel_trace",
             "displayName": "Linux (x86 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-32-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-32-rel_tracestack",
+            "displayName": "Linux (x86 Release) TraceStack",
+            "inherits": [
+                "linux-32-rel_trace",
+                "cfg-tracestack"
+            ]
         },
         {
             "name": "linux-32-tst",
             "displayName": "Linux (x86 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
+            "inherits": [
+                "cfg-linux-x86",
+                "cfg-tst"
+            ]
         },
         {
             "name": "linux-32-tst_trace",
             "displayName": "Linux (x86 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-32-tst",
+                "cfg-trace"
+            ]
         },
-
+        {
+            "name": "linux-32-tst_tracestack",
+            "displayName": "Linux (x86 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "linux-32-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
         {
             "name": "linux-arm64-dbg",
             "displayName": "Linux (arm64 Debug)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
+            "inherits": [
+                "cfg-linux-arm64",
+                "cfg-dbg"
+            ]
         },
         {
             "name": "linux-arm64-dbg_trace",
             "displayName": "Linux (arm64 Debug) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-arm64-dbg",
+                "cfg-trace"
+            ]
         },
-
+        {
+            "name": "linux-arm64-dbg_tracestack",
+            "displayName": "Linux (arm64 Debug) TraceStack",
+            "inherits": [
+                "linux-arm64-dbg_trace",
+                "cfg-tracestack"
+            ]
+        },
         {
             "name": "linux-arm64-rel",
             "displayName": "Linux (arm64 Release)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+            "inherits": [
+                "cfg-linux-arm64",
+                "cfg-rel"
+            ]
         },
         {
             "name": "linux-arm64-rel_trace",
             "displayName": "Linux (arm64 Release) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-arm64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-rel_tracestack",
+            "displayName": "Linux (arm64 Release) TraceStack",
+            "inherits": [
+                "linux-arm64-rel_trace",
+                "cfg-tracestack"
+            ]
         },
         {
             "name": "linux-arm64-tst",
             "displayName": "Linux (arm64 RelWithDebInfo)",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
+            "inherits": [
+                "cfg-linux-arm64",
+                "cfg-tst"
+            ]
         },
         {
             "name": "linux-arm64-tst_trace",
             "displayName": "Linux (arm64 RelWithDebInfo) Trace",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "architecture": {
-                "value": "arm64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "IS_TRACING": "ON"
-            }
+            "inherits": [
+                "linux-arm64-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-tst_tracestack",
+            "displayName": "Linux (arm64 RelWithDebInfo) TraceStack",
+            "inherits": [
+                "linux-arm64-tst_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
+            "name": "xbox-one",
+            "displayName": "Durango",
+            "inherits": [
+                "cfg-xbox-one",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "xbox-series",
+            "displayName": "Scarlet",
+            "inherits": [
+                "cfg-xbox-series",
+                "cfg-rel"
+            ]
         }
     ]
 }
