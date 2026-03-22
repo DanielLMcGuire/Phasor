@@ -52,6 +52,7 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION man
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.py" EXCLUDE
         PATTERN "*.1" EXCLUDE
         PATTERN "*.3" EXCLUDE
         PATTERN "*.5" EXCLUDE
@@ -89,6 +90,7 @@ elseif(APPLE)
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/local/share/man
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.py" EXCLUDE
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
@@ -122,6 +124,7 @@ else()
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/share/man/
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.py" EXCLUDE
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
