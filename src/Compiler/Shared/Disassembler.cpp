@@ -31,7 +31,7 @@ int Disassembler::run()
 	}
 
 	if (decompileBinary()) {
-		if (!m_args.silent) std::cout << "Success! Output to " << m_args.outputFile << '\n';
+		if (!m_args.silent) std::cout << "Success! Output to " << m_args.outputFile.string() << '\n';
 		return 0;
 	} else {
 		std::cout << "Failed to disassemble program!\n";
