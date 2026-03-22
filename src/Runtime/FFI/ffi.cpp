@@ -102,32 +102,37 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 	std::filesystem::path              exeDir;
 	std::vector<std::filesystem::path> foldersToScan;
 
+	if (folder.is_absolute())
+	{
+		foldersToScan.push_back(folder);
+	}
+	else
+	{
 #if defined(_WIN32)
-	char path[MAX_PATH];
-	GetModuleFileNameA(nullptr, path, MAX_PATH);
-	exeDir = std::filesystem::path(path).parent_path();
-#elif defined(__APPLE__)
-	char     path[1024];
-	uint32_t size = sizeof(path);
-	if (_NSGetExecutablePath(path, &size) == 0)
+		char path[MAX_PATH];
+		GetModuleFileNameA(nullptr, path, MAX_PATH);
 		exeDir = std::filesystem::path(path).parent_path();
-	else
-		exeDir = std::filesystem::current_path();
+#elif defined(__APPLE__)
+		char     path[1024];
+		uint32_t size = sizeof(path);
+		if (_NSGetExecutablePath(path, &size) == 0)
+			exeDir = std::filesystem::path(path).parent_path();
+		else
+			exeDir = std::filesystem::current_path();
 #elif defined(__linux__)
-	char    path[1024];
-	ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
-	if (count != -1)
-		exeDir = std::filesystem::path(std::string(path, count)).parent_path();
-	else
-		exeDir = std::filesystem::current_path();
+		char    path[1024];
+		ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
+		if (count != -1)
+			exeDir = std::filesystem::path(std::string(path, count)).parent_path();
+		else
+			exeDir = std::filesystem::current_path();
 #else
-	exeDir = std::filesystem::current_path();
+		exeDir = std::filesystem::current_path();
 #endif
 
-	foldersToScan.push_back(exeDir / folder);
-	if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
-	{
-		foldersToScan.push_back(std::filesystem::current_path() / folder);
+		foldersToScan.push_back(exeDir / folder);
+		if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
+			foldersToScan.push_back(std::filesystem::current_path() / folder);
 	}
 
 	for (auto &folderPath : foldersToScan)
