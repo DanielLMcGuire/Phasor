@@ -4,6 +4,10 @@ if(IS_TRACING)
     add_compile_definitions(TRACING)
 endif()
 
+if(IS_TRACING_STACK)
+    add_compile_definitions(TRACING_STACK)
+endif()
+
 if(IS_XSCARLET)
     add_compile_definitions(PLATFORM_OVERRIDE)
     add_compile_definitions(PLATFORM_MODERN_GAME)

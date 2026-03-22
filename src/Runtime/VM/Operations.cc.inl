@@ -10,7 +10,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	uint8_t rB = static_cast<uint8_t>(operand2);
 	uint8_t rC = static_cast<uint8_t>(operand3);
 #ifdef TRACING
-	log(std::format("VM::{}({}, {}, {}, {}) stack.size={}\n", __func__, opCodeToString(op), operand1, operand2, operand3, stack.size()));
+	log(std::format("VM::{}({}, {}, {}, {})\n", __func__, opCodeToString(op), operand1, operand2, operand3));
 	flush();
 #endif
 	switch (op)
@@ -258,9 +258,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::JUMP:
+	case OpCode::JUMP: {
+#ifdef TRACING
+		log(std::format("JUMP: {} -> {}\n", pc, operand1));
+		flush();
+#endif
 		pc = operand1;
 		break;
+	}
 
 	case OpCode::JUMP_IF_FALSE:
 		if (!pop().isTruthy())
@@ -292,7 +297,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value       v = pop();
 		std::string s = v.toString();
 #ifdef _TRACING
-		log(std::format("PRINT: {:T}\n", v));
+		log(std::format("PRINT: (stdout) {:T}\n", v));
 #else
 		asm_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
@@ -303,7 +308,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value       v = pop();
 		std::string s = v.toString();
 #ifdef _TRACING
-		log(std::format("PRINTERROR: {:T}\n", v));
+		log(std::format("PRINTERROR: (stderr) {:T}\n", v));
 #else
 		asm_print_stderr(s.c_str(), (int64_t)s.length());
 #endif
@@ -714,7 +719,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
 #ifdef TRACING
-		log(std::format("PRINT_R: {:T}\n", registers[rA]));
+		log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
 #else
 		asm_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
@@ -724,7 +729,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::PRINTERROR_R: {
 		std::string s = registers[rA].toString();
 #ifdef TRACING
-		log(std::format("PRINTERROR_R: {:T}\n", registers[rA]));
+		log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
 #else
 		asm_print_stderr(s.c_str(), (int64_t)s.length());
 #endif

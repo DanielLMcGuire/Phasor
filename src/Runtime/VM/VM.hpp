@@ -56,7 +56,7 @@ class VM
 	{
 		cleanup();
 #ifdef TRACING
-		log(std::format("VM::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("VM::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 	}

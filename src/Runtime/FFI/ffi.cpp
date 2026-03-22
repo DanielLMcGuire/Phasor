@@ -205,11 +205,11 @@ FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(plug
 
 FFI::~FFI()
 {
+	unloadAll();
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("FFI::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();
 #endif
-	unloadAll();
 }
 
 Value FFI::native_add_plugin(const std::vector<Value> &args, VM *)

@@ -22,6 +22,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_D
 
 option(ASSEMBLY "Enable assembly for core code" ON)
 option(IS_TRACING "Enable VM tracing to stdout" OFF)
+option(IS_TRACING_STACK "Enable VM stack tracing to stdout" OFF)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)

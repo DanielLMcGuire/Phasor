@@ -116,12 +116,20 @@ std::string VM::getInformation()
     if (!stack.empty())
         info = std::format("Stack Top: {:T}\n", peek());
 
+	std::string registersStr;
+	int regCount;
+
+	for (const auto &reg : registers)
+	{
+		if (reg.getType() != ValueType::Null) {
+			registersStr += std::format("R{}: {:T}", regCount, reg);
+		}
+		regCount++;
+	}
+
     info += std::format(
-        "VM INFORMATION:\nR0: {:T}\nR1: {:T}\nR2: {:T}\nR3: {:T}\nPC: {}\nCS: {}",
-        registers[0],
-        registers[1],
-        registers[2],
-        registers[3],
+        "VM INFORMATION:\n{}\nPC: {}\nCS: {}",
+        registersStr,
         pc,
         callStackTop
     );

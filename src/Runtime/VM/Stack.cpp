@@ -7,7 +7,7 @@ namespace Phasor
 
 void VM::push(const Value &value)
 {
-#ifdef TRACING
+#ifdef TRACING_STACK
 	log(std::format("VM::{}({:T})\n", __func__, value));
 	flush();
 #endif
@@ -18,7 +18,7 @@ Value VM::pop()
 {
 	if (stack.empty())
 	{
-#ifdef TRACING
+#ifdef TRACING_STACK
 		log(std::format("VM::{}() -> <empty stack>\n", __func__));
 		flush();
 #endif
@@ -26,7 +26,7 @@ Value VM::pop()
 		throw std::runtime_error(msg);
 		return Value();
 	}
-#ifdef TRACING
+#ifdef TRACING_STACK
 	log(std::format("VM::{}() -> {:T}\n", __func__, stack.back()));
 	flush();
 #endif
@@ -39,7 +39,7 @@ Value VM::peek()
 {
 	if (stack.empty())
 	{
-#ifdef TRACING
+#ifdef TRACING_STACK
 		log(std::format("VM::{}() -> <empty stack>\n", __func__));
 		flush();
 #endif
@@ -47,7 +47,7 @@ Value VM::peek()
 		throw std::runtime_error(msg);
 		return Value();
 	}
-#ifdef TRACING
+#ifdef TRACING_STACK
 	log(std::format("VM::{}() -> {:T}\n", __func__, stack.back()));
 	flush();
 #endif
