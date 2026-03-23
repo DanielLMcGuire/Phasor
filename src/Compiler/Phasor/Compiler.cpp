@@ -6,6 +6,7 @@
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <print>
 
