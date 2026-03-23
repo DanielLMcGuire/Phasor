@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <sstream>
+#include <print>
 
 namespace Phasor
 {
@@ -21,10 +21,10 @@ Compiler::Compiler(int argc, char *argv[], char *envp[])
 int Compiler::run()
 {
 	if (m_args.showLogo)
-		std::cout << "Phasor Compiler\n(C) 2026 Daniel McGuire\n\n";
+		std::println("Phasor Compiler\n(C) 2026 Daniel McGuire\n");
 	if (m_args.inputFile.empty())
 	{
-		std::cerr << "Error: No input file provided\n";
+		std::println(std::cerr, "Error: No input file provided\n");
 		return 1;
 	}
 
@@ -38,14 +38,14 @@ int Compiler::compileToBytecode()
 {
 	if (std::filesystem::path(m_args.inputFile).extension() == ".phsb")
 	{
-		std::cerr << "Error: Cannot compile a bytecode file (use phasordecomp)\n";
+		std::println(std::cerr, "Error: Cannot compile a bytecode file (use phasordecomp)");
 		return 1;
 	}
 
 	std::ifstream file(m_args.inputFile);
 	if (!file.is_open())
 	{
-		std::cerr << "Could not open file: " << m_args.inputFile << "\n";
+		println(std::cerr, "Could not open file: {}", m_args.inputFile.c_str());
 		return 1;
 	}
 
@@ -72,17 +72,17 @@ int Compiler::compileToBytecode()
 		BytecodeSerializer serializer;
 		if (!serializer.saveToFile(bytecode, m_args.outputFile))
 		{
-			std::cerr << "Failed to save bytecode to: " << m_args.outputFile << "\n";
+			std::println(std::cerr, "Failed to save bytecode to: {}", m_args.outputFile);
 			return 1;
 		}
 
 		if (m_args.showLogo)
-			std::cout << "Compiled successfully: " << m_args.inputFile << " -> " << m_args.outputFile << "\n";
+			std::println("Compiled successfully: {} -> {}", m_args.inputFile, m_args.outputFile);
 		return 0;
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Compilation Error: " << e.what() << "\n";
+		std::println(std::cerr, "Compilation Error: {}", e.what());
 		return 1;
 	}
 }
@@ -91,14 +91,14 @@ int Compiler::compileToIR()
 {
 	if (std::filesystem::path(m_args.inputFile).extension() == ".phir")
 	{
-		std::cerr << "Error: Cannot compile a Phasor IR file (use phasorasm)\n";
+		std::println(std::cerr, "Error: Cannot compile a Phasor IR file (use phasorasm)");
 		return 1;
 	}
 
 	std::ifstream file(m_args.inputFile);
 	if (!file.is_open())
 	{
-		std::cerr << "Could not open file: " << m_args.inputFile << "\n";
+		std::println(std::cerr, "Could not open file: {}\n", m_args.inputFile);
 		return 1;
 	}
 
@@ -124,16 +124,16 @@ int Compiler::compileToIR()
 
 		if (!PhasorIR::saveToFile(bytecode, m_args.outputFile))
 		{
-			std::cerr << "Failed to save Phasor IR to: " << m_args.outputFile << "\n";
+			std::println(std::cerr, "Failed to save Phasor IR to: {}", m_args.outputFile);
 			return 1;
 		}
 
-		std::cout << "Compiled successfully to IR: " << m_args.inputFile << " -> " << m_args.outputFile << "\n";
+		std::println("Compiled successfully to IR: {} -> {}", m_args.inputFile, m_args.outputFile);
 		return 0;
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Compilation Error: " << e.what() << "\n";
+		std::println(std::cerr, "Compilation Error: {}", e.what());
 		return 1;
 	}
 }
@@ -161,7 +161,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::print(std::cerr, "Error: {} requires an argument", arg);
 				exit(1);
 			}
 		}
@@ -188,14 +188,13 @@ void Compiler::parseArguments(int argc, char *argv[])
 void Compiler::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Compiler\n\n";
-	std::cout << "Usage:\n";
-	std::cout << "  " << filename << " [options] <file.phs>\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -o, --output FILE   Specify output file\n";
-	std::cout << "  -i, --ir            Compile to IR format (.phir) instead of bytecode\n";
-	std::cout << "  -v, --verbose       Enable verbose output\n";
-	std::cout << "  -h, --help          Show this help message\n";
+
+	std::println("Phasor Compiler\n\nUsage:\n"
+	"  {} [options] <file.phs>\n\n"
+	"Options:\n  -o, --output FILE   Specify output file\n"
+	"  -i, --ir            Compile to IR format (.phir) instead of bytecode\n"
+	"  -v, --verbose       Enable verbose output\n"
+	"  -h, --help          Show this help message", filename);
 }
 
 } // namespace Phasor

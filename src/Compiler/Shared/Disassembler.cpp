@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <print>
 #include <sstream>
 
 namespace Phasor
@@ -20,9 +21,7 @@ int Disassembler::run()
 {
 	if (!m_args.noLogo)
 	{
-		std::cout << "Phasor Decompiler\n";
-		std::cout << "Copyright (c) 2026 Daniel McGuire\n";
-		std::cout << "\n";
+		std::println("Phasor Decompiler\nCopyright (c) 2026 Daniel McGuire");
 	}
 	if (m_args.showHelp)
 	{
@@ -31,10 +30,10 @@ int Disassembler::run()
 	}
 
 	if (decompileBinary()) {
-		if (!m_args.silent) std::cout << "Success! Output to " << m_args.outputFile.string() << '\n';
+		if (!m_args.silent) std::println("Success! Output to {}", m_args.outputFile.string());
 		return 0;
 	} else {
-		std::cout << "Failed to disassemble program!\n";
+		std::println(std::cerr, "Failed to disassemble program!");
 		return 1;
 	}
 }
@@ -59,7 +58,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
 			}
@@ -75,7 +74,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 		}
 		else if (arg[0] == '-')
 		{
-			std::cerr << "Error: Unknown option: " << arg << "\n";
+			std::println(std::cerr, "Error: Unknown option: {}", arg);
 			m_args.showHelp = true;
 			return true;
 		}
@@ -85,7 +84,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 				m_args.inputFile = arg;
 			else
 			{
-				std::cerr << "Error: Multiple input files specified\n";
+				std::println(std::cerr, "Error: Multiple input files specified");
 				m_args.showHelp = true;
 				return true;
 			}
@@ -96,13 +95,13 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 
 void Disassembler::showHelp()
 {
-	std::cout << "Usage:\n";
-	std::cout << "  " << m_args.program.stem().string() << " [options] <input.phsb>\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -o, --output <file>   Output file\n";
-	std::cout << "  -h, --help            Show this help message\n";
-	std::cout << "  -n, --nologo          Do not show banner\n";
-	std::cout << "  -s, --silent          Do not print anything except errors (no stdout)\n\n";
+	std::println("Usage:\n" 
+	"  {} [options] <input.phsb>"
+	"Options:"
+    "  -o, --output <file>   Output file"
+    "  -h, --help            Show this help message"
+    "  -n, --nologo          Do not show banner"
+    "  -s, --silent          Do not print anything except errors (no stdout)", m_args.program.stem().string());
 }
 
 bool Disassembler::decompileBinary()

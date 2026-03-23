@@ -209,27 +209,31 @@ Value StdLib::file_copy(const std::vector<Value> &args, VM *vm)
 
 	if (!std::filesystem::exists(src))
 	{
-		std::cerr << "Source file doesn't exist." << std::endl;
+		vm->logerr("Source file doesn't exist.");
+		vm->flusherr();
 		return false;
 	}
 
 	if (std::filesystem::exists(dest) && !overwrite)
 	{
-		std::cerr << "Destination file already exists." << std::endl;
+		vm->logerr("Destination file already exists.");
+		vm->flusherr();
 		return false;
 	}
 
 	std::ifstream source(src, std::ios::binary | std::ios::in);
 	if (!source.is_open())
 	{
-		std::cerr << "Failed to open source file." << std::endl;
+		vm->logerr("Failed to open source file.");
+		vm->flusherr();
 		return false;
 	}
 
 	std::ofstream destination(dest, std::ios::binary | std::ios::out | std::ios::trunc);
 	if (!destination.is_open())
 	{
-		std::cerr << "Failed to open destination file." << std::endl;
+		vm->logerr("Failed to open destination file.");
+		vm->flusherr();
 		return false;
 	}
 
@@ -237,7 +241,8 @@ Value StdLib::file_copy(const std::vector<Value> &args, VM *vm)
 
 	if (source.fail() || destination.fail())
 	{
-		std::cerr << "Error during file copy." << std::endl;
+		vm->logerr("Error during file copy.");
+		vm->flusherr();
 		return false;
 	}
 
@@ -253,7 +258,8 @@ Value StdLib::file_move(const std::vector<Value> &args, VM *vm)
 	status = std::filesystem::copy_file(src, dest);
 	if (!status)
 	{
-		std::cerr << "Failed to copy file during move." << std::endl;
+		vm->logerr("Failed to copy file during move.");
+		vm->flusherr();
 		return false;
 	}
 	status = std::filesystem::remove(src);
@@ -370,8 +376,8 @@ Value StdLib::file_statistics(const std::vector<Value> &args, VM *vm)
 	}
 	catch (const std::exception &e)
 	{
-		// Log the actual error for debugging
-		std::cerr << "fstat error: " << e.what() << std::endl;
+		vm->logerr(std::format("fstat error: {}", e.what()));
+		vm->flusherr();
 		return Value(); // Return null on error
 	}
 }
