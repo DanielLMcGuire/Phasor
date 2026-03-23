@@ -5,7 +5,7 @@
 #include "../../Runtime/VM/VM.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 #include <string>
 #include <version.h>
@@ -45,7 +45,7 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 #elif defined(__APPLE__)
 	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	vm->initFFI("/opt/Phasor/plugins");
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
@@ -108,7 +108,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 
 	if (status != 0) {
 		if (ownVM) delete vm;
-		std::cout << "Failed to create FFI handler!";
+		std::println(std::cerr, "Failed to create FFI handler!");
 		return status;
 	}
 
@@ -117,18 +117,19 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	std::string line;
 	bool cleanExit = false;
 
-	std::cout << "Pulsar REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
-	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
+	std::println("Pulsar REPL (using Phasor VM v{})\n"
+	"(C) 2026 Daniel McGuire\n\n"
+	"Type 'exit();' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
 
 	
 	while (true)
 	{
 		try
 		{
-			std::cout << "\n> ";
+			std::print("\n> ");
 			if (!std::getline(std::cin, line))
 				break;
-				
+			
 			if (startsWith(line, "exit"))
 			{
 				cleanExit = true;
@@ -136,7 +137,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			}
 			if (line.empty())
 			{
-				std::cerr << "Empty line\n";
+				std::println(std::cerr, "Empty line");
 				continue;
 			}
 

@@ -1,7 +1,7 @@
 #include "../../../Runtime/Phasor/ScriptingRuntime.hpp"
 #include "../../../Runtime/Shared/BinaryRuntime.hpp"
 #include "../../../Frontend/Phasor/Frontend.hpp"
-#include <iostream>
+#include <print>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -34,22 +34,22 @@ namespace fs = std::filesystem;
 void showHelp(const fs::path &program = "phasor")
 {
 	const std::string programName = program.stem().string();
-	std::cout << "Phasor Programming Language\n";
-	std::cout << "Usage: [RAWSCRIPT] | " << programName << " [SCRIPT, BYTECODE]\n";
-	std::cout << "A. PIPE:    <text> | " << programName << "\n";
-	std::cout << "B. JIT/BYTECODE:     " << programName << " <file>\n";
-	std::cout << "C. REPL:             " << programName << "\n\n";
-	std::cout << "Example:\n";
+	std::println("Phasor Programming Language\n"
+	"Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
+	"A. PIPE:    <text> | {}\n"
+	"B. JIT/BYTECODE:     {} <file>\n"
+	"C. REPL:             {}\n\n"
+	"Example:", programName, programName, programName, programName);
 
 #ifdef _WIN32
-	std::cout << "A. CMD:  echo \"print(^\"Hi\\!\\n^\");\" | " << programName << "\n";
-	std::cout << "A. PWSH: echo \"print(`\"Hi\\!\n`\");\" | " << programName << "\n";
-	std::cout << "B.       " << programName << " hello.phs\n";
-	std::cout << "B.       " << programName << " hello.phsb" << std::endl;
+	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^);\" | {}\n"
+	"A. PWSH: echo \"print(`\"Hi\\!\\n`);\" | {}\n"
+	"B.       {} hello.phs\n"
+	"B.       {} hello.phsb", programName, programName, programName, programName);
 #else
-	std::cout << "A. echo \"print(\\\"Hi\\!\\n\\\");\" | " << programName << "\n";
-	std::cout << "B. " << programName << " hello.phs\n";
-	std::cout << "B. " << programName << " hello.phsb" << std::endl;
+	std::println("A. echo \"print(\\\"Hi\\!\\n\\\");\" | {}\n"
+	"B. {} hello.phs\n"
+	"B. {} hello.phsb", programName, programName, programName);
 #endif
 }
 
@@ -87,10 +87,10 @@ int main(int argc, char *argv[], char *envp[])
 					showHelp(program);
 					return 0;
 				}
-				std::cerr << "Invalid argument: " << m_path << "\n";
+				std::println(std::cerr, "Invalid argument: {}", m_path);
 			}
 			else
-				std::cerr << "File not found: " << raw << "\n";
+				std::println(std::cerr, "File not found: {}", raw);
 			return 1;
 		}
 
@@ -108,18 +108,18 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		else if (ext == ".phir")
 		{
-			std::cout << "Phasor IR (.phir) compilation not yet implemented.\n";
+			std::println("Phasor IR (.phir) compilation not yet implemented.");
 			return 0;
 		}
 		else
 		{
-			std::cerr << "Unknown extension: " << ext << "\n";
+			std::println(std::cerr, "Unknown extension: {}", ext);
 			return 1;
 		}
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Error: " << e.what() << "\n";
+		std::println(std::cerr, "Error: {}", e.what());
 		return 1;
 	}
 

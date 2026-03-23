@@ -1,6 +1,6 @@
 #include "../../../Runtime/Pulsar/ScriptingRuntime.hpp"
 #include "../../../Frontend/Pulsar/Frontend.hpp"
-#include <iostream>
+#include <nativeerror.h>
 
 int main(int argc, char *argv[], char *envp[])
 {
@@ -13,13 +13,12 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		else
 		{
-
 			pulsar::Frontend::runRepl();
 		}
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Error: " << e.what() << "\n";
+		error(e.what());
 		return 1;
 	}
 

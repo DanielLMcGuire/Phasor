@@ -5,7 +5,7 @@
 #include "../../Runtime/VM/VM.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 #include <string>
 #include <version.h>
@@ -30,9 +30,9 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	if (verbose)
 	{
 #endif
-		std::cout << "AST:\n";
+		std::println("AST:");
 		program->print();
-		std::cout << "\n";
+		std::println("");
 #ifndef TRACING
 	}
 #endif
@@ -118,7 +118,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 
 	if (status != 0) {
 		if (ownVM) delete vm;
-		std::cout << "Failed to create FFI handler!";
+		std::println(std::cerr, "Failed to create FFI handler!");
 		return status;
 	}
 
@@ -127,17 +127,18 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 	std::string line;
 	bool cleanExit = false;
 
-	std::cout << "Phasor REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
-	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
+	std::println("Phasor REPL (using Phasor VM v{})\n"
+	"(C) 2026 Daniel McGuire\n\n"
+	"Type 'exit();' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
 	
 	while (true)
 	{
 		try
 		{
-			std::cout << "\n> ";
+			std::print("\n> ");
 			if (!std::getline(std::cin, line))
 				break;
-				
+			
 			if (line.starts_with("exit"))
 			{
 				cleanExit = true;
@@ -145,7 +146,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 			}
 			if (line.empty())
 			{
-				std::cerr << "Empty line\n";
+				std::println(std::cerr, "Empty line");
 				continue;
 			}
 
@@ -157,9 +158,9 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 			if (verbose)
 			{
 #endif
-				std::cout << "AST:\n";
+				std::println("AST:");
 				program->print();
-				std::cout << "\n";
+				std::println("");
 #ifndef TRACING
 			}
 #endif

@@ -1,4 +1,5 @@
-#include <cstdio>
+#include <print>
+#include <iostream>
 
 #ifdef _WIN32
 #include <Windows.h>

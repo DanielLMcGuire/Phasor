@@ -6,7 +6,7 @@
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 
 namespace Phasor
@@ -20,11 +20,8 @@ CppCompiler::CppCompiler(int argc, char *argv[])
 int CppCompiler::run()
 {
 	if (!m_args.noLogo)
-	{
-		std::cout << "Phasor C++ Code Generator\n";
-		std::cout << "Copyright (c) 2026 Daniel McGuire\n";
-		std::cout << "\n";
-	}
+		std::println("Phasor C++ Code Generator\nCopyright (c) 2026 Daniel McGuire\n");
+	
 	if (m_args.showHelp)
 	{
 		showHelp("phasornative");
@@ -33,8 +30,7 @@ int CppCompiler::run()
 
 	if (m_args.inputFile.empty() && !(m_args.headerOnly || m_args.generateOnly))
 	{
-		std::cerr << "Error: No input file provided\n";
-		std::cerr << "Use --help for usage information\n";
+		std::println(std::cerr, "Error: No input file provided\nUse --help for usage information");
 		return 1;
 	}
 
@@ -63,10 +59,9 @@ int CppCompiler::run()
 
 	if (m_args.verbose)
 	{
-		std::cout << "Input file: " << m_args.inputFile << "\n";
-		std::cout << "Output file: " << m_args.outputFile << "\n";
+		std::println("Input file: {}\nOutput file: {}", m_args.inputFile.string(), m_args.outputFile.string());
 		if (!m_args.moduleName.empty())
-			std::cout << "Module name: " << m_args.moduleName << "\n";
+			std::println("Module name: {}", m_args.moduleName);
 	}
 
 	if (m_args.headerOnly)
@@ -90,41 +85,41 @@ int CppCompiler::run()
 		return 0;
 	}
 
-	std::cout << "Generating wrapper...\n";
+	std::println("Generating wrapper...");
 
 	if (generateHeader(m_args.inputFile, m_args.moduleName + ".h"))
-		std::cout << m_args.inputFile << " -> " << m_args.moduleName + ".h\n";
+		std::println("{} -> {}.h", m_args.inputFile.string(), m_args.moduleName);
 	else
 	{
-		std::cerr << "Error: Could not generate header file\n";
+		std::println(std::cerr, "Error: Could not generate header file");
 		return 1;
 	}
 
 	if (generateSource(m_args.mainFile, m_args.moduleName + ".cpp"))
-		std::cout << m_args.mainFile.filename() << " -> " << m_args.moduleName + ".cpp\n\n";
+		std::println("{} -> {}.cpp\n", m_args.mainFile.filename().string(), m_args.moduleName);
 	else
 	{
-		std::cerr << "Could not generate source file\n";
+		std::println(std::cerr, "Could not generate source file");
 		return 1;
 	}
 
-	std::cout << "Compiling...\n";
-	std::cout << "[COMPILER] ";
+	std::println("Compiling...");
+	std::print("[COMPILER] ");
 	if (compileSource(m_args.moduleName + ".cpp", m_args.moduleName + ".obj"))
-		std::cout << m_args.moduleName + ".cpp -> " << m_args.moduleName + ".obj\n\n";
+		std::println("{}.cpp -> {}.obj\n", m_args.moduleName, m_args.moduleName);
 	else
 	{
-		std::cerr << "Could not compile program\n";
+		std::println(std::cerr, "Could not compile program");
 		return 1;
 	}
 
-	std::cout << "Linking...\n";
-	std::cout << "[LINKER] ";
+	std::println("Linking...");
+	std::print("[LINKER] ");
 	if (linkObject(m_args.moduleName + ".obj", m_args.outputFile))
-		std::cout << m_args.moduleName + ".obj -> " << m_args.outputFile << "\n";
+		std::println("{}.obj -> {}", m_args.moduleName, m_args.outputFile.string());
 	else
 	{
-		std::cerr << "Could not link program\n";
+		std::println(std::cerr, "Could not link program");
 		return 1;
 	}
 
@@ -154,7 +149,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
 			}
@@ -183,7 +178,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
 			}
@@ -208,7 +203,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
 			}
@@ -221,7 +216,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
 			}
@@ -232,7 +227,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 		}
 		else if (arg[0] == '-')
 		{
-			std::cerr << "Error: Unknown option: " << arg << "\n";
+			std::println(std::cerr, "Error: Unknown option: {}", arg);
 			m_args.showHelp = true;
 			return true;
 		}
@@ -243,7 +238,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 				m_args.inputFile = arg;
 			else
 			{
-				std::cerr << "Error: Multiple input files specified\n";
+				std::println(std::cerr, "Error: Multiple input files specified");
 				m_args.showHelp = true;
 				return true;
 			}
@@ -254,25 +249,25 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 
 bool CppCompiler::showHelp(const std::string &programName)
 {
-	std::cout << "Usage:\n";
-	std::cout << "  " << programName << " [options] <input.phs>\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -c, --compiler <name>   Compiler to use (default: g++)\n";
-	std::cout << "  -l, --linker <name>     Linker to use (default: g++)\n";
-	std::cout << "  -s, --source <name>     The source file to compile with\n";
-	std::cout << "  -o, --output <file>   Output file\n";
-	std::cout << "  -m, --module <name>   Module name for generated code (default: input filename)\n";
-	std::cout << "  -H, --header-only     Generate header file only\n";
-	std::cout << "  -g, --generate-only   Generate source file only\n";
-	std::cout << "  -O, --object-only     Generate and compile to object only\n";
-	std::cout << "  -v, --verbose         Enable verbose output\n";
-	std::cout << "  -h, --help            Show this help message\n";
-	std::cout << "  -n, --nologo          Do not show banner\n\n";
-	std::cout << "Example:\n";
-	std::cout << "  " << programName << " program.phs -o program.exe -c clang++ -l lld\n";
-	std::cout << "  " << programName << " -O program.phs -o program.obj -c clang++\n";
-	std::cout << "  " << programName << " -H program.phs -o program.hpp\n";
-	std::cout << "  " << programName << " -g program.phs -o program.cpp\n";
+	std::println("Usage:\n"
+	"  {} [options] <input.phs>\n\n"
+	"Options:\n"
+	"  -c, --compiler <name>   Compiler to use (default: g++)\n"
+	"  -l, --linker <name>     Linker to use (default: g++)\n"
+	"  -s, --source <name>     The source file to compile with\n"
+	"  -o, --output <file>   Output file\n"
+	"  -m, --module <name>   Module name for generated code (default: input filename)\n"
+	"  -H, --header-only     Generate header file only\n"
+	"  -g, --generate-only   Generate source file only\n"
+	"  -O, --object-only     Generate and compile to object only\n"
+	"  -v, --verbose         Enable verbose output\n"
+	"  -h, --help            Show this help message\n"
+	"  -n, --nologo          Do not show banner\n\n"
+	"Example:\n"
+	"  {} program.phs -o program.exe -c clang++ -l lld\n"
+	"  {} -O program.phs -o program.obj -c clang++\n"
+	"  {} -H program.phs -o program.hpp\n"
+	"  {} -g program.phs -o program.cpp", programName, programName, programName, programName, programName);
 	return true;
 }
 
@@ -290,12 +285,12 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 		{
 			// Read source file
 			if (m_args.verbose)
-				std::cout << "Reading source file...\n";
+				std::println("Reading source file...");
 
 			std::ifstream file(sourcePath);
 			if (!file.is_open())
 			{
-				std::cerr << "Error: Could not open input file: " << sourcePath << "\n";
+				std::println(std::cerr, "Error: Could not open input file: {}", sourcePath.string());
 				return false;
 			}
 
@@ -306,21 +301,21 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 
 			// Lex
 			if (m_args.verbose)
-				std::cout << "Lexing...\n";
+				std::println("Lexing...");
 
 			Lexer lexer(source);
 			auto  tokens = lexer.tokenize();
 
 			// Parse
 			if (m_args.verbose)
-				std::cout << "Parsing...\n";
+				std::println("Parsing...");
 
 			Parser parser(tokens, sourcePath);
 			auto   program = parser.parse();
 
 			// Generate bytecode
 			if (m_args.verbose)
-				std::cout << "Generating bytecode...\n";
+				std::println("Generating bytecode...");
 
 			CodeGenerator codegen;
 			bytecode = codegen.generate(*program);
@@ -328,38 +323,39 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 
 		if (bytecode.instructions.empty())
 		{
-			std::cerr << "Error: No instructions generated\n";
+			std::println(std::cerr, "Error: No instructions generated");
 			return false;
 		}
 
 		if (m_args.verbose)
 		{
-			std::cout << "Bytecode statistics:\n";
-			std::cout << "  Instructions: " << bytecode.instructions.size() << "\n";
-			std::cout << "  Constants: " << bytecode.constants.size() << "\n";
-			std::cout << "  Variables: " << bytecode.variables.size() << "\n";
-			std::cout << "  Functions: " << bytecode.functionEntries.size() << "\n";
+			std::println("Bytecode statistics:\n"
+			"  Instructions: {}\n"
+			"  Constants: {}\n"
+			"  Variables: {}\n"
+			"  Functions: {}", bytecode.instructions.size(), bytecode.constants.size(),
+			bytecode.variables.size(), bytecode.functionEntries.size());
 		}
 
 		// Generate C++ code
 		if (m_args.verbose)
-			std::cout << "Generating C++ code...\n";
+			std::println("Generating C++ code...");
 
 		CppCodeGenerator cppGen;
 		bool             success = cppGen.generate(bytecode, outputPath, m_args.moduleName);
 
 		if (!success)
 		{
-			std::cerr << "Error: Failed to generate C++ code\n";
+			std::println(std::cerr, "Error: Failed to generate C++ code");
 			return false;
 		}
 
 		if (m_args.verbose)
-			std::cout << "Successfully generated: " << outputPath << "\n";
+			std::println("Successfully generated: {}", outputPath.string());
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Compilation Error: " << e.what() << "\n";
+		std::println(std::cerr, "Compilation Error: {}", e.what());
 		return false;
 	}
 	return true;
@@ -370,7 +366,7 @@ bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const 
 	std::ifstream file(sourcePath);
 	if (!file.is_open())
 	{
-		std::cerr << "Error: Could not open input file: " << sourcePath << "\n";
+		std::println(std::cerr, "Error: Could not open input file: {}", sourcePath.string());
 		return false;
 	}
 
@@ -382,7 +378,7 @@ bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const 
 	std::ofstream outputFile(outputPath);
 	if (!outputFile.is_open())
 	{
-		std::cerr << "Error: Could not open output file: " << outputPath << "\n";
+		std::println(std::cerr, "Error: Could not open output file: {}", outputPath.string());
 		return false;
 	}
 
@@ -419,7 +415,7 @@ bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const s
 
 	else
 	{
-		std::cerr << "Error: Unknown compiler: " << m_args.compiler << "\n";
+		std::println(std::cerr, "Error: Unknown compiler: {}", m_args.compiler);
 		return false;
 	}
 
@@ -432,7 +428,7 @@ bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const s
 	command += " " + sourcePath.string();
 	if (std::system(command.c_str()) != 0)
 	{
-		std::cerr << "Error: Compilation failed\n";
+		std::println(std::cerr, "Error: Compilation failed");
 		return false;
 	}
 
@@ -449,7 +445,7 @@ bool CppCompiler::linkObject(const std::filesystem::path &objectPath, const std:
 		command += "-flto -pthread -Wl,--gc-sections -o " + outputPath.string();
 	else
 	{
-		std::cerr << "Error: Unknown linker: " << m_args.linker << "\n";
+		std::println(std::cerr, "Error: Unknown linker: {}", m_args.linker);
 		return false;
 	}
 	return (std::system(command.c_str()) == 0);

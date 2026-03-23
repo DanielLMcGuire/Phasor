@@ -1,5 +1,5 @@
 #include "../../../Frontend/Phasor/Frontend.hpp"
-#include <iostream>
+#include <nativeerror.h>
 
 int main(int argc, char *argv[], char *envp[])
 {
@@ -9,7 +9,7 @@ int main(int argc, char *argv[], char *envp[])
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error: " << e.what() << "\n";
+        error(e.what());
         return 1;
     }
 }

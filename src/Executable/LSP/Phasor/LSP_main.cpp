@@ -1,8 +1,8 @@
 #include "../../../LSP/Phasor/LSP.hpp"
 #include <json.hpp>
-#include <iostream>
 #include <string>
 #include <stdexcept>
+#include <nativeerror.h>
 #ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>

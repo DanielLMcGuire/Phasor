@@ -1,5 +1,5 @@
 #include "../../../Compiler/Shared/Assembler.hpp"
-#include <iostream>
+#include <nativeerror.h>
 
 int main(int argc, char *argv[])
 {
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Error: " << e.what() << "\n";
+		error(e.what());
 		return 1;
 	}
 
