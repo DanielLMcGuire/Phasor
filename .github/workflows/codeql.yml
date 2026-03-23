@@ -32,8 +32,9 @@ jobs:
     - name: Install CMake and build tools
       if: matrix.language == 'c-cpp'
       run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential ninja-build
+        sudo apt-get install -y cmake build-essential ninja-build g++-14
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
@@ -47,7 +48,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DASSEMBLY=OFF -G Ninja
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DASSEMBLY=OFF -G Ninja -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14
         cmake --build . -- 
 
     - name: Perform CodeQL Analysis

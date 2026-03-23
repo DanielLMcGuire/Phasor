@@ -18,8 +18,8 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
-            c_compiler: gcc
-            cpp_compiler: g++
+            c_compiler: gcc-14
+            cpp_compiler: g++-14
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
@@ -33,6 +33,13 @@ jobs:
       uses: egor-tensin/vs-shell@v2
       with:
         arch: x64
+
+    - name: Install GCC 14 (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+        sudo apt-get install -y g++-14
     
     - name: Configure (macOS)
       if: matrix.os == 'macos-latest'
@@ -51,5 +58,3 @@ jobs:
     - name: Test 
       shell: bash
       run: ./build/src/Executable/phasor ./scripts/unittest.phs
-
-
