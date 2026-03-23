@@ -156,7 +156,7 @@ This repo contains:
 ### Prerequisites
 
 - CMake 3.10+
-- C++20 compiler (MSVC, GCC, Clang)
+- C++23 compiler (MSVC, GCC, Clang)
 - Ninja
 
 ### Build Steps
