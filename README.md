@@ -123,6 +123,8 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 - **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
 - **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
 - **JIT Runtime** ([`phasorjit`](https://phasor-docs.pages.dev/man?f=phasorjit.1)) - Direct script executor
+- **Disassembler** ([`phasordecomp`](https://phasor-docs.pages.dev/man?f=phasordecomp.1))
+- **Assembler** ([`phasorasm`](https://phasor-docs.pages.dev/man?f=phasorasm.1))
 
 ---
 
