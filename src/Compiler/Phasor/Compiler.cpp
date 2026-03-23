@@ -45,7 +45,7 @@ int Compiler::compileToBytecode()
 	std::ifstream file(m_args.inputFile);
 	if (!file.is_open())
 	{
-		println(std::cerr, "Could not open file: {}", m_args.inputFile.c_str());
+		println(std::cerr, "Could not open file: {}", m_args.inputFile);
 		return 1;
 	}
 
