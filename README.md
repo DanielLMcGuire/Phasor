@@ -176,6 +176,8 @@ This repo contains:
 
 **Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
 
+[GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
+
 - Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
