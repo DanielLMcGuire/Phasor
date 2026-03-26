@@ -1,7 +1,8 @@
 # Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
-![GitHub Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor)
-![AUR Version](https://img.shields.io/aur/version/phasor)
+[![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor)](https://phasor.pages.dev/downloads?version=latest)
+[![AUR Version](https://img.shields.io/aur/version/phasor)](https://aur.archlinux.org/packages/phasor)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/Phasor.phasor-programming-language?label=VSCODE%20version)](https://marketplace.visualstudio.com/items?itemName=Phasor.phasor-programming-language)
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master)
 
 A statically typed, compiled programming language with a fast bytecode virtual machine.
@@ -11,8 +12,6 @@ Phasor *does not* have a traditional garbage collector, the entire toolchain mak
 Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs some work.
 
 You can check out the [website](https://phasor.pages.dev/) as well.
-
-[Download Phasor](https://phasor.pages.dev/downloads?version=latest)
 
 [Download Phasor Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
 
