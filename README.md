@@ -1,5 +1,9 @@
 # Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
+![GitHub Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor)
+![AUR Version](https://img.shields.io/aur/version/phasor)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master)
+
 A statically typed, compiled programming language with a fast bytecode virtual machine.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides RAII support to the runtime.
