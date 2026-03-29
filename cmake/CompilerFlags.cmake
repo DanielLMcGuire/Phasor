@@ -34,8 +34,17 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 else()
-    set(COMMON_OPT
-        "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
+    if(NIX)
+        set(COMMON_OPT
+            "-O3 -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
+        )
+    else()
+        set(COMMON_OPT
+            "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
+        )
+    endif()  
+    set(COMMON_OPT_NIX
+        "-O3 -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
     )
     set(COMMON_FP
         "-fno-fast-math"
@@ -46,15 +55,13 @@ else()
     set(COMMON_CXX_LANG
         "-fexceptions -frtti"
     )
-    
     set(CMAKE_C_FLAGS_RELEASE
         "${COMMON_OPT} ${COMMON_FP} -march=native"
     )
-
     set(CMAKE_CXX_FLAGS_RELEASE
         "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
     )
-    
+ 
     if(APPLE)
         set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
         set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
