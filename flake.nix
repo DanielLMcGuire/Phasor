@@ -18,6 +18,10 @@
             pkgs.ninja
           ];
           cmakeFlags = [ "-DNIX=ON" ];
+	  postInstall = ''
+	  mkdir -p $out/bin
+    	  find $out -type f -name "phasor" -exec ln -sf {} $out/bin/phasor \;
+  	  '';
         };
       }
     );
