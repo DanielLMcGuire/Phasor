@@ -57,7 +57,7 @@ else()
     )
     if(NIX)
         set(CMAKE_C_FLAGS_RELEASE
-            "${COMMON_OPT} ${COMMON_FP"
+            "${COMMON_OPT} ${COMMON_FP}"
         )
     else()
         set(CMAKE_C_FLAGS_RELEASE
