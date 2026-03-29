@@ -59,14 +59,18 @@ else()
         set(CMAKE_C_FLAGS_RELEASE
             "${COMMON_OPT} ${COMMON_FP}"
         )
+        set(CMAKE_CXX_FLAGS_RELEASE
+            "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN}"
+        )
     else()
         set(CMAKE_C_FLAGS_RELEASE
             "${COMMON_OPT} ${COMMON_FP} -march=native"
         )
+        set(CMAKE_CXX_FLAGS_RELEASE
+            "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
+        )
     endif()
-    set(CMAKE_CXX_FLAGS_RELEASE
-        "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
-    )
+    
  
     if(APPLE)
         set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
