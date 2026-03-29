@@ -55,9 +55,15 @@ else()
     set(COMMON_CXX_LANG
         "-fexceptions -frtti"
     )
-    set(CMAKE_C_FLAGS_RELEASE
-        "${COMMON_OPT} ${COMMON_FP} -march=native"
-    )
+    if(NIX)
+        set(CMAKE_C_FLAGS_RELEASE
+            "${COMMON_OPT} ${COMMON_FP"
+        )
+    else()
+        set(CMAKE_C_FLAGS_RELEASE
+            "${COMMON_OPT} ${COMMON_FP} -march=native"
+        )
+    endif()
     set(CMAKE_CXX_FLAGS_RELEASE
         "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
     )
