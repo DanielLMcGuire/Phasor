@@ -139,9 +139,9 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 This repo contains:
 
 - Frontend:
-  - [Phasor Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Phasor) ([Specifications](https://github.com/DanielLMcGuire/Phasor/blob/master/docs/man/man5/PHS.5), C++)
+  - [Phasor Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Phasor) ([Specifications](https://phasor-docs.pages.dev/man?f=PHS.5), C++)
   - [Pulsar Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Pulsar) (C++)
-  - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://github.com/DanielLMcGuire/Phasor/blob/master/docs/man/man7/phasor-isa.7), C/C++/Assembly)
+  - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
   - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
  
 - Backend:
@@ -153,7 +153,7 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
-- Python module `scripts/phasor`
+- [Python module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `scripts/phasor` 
 
 ---
 
