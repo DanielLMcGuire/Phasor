@@ -1,11 +1,23 @@
-packages.default = pkgs.stdenv.mkDerivation {
-  pname = "phasor";
-  version = "3.1.0";
+{
+  description = "Phasor";
 
-  src = ./.;
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  };
 
-  nativeBuildInputs = [
-    pkgs.cmake
-    pkgs.ninja
-  ];
-};
+  outputs = { self, nixpkgs }: 
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      packages.${system}.default = pkgs.stdenv.mkDerivation {
+        pname = "phasor";
+        version = "3.1.0";
+        src = ./.;
+        nativeBuildInputs = [
+          pkgs.cmake
+          pkgs.ninja
+        ];
+      };
+    };
+}
