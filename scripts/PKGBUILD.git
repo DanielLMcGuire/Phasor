@@ -2,7 +2,7 @@
 pkgname=phasor-git
 PACKAGER="Daniel McGuire <danielmcguire2023@gmail.com>"
 pkgver=3.1.1.git
-pkgrel=2
+pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
 url="https://github.com/DanielLMcGuire/Phasor"
