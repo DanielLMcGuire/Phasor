@@ -50,7 +50,7 @@ int VM::run(const Bytecode &bc)
 		catch (const std::exception &e)
 		{
 #ifdef TRACING
-			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n\n", __func__, getInformation()));
+			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
 			flusherr();
 #endif
 			status = 1;
