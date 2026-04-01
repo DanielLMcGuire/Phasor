@@ -143,6 +143,7 @@ This repo contains:
   - [Pulsar Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Pulsar) (C++)
   - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
   - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
+  - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web)
  
 - Backend:
   - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Backend) (C++)
