@@ -1,0 +1,30 @@
+{
+  "name": "phasorweb",
+  "version": "1.0.0",
+  "description": "Provides a POST api for Phasor",
+  "license": "Apache-2.0",
+  "author": "Daniel McGuire",
+  "type": "module",
+  "bin": {
+        "phasorweb": "dist/phasorweb.min.mjs"
+    },
+  "files": ["dist/*.min.mjs"],
+  "scripts": {
+    "build": "tsc && terser dist/phasorweb.mjs -o dist/phasorweb.min.mjs && terser dist/routes.mjs -o dist/routes.min.mjs",
+    "start": "node dist/phasorweb.min.mjs",
+    "test": "tsx phasorweb.test.mts"
+  },
+  "imports": {
+    "#phasorweb/server": "./phasorweb.mjs",
+    "#phasorweb/routes": "./routes.mjs"
+  },
+  "dependencies": {
+    "zorvix": "^1.8.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "terser": "^5.46.1"
+  }
+}
