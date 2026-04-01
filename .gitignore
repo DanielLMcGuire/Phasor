@@ -17,7 +17,6 @@ RC[a-z][0-9][0-9][0-9][0-9][0-9]
 *.md5
 *.pdf
 *.AppImage
-package-lock.json
 *.js
 *.js.map
 build/
