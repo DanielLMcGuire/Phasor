@@ -11,6 +11,16 @@
             }
         },
         {
+            "name": "base-linux",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "inherits": "base",
+            "cacheVariables": {
+                "CLANG_USES_LLVM_RUNTIME": "OFF"
+            }
+        },
+        {
             "name": "cfg-macos-arm",
             "hidden": true,
             "inherits": "base",
@@ -89,7 +99,7 @@
         {
             "name": "cfg-linux-x64",
             "hidden": true,
-            "inherits": "base",
+            "inherits": "base-linux",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
@@ -103,7 +113,7 @@
         {
             "name": "cfg-linux-x86",
             "hidden": true,
-            "inherits": "base",
+            "inherits": "base-linux",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
@@ -117,7 +127,7 @@
         {
             "name": "cfg-linux-arm64",
             "hidden": true,
-            "inherits": "base",
+            "inherits": "base-linux",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",

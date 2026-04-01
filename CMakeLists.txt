@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
+cmake_policy(SET CMP0091 NEW)
 project(Phasor VERSION 3.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -23,6 +24,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_D
 option(ASSEMBLY "Enable assembly for core code" ON)
 option(IS_TRACING "Enable VM tracing to stdout" OFF)
 option(IS_TRACING_STACK "Enable VM stack tracing to stdout" OFF)
+option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)

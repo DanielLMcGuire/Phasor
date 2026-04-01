@@ -1,92 +1,106 @@
 if(MSVC)
-    if(IS_XBOX)
-        if(IS_XDURANGO)
-            set(CMAKE_C_FLAGS_RELEASE
-                "/O2 /Oi /Ot /GL /Ob3 /Gy /MT /fp:precise /arch:SSE2 /Qspectre-"
-            )
-            set(CMAKE_CXX_FLAGS_RELEASE
-                "/O2 /Oi /Ot /GL /Gy /Ob3 /MT /fp:precise /arch:SSE2 /EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN"
-            )
+    if(IS_XBOX OR STATIC)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+    endif()
+
+    set(MSVC_COMMON_RELEASE "/O2 /Oi /Ot /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
+    set(MSVC_COMMON_DEBUG   "/Od /Zi /fp:strict")
+
+    set(MSVC_CXX_EXTRA "/EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN")
+
+    if(IS_XBOX AND IS_XDURANGO)
+        set(MSVC_ARCH "/arch:SSE2")
+    else()
+        set(MSVC_ARCH "/arch:AVX2")
+    endif()
+
+    set(CMAKE_C_FLAGS_RELEASE   "${MSVC_COMMON_RELEASE} ${MSVC_ARCH}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${MSVC_COMMON_RELEASE} ${MSVC_ARCH} ${MSVC_CXX_EXTRA}")
+
+    set(CMAKE_C_FLAGS_DEBUG     "${MSVC_COMMON_DEBUG}")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${MSVC_COMMON_DEBUG} ${MSVC_CXX_EXTRA}")
+
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "/LTCG /OPT:REF /OPT:ICF")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/LTCG /OPT:REF /OPT:ICF")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG      "/DEBUG")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "/DEBUG")
+
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(LTO_FLAG "-flto=thin")
+    else()
+        set(LTO_FLAG "-flto")
+    endif()
+
+    set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers")
+    set(COMMON_FP   "-fno-fast-math")
+    set(COMMON_WARN "-Wall -Wextra -pedantic")
+    set(COMMON_CXX_LANG "-fexceptions -frtti")
+
+    if(NIX)
+        set(PLATFORM_OPT "${COMMON_OPT} -ffunction-sections -fdata-sections")
+    else()
+        set(PLATFORM_OPT "${COMMON_OPT}")
+    endif()
+
+    if(STATIC)
+        set(STATIC_FLAG "-static")
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CLANG_USES_LLVM_RUNTIME)
+            set(STATIC_LIBS "-static-libc++ -rtlib=compiler-rt -unwindlib=libunwind")
         else()
-            set(CMAKE_C_FLAGS_RELEASE
-                "/O2 /Oi /Ot /GL /Gy /Ob3 /MT /fp:precise /arch:AVX2 /Qspectre-"
-            )
-            set(CMAKE_CXX_FLAGS_RELEASE
-                "/O2 /Oi /Ot /GL /Gy /Ob3 /MT /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN"
-            )
+            set(STATIC_LIBS "-static-libstdc++ -static-libgcc")
         endif()
     else()
-        set(CMAKE_C_FLAGS_RELEASE
-            "/O2 /Oi /Ot /GL /Gy /Ob3 /fp:precise /arch:AVX2 /Qspectre-"
-        )
-        set(CMAKE_CXX_FLAGS_RELEASE
-            "/O2 /Oi /Ot /GL /Gy /Ob3 /fp:precise /arch:AVX2 /EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN"
-        )
+        set(STATIC_FLAG "")
+        set(STATIC_LIBS "")
     endif()
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE
-        "/LTCG /OPT:REF /OPT:ICF"
-    )
-    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE
-        "/LTCG /OPT:REF /OPT:ICF"
-    )
-    set(CMAKE_C_FLAGS_DEBUG "/Od /MTd /Zi /fp:strict")
-    set(CMAKE_CXX_FLAGS_DEBUG "/Od /MTd /Zi /fp:strict /EHsc /DNOMINMAX /DWIN32_LEAN_AND_MEAN")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
-    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
-else()
-    if(NIX)
-        set(COMMON_OPT
-            "-O3 -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
-        )
-    else()
-        set(COMMON_OPT
-            "-O3 -flto -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
-        )
-    endif()  
-    set(COMMON_OPT_NIX
-        "-O3 -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers"
-    )
-    set(COMMON_FP
-        "-fno-fast-math"
-    )
-    set(COMMON_WARN
-        "-Wall -Wextra -pedantic -Wno-nan-infinity-disabled"
-    )
-    set(COMMON_CXX_LANG
-        "-fexceptions -frtti"
-    )
+
     if(NIX)
         set(CMAKE_C_FLAGS_RELEASE
-            "${COMMON_OPT} ${COMMON_FP}"
+            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN}"
         )
         set(CMAKE_CXX_FLAGS_RELEASE
-            "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN}"
+            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN}"
         )
     else()
         set(CMAKE_C_FLAGS_RELEASE
-            "${COMMON_OPT} ${COMMON_FP} -march=native"
+            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=native"
         )
         set(CMAKE_CXX_FLAGS_RELEASE
-            "${COMMON_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
+            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
         )
     endif()
-    
- 
+
     if(APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
-        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,-dead_strip")
+        set(EXE_LINKER_FLAGS    "-Wl,-dead_strip ${STATIC_FLAG} ${STATIC_LIBS}")
+        set(SHARED_LINKER_FLAGS "-Wl,-dead_strip ${STATIC_LIBS}")
     elseif(WIN32)
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
-        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "")
+        set(EXE_LINKER_FLAGS    "${STATIC_FLAG} ${STATIC_LIBS}")
+        set(SHARED_LINKER_FLAGS "${STATIC_LIBS}")
     else()
-        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,--gc-sections")
-        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "-Wl,--gc-sections")
+        set(EXE_LINKER_FLAGS    "-Wl,--gc-sections ${STATIC_FLAG} ${STATIC_LIBS}")
+        set(SHARED_LINKER_FLAGS "-Wl,--gc-sections ${STATIC_LIBS}")
     endif()
-    
+
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "${EXE_LINKER_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${SHARED_LINKER_FLAGS}")
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND APPLE)
+        set(DEBUG_INFO "-glldb")
+    else()
+        set(DEBUG_INFO "-g")
+    endif()
+
     set(CMAKE_C_FLAGS_DEBUG
-        "-O0 -g -fno-omit-frame-pointer"
+        "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fno-fast-math"
     )
     set(CMAKE_CXX_FLAGS_DEBUG
-        "-O0 -g -fno-omit-frame-pointer -fexceptions -frtti"
+        "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fexceptions -frtti -fno-fast-math"
     )
+
+else()
+    message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. No custom flags applied.")
 endif()
