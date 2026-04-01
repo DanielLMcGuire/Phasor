@@ -60,10 +60,6 @@ shutdown(code); // from stdsys
 
 ---
 
-Anything below this line may be partially AI generated, I don't care about docs
-
----
-
 ## Quick Start
 
 ```bash
@@ -103,7 +99,7 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 > [!NOTE]
 >
-> Documentation may be partially AI generated, always confirm the feature works first
+> Documentation may be partially AI generated, always confirm the feature works first!!
 >
 > This will change once I have more time for this project
 
