@@ -19,9 +19,7 @@ namespace Phasor
 
 void StdLib::registerSysFunctions(VM *vm)
 {
-	vm->registerNativeFunction("time", StdLib::sys_time);
-	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
-	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
+#ifndef SANDBOXED
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
@@ -33,8 +31,12 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_fork_detached", StdLib::sys_fork_detached);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
-	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
+#endif
+	vm->registerNativeFunction("time", StdLib::sys_time);
+	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
+	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
+	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 }
 
 Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
@@ -78,6 +80,7 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *vm)
 	return Value(" ");
 }
 
+#ifndef SANDBOXED
 Value StdLib::sys_os(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_os");
@@ -194,14 +197,6 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 	return Value();
 }
 
-Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "shutdown");
-	int ret = static_cast<int>(args[0].asInt());
-	vm->setStatus(ret);
-	throw VM::Halt();
-}
-
 Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_pid");
@@ -210,6 +205,16 @@ Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
 #else
 	return static_cast<int64_t>(getpid());
 #endif
+}
+
+#endif
+
+Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "shutdown");
+	int ret = static_cast<int>(args[0].asInt());
+	vm->setStatus(ret);
+	throw VM::Halt();
 }
 
 } // namespace Phasor

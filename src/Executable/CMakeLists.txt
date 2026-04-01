@@ -95,39 +95,41 @@ set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
 
 endif()
 
-if(WIN32)
-    add_executable(phasor_winapi_gen
-        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/bindgen_main.cpp
-    )
-    set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
+if (NOT IS_SANDBOXED)
+    if(WIN32)
+        add_executable(phasor_winapi_gen
+            ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/bindgen_main.cpp
+        )
+        set_target_properties(phasor_winapi_gen PROPERTIES OUTPUT_NAME winapi-gen-phs)
 
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
-        COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
-        DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
-        COMMENT "Generating win32 bindings src/Executable/Bindings/win32/winapi_main.cpp"
-    )
+        add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
+            COMMAND $<TARGET_FILE:phasor_winapi_gen> ${CMAKE_SOURCE_DIR}/scripts/winapi.h -o ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
+            DEPENDS ${CMAKE_SOURCE_DIR}/scripts/winapi.h phasor_winapi_gen
+            COMMENT "Generating win32 bindings src/Executable/Bindings/win32/winapi_main.cpp"
+        )
 
-    add_library(phasor_winapi_bindings SHARED
-        ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
-        ${CMAKE_SOURCE_DIR}/src/Bindings/win32/handle.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/main.rc
-        ${CMAKE_SOURCE_DIR}/scripts/winapi.h
-    )
-    set_target_properties(phasor_winapi_bindings PROPERTIES 
-        OUTPUT_NAME winapi_phs
-    )
-    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
-    install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
-else()
-    add_library(phasor_posix_bindings SHARED
-        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
-    )
-    set_target_properties(phasor_posix_bindings PROPERTIES 
-        OUTPUT_NAME posix_phs
-    )
-    install(TARGETS phasor_posix_bindings
-        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
-        RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
-    )
+        add_library(phasor_winapi_bindings SHARED
+            ${CMAKE_CURRENT_BINARY_DIR}/src/Executable/Bindings/win32/winapi_main.cpp
+            ${CMAKE_SOURCE_DIR}/src/Bindings/win32/handle.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/main.rc
+            ${CMAKE_SOURCE_DIR}/scripts/winapi.h
+        )
+        set_target_properties(phasor_winapi_bindings PROPERTIES 
+            OUTPUT_NAME winapi_phs
+        )
+        install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
+        install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
+    else()
+        add_library(phasor_posix_bindings SHARED
+            ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
+        )
+        set_target_properties(phasor_posix_bindings PROPERTIES 
+            OUTPUT_NAME posix_phs
+        )
+        install(TARGETS phasor_posix_bindings
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+            RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
+        )
+    endif()
 endif()

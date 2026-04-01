@@ -11,7 +11,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <platform.h>
-#include "../FFI/ffi.hpp"
+#ifndef SANDBOXED
+	#include "../FFI/ffi.hpp"
+#endif
 
 #ifdef TRACING
 #include <format>
@@ -62,7 +64,9 @@ class VM
 	}
 
 	inline void initFFI(const std::filesystem::path &path) {
+#ifndef SANDBOXED
 		ffi = std::make_unique<FFI>(path, this);
+#endif
 	}
 
 	/// @class Halt
@@ -243,12 +247,13 @@ class VM
 	}
 
   private:
+#ifndef SANDBOXED
 	/// @brief FFI
 	std::unique_ptr<FFI> ffi;
-
+#endif
     /// @brief Exit code
 	int status = 0;
-
+	
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
 

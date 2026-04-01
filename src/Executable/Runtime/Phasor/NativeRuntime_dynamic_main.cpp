@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <nativeerror.h>
 
 #ifdef _WIN32
 #include <windows.h>

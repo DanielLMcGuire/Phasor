@@ -32,7 +32,9 @@ class StdLib
 		vm.flush();
 #endif
 		vm.registerNativeFunction("using", std_import);
+#ifndef SANDBOXED
 		vm.registerNativeFunction("assert", std_assert);
+#endif
 	}
 
 	static char **argv; ///< Command line arguments
@@ -43,10 +45,14 @@ class StdLib
 	                          bool allowMoreArguments = false);
   private:
 	static Value std_import(const std::vector<Value> &args, VM *vm);
+#ifndef SANDBOXED
 	static Value std_assert(const std::vector<Value> &args, VM *vm);
+#endif
 
 #ifndef __EMSCRIPTEN__
+#ifndef SANDBOXED
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
+#endif
 
 	static void registerMathFunctions(VM *vm);
 	static void registerStringFunctions(VM *vm);
@@ -70,6 +76,7 @@ class StdLib
 	static Value math_cos(const std::vector<Value> &args, VM *vm);   ///< Cosine
 	static Value math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
 
+#ifndef SANDBOXED
 	// File IO
 	static Value file_absolute(const std::vector<Value> &args, VM *vm);     ///< Get full path to relative path
 	static Value file_read(const std::vector<Value> &args, VM *vm);              ///< Read file
@@ -92,10 +99,6 @@ class StdLib
 	static Value file_remove_directory(const std::vector<Value> &args, VM *vm);
 
 	// System (meaning VM/CRT more than actual system)
-	static Value sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
-	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
-	static Value sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
-	static Value sys_os(const std::vector<Value> &args, VM *vm);             ///< Get the current OS
 	static Value sys_env(const std::vector<Value> &args, VM *vm);            ///< Get the current environment variables
 	static Value sys_argv(const std::vector<Value> &args, VM *vm);           ///< Get the current command line arguments
 	static Value system_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
@@ -106,8 +109,13 @@ class StdLib
 	static Value sys_fork_detached(const std::vector<Value> &args, VM *vm); ///< Run a native program detached
 	static Value sys_crash(const std::vector<Value> &args, VM *vm);    ///< Crash the VM / Program
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);    ///< Reset the VM
-	static Value sys_shutdown(const std::vector<Value> &args, VM *vm); ///< Shutdown the VM
 	static Value sys_pid(const std::vector<Value> &args, VM *vm);      ///< Get the current process ID
+	static Value sys_os(const std::vector<Value> &args, VM *vm);             ///< Get the current OS
+#endif
+	static Value sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
+	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
+	static Value sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
+	static Value sys_shutdown(const std::vector<Value> &args, VM *vm); ///< Shutdown the VM
 
 	// Type conversion functions
 	static Value to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
@@ -134,12 +142,16 @@ class StdLib
 
 	// IO
 	static Value io_c_format(const std::vector<Value> &args, VM *vm); ///< Format string
+#ifndef SANDBOXED
 	static Value io_clear(const std::vector<Value> &args, VM *vm);    ///< Clear the console
+#endif
 	static Value io_prints(const std::vector<Value> &args, VM *vm);   ///< Print string without newline
 	static Value io_printf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string
 	static Value io_puts(const std::vector<Value> &args, VM *vm);     ///< Print string with newline
 	static Value io_putf(const std::vector<Value> &args, VM *vm);     ///< Print formatted string with newline
+#ifndef SANDBOXED
 	static Value io_gets(const std::vector<Value> &args, VM *vm);     ///< Get string
+#endif
 	static Value io_putf_error(const std::vector<Value> &args,
 	                           VM                       *vm); ///< Print formatted string with newline to error output
 	static Value io_puts_error(const std::vector<Value> &args, VM *vm); ///< Print string with newline to error output

@@ -276,7 +276,7 @@ Value StdLib::file_property_edit(const std::vector<Value> &args, VM *vm)
 	std::filesystem::path path = args[0].asString();
 	char                  param = args[1].asString()[0];
 	int64_t               epoch = args[2].asInt();
-	return file_set_properties(const_cast<char *>(path.string().c_str()), param, epoch);
+	return PHASORstd_file_setProperties(const_cast<char *>(path.string().c_str()), param, epoch);
 }
 
 Value StdLib::file_property_get(const std::vector<Value> &args, VM *vm)
@@ -284,7 +284,7 @@ Value StdLib::file_property_get(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 2, "fpropget");
 	std::filesystem::path path = args[0].asString();
 	char                  param = args[1].asString()[0];
-	return file_get_properties(const_cast<char *>(path.string().c_str()), param);
+	return PHASORstd_file_getProperties(const_cast<char *>(path.string().c_str()), param);
 }
 
 Value StdLib::file_create(const std::vector<Value> &args, VM *vm)
@@ -327,8 +327,8 @@ Value StdLib::file_statistics(const std::vector<Value> &args, VM *vm)
 	std::string path = args[0].asString();
 	uid_t       uid = 0;
 	gid_t       gid = 0;
-	nlink_t     nlink = file_get_links_count(path.c_str());
-	file_get_owner_id(path.c_str(), &uid, &gid);
+	nlink_t     nlink = PHASORstd_file_getLinksCount(path.c_str());
+	PHASORstd_file_getOwnerId(path.c_str(), &uid, &gid);
 	try
 	{
 		auto status = std::filesystem::status(path);

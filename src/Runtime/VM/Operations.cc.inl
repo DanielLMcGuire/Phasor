@@ -15,13 +15,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #endif
 	switch (op)
 	{
-	case OpCode::PUSH_CONST:
+	[[likely]] case OpCode::PUSH_CONST:
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index");
 		push(m_bytecode->constants[operand1]);
 		break;
 
-	case OpCode::POP:
+	[[likely]] case OpCode::POP:
 		pop();
 		break;
 
@@ -258,7 +258,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::JUMP: {
+	[[likely]] case OpCode::JUMP: {
 #ifdef TRACING
 		log(std::format("JUMP: {} -> {}\n", pc, operand1));
 		flush();
@@ -281,13 +281,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		pc = operand1;
 		break;
 
-	case OpCode::STORE_VAR:
+	[[likely]] case OpCode::STORE_VAR:
 		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
 			throw std::runtime_error("Invalid variable index");
 		variables[operand1] = pop();
 		break;
 
-	case OpCode::LOAD_VAR:
+	[[likely]] case OpCode::LOAD_VAR:
 		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
 			throw std::runtime_error("Invalid variable index");
 		push(variables[operand1]);
@@ -304,7 +304,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::PRINTERROR: {
+	[[unlikely]] case OpCode::PRINTERROR: {
 		Value       v = pop();
 		std::string s = v.toString();
 #ifdef _TRACING
@@ -330,7 +330,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::IMPORT: {
+	[[unlikely]] case OpCode::IMPORT: {
 		Value       pathVal = m_bytecode->constants[operand1];
 		std::string path = pathVal.asString();
 		if (importHandler)
@@ -339,12 +339,12 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			throw std::runtime_error("Import handler not set");
 		break;
 	}
-	case OpCode::HALT:
+	[[unlikely]] case OpCode::HALT:
 		pc = m_bytecode->instructions.size(); // stop execution
 		throw VM::Halt();
 		break;
 
-	case OpCode::CALL_NATIVE: {
+	[[likely]] case OpCode::CALL_NATIVE: {
 		Value       funcNameVal = m_bytecode->constants[operand1];
 		std::string funcName = funcNameVal.asString();
 		auto        it = nativeFunctions.find(funcName);
@@ -384,7 +384,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		push(Value());
 		break;
 
-	case OpCode::CALL: {
+	[[likely]] case OpCode::CALL: {
 		Value       funcNameVal = m_bytecode->constants[operand1];
 		std::string funcName = funcNameVal.asString();
 		auto        it = m_bytecode->functionEntries.find(funcName);
@@ -395,7 +395,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		pc = it->second;
 		break;
 	}
-	case OpCode::RETURN: {
+	[[likely]] case OpCode::RETURN: {
 		if (callStack.empty())
 		{
 			pc = m_bytecode->instructions.size();
@@ -407,48 +407,63 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SYSTEM: {
-#ifdef TRACING
-		Value cmd = pop();
-		int ret = asm_system(cmd.c_str());
-		log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
-		push(ret);
+#ifdef SANDBOXED
+		logerr("CANNOT ESCAPE SANDBOX");
+		push(Value());
 #else
-		push(asm_system(pop().c_str()));
+	#ifdef TRACING
+			Value cmd = pop();
+			int ret = asm_system(cmd.c_str());
+			log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
+			push(ret);
+	#else
+			push(asm_system(pop().c_str()));
+	#endif
 #endif
 		break;
 	}
 
 	case OpCode::SYSTEM_OUT: {
-#ifdef TRACING
-		Value cmd = pop();
-		std::string ret = asm_system_out(cmd.c_str());
-		log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
-		push(ret);
+#ifdef SANDBOXED
+		logerr("CANNOT ESCAPE SANDBOX");
+		push(Value());
 #else
-		push(asm_system_out(pop().c_str()));
+	#ifdef TRACING
+			Value cmd = pop();
+			std::string ret = asm_system_out(cmd.c_str());
+			log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
+			push(ret);
+	#else
+			push(asm_system_out(pop().c_str()));
+	#endif
 #endif
 		break;
 	}
 
 	case OpCode::SYSTEM_ERR: {
-#ifdef TRACING
-		Value cmd = pop();
-		std::string ret = asm_system_err(cmd.c_str());
-		log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
-		push(ret);
+#ifdef SANDBOXED
+		logerr("CANNOT ESCAPE SANDBOX");
+		push(Value());
 #else
-		push(asm_system_err(pop().c_str()));
+	#ifdef TRACING
+			Value cmd = pop();
+			std::string ret = asm_system_err(cmd.c_str());
+			log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
+			push(ret);
+	#else
+			push(asm_system_err(pop().c_str()));
+	#endif
 #endif
 		break;
 	}
 
 	// Register-based operations (v2.0)
-	case OpCode::MOV: {
+	[[likely]] case OpCode::MOV: {
 		registers[rA] = registers[rB];
 		break;
 	}
 
-	case OpCode::LOAD_CONST_R: {
+	[[likely]] case OpCode::LOAD_CONST_R: {
 		// LOAD_CONST_R rA, constIndex
 		auto constIndex = operand2;
 		if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
@@ -457,7 +472,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::LOAD_VAR_R: {
+	[[likely]] case OpCode::LOAD_VAR_R: {
 		// LOAD_VAR_R rA, varIndex
 		auto varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
@@ -466,7 +481,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::STORE_VAR_R: {
+	[[likely]] case OpCode::STORE_VAR_R: {
 		// STORE_VAR_R rA, varIndex - store register rA to variable varIndex
 		auto varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
@@ -726,7 +741,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::PRINTERROR_R: {
+	[[unlikely]] case OpCode::PRINTERROR_R: {
 		std::string s = registers[rA].toString();
 #ifdef TRACING
 		log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
@@ -752,37 +767,52 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SYSTEM_R: {
-#ifdef TRACING
-		Value cmd = registers[rA];
-		int ret = asm_system(cmd.c_str());
-		log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
-		registers[rA] = ret;
+#ifdef SANDBOXED
+		logerr("CANNOT ESCAPE SANDBOX");
+		registers[rA] = Value();
 #else
-		registers[rA] = asm_system(registers[rA].c_str());
+	#ifdef TRACING
+			Value cmd = registers[rA];
+			int64_t ret = asm_system(cmd.c_str());
+			log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
+			registers[rA] = ret;
+	#else
+			registers[rA] = asm_system(registers[rA].c_str());
+	#endif
 #endif
 		break;
 	}
 
 	case OpCode::SYSTEM_OUT_R: {
-#ifdef TRACING
-		Value cmd = registers[rA];
-		std::string ret = asm_system_out(cmd.c_str());
-		log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
-		registers[rA] = ret;
+#ifdef SANDBOXED
+		logerr("CANNOT ESCAPE SANDBOX");
+		registers[rA] = Value();
 #else
-		registers[rA] = asm_system_out(registers[rA].c_str());
+	#ifdef TRACING
+			Value cmd = registers[rA];
+			std::string ret = asm_system_out(cmd.c_str());
+			log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
+			registers[rA] = ret;
+	#else
+			registers[rA] = asm_system_out(registers[rA].c_str());
+	#endif
 #endif
 		break;
 	}
 
 	case OpCode::SYSTEM_ERR_R: {
-#ifdef TRACING
-		Value cmd = registers[rA];
-		std::string ret = asm_system_err(cmd.c_str());
-		log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
-		registers[rA] = ret;
+#ifdef SANDBOXED
+		logerr("CANNOT ESCAPE SANDBOX");
+		registers[rA] = Value();
 #else
-		registers[rA] = asm_system_err(registers[rA].c_str());
+	#ifdef TRACING
+			Value cmd = registers[rA];
+			std::string ret = asm_system_err(cmd.c_str());
+			log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
+			registers[rA] = ret;
+	#else
+			registers[rA] = asm_system_err(registers[rA].c_str());
+	#endif
 #endif
 		break;
 	}

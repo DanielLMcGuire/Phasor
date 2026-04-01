@@ -8,7 +8,6 @@
 #include "../../Codegen/Cpp/CppCodeGenerator.hpp"
 #include "../../Runtime/VM/VM.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
 #include <filesystem>
 #include <iostream>
 #include <nativeerror.h>

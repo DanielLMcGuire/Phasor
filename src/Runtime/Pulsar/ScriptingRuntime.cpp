@@ -5,7 +5,6 @@
 #include "../../Frontend/Pulsar/Frontend.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>

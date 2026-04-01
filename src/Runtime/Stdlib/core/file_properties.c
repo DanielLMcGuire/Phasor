@@ -16,7 +16,7 @@
 #include <string.h>
 #endif
 
-bool file_set_properties(char *path, char param, int64_t epoch)
+bool PHASORstd_file_setProperties(char *path, char param, int64_t epoch)
 {
 #ifdef _WIN32
 	HANDLE hFile = CreateFileA(path, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -71,7 +71,7 @@ bool file_set_properties(char *path, char param, int64_t epoch)
 #endif
 }
 
-int64_t file_get_properties(char *path, char param)
+int64_t PHASORstd_file_getProperties(char *path, char param)
 {
 #ifdef _WIN32
 	WIN32_FILE_ATTRIBUTE_DATA fileInfo;
@@ -111,7 +111,7 @@ int64_t file_get_properties(char *path, char param)
 #endif
 }
 
-nlink_t file_get_links_count(const char *path)
+nlink_t PHASORstd_file_getLinksCount(const char *path)
 #ifdef _WIN32
 {
 
@@ -138,7 +138,7 @@ nlink_t file_get_links_count(const char *path)
 }
 #endif
 
-bool file_get_owner_id(const char *path, uid_t *uid, gid_t *gid)
+bool PHASORstd_file_getOwnerId(const char *path, uid_t *uid, gid_t *gid)
 #ifdef _WIN32
 {
 	// Windows does not have UID/GID like POSIX, but we can get the owner SID

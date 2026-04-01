@@ -16,10 +16,6 @@
 
 #define INSTANCED_FFI(fn) [this](const std::vector<Value> &args, VM *vm) { return this->fn(args, vm); }
 
-#define VM_PRINT(str)                                                                                                  \
-	vm->setRegister(VM::r0, str);                                                                                      \
-	vm->operation(OpCode::PRINT_R, VM::r0);
-
 namespace Phasor
 {
 

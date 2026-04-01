@@ -13,22 +13,27 @@ namespace Phasor
 void StdLib::registerIOFunctions(VM *vm)
 {
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
-	vm->registerNativeFunction("clear", StdLib::io_clear);
 	vm->registerNativeFunction("prints", StdLib::io_prints);
 	vm->registerNativeFunction("printf", StdLib::io_printf);
 	vm->registerNativeFunction("puts", StdLib::io_puts);
 	vm->registerNativeFunction("putf", StdLib::io_putf);
-	vm->registerNativeFunction("gets", StdLib::io_gets);
 	vm->registerNativeFunction("puts_error", StdLib::io_puts_error);
 	vm->registerNativeFunction("putf_error", StdLib::io_putf_error);
+#ifndef SANDBOXED
+	vm->registerNativeFunction("clear", StdLib::io_clear);
+	vm->registerNativeFunction("gets", StdLib::io_gets);
+#endif
 }
 
+#ifndef SANDBOXED
 Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "clear");
 	vm->regRun(OpCode::PRINT_R, "\033[2J\033[H");
 	return Value();
 }
+#endif
+
 Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 {
 	if (args.empty())
@@ -112,11 +117,13 @@ Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 	return Value("");
 }
 
+#ifndef SANDBOXED
 Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "gets");
 	return vm->regRun(OpCode::READLINE_R, REGISTER1);
 }
+#endif
 
 Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 {

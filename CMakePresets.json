@@ -216,6 +216,32 @@
             ]
         },
         {
+            "name": "macos-arm-dbg_sandboxed",
+            "displayName": "macOS (arm64 Debug) Sandboxed",
+            "inherits": [
+                "macos-arm-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "macos-arm-dbg_sandboxed_trace",
+            "displayName": "macOS (arm64 Debug) Sandboxed Trace",
+            "inherits": [
+                "macos-arm-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-dbg_sandboxed_tracestack",
+            "displayName": "macOS (arm64 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "macos-arm-dbg_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "macos-arm-dbg_tracestack",
             "displayName": "macOS (arm64 Debug) TraceStack",
             "inherits": [
@@ -237,6 +263,32 @@
             "inherits": [
                 "macos-arm-rel",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-rel_sandboxed",
+            "displayName": "macOS (arm64 Release) Sandboxed",
+            "inherits": [
+                "macos-arm-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "macos-arm-rel_sandboxed_trace",
+            "displayName": "macOS (arm64 Release) Sandboxed Trace",
+            "inherits": [
+                "macos-arm-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-rel_sandboxed_tracestack",
+            "displayName": "macOS (arm64 Release) Sandboxed TraceStack",
+            "inherits": [
+                "macos-arm-rel_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -264,6 +316,32 @@
             ]
         },
         {
+            "name": "macos-arm-tst_sandboxed",
+            "displayName": "macOS (arm64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "macos-arm-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "macos-arm-tst_sandboxed_trace",
+            "displayName": "macOS (arm64 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "macos-arm-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-arm-tst_sandboxed_tracestack",
+            "displayName": "macOS (arm64 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "macos-arm-tst_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "macos-arm-tst_tracestack",
             "displayName": "macOS (arm64 RelWithDebInfo) TraceStack",
             "inherits": [
@@ -285,6 +363,32 @@
             "inherits": [
                 "macos-x64-dbg",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-dbg_sandboxed",
+            "displayName": "macOS (x64 Debug) Sandboxed",
+            "inherits": [
+                "macos-x64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "macos-x64-dbg_sandboxed_trace",
+            "displayName": "macOS (x64 Debug) Sandboxed Trace",
+            "inherits": [
+                "macos-x64-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-dbg_sandboxed_tracestack",
+            "displayName": "macOS (x64 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "macos-x64-dbg_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -312,6 +416,32 @@
             ]
         },
         {
+            "name": "macos-x64-rel_sandboxed",
+            "displayName": "macOS (x64 Release) Sandboxed",
+            "inherits": [
+                "macos-x64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "macos-x64-rel_sandboxed_trace",
+            "displayName": "macOS (x64 Release) Sandboxed Trace",
+            "inherits": [
+                "macos-x64-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-rel_sandboxed_tracestack",
+            "displayName": "macOS (x64 Release) Sandboxed TraceStack",
+            "inherits": [
+                "macos-x64-rel_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "macos-x64-rel_tracestack",
             "displayName": "macOS (x64 Release) TraceStack",
             "inherits": [
@@ -333,6 +463,32 @@
             "inherits": [
                 "macos-x64-tst",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-tst_sandboxed",
+            "displayName": "macOS (x64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "macos-x64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "macos-x64-tst_sandboxed_trace",
+            "displayName": "macOS (x64 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "macos-x64-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "macos-x64-tst_sandboxed_tracestack",
+            "displayName": "macOS (x64 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "macos-x64-tst_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -360,6 +516,32 @@
             ]
         },
         {
+            "name": "windows-64-dbg_sandboxed",
+            "displayName": "Windows (x64 Debug) Sandboxed",
+            "inherits": [
+                "windows-64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-64-dbg_sandboxed_trace",
+            "displayName": "Windows (x64 Debug) Sandboxed Trace",
+            "inherits": [
+                "windows-64-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-dbg_sandboxed_tracestack",
+            "displayName": "Windows (x64 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "windows-64-dbg_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "windows-64-dbg_tracestack",
             "displayName": "Windows (x64 Debug) TraceStack",
             "inherits": [
@@ -381,6 +563,32 @@
             "inherits": [
                 "windows-64-rel",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-rel_sandboxed",
+            "displayName": "Windows (x64 Release) Sandboxed",
+            "inherits": [
+                "windows-64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-64-rel_sandboxed_trace",
+            "displayName": "Windows (x64 Release) Sandboxed Trace",
+            "inherits": [
+                "windows-64-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-rel_sandboxed_tracestack",
+            "displayName": "Windows (x64 Release) Sandboxed TraceStack",
+            "inherits": [
+                "windows-64-rel_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -408,6 +616,32 @@
             ]
         },
         {
+            "name": "windows-64-tst_sandboxed",
+            "displayName": "Windows (x64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "windows-64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-64-tst_sandboxed_trace",
+            "displayName": "Windows (x64 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "windows-64-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-64-tst_sandboxed_tracestack",
+            "displayName": "Windows (x64 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "windows-64-tst_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "windows-64-tst_tracestack",
             "displayName": "Windows (x64 RelWithDebInfo) TraceStack",
             "inherits": [
@@ -429,6 +663,32 @@
             "inherits": [
                 "windows-32-dbg",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-dbg_sandboxed",
+            "displayName": "Windows (x86 Debug) Sandboxed",
+            "inherits": [
+                "windows-32-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-32-dbg_sandboxed_trace",
+            "displayName": "Windows (x86 Debug) Sandboxed Trace",
+            "inherits": [
+                "windows-32-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-dbg_sandboxed_tracestack",
+            "displayName": "Windows (x86 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "windows-32-dbg_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -456,6 +716,32 @@
             ]
         },
         {
+            "name": "windows-32-rel_sandboxed",
+            "displayName": "Windows (x86 Release) Sandboxed",
+            "inherits": [
+                "windows-32-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-32-rel_sandboxed_trace",
+            "displayName": "Windows (x86 Release) Sandboxed Trace",
+            "inherits": [
+                "windows-32-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-rel_sandboxed_tracestack",
+            "displayName": "Windows (x86 Release) Sandboxed TraceStack",
+            "inherits": [
+                "windows-32-rel_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "windows-32-rel_tracestack",
             "displayName": "Windows (x86 Release) TraceStack",
             "inherits": [
@@ -477,6 +763,32 @@
             "inherits": [
                 "windows-32-tst",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-tst_sandboxed",
+            "displayName": "Windows (x86 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "windows-32-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-32-tst_sandboxed_trace",
+            "displayName": "Windows (x86 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "windows-32-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-32-tst_sandboxed_tracestack",
+            "displayName": "Windows (x86 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "windows-32-tst_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -504,6 +816,32 @@
             ]
         },
         {
+            "name": "windows-arm64-dbg_sandboxed",
+            "displayName": "Windows (arm64 Debug) Sandboxed",
+            "inherits": [
+                "windows-arm64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-arm64-dbg_sandboxed_trace",
+            "displayName": "Windows (arm64 Debug) Sandboxed Trace",
+            "inherits": [
+                "windows-arm64-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-dbg_sandboxed_tracestack",
+            "displayName": "Windows (arm64 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "windows-arm64-dbg_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "windows-arm64-dbg_tracestack",
             "displayName": "Windows (arm64 Debug) TraceStack",
             "inherits": [
@@ -525,6 +863,32 @@
             "inherits": [
                 "windows-arm64-rel",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-rel_sandboxed",
+            "displayName": "Windows (arm64 Release) Sandboxed",
+            "inherits": [
+                "windows-arm64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-arm64-rel_sandboxed_trace",
+            "displayName": "Windows (arm64 Release) Sandboxed Trace",
+            "inherits": [
+                "windows-arm64-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-rel_sandboxed_tracestack",
+            "displayName": "Windows (arm64 Release) Sandboxed TraceStack",
+            "inherits": [
+                "windows-arm64-rel_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -552,6 +916,32 @@
             ]
         },
         {
+            "name": "windows-arm64-tst_sandboxed",
+            "displayName": "Windows (arm64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "windows-arm64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "windows-arm64-tst_sandboxed_trace",
+            "displayName": "Windows (arm64 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "windows-arm64-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "windows-arm64-tst_sandboxed_tracestack",
+            "displayName": "Windows (arm64 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "windows-arm64-tst_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "windows-arm64-tst_tracestack",
             "displayName": "Windows (arm64 RelWithDebInfo) TraceStack",
             "inherits": [
@@ -573,6 +963,32 @@
             "inherits": [
                 "linux-64-dbg",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-64-dbg_sandboxed",
+            "displayName": "Linux (x64 Debug) Sandboxed",
+            "inherits": [
+                "linux-64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-64-dbg_sandboxed_trace",
+            "displayName": "Linux (x64 Debug) Sandboxed Trace",
+            "inherits": [
+                "linux-64-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-64-dbg_sandboxed_tracestack",
+            "displayName": "Linux (x64 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "linux-64-dbg_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -600,6 +1016,32 @@
             ]
         },
         {
+            "name": "linux-64-rel_sandboxed",
+            "displayName": "Linux (x64 Release) Sandboxed",
+            "inherits": [
+                "linux-64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-64-rel_sandboxed_trace",
+            "displayName": "Linux (x64 Release) Sandboxed Trace",
+            "inherits": [
+                "linux-64-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-64-rel_sandboxed_tracestack",
+            "displayName": "Linux (x64 Release) Sandboxed TraceStack",
+            "inherits": [
+                "linux-64-rel_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "linux-64-rel_tracestack",
             "displayName": "Linux (x64 Release) TraceStack",
             "inherits": [
@@ -621,6 +1063,32 @@
             "inherits": [
                 "linux-64-tst",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-64-tst_sandboxed",
+            "displayName": "Linux (x64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "linux-64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-64-tst_sandboxed_trace",
+            "displayName": "Linux (x64 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "linux-64-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-64-tst_sandboxed_tracestack",
+            "displayName": "Linux (x64 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "linux-64-tst_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -648,6 +1116,32 @@
             ]
         },
         {
+            "name": "linux-32-dbg_sandboxed",
+            "displayName": "Linux (x86 Debug) Sandboxed",
+            "inherits": [
+                "linux-32-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-32-dbg_sandboxed_trace",
+            "displayName": "Linux (x86 Debug) Sandboxed Trace",
+            "inherits": [
+                "linux-32-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-32-dbg_sandboxed_tracestack",
+            "displayName": "Linux (x86 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "linux-32-dbg_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "linux-32-dbg_tracestack",
             "displayName": "Linux (x86 Debug) TraceStack",
             "inherits": [
@@ -669,6 +1163,32 @@
             "inherits": [
                 "linux-32-rel",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-32-rel_sandboxed",
+            "displayName": "Linux (x86 Release) Sandboxed",
+            "inherits": [
+                "linux-32-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-32-rel_sandboxed_trace",
+            "displayName": "Linux (x86 Release) Sandboxed Trace",
+            "inherits": [
+                "linux-32-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-32-rel_sandboxed_tracestack",
+            "displayName": "Linux (x86 Release) Sandboxed TraceStack",
+            "inherits": [
+                "linux-32-rel_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -696,6 +1216,32 @@
             ]
         },
         {
+            "name": "linux-32-tst_sandboxed",
+            "displayName": "Linux (x86 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "linux-32-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-32-tst_sandboxed_trace",
+            "displayName": "Linux (x86 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "linux-32-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-32-tst_sandboxed_tracestack",
+            "displayName": "Linux (x86 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "linux-32-tst_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "linux-32-tst_tracestack",
             "displayName": "Linux (x86 RelWithDebInfo) TraceStack",
             "inherits": [
@@ -717,6 +1263,32 @@
             "inherits": [
                 "linux-arm64-dbg",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-dbg_sandboxed",
+            "displayName": "Linux (arm64 Debug) Sandboxed",
+            "inherits": [
+                "linux-arm64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-arm64-dbg_sandboxed_trace",
+            "displayName": "Linux (arm64 Debug) Sandboxed Trace",
+            "inherits": [
+                "linux-arm64-dbg_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-dbg_sandboxed_tracestack",
+            "displayName": "Linux (arm64 Debug) Sandboxed TraceStack",
+            "inherits": [
+                "linux-arm64-dbg_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {
@@ -744,6 +1316,32 @@
             ]
         },
         {
+            "name": "linux-arm64-rel_sandboxed",
+            "displayName": "Linux (arm64 Release) Sandboxed",
+            "inherits": [
+                "linux-arm64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-arm64-rel_sandboxed_trace",
+            "displayName": "Linux (arm64 Release) Sandboxed Trace",
+            "inherits": [
+                "linux-arm64-rel_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-rel_sandboxed_tracestack",
+            "displayName": "Linux (arm64 Release) Sandboxed TraceStack",
+            "inherits": [
+                "linux-arm64-rel_sandboxed_trace",
+                "cfg-tracestack"
+            ]
+        },
+        {
             "name": "linux-arm64-rel_tracestack",
             "displayName": "Linux (arm64 Release) TraceStack",
             "inherits": [
@@ -765,6 +1363,32 @@
             "inherits": [
                 "linux-arm64-tst",
                 "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-tst_sandboxed",
+            "displayName": "Linux (arm64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "linux-arm64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "linux-arm64-tst_sandboxed_trace",
+            "displayName": "Linux (arm64 RelWithDebInfo) Sandboxed Trace",
+            "inherits": [
+                "linux-arm64-tst_sandboxed",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "linux-arm64-tst_sandboxed_tracestack",
+            "displayName": "Linux (arm64 RelWithDebInfo) Sandboxed TraceStack",
+            "inherits": [
+                "linux-arm64-tst_sandboxed_trace",
+                "cfg-tracestack"
             ]
         },
         {

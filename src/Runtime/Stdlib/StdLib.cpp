@@ -9,6 +9,7 @@ int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
 
 #ifndef __EMSCRIPTEN__
+#ifndef SANDBOXED
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 {
 	if (!name || !argp)
@@ -37,6 +38,7 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	out = std::string(val);
 	return 0;
 }
+#endif
 #endif
 
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
@@ -74,7 +76,9 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		else if (moduleName == "stdmath") registerMathFunctions(vm);
 		else if (moduleName == "stdstr") registerStringFunctions(vm);
 		else if (moduleName == "stdtype") registerTypeConvFunctions(vm);
+#ifndef SANDBOXED
 		else if (moduleName == "stdfile") registerFileFunctions(vm);
+#endif
 		else
 		{
 			throw std::runtime_error("Unknown standard library module: " + moduleName);
@@ -85,6 +89,7 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 #endif
 }
 
+#ifndef SANDBOXED
 Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)
 {
 	checkArgCount(args, 1, "assert");
@@ -108,5 +113,6 @@ Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)
 #endif
 	return Value();
 }
+#endif
 
 } // namespace Phasor
