@@ -3,7 +3,7 @@
   "publisher": "phasor",
   "displayName": "Phasor Programming Language",
   "description": "Function VM Based Programming Language",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "icon": "logo.png",
   "repository": {
     "type": "git",
@@ -23,20 +23,35 @@
     "languages": [
       {
         "id": "phasor",
-        "aliases": ["Phasor", "phasor"],
-        "extensions": ["phs"],
+        "aliases": [
+          "Phasor",
+          "phasor"
+        ],
+        "extensions": [
+          "phs"
+        ],
         "configuration": "./language-configuration-phasor.json"
       },
       {
         "id": "pulsar",
-        "aliases": ["Pulsar", "pulsar"],
-        "extensions": ["pul"],
+        "aliases": [
+          "Pulsar",
+          "pulsar"
+        ],
+        "extensions": [
+          "pul"
+        ],
         "configuration": "./language-configuration-pulsar.json"
       },
       {
         "id": "phasor-ir",
-        "aliases": ["PhasorIR", "phasor-ir"],
-        "extensions": ["phir"],
+        "aliases": [
+          "PhasorIR",
+          "phasor-ir"
+        ],
+        "extensions": [
+          "phir"
+        ],
         "configuration": "./language-configuration-ir.json"
       }
     ],
@@ -101,7 +116,11 @@
         },
         "phasor.trace.server": {
           "type": "string",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "verbose",
           "description": "Traces the communication between VS Code and the Phasor language server."
         }
@@ -114,6 +133,7 @@
   "devDependencies": {
     "@types/node": "^25.0.9",
     "@types/vscode": "^1.108.1",
+    "@vscode/vsce": "^3.7.1",
     "eslint": "^10.0.1",
     "typescript": "^5.9.3"
   }

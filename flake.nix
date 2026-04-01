@@ -11,7 +11,7 @@
       in {
         packages.default = pkgs.stdenv.mkDerivation {
           pname = "phasor";
-          version = "3.1.0";
+          version = "3.1.1";
           src = ./.;
           nativeBuildInputs = [
             pkgs.cmake
