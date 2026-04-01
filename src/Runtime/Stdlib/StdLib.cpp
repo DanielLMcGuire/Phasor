@@ -8,6 +8,7 @@ char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
 
+#ifndef __EMSCRIPTEN__
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 {
 	if (!name || !argp)
@@ -36,6 +37,7 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	out = std::string(val);
 	return 0;
 }
+#endif
 
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
@@ -54,6 +56,9 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
+#ifdef __EMSCRIPTEN__
+	return false;
+#else
 	checkArgCount(args, 1, "using", true);
 	for (const auto &arg : args)
 	{
@@ -63,6 +68,7 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 			return false;
 		}
 		auto moduleName = arg.asString();
+		
 		if (moduleName == "stdio") registerIOFunctions(vm);
 		else if (moduleName == "stdsys") registerSysFunctions(vm);
 		else if (moduleName == "stdmath") registerMathFunctions(vm);
@@ -76,6 +82,7 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		}
 	}
 	return true;
+#endif
 }
 
 Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)

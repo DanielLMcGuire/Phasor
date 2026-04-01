@@ -38,14 +38,14 @@ class StdLib
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
 	static char **envp; ///< Environment variables
-
+	
 	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
-
   private:
 	static Value std_import(const std::vector<Value> &args, VM *vm);
 	static Value std_assert(const std::vector<Value> &args, VM *vm);
 
+#ifndef __EMSCRIPTEN__
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
 
 	static void registerMathFunctions(VM *vm);
@@ -143,6 +143,7 @@ class StdLib
 	static Value io_putf_error(const std::vector<Value> &args,
 	                           VM                       *vm); ///< Print formatted string with newline to error output
 	static Value io_puts_error(const std::vector<Value> &args, VM *vm); ///< Print string with newline to error output
+#endif
 };
 
 } // namespace Phasor
