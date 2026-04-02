@@ -71,14 +71,31 @@ Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		}
 		auto moduleName = arg.asString();
 		
-		if (moduleName == "stdio") registerIOFunctions(vm);
-		else if (moduleName == "stdsys") registerSysFunctions(vm);
-		else if (moduleName == "stdmath") registerMathFunctions(vm);
-		else if (moduleName == "stdstr") registerStringFunctions(vm);
-		else if (moduleName == "stdtype") registerTypeConvFunctions(vm);
+		if (moduleName == "stdio") [[likely]]
+			registerIOFunctions(vm);
+		else if (moduleName == "stdsys") [[likely]]
+			registerSysFunctions(vm);
+		else if (moduleName == "stdmath") 
+			registerMathFunctions(vm);
+		else if (moduleName == "stdstr") 
+			registerStringFunctions(vm);
+		else if (moduleName == "stdtype") 
+			registerTypeConvFunctions(vm);
 #ifndef SANDBOXED
-		else if (moduleName == "stdfile") registerFileFunctions(vm);
+		else if (moduleName == "stdfile")
+			registerFileFunctions(vm);
 #endif
+		else if (moduleName == "std*") [[unlikely]]
+		{	
+			registerIOFunctions(vm);
+			registerSysFunctions(vm);
+			registerMathFunctions(vm);
+			registerStringFunctions(vm);
+			registerTypeConvFunctions(vm);
+#ifndef SANDBOXED
+			registerFileFunctions(vm);
+#endif
+		}
 		else
 		{
 			throw std::runtime_error("Unknown standard library module: " + moduleName);
@@ -95,11 +112,11 @@ Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)
 	checkArgCount(args, 1, "assert");
 
 #ifdef TRACING
-#ifndef NDEBUG
-	vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
-#else
-	vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
-#endif
+	#ifndef NDEBUG
+		vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
+	#else
+		vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
+	#endif
 	vm->flush();
 #endif
 
