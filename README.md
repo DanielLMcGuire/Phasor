@@ -50,21 +50,6 @@ var fmtStr = c_fmt(fmt, code);
 shutdown(code); // from stdsys
 ```
 
-
-### Interpreter
-> [!NOTE]
-> This information was gathered during a single compilation and analyzed with IDA during the last commit as of the README update and might not be accurate on all platforms or cases.
-
-Phasor is able to do this perfect thing which I can only describe as compile time Inlined Threading, or Templated Interpretation.
-
-Phasor's registers are also **hot**, thus they land in actual registers most of the time. This leads to JIT without a JIT in terms of performance. Add the fact RAII means no GC pausing, this is actually incredible. 
-
-Most compilers are able to optimize the loop to a simple algorithm:
-
-It takes the opcode value, multiplies it by 8 (the size of a memory address), and jumps directly to the logic.
-
-Because inlining is enabled, the native assembly functions are inlined into the case statements (or rather what they emitted) and is instant
-
 ## Upcoming 
 > [!IMPORTANT]
 >
