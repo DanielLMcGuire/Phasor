@@ -136,5 +136,8 @@
     "@vscode/vsce": "^3.7.1",
     "eslint": "^10.0.1",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "lodash": "4.18.0"
   }
 }
