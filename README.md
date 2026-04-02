@@ -81,6 +81,13 @@ Hello World!
 $
 ```
 
+### Information
+> [!NOTE]
+> This information was gathered during a single compilation with IDA and might not be accurate on all platforms.
+
+Phasor is able to do this perfect thing able to do what I can only describe as Inlined Threading, or templated interpretation,
+Phasor's registers are also HOT, thus they land in actual registers most of the time. This leads to JIT without a JIT in terms of performance. Add the fact RAII means no GC pausing, this is actually incredible.
+
 ### Example Program
 
 ```javascript
