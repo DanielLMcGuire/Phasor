@@ -1,8 +1,12 @@
 if(MSVC)
     if(IS_XBOX OR STATIC)
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY
+            "$<$<CONFIG:Debug>:MultiThreadedDebug>$<$<NOT:$<CONFIG:Debug>>:MultiThreaded>"
+        )
     else()
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY
+            "$<$<CONFIG:Debug>:MultiThreadedDebugDLL>$<$<NOT:$<CONFIG:Debug>>:MultiThreadedDLL>"
+        )
     endif()
 
     set(MSVC_COMMON_RELEASE "/O2 /Oi /Ot /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
