@@ -160,8 +160,8 @@ This repo contains:
 
 ### Prerequisites
 
-- CMake 3.10+
-- C++23 compiler (MSVC, GCC, Clang)
+- CMake 3.21+
+- C++23 compiler (MSVC latest, GCC 14, Clang (LLVM Latest))
 - Ninja
 
 ### Build Steps
