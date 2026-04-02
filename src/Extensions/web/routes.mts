@@ -75,6 +75,6 @@ export function registerRoutes(server: ServerInstance) {
     });
 
     server.get('/version', async (req, res) => {
-        res.json({ version: '3.1.1', build: 'windows-64-rel_sandbox' });
+        res.json({ version: '3.1.1', build: 'sandboxed' });
     });
 }
