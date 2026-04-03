@@ -44,14 +44,13 @@ class VM
 #endif
 		run(bytecode);
 	}
-	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
-	            const int &operand4 = 0, const int &operand5 = 0)
+	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0)
 	{
 #ifdef TRACING
 		log(std::format("VM::{}(): operation instance created {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
-		operation(op, operand1, operand2, operand3, operand4, operand5);
+		operation(op, operand1, operand2, operand3);
 
 	}
 	~VM()
@@ -174,12 +173,10 @@ class VM
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
-	                           const int &operand3 = 0, const int &operand4 = 0, const int &operand5 = 0);
+	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #else
 	/// @brief Execute a single operation
-	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
-	                const int &operand4 = 0, const int &operand5 = 0);
+	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #endif
 	/// @brief Push a value onto the stack
 	void push(const Value &value);

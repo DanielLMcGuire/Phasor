@@ -97,24 +97,24 @@ static void free_argv(char **argv)
 	free(argv);
 }
 
-void asm_print_stdout(const char *s, int64_t len)
+void c_print_stdout(const char *s, int64_t len)
 {
 	fwrite(s, 1, (size_t)len, stdout);
 	fflush(stdout);
 }
 
-void asm_print_stderr(const char *s, int64_t len)
+void c_print_stderr(const char *s, int64_t len)
 {
 	fwrite(s, 1, (size_t)len, stderr);
 	fflush(stderr);
 }
 
-int64_t asm_system(const char *cmd)
+int64_t c_system(const char *cmd)
 {
 	return (int64_t)system(cmd);
 }
 
-char *asm_system_out(const char *cmd)
+char *c_system_out(const char *cmd)
 {
 	int    argc;
 	char **argv = parse_argv(cmd, &argc);
@@ -238,7 +238,7 @@ char *asm_system_out(const char *cmd)
 	return output;
 }
 
-char *asm_system_err(const char *cmd)
+char *c_system_err(const char *cmd)
 {
 	int    argc;
 	char **argv = parse_argv(cmd, &argc);

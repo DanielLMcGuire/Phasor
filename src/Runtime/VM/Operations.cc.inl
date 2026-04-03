@@ -4,7 +4,7 @@
 
 namespace Phasor {
 
-Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3, const int &, const int &)
+Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3)
 {
 	uint8_t rA = static_cast<uint8_t>(operand1);
 	uint8_t rB = static_cast<uint8_t>(operand2);
@@ -299,7 +299,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef _TRACING
 		log(std::format("PRINT: (stdout) {:T}\n", v));
 #else
-		asm_print_stdout(s.c_str(), (int64_t)s.length());
+		c_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
 		break;
 	}
@@ -310,7 +310,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef _TRACING
 		log(std::format("PRINTERROR: (stderr) {:T}\n", v));
 #else
-		asm_print_stderr(s.c_str(), (int64_t)s.length());
+		c_print_stderr(s.c_str(), (int64_t)s.length());
 #endif
 		flusherr();
 		break;
@@ -396,9 +396,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 	[[likely]] case OpCode::RETURN: {
-		if (callStack.empty())
+		if (callStack.empty()) [[unlikely]]
 		{
 			pc = m_bytecode->instructions.size();
+			throw std::runtime_error("Cannot return from outside a function");
 			break;
 		}
 		pc = callStack.back();
@@ -413,11 +414,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 	#ifdef TRACING
 			Value cmd = pop();
-			int ret = asm_system(cmd.c_str());
+			int ret = c_system(cmd.c_str());
 			log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
 			push(ret);
 	#else
-			push(asm_system(pop().c_str()));
+			push(c_system(pop().c_str()));
 	#endif
 #endif
 		break;
@@ -430,11 +431,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 	#ifdef TRACING
 			Value cmd = pop();
-			std::string ret = asm_system_out(cmd.c_str());
+			std::string ret = c_system_out(cmd.c_str());
 			log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
 			push(ret);
 	#else
-			push(asm_system_out(pop().c_str()));
+			push(c_system_out(pop().c_str()));
 	#endif
 #endif
 		break;
@@ -447,11 +448,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 	#ifdef TRACING
 			Value cmd = pop();
-			std::string ret = asm_system_err(cmd.c_str());
+			std::string ret = c_system_err(cmd.c_str());
 			log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
 			push(ret);
 	#else
-			push(asm_system_err(pop().c_str()));
+			push(c_system_err(pop().c_str()));
 	#endif
 #endif
 		break;
@@ -736,7 +737,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef TRACING
 		log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
 #else
-		asm_print_stdout(s.c_str(), (int64_t)s.length());
+		c_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
 		break;
 	}
@@ -746,7 +747,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef TRACING
 		log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
 #else
-		asm_print_stderr(s.c_str(), (int64_t)s.length());
+		c_print_stderr(s.c_str(), (int64_t)s.length());
 #endif
 		flusherr();
 		break;
@@ -773,11 +774,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 	#ifdef TRACING
 			Value cmd = registers[rA];
-			int64_t ret = asm_system(cmd.c_str());
+			int64_t ret = c_system(cmd.c_str());
 			log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
 			registers[rA] = ret;
 	#else
-			registers[rA] = asm_system(registers[rA].c_str());
+			registers[rA] = c_system(registers[rA].c_str());
 	#endif
 #endif
 		break;
@@ -790,11 +791,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 	#ifdef TRACING
 			Value cmd = registers[rA];
-			std::string ret = asm_system_out(cmd.c_str());
+			std::string ret = c_system_out(cmd.c_str());
 			log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
 			registers[rA] = ret;
 	#else
-			registers[rA] = asm_system_out(registers[rA].c_str());
+			registers[rA] = c_system_out(registers[rA].c_str());
 	#endif
 #endif
 		break;
@@ -807,11 +808,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 	#ifdef TRACING
 			Value cmd = registers[rA];
-			std::string ret = asm_system_err(cmd.c_str());
+			std::string ret = c_system_err(cmd.c_str());
 			log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
 			registers[rA] = ret;
 	#else
-			registers[rA] = asm_system_err(registers[rA].c_str());
+			registers[rA] = c_system_err(registers[rA].c_str());
 	#endif
 #endif
 		break;

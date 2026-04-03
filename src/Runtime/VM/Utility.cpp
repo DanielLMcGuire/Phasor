@@ -5,8 +5,11 @@
 #include <stdexcept>
 #include <format>
 #include <cassert>
-#include <chrono>
 #include "core/core.h"
+
+#ifdef TIMING
+#include <chrono>
+#endif
 
 namespace Phasor
 {
@@ -47,7 +50,7 @@ int VM::run(const Bytecode &bc)
 #ifdef TIMING
 			auto end = clock::now();
 			auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-			log(std::format("VM::{}(): PROGRAM TIME: {}us\n\n", __func__, us));
+			log(std::format("VM::{}(): Duration of bytecode execution: {}us\n\n", __func__, us));
 			flush();
 #endif
 #ifdef TRACING
@@ -63,7 +66,7 @@ int VM::run(const Bytecode &bc)
 		catch (const std::exception &e)
 		{
 #ifdef TRACING
-			logerr(std::format("\nVM::{}(): PANIC!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
+			logerr(std::format("\nVM::{}(): UNCAUGHT EXCEPTION!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
 			flusherr();
 #endif
 			status = 1;
@@ -189,13 +192,13 @@ std::string VM::getBytecodeInformation()
 void VM::log(const Value &msg)
 {
 	std::string s = msg.toString();
-	asm_print_stdout(s.c_str(), (int64_t)s.length());
+	c_print_stdout(s.c_str(), (int64_t)s.length());
 }
 
 void VM::logerr(const Value &msg)
 {
 	std::string s = msg.toString();
-	asm_print_stderr(s.c_str(), (int64_t)s.length());
+	c_print_stderr(s.c_str(), (int64_t)s.length());
 }
 
 void VM::flush() 
