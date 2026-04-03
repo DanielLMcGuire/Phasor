@@ -78,7 +78,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=native"
         )
         set(CMAKE_CXX_FLAGS_RELEASE
-            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
+            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=x86-64-v3"
         )
     endif()
 
