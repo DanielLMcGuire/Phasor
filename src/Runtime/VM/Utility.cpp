@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <format>
 #include <cassert>
+#include <chrono>
 #include "core/core.h"
 
 namespace Phasor
@@ -25,6 +26,11 @@ int VM::run(const Bytecode &bc)
 	registers.fill(Value());
 	variables.resize(m_bytecode->nextVarIndex);
 
+#ifdef TIMING
+	using clock = std::chrono::high_resolution_clock;
+	auto start = clock::now();
+#endif
+
 	while (pc < m_bytecode->instructions.size())
 	{
 		const Instruction &instr = m_bytecode->instructions[pc++];
@@ -38,9 +44,16 @@ int VM::run(const Bytecode &bc)
 		}
 		catch (const VM::Halt &)
 		{
-#ifdef TRACING
-			log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n\n", __func__, status, getInformation()));
+#ifdef TIMING
+			auto end = clock::now();
+			auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+			log(std::format("VM::{}(): PROGRAM TIME: {}us\n\n", __func__, us));
 			flush();
+#endif
+#ifdef TRACING
+			log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n", __func__, status, getInformation()));
+			flush();
+			
 #endif
 #ifdef _DEBUG
 			assert(status == 0);

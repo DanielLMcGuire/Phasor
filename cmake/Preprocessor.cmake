@@ -4,6 +4,10 @@ if(IS_TRACING)
     add_compile_definitions(TRACING)
 endif()
 
+if(IS_TIMING)
+    add_compile_definitions(TIMING)
+endif()
+
 if(IS_SANDBOXED)
     add_compile_definitions(SANDBOXED)
 endif()

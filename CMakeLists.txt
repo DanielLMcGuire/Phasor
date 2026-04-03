@@ -23,6 +23,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_D
 
 option(ASSEMBLY "Enable assembly for core code" ON)
 option(IS_TRACING "Enable VM tracing to stdout" OFF)
+option(IS_TIMING "Time how long a program takes to run" OFF)
 option(IS_TRACING_STACK "Enable VM stack tracing to stdout" OFF)
 option(IS_SANDBOXED "Enable VM sandbox" OFF)
 option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
