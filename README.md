@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor)](https://phasor.pages.dev/downloads?version=latest)
 [![AUR Version](https://img.shields.io/aur/version/phasor)](https://aur.archlinux.org/packages/phasor)
 [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/Phasor.phasor-programming-language?label=VSCODE%20version)](https://marketplace.visualstudio.com/items?itemName=Phasor.phasor-programming-language)
-![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
 
 A statically typed, compiled programming language with a fast bytecode virtual machine.
 
