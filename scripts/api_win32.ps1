@@ -36,5 +36,5 @@ function Start-PhasorScript {
 }
 
 function Start-PhasorRepl {
-    phasor
+    phasorrepl
 }
