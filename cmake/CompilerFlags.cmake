@@ -1,14 +1,4 @@
 if(MSVC)
-    if(IS_XBOX OR STATIC)
-        set(CMAKE_MSVC_RUNTIME_LIBRARY
-            "$<$<CONFIG:Debug>:MultiThreadedDebug>$<$<NOT:$<CONFIG:Debug>>:MultiThreaded>"
-        )
-    else()
-        set(CMAKE_MSVC_RUNTIME_LIBRARY
-            "$<$<CONFIG:Debug>:MultiThreadedDebugDLL>$<$<NOT:$<CONFIG:Debug>>:MultiThreadedDLL>"
-        )
-    endif()
-
     set(MSVC_COMMON_RELEASE "/O2 /Oi /Ot /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
     set(MSVC_COMMON_DEBUG   "/Od /Zi /fp:strict")
 
@@ -78,12 +68,21 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN}"
         )
     else()
-        set(CMAKE_C_FLAGS_RELEASE
-            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=native"
-        )
-        set(CMAKE_CXX_FLAGS_RELEASE
-            "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=x86-64-v3"
-        )
+        if(NATIVE)
+            set(CMAKE_C_FLAGS_RELEASE
+                "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=native"
+            )
+            set(CMAKE_CXX_FLAGS_RELEASE
+                "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
+            )
+        else()
+            set(CMAKE_C_FLAGS_RELEASE
+                "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=x86-64-v3"
+            )
+            set(CMAKE_CXX_FLAGS_RELEASE
+                "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=x86-64-v3"
+            )
+        endif()
     endif()
 
     if(APPLE)
@@ -115,4 +114,14 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
 else()
     message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. No custom flags applied.")
+endif()
+
+if(WIN32 AND STATIC OR IS_XBOX)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY
+        "$<$<CONFIG:Debug>:MultiThreadedDebug>$<$<NOT:$<CONFIG:Debug>>:MultiThreaded>"
+    )
+elseif(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY
+        "$<$<CONFIG:Debug>:MultiThreadedDebugDLL>$<$<NOT:$<CONFIG:Debug>>:MultiThreadedDLL>"
+    )
 endif()

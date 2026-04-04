@@ -28,6 +28,7 @@ option(IS_TRACING_STACK "Enable VM stack tracing to stdout" OFF)
 option(IS_SANDBOXED "Enable VM sandbox" OFF)
 option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
 option(STATIC "Compile statically" OFF)
+option(NATIVE "Use if you only plan to use on THIS machine" OFF)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
