@@ -62,7 +62,6 @@ int main(int argc, char *argv[], char *envp[])
 			const std::string source = readStdin();
 			if (!source.empty())
 			{
-				Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
 				return Phasor::Frontend::runScript(source, nullptr, "");
 			}
 		}
