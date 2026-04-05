@@ -149,7 +149,7 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
-  - [Python Module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py`
+  - [Python Module (For bytecode)](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py`
     ```python
     from phasor import Bytecode, Value, OpCode
     bc = Bytecode()
@@ -159,7 +159,7 @@ This repo contains:
     bc.save("hello_world.phsb")
     ```
 
-  - [PowerShell phasorrt.dll bindings](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell`
+  - [PowerShell Module (phasorrt.dll bindings, faster than CLI)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell`
     ```powershell
     Import-Module .\src\Extensions\powershell\Phasor.psd1
     Get-Command -module Phasor
