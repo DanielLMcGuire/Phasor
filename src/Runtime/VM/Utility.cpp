@@ -129,9 +129,10 @@ std::string VM::getInformation()
     int callStackTop = callStack.empty() ? -1 : callStack.back();
     std::string info;
 
-    if (!stack.empty())
+    if (!stack.empty()) {
         info = std::format("Stack Top: {:T}\n", peek());
-
+	}
+	
 	std::string registersStr;
 	int regCount = 0;
 
