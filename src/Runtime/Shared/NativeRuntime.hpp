@@ -30,10 +30,11 @@ class NativeRuntime
 
   private:
 	static Value runScript(const std::vector<Value> &args, VM *vm);
+	
+	std::shared_ptr<Phasor::VM> m_vm;
 	Bytecode             m_bytecode;
 	std::vector<uint8_t> m_bytecodeData;
 	std::string          m_script;
-	std::shared_ptr<Phasor::VM> m_vm;
 	int                  m_argc;
 	char               **m_argv;
 };
