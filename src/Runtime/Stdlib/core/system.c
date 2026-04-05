@@ -1,6 +1,6 @@
 #include "system.h"
 
-size_t PHASORstd_sys_getAvailableMemory()
+size_t PHASORstd_sys_getAvailableMemory(void)
 {
 #ifdef _WIN32
 	MEMORYSTATUSEX statex;
