@@ -19,9 +19,6 @@
 
 int main(int argc, char *argv[])
 {
-	std::string tempFile;
-	int         exitCode = 1;
-
 	try
 	{
 #ifdef _WIN32
@@ -36,7 +33,7 @@ int main(int argc, char *argv[])
 		}
 
 		// Get the exec function
-		typedef void(CALLBACK * ExecFunc)(const unsigned char[], size_t, const char *, const void *);
+		typedef int(CALLBACK * ExecFunc)(void *, const unsigned char[], size_t, const char *, int, const char **);
 		ExecFunc execFunc = (ExecFunc)GetProcAddress(hRuntime, "exec");
 		if (!execFunc)
 		{
@@ -48,8 +45,8 @@ int main(int argc, char *argv[])
 		}
 
 		// Execute the bytecode
-		execFunc(embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), nullptr);
-		exitCode = 0;
+		exitCode =
+		    execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
 
 		// Cleanup
 		FreeLibrary(hRuntime);
@@ -64,7 +61,7 @@ int main(int argc, char *argv[])
 		}
 
 		// Get the exec function
-		typedef void (*ExecFunc)(const char *, size_t, const char *, const void *);
+		typedef int (*ExecFunc)(void *, const unsigned char[], size_t, const char *, int, const char **);
 		ExecFunc execFunc = (ExecFunc)dlsym(hRuntime, "exec");
 		if (!execFunc)
 		{
@@ -75,25 +72,17 @@ int main(int argc, char *argv[])
 		}
 
 		// Execute the bytecode
-		execFunc(tempFile.c_str(), tempFile.size(), moduleName.c_str(), nullptr);
-		exitCode = 0;
+		int exitCode = execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
 
 		// Cleanup
 		dlclose(hRuntime);
-#endif
 
-		// Remove temporary file
-		std::filesystem::remove(tempFile);
+		return exitCode;
+#endif
 	}
 	catch (const std::exception &e)
 	{
 		std::cerr << "Runtime Error: " << e.what() << "\n";
-		if (!tempFile.empty())
-		{
-			std::filesystem::remove(tempFile);
-		}
-		return 1;
 	}
-
-	return exitCode;
+	return 1;
 }

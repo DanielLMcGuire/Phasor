@@ -23,8 +23,8 @@ NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int
 	m_vm = std::make_unique<VM>();
 }
 
-NativeRuntime::NativeRuntime(const std::string &script, const int argc, char **argv)
-    : m_script(script), m_argc(argc), m_argv(argv)
+NativeRuntime::NativeRuntime(const std::string &script, const int argc, const char **argv)
+    : m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
 	Lexer lexer(m_script);
 	auto  tokens = lexer.tokenize();
@@ -38,6 +38,24 @@ NativeRuntime::NativeRuntime(const std::string &script, const int argc, char **a
 
 	m_vm->registerNativeFunction("lib_Phasor", runScript);
 }
+
+NativeRuntime::NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv)
+    : m_vm(const_cast<VM *>(&vm), [](VM *) {}), m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	Lexer         lexer(m_script);
+	Parser        parser(lexer.tokenize());
+	CodeGenerator codegen;
+	m_bytecode = codegen.generate(*parser.parse());
+}
+
+NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc,
+                             const char **argv)
+    : m_vm(vm, [](VM *) {}), m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	BytecodeDeserializer deserializer;
+	m_bytecode = deserializer.deserialize(m_bytecodeData);
+}
+
 
 NativeRuntime::~NativeRuntime()
 {

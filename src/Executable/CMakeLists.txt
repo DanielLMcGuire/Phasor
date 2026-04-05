@@ -13,19 +13,19 @@ target_link_libraries(pulsar_main pulsar_scripting_runtime_lib PulsarFrontend)
 set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
 
 add_library(phasor_native_runtime SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/NativeRuntimeDll.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/NativeRuntime_library.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntimeDll.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
-target_link_libraries(phasor_native_runtime phasor_native_runtime_lib)
+target_link_libraries(phasor_native_runtime phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
 target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
 add_library(phasor_native_runtime_static STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/NativeRuntime_library.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
-target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib)
+target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
 if(NOT IS_XBOX)
