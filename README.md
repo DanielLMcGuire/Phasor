@@ -149,21 +149,36 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
-  - [Python Module (For bytecode)](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py`
+  - [Python Module ](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py`
     ```python
-    from phasor import Bytecode, Value, OpCode
+    from phasor import Bytecode, Value, OpCode, Runtime
+    help(phasor)
+
     bc = Bytecode()
     bc.emit(OpCode.PUSH_CONST, bc.add_constant(Value.from_string("Hello, World!\n")))
     bc.emit(OpCode.PRINT)
     bc.emit(OpCode.HALT)
     bc.save("hello_world.phsb")
+    Runtime.run(bc) # wraps phasorrt lib
     ```
 
-  - [PowerShell Module (phasorrt.dll bindings, faster than CLI)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell`
+  - [PowerShell Module (windows only, phasorrt.dll bindings)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell`
     ```powershell
     Import-Module .\src\Extensions\powershell\Phasor.psd1
-    Get-Command -module Phasor
-    Get-Help <cmdlet>
+    Get-Help Phasor
+
+    # Remember, State is optional, see PhasorRT.h
+
+    Start-PhasorScript -ScriptPath .\hello.phs
+    Start-PulsarScript -ScriptPath .\hello.pul
+
+    $vm = New-PhasorState
+    Start-PhasorEval -State $vm -Script 'let x = 42'
+    Start-PhasorEval -State $vm -Script 'print(x)'   # x still in scope
+    Remove-PhasorState $vm
+
+    $bytecode = Build-PhasorScript -Script 'print("hi")'
+    Invoke-PhasorBytecode -Bytecode $bytecode
     ```
 
   - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)

@@ -1,4 +1,4 @@
-from phasor import Bytecode, Value, OpCode
+from phasor import Bytecode, Value, OpCode, run
 
 bc = Bytecode()
 
@@ -14,4 +14,5 @@ bc.emit(OpCode.IADD_R, 0, 1, 0)
 bc.emit(OpCode.PRINT_R, 0)
 
 bc.emit(OpCode.HALT)
-bc.save("test.phsb")
+
+run(bc)

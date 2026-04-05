@@ -9,7 +9,7 @@ description = "Python library for reading, writing, and manipulating Phasor VM b
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
-dependencies = ["lief>=0.14"]
+dependencies = ["lief>=0.14", "cffi>=1.15"]
 
 [project.optional-dependencies]
 dev = [

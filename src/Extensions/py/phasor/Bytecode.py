@@ -115,7 +115,7 @@ class Bytecode:
 
         Delegates to :class:`~phasor.Serializer.BytecodeSerializer`.
         """
-        from .Deserializer import BytecodeSerializer
+        from .Serializer import BytecodeSerializer
         return bytes(BytecodeSerializer().serialize(self))
 
     @classmethod
