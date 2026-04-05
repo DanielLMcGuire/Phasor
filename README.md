@@ -182,7 +182,7 @@ This repo contains:
 
   - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
     ```bash
-    $ curl -d 'print("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
+    $ curl -d 'using("stdio"); puts("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
     {stdout: "Hi!\n", stderr: "", exitCode = 0}
     ```
 
