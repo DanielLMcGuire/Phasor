@@ -179,6 +179,9 @@ This repo contains:
 
     $bytecode = Build-PhasorScript -Script 'print("hi")'
     Invoke-PhasorBytecode -Bytecode $bytecode
+
+    # Do not leak memory!
+    Remove-PhasorState $vm
     ```
 
   - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
