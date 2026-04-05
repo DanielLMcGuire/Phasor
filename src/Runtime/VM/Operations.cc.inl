@@ -15,15 +15,145 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #endif
 	switch (op)
 	{
-	[[likely]] case OpCode::PUSH_CONST:
+
+#pragma region STACK
+
+	[[likely]] case OpCode::PUSH_CONST: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index");
 		push(m_bytecode->constants[operand1]);
 		break;
+	}
 
-	[[likely]] case OpCode::POP:
+	[[likely]] case OpCode::POP: {
 		pop();
 		break;
+	}
+
+	[[likely]] case OpCode::STORE_VAR: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+			throw std::runtime_error("Invalid variable index");
+		variables[operand1] = pop();
+		break;
+	}
+
+	[[likely]] case OpCode::LOAD_VAR: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+			throw std::runtime_error("Invalid variable index");
+		push(variables[operand1]);
+		break;
+	}
+
+	[[likely]] case OpCode::JUMP: {
+#ifdef TRACING
+		log(std::format("JUMP: {} -> {}\n", pc, operand1));
+		flush();
+#endif
+		pc = operand1;
+		break;
+	}
+
+	[[likely]] case OpCode::CALL: {
+		Value       funcNameVal = m_bytecode->constants[operand1];
+		std::string funcName = funcNameVal.asString();
+		auto        it = m_bytecode->functionEntries.find(funcName);
+		if (it == m_bytecode->functionEntries.end())
+			throw std::runtime_error("Unknown function: " + funcName);
+
+		callStack.push_back(static_cast<int>(pc));
+		pc = it->second;
+		break;
+	}
+	[[likely]] case OpCode::RETURN: {
+		if (callStack.empty()) [[unlikely]]
+		{
+			pc = m_bytecode->instructions.size();
+			throw std::runtime_error("Cannot return from outside a function");
+			break;
+		}
+		pc = callStack.back();
+		callStack.pop_back();
+		break;
+	}
+
+	[[likely]] case OpCode::CALL_NATIVE: {
+		Value       funcNameVal = m_bytecode->constants[operand1];
+		std::string funcName = funcNameVal.asString();
+		auto        it = nativeFunctions.find(funcName);
+		if (it == nativeFunctions.end())
+			throw std::runtime_error("Unknown native function: " + funcName);
+
+		int                argCount = static_cast<int>(pop().asInt());
+		std::vector<Value> args(argCount);
+		for (int i = argCount - 1; i >= 0; --i)
+			args[i] = pop();
+
+#ifdef TRACING
+		std::string argsText;
+		for (auto &arg : args)
+		{
+			argsText += std::format("{:T}", arg);
+			if (arg != args.back())
+				argsText += ", ";
+		}
+		log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
+		flush();
+#endif
+
+		push(it->second(args, this));
+
+		break;
+	}
+
+	case OpCode::JUMP_IF_FALSE: {
+		if (!pop().isTruthy())
+			pc = operand1;
+		break;
+	}
+
+	case OpCode::JUMP_IF_TRUE: {
+		if (pop().isTruthy())
+			pc = operand1;
+		break;
+	}
+
+	case OpCode::JUMP_BACK: {
+		pc = operand1;
+		break;
+	}
+
+	case OpCode::TRUE_P: {
+		push(Value(true));
+		break;
+	}
+
+	case OpCode::FALSE_P: {
+		push(Value(false));
+		break;
+	}
+
+	case OpCode::NULL_VAL: {
+		push(Value());
+		break;
+	}
+
+	[[unlikely]] case OpCode::IMPORT: {
+		Value       pathVal = m_bytecode->constants[operand1];
+		std::string path = pathVal.asString();
+		if (importHandler)
+			importHandler(path);
+		else
+			throw std::runtime_error("Import handler not set");
+		break;
+	}
+	
+	[[unlikely]] case OpCode::HALT: {
+		pc = m_bytecode->instructions.size();
+		throw VM::Halt();
+		break;
+	}
+
+	#pragma region ARITHMETIC
 
 	case OpCode::IADD: {
 		Value b = pop();
@@ -138,13 +268,18 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::NEGATE:
+	#pragma endregion
+	#pragma region LOGICAL
+
+	case OpCode::NEGATE: {
 		push(asm_flneg(pop().asFloat()));
 		break;
+	}
 
-	case OpCode::NOT:
+	case OpCode::NOT: {
 		push(Value(asm_flnot(pop().isTruthy() ? 1 : 0)));
 		break;
+	}
 
 	case OpCode::IAND: {
 		Value b = pop();
@@ -258,40 +393,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	[[likely]] case OpCode::JUMP: {
-#ifdef TRACING
-		log(std::format("JUMP: {} -> {}\n", pc, operand1));
-		flush();
-#endif
-		pc = operand1;
-		break;
-	}
-
-	case OpCode::JUMP_IF_FALSE:
-		if (!pop().isTruthy())
-			pc = operand1;
-		break;
-
-	case OpCode::JUMP_IF_TRUE:
-		if (pop().isTruthy())
-			pc = operand1;
-		break;
-
-	case OpCode::JUMP_BACK:
-		pc = operand1;
-		break;
-
-	[[likely]] case OpCode::STORE_VAR:
-		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
-		variables[operand1] = pop();
-		break;
-
-	[[likely]] case OpCode::LOAD_VAR:
-		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
-		push(variables[operand1]);
-		break;
+	#pragma endregion
+	#pragma region I/O
 
 	case OpCode::PRINT: {
 		Value       v = pop();
@@ -330,82 +433,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	[[unlikely]] case OpCode::IMPORT: {
-		Value       pathVal = m_bytecode->constants[operand1];
-		std::string path = pathVal.asString();
-		if (importHandler)
-			importHandler(path);
-		else
-			throw std::runtime_error("Import handler not set");
-		break;
-	}
-	[[unlikely]] case OpCode::HALT:
-		pc = m_bytecode->instructions.size(); // stop execution
-		throw VM::Halt();
-		break;
-
-	[[likely]] case OpCode::CALL_NATIVE: {
-		Value       funcNameVal = m_bytecode->constants[operand1];
-		std::string funcName = funcNameVal.asString();
-		auto        it = nativeFunctions.find(funcName);
-		if (it == nativeFunctions.end())
-			throw std::runtime_error("Unknown native function: " + funcName);
-
-		int                argCount = static_cast<int>(pop().asInt());
-		std::vector<Value> args(argCount);
-		for (int i = argCount - 1; i >= 0; --i)
-			args[i] = pop();
-
-#ifdef TRACING
-		std::string argsText;
-		for (auto &arg : args)
-		{
-			argsText += std::format("{:T}", arg);
-			if (arg != args.back())
-				argsText += ", ";
-		}
-		log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
-		flush();
-#endif
-
-		push(it->second(args, this));
-
-		break;
-	}
-	case OpCode::TRUE_P:
-		push(Value(true));
-		break;
-
-	case OpCode::FALSE_P:
-		push(Value(false));
-		break;
-
-	case OpCode::NULL_VAL:
-		push(Value());
-		break;
-
-	[[likely]] case OpCode::CALL: {
-		Value       funcNameVal = m_bytecode->constants[operand1];
-		std::string funcName = funcNameVal.asString();
-		auto        it = m_bytecode->functionEntries.find(funcName);
-		if (it == m_bytecode->functionEntries.end())
-			throw std::runtime_error("Unknown function: " + funcName);
-
-		callStack.push_back(static_cast<int>(pc));
-		pc = it->second;
-		break;
-	}
-	[[likely]] case OpCode::RETURN: {
-		if (callStack.empty()) [[unlikely]]
-		{
-			pc = m_bytecode->instructions.size();
-			throw std::runtime_error("Cannot return from outside a function");
-			break;
-		}
-		pc = callStack.back();
-		callStack.pop_back();
-		break;
-	}
+	#pragma endregion
+	#pragma region SYSTEM
 
 	case OpCode::SYSTEM: {
 #ifdef SANDBOXED
@@ -458,15 +487,168 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	// Register-based operations (v2.0)
+	#pragma endregion
+	#pragma region STRING
+
+	case OpCode::LEN: {
+		Value v = pop();
+		push(Value(static_cast<int64_t>(v.asString().length())));
+		break;
+	}
+
+	case OpCode::CHAR_AT: {
+		Value idxVal = pop();
+		Value strVal = pop();
+
+		std::string s;
+		if (strVal.isString())
+			s = strVal.asString();
+		else
+			s = strVal.toString();
+
+		int64_t idx = 0;
+		if (idxVal.isInt())
+			idx = idxVal.asInt();
+		else if (idxVal.isFloat())
+			idx = static_cast<int64_t>(idxVal.asFloat());
+		else if (idxVal.isString())
+		{
+			try
+			{
+				idx = std::stoll(idxVal.asString());
+			}
+			catch (...)
+			{
+				throw std::runtime_error("char_at() expects index convertible to integer");
+			}
+		}
+		else
+			throw std::runtime_error("char_at() expects string and integer");
+
+		if (idx < 0 || idx >= static_cast<int64_t>(s.length()))
+			push(Value(""));
+		else
+			push(Value(std::string(1, s[static_cast<size_t>(idx)])));
+		break;
+	}
+
+	case OpCode::SUBSTR: {
+		Value lenVal = pop();
+		Value startVal = pop();
+		Value strVal = pop();
+
+		if (strVal.isString() && startVal.isInt() && lenVal.isInt())
+		{
+			const std::string &s = strVal.asString();
+			int64_t            start = startVal.asInt();
+			int64_t            len = lenVal.asInt();
+
+			if (start < 0 || start >= static_cast<int64_t>(s.length()))
+			{
+				push(Value(""));
+			}
+			else
+			{
+				push(Value(s.substr(start, len)));
+			}
+		}
+		else
+		{
+			throw std::runtime_error("substr() expects string, int, int");
+		}
+		break;
+	}
+
+	#pragma endregion
+	#pragma region STRUCT
+
+	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+			throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
+
+		const StructInfo &info = m_bytecode->structs[operand1];
+		Value instance = Value::createStruct(info.name);
+		for (int i = 0; i < info.fieldCount; ++i)
+		{
+			int constIndex = info.firstConstIndex + i;
+			if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
+				throw std::runtime_error("Invalid default constant index for struct field");
+			const Value       &defVal = m_bytecode->constants[constIndex];
+			const std::string &fieldName = info.fieldNames[i];
+			instance.setField(fieldName, defVal);
+		}
+		push(instance);
+		break;
+	}
+
+	case OpCode::GET_FIELD_STATIC: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
+		const StructInfo &info = m_bytecode->structs[operand1];
+		int fieldOffset = operand2;
+		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
+			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
+		const std::string &fieldName = info.fieldNames[fieldOffset];
+		Value              obj = pop();
+		push(obj.getField(fieldName));
+		break;
+	}
+
+	case OpCode::SET_FIELD_STATIC: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
+		const StructInfo &info = m_bytecode->structs[operand1];
+		int fieldOffset = operand2;
+		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
+			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
+		const std::string &fieldName = info.fieldNames[fieldOffset];
+		Value              value = pop();
+		Value              obj = pop();
+		obj.setField(fieldName, value);
+		push(obj);
+		break;
+	}
+
+	case OpCode::NEW_STRUCT: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+			throw std::runtime_error("Invalid constant index for NEW_STRUCT");
+		Value       nameVal = m_bytecode->constants[operand1];
+		std::string structName = nameVal.asString();
+		push(Value::createStruct(structName));
+		break;
+	}
+
+	case OpCode::SET_FIELD: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+			throw std::runtime_error("Invalid constant index for SET_FIELD");
+		std::string fieldName = m_bytecode->constants[operand1].asString();
+		Value       value = pop();
+		Value       obj = pop();
+		obj.setField(fieldName, value);
+		push(obj);
+		break;
+	}
+
+	case OpCode::GET_FIELD: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+			throw std::runtime_error("Invalid constant index for GET_FIELD");
+		std::string fieldName = m_bytecode->constants[operand1].asString();
+		Value       obj = pop();
+		push(obj.getField(fieldName));
+		break;
+	}
+
+#pragma endregion
+
+#pragma region REGISTER
+
 	[[likely]] case OpCode::MOV: {
 		registers[rA] = registers[rB];
 		break;
 	}
 
 	[[likely]] case OpCode::LOAD_CONST_R: {
-		// LOAD_CONST_R rA, constIndex
-		auto constIndex = operand2;
+		int constIndex = operand2;
 		if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index");
 		registers[rA] = m_bytecode->constants[constIndex];
@@ -474,8 +656,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	[[likely]] case OpCode::LOAD_VAR_R: {
-		// LOAD_VAR_R rA, varIndex
-		auto varIndex = operand2;
+		int varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
 			throw std::runtime_error("Invalid variable index");
 		registers[rA] = variables[varIndex];
@@ -483,16 +664,37 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	[[likely]] case OpCode::STORE_VAR_R: {
-		// STORE_VAR_R rA, varIndex - store register rA to variable varIndex
-		auto varIndex = operand2;
+		int varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
 			throw std::runtime_error("Invalid variable index");
 		variables[varIndex] = registers[rA];
 		break;
 	}
 
-	// Register arithmetic (3-address code)
-	// Format: operand1=rA (dest), operand2=rB, operand3=rC
+	case OpCode::PUSH_R: {
+		push(registers[rA]);
+		break;
+	}
+
+	case OpCode::PUSH2_R: {
+		push(registers[rA]);
+		push(registers[rB]);
+		break;
+	}
+
+	case OpCode::POP_R: {
+		registers[rA] = pop();
+		break;
+	}
+
+	case OpCode::POP2_R: {
+		registers[rA] = pop();
+		registers[rB] = pop();
+		break;
+	}
+
+	#pragma region ARITHMETIC
+
 	case OpCode::IADD_R: {
 		registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt()));
 		break;
@@ -578,8 +780,19 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	// Register comparisons
-	// Format: operand1=rA (dest), operand2=rB, operand3=rC
+	#pragma endregion
+	#pragma region LOGICAL
+
+	case OpCode::NEG_R: {
+		registers[rA] = Value(asm_flneg(registers[rB].asFloat()));
+		break;
+	}
+
+	case OpCode::NOT_R: {
+		registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0));
+		break;
+	}
+
 	case OpCode::IEQ_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
@@ -695,43 +908,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	// Register-stack interaction
-	case OpCode::PUSH_R: {
-		push(registers[rA]);
-		break;
-	}
+	#pragma endregion
+	#pragma region I/O
 
-	case OpCode::PUSH2_R: {
-		push(registers[rA]);
-		push(registers[rB]);
-		break;
-	}
-
-	case OpCode::POP_R: {
-		registers[rA] = pop();
-		break;
-	}
-
-	case OpCode::POP2_R: {
-		registers[rA] = pop();
-		registers[rB] = pop();
-		break;
-	}
-
-	// Register unary operations
-	case OpCode::NEG_R: {
-		// NEG_R rA, rB - rA = -rB
-		registers[rA] = Value(asm_flneg(registers[rB].asFloat()));
-		break;
-	}
-
-	case OpCode::NOT_R: {
-		// NOT_R rA, rB - rA = !rB
-		registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0));
-		break;
-	}
-
-	// Register I/O
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
 #ifdef TRACING
@@ -766,6 +945,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		registers[rA] = s;
 		break;
 	}
+
+	#pragma endregion
+	#pragma region SYSTEM
 
 	case OpCode::SYSTEM_R: {
 #ifdef SANDBOXED
@@ -818,153 +1000,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	case OpCode::LEN: {
-		Value v = pop();
-		push(Value(static_cast<int64_t>(v.asString().length())));
-		break;
-	}
+	#pragma endregion
 
-	case OpCode::CHAR_AT: {
-		Value idxVal = pop();
-		Value strVal = pop();
+#pragma endregion
 
-		std::string s;
-		if (strVal.isString())
-			s = strVal.asString();
-		else
-			s = strVal.toString();
-
-		int64_t idx = 0;
-		if (idxVal.isInt())
-			idx = idxVal.asInt();
-		else if (idxVal.isFloat())
-			idx = static_cast<int64_t>(idxVal.asFloat());
-		else if (idxVal.isString())
-		{
-			try
-			{
-				idx = std::stoll(idxVal.asString());
-			}
-			catch (...)
-			{
-				throw std::runtime_error("char_at() expects index convertible to integer");
-			}
-		}
-		else
-			throw std::runtime_error("char_at() expects string and integer");
-
-		if (idx < 0 || idx >= static_cast<int64_t>(s.length()))
-			push(Value(""));
-		else
-			push(Value(std::string(1, s[static_cast<size_t>(idx)])));
-		break;
-	}
-
-	case OpCode::SUBSTR: {
-		Value lenVal = pop();
-		Value startVal = pop();
-		Value strVal = pop();
-
-		if (strVal.isString() && startVal.isInt() && lenVal.isInt())
-		{
-			const std::string &s = strVal.asString();
-			int64_t            start = startVal.asInt();
-			int64_t            len = lenVal.asInt();
-
-			if (start < 0 || start >= static_cast<int64_t>(s.length()))
-			{
-				push(Value(""));
-			}
-			else
-			{
-				push(Value(s.substr(start, len)));
-			}
-		}
-		else
-		{
-			throw std::runtime_error("substr() expects string, int, int");
-		}
-		break;
-	}
-
-	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-			throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
-
-		const StructInfo &info = m_bytecode->structs[operand1];
-		Value instance = Value::createStruct(info.name);
-		for (int i = 0; i < info.fieldCount; ++i)
-		{
-			int constIndex = info.firstConstIndex + i;
-			if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
-				throw std::runtime_error("Invalid default constant index for struct field");
-			const Value       &defVal = m_bytecode->constants[constIndex];
-			const std::string &fieldName = info.fieldNames[i];
-			instance.setField(fieldName, defVal);
-		}
-		push(instance);
-		break;
-	}
-
-	case OpCode::GET_FIELD_STATIC: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
-		const StructInfo &info = m_bytecode->structs[operand1];
-		auto               fieldOffset = operand2;
-		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
-			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
-		const std::string &fieldName = info.fieldNames[fieldOffset];
-		Value              obj = pop();
-		push(obj.getField(fieldName));
-		break;
-	}
-
-	case OpCode::SET_FIELD_STATIC: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
-		const StructInfo &info = m_bytecode->structs[operand1];
-		auto               fieldOffset = operand2;
-		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
-			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
-		const std::string &fieldName = info.fieldNames[fieldOffset];
-		Value              value = pop();
-		Value              obj = pop();
-		obj.setField(fieldName, value);
-		push(obj);
-		break;
-	}
-
-	case OpCode::NEW_STRUCT: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index for NEW_STRUCT");
-		Value       nameVal = m_bytecode->constants[operand1];
-		std::string structName = nameVal.asString();
-		push(Value::createStruct(structName));
-		break;
-	}
-
-	case OpCode::SET_FIELD: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index for SET_FIELD");
-		std::string fieldName = m_bytecode->constants[operand1].asString();
-		Value       value = pop();
-		Value       obj = pop();
-		obj.setField(fieldName, value);
-		push(obj);
-		break;
-	}
-
-	case OpCode::GET_FIELD: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index for GET_FIELD");
-		std::string fieldName = m_bytecode->constants[operand1].asString();
-		Value       obj = pop();
-		push(obj.getField(fieldName));
-		break;
-	}
-	default:
+	default: {
 		throw std::runtime_error("Unknown opcode");
 		return Value();
+	}
 	}
 	return Value(operand1);
 }
