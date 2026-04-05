@@ -221,7 +221,7 @@ Value StdLib::sys_isatty(const std::vector<Value> &args, VM *vm)
 #ifdef _WIN32
 	return _isatty(_fileno(stdin));
 #else
-	return isatty(fileno(stdin))
+	return isatty(fileno(stdin));
 #endif
 
 }
