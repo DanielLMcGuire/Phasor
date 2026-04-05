@@ -139,7 +139,6 @@ This repo contains:
   - [Pulsar Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Pulsar) (C++)
   - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
   - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
-  - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web)
  
 - Backend:
   - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Backend) (C++)
@@ -150,7 +149,28 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
-- [Python module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `scripts/phasor` 
+  - [Python Module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py`
+    ```python
+    from phasor import Bytecode, Value, OpCode
+    bc = Bytecode()
+    bc.emit(OpCode.PUSH_CONST, bc.add_constant(Value.from_string("Hello, World!\n")))
+    bc.emit(OpCode.PRINT)
+    bc.emit(OpCode.HALT)
+    bc.save("hello_world.phsb")
+    ```
+
+  - [PowerShell phasorrt.dll bindings](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell`
+    ```powershell
+    Import-Module .\src\Extensions\powershell\Phasor.psd1
+    Get-Command -module Phasor
+    Get-Help <cmdlet>
+    ```
+
+  - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web`
+    ```bash
+    $ curl -d 'print("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
+    {stdout: "Hi!\n", stderr: "", exitCode = 0}
+    ```
 
 ---
 
