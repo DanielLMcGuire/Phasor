@@ -167,21 +167,17 @@ This repo contains:
     Import-Module .\src\Extensions\powershell\Phasor.psd1
     Get-Help Phasor
 
-    # Remember, State is optional, see PhasorRT.h
-
+    # state is always optional
     Start-PhasorScript -ScriptPath .\hello.phs
     Start-PulsarScript -ScriptPath .\hello.pul
 
     $vm = New-PhasorState
-    Start-PhasorEval -State $vm -Script 'let x = 42'
-    Start-PhasorEval -State $vm -Script 'print(x)'   # x still in scope
-    Remove-PhasorState $vm
+    Start-PhasorEval -State $vm -Script 'var x = 42; var y = 53;'
+    Start-PhasorEval -State $vm -Script 'print(x + y);'   # x and y still in scope
+    Remove-PhasorState $vm # avoid leaking
 
-    $bytecode = Build-PhasorScript -Script 'print("hi")'
+    $bytecode = Build-PhasorScript -Script 'print("hi\n");'
     Invoke-PhasorBytecode -Bytecode $bytecode
-
-    # Do not leak memory!
-    Remove-PhasorState $vm
     ```
 
   - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
