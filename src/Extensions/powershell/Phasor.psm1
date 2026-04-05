@@ -382,15 +382,12 @@ function Start-PhasorEval {
         [string]$ModuleName = "PowerShell (Start-PhasorEval)",
 
         [Parameter()]
-        [string]$ModulePath = "./",
-
-        [Parameter()]
-        [bool]$EnableVerbose = $false
+        [string]$ModulePath = "./"
     )
 
     process {
         $ptr    = if ($State) { $State.Pointer } else { [IntPtr]::Zero }
-        $return = [PHASOR_INTERNAL_ABI_3_1_1]::evaluatePHS($ptr, $Script, $ModuleName, $ModulePath, $EnableVerbose)
+        $return = [PHASOR_INTERNAL_ABI_3_1_1]::evaluatePHS($ptr, $Script, $ModuleName, $ModulePath, $VerbosePreference)
         if ($return -ne 0) {
             Write-Error "Phasor script execution failed with exit code: $return"
         }
@@ -481,10 +478,7 @@ function Start-PhasorScript {
         [PSCustomObject]$State,
 
         [Parameter()]
-        [string]$ModuleName = "PowerShell (Start-PhasorScript)",
-
-        [Parameter()]
-        [bool]$EnableVerbose = $false
+        [string]$ModuleName = "PowerShell (Start-PhasorScript)"
     )
 
     process {
@@ -494,7 +488,6 @@ function Start-PhasorScript {
             Script        = $content
             ModuleName    = $ModuleName
             ModulePath    = $scriptParentPath
-            EnableVerbose = $EnableVerbose
         }
         if ($State) { $params['State'] = $State }
         Start-PhasorEval @params
