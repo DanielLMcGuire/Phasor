@@ -21,7 +21,7 @@ public static class PHASOR_INTERNAL_ABI_3_1_1 {
     public static extern bool freeState(IntPtr vm);
 
     [DllImport("phasorrt.dll", CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool initStdlib(IntPtr vm);
+    public static extern void initStdLib(IntPtr vm);
 
     [DllImport("phasorrt.dll", CallingConvention = CallingConvention.Cdecl)]
     public static extern bool resetState(IntPtr vm, bool resetFunctions, bool resetVariables);
@@ -161,9 +161,9 @@ function Reset-PhasorState {
     Registers the Phasor Standard library functions into the Phasor VM.
 
 .EXAMPLE
-    Register-PhasorStdlib -State $vm
+    Register-PhasorStdLib -State $vm
 #>
-function Register-PhasorStdlib {
+function Register-PhasorStdLib {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
@@ -171,7 +171,7 @@ function Register-PhasorStdlib {
         [PSCustomObject]$State
     )
 
-    [PHASOR_INTERNAL_ABI_3_1_1]::initStdlib($State.Pointer)
+    [PHASOR_INTERNAL_ABI_3_1_1]::initStdLib($State.Pointer)
 }
 
 # ─── Compilation ─────────────────────────────────────────────────────────────
@@ -568,7 +568,7 @@ Export-ModuleMember -Function @(
     'New-PhasorState'
     'Remove-PhasorState'
     'Reset-PhasorState'
-    'Register-PhasorStdlib'
+    'Register-PhasorStdLib'
     # Compilation
     'Build-PhasorScript'
     'Build-PulsarScript'

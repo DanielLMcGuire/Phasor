@@ -12,7 +12,7 @@
         'New-PhasorState'
         'Remove-PhasorState'
         'Reset-PhasorState'
-        'Register-PhasorStdlib'
+        'Register-PhasorStdLib'
         # Compilation
         'Build-PhasorScript'
         'Build-PulsarScript'
