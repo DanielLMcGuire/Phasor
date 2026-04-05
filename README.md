@@ -172,6 +172,8 @@ This repo contains:
     Start-PulsarScript -ScriptPath .\hello.pul
 
     $vm = New-PhasorState
+    Register-PhasorStdlib -State $vm # automatic if not managing manually
+
     Start-PhasorEval -State $vm -Script 'var x = 42; var y = 53;'
     Start-PhasorEval -State $vm -Script 'print(x + y);'   # x and y still in scope
     Remove-PhasorState $vm # avoid leaking

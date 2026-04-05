@@ -43,7 +43,11 @@ _ffi.cdef(
                     unsigned char *buffer, size_t bufferSize, size_t *outSize);
 
     void *createState(void);
+
+    void initStdLib(void *state);
+
     bool  freeState(void *state);
+
     bool  resetState(void *state, bool resetFunctions, bool resetVariables);
     """
 )
@@ -153,6 +157,17 @@ def new_state() -> StateHandle:
         raise RuntimeError("createState() returned NULL; PhasorRT may be uninitialised.")
     return ptr
 
+def init_stdlib(state: StateHandle) -> None:
+    """Register standard library functions into a given state.
+
+    Args: 
+        state: The handle returned by :func:`new_state`.
+
+    Raises:
+        RuntimeError: If ``initStdLib()`` reports failure.
+    """
+    if not _get_lib().initStdLib(state):
+        raise RuntimeError("initStdLib() failed.")
 
 def free_state(state: StateHandle) -> None:
     """Release a VM state created by :func:`new_state`.

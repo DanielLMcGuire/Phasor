@@ -1,3 +1,4 @@
+#include "../../../Runtime/Stdlib/StdLib.hpp"
 #include "../../../Runtime/Shared/NativeRuntime.hpp"
 #include "../../../Frontend/Pulsar/Frontend.hpp"
 #include "../../../Frontend/Phasor/Frontend.hpp"
@@ -177,7 +178,14 @@ extern "C"
 
 	PHASOR_API void *createState()
 	{
-		return new Phasor::VM();
+		auto vm = new Phasor::VM();
+		return vm;
+	}
+
+	PHASOR_API void initStdLib(void *vmPtr)
+	{
+		auto vm = static_cast<Phasor::VM *>(vmPtr);
+		Phasor::StdLib::registerFunctions(*vm);
 	}
 
 	PHASOR_API bool freeState(void *vmPtr)
