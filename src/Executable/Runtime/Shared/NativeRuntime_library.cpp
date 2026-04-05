@@ -82,7 +82,12 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
+#ifdef _WIN32
+			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
+			            MB_OK | MB_ICONERROR);
+#else
 			std::cerr << "Error: " << e.what() << "\n\a";
+#endif
 		}
 		return -1;
 	}
@@ -121,7 +126,12 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
+#ifdef _WIN32
+			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
+			            MB_OK | MB_ICONERROR);
+#else
 			std::cerr << "Error: " << e.what() << "\n\a";
+#endif
 		}
 		return false;
 	}
@@ -155,7 +165,12 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
+#ifdef _WIN32
+			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
+			            MB_OK | MB_ICONERROR);
+#else
 			std::cerr << "Error: " << e.what() << "\n\a";
+#endif
 		}
 		return false;
 	}
