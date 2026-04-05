@@ -111,6 +111,7 @@ class StdLib
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);    ///< Reset the VM
 	static Value sys_pid(const std::vector<Value> &args, VM *vm);      ///< Get the current process ID
 	static Value sys_os(const std::vector<Value> &args, VM *vm);             ///< Get the current OS
+	static Value sys_isatty(const std::vector<Value> &args, VM *vm);
 #endif
 	static Value sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
 	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
