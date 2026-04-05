@@ -197,7 +197,7 @@ This repo contains:
 ### Prerequisites
 
 - CMake 3.21+
-- C++23 compiler (MSVC latest, GCC 14, Clang (LLVM Latest))
+- CC (23) compiler and CXX (23) compiler (MSVC latest, GCC 14, Clang (LLVM Latest) are officially supported)
 - Ninja
 
 ### Build Steps
