@@ -50,8 +50,13 @@ NativeRuntime::NativeRuntime(const Phasor::VM &vm, const std::string &script, co
 
 NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc,
                              const char **argv)
-    : m_vm(vm, [](VM *) {}), m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
+    : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
+	if (vm)
+		m_vm = std::shared_ptr<VM>(vm, [](VM *) {}); // non-owning, caller manages lifetime
+	else
+		m_vm = std::make_shared<VM>(); // owning, we manage lifetime
+
 	BytecodeDeserializer deserializer;
 	m_bytecode = deserializer.deserialize(m_bytecodeData);
 }
