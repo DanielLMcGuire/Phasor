@@ -25,12 +25,32 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set(LTO_FLAG "-flto=thin")
+
+        if(CLANG_SAN_ADDR AND CLANG_SAN_LEAK)
+            set(CLANG_SAN_FLAGS "-fsanitize=address,leak -fno-omit-frame-pointer")
+        elseif(CLANG_SAN_ADDR)
+            set(CLANG_SAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+        elseif(CLANG_SAN_LEAK)
+            set(CLANG_SAN_FLAGS "-fsanitize=leak -fno-omit-frame-pointer")
+        else()
+            set(CLANG_SAN_FLAGS "")
+        endif()
+
+        if(CLANG_SAN_FLAGS)
+            if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+                message(WARNING
+                    "CLANG_SAN_ADDR/CLANG_SAN_LEAK are set but CMAKE_BUILD_TYPE is "
+                    "'${CMAKE_BUILD_TYPE}'. Sanitizers are most useful with Debug builds.")
+            endif()
+            set(LTO_FLAG "")
+        endif()
     else()
         if(NIX)
             set(LTO_FLAG "")
         else()
             set(LTO_FLAG "-flto")
         endif()
+        set(CLANG_SAN_FLAGS "")
     endif()
 
     set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers")
@@ -106,11 +126,13 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     endif()
 
     set(CMAKE_C_FLAGS_DEBUG
-        "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fno-fast-math"
+        "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fno-fast-math ${CLANG_SAN_FLAGS}"
     )
     set(CMAKE_CXX_FLAGS_DEBUG
-        "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fexceptions -frtti -fno-fast-math"
+        "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fexceptions -frtti -fno-fast-math ${CLANG_SAN_FLAGS}"
     )
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG    "${CLANG_SAN_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CLANG_SAN_FLAGS}")
 
 else()
     message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. No custom flags applied.")
