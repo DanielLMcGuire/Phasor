@@ -16,7 +16,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	switch (op)
 	{
 
-#pragma region STACK
+#pragma region _______STACK_______
 
 	[[likely]] case OpCode::PUSH_CONST: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
@@ -153,7 +153,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma region ARITHMETIC
+	#pragma region STACK ARITHMETIC
 
 	case OpCode::IADD: {
 		Value b = pop();
@@ -269,7 +269,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region LOGICAL
+	#pragma region STACK LOGICAL
 
 	case OpCode::NEGATE: {
 		push(asm_flneg(pop().asFloat()));
@@ -394,7 +394,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region I/O
+	#pragma region STACK I/O
 
 	case OpCode::PRINT: {
 		Value       v = pop();
@@ -434,7 +434,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region SYSTEM
+	#pragma region STACK SYSTEM
 
 	case OpCode::SYSTEM: {
 #ifdef SANDBOXED
@@ -488,7 +488,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region STRING
+	#pragma region STACK STRING
 
 	case OpCode::LEN: {
 		Value v = pop();
@@ -560,7 +560,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region STRUCT
+	#pragma region STACK STRUCT
 
 	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
@@ -640,7 +640,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 #pragma endregion
 
-#pragma region REGISTER
+#pragma region _____REGISTER_____
 
 	[[likely]] case OpCode::MOV: {
 		registers[rA] = registers[rB];
@@ -693,7 +693,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma region ARITHMETIC
+	#pragma region REG ARITHMETIC
 
 	case OpCode::IADD_R: {
 		registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt()));
@@ -781,7 +781,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region LOGICAL
+	#pragma region REG LOGICAL
 
 	case OpCode::NEG_R: {
 		registers[rA] = Value(asm_flneg(registers[rB].asFloat()));
@@ -909,7 +909,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region I/O
+	#pragma region REG I/O
 
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
@@ -947,7 +947,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	#pragma endregion
-	#pragma region SYSTEM
+	#pragma region REG SYSTEM
 
 	case OpCode::SYSTEM_R: {
 #ifdef SANDBOXED
@@ -1004,10 +1004,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 #pragma endregion
 
+#pragma region DEFAULT
 	default: {
 		throw std::runtime_error("Unknown opcode");
 		return Value();
 	}
+#pragma endregion
+	
 	}
 	return Value(operand1);
 }

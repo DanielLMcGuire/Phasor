@@ -61,7 +61,7 @@ class StdLib
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
 
-	// Math functions
+#pragma region stdmath
 	static Value math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
 	static Value math_pow(const std::vector<Value> &args, VM *vm);   ///< Power
 	static Value math_abs(const std::vector<Value> &args, VM *vm);   ///< Absolute value
@@ -75,9 +75,10 @@ class StdLib
 	static Value math_sin(const std::vector<Value> &args, VM *vm);   ///< Sine
 	static Value math_cos(const std::vector<Value> &args, VM *vm);   ///< Cosine
 	static Value math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
+#pragma endregion
 
+#pragma region stdfile
 #ifndef SANDBOXED
-	// File IO
 	static Value file_absolute(const std::vector<Value> &args, VM *vm);     ///< Get full path to relative path
 	static Value file_read(const std::vector<Value> &args, VM *vm);              ///< Read file
 	static Value file_write(const std::vector<Value> &args, VM *vm);             ///< Write to file
@@ -97,8 +98,10 @@ class StdLib
 	static Value file_statistics(const std::vector<Value> &args, VM *vm);
 	static Value file_create_directory(const std::vector<Value> &args, VM *vm);
 	static Value file_remove_directory(const std::vector<Value> &args, VM *vm);
+#pragma endregion
 
-	// System (meaning VM/CRT more than actual system)
+
+#pragma region stdsys
 	static Value sys_env(const std::vector<Value> &args, VM *vm);            ///< Get the current environment variables
 	static Value sys_argv(const std::vector<Value> &args, VM *vm);           ///< Get the current command line arguments
 	static Value system_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
@@ -117,14 +120,16 @@ class StdLib
 	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
 	static Value sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
 	static Value sys_shutdown(const std::vector<Value> &args, VM *vm); ///< Shutdown the VM
+#pragma endregion
 
-	// Type conversion functions
+#pragma region stdtype
 	static Value to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
 	static Value to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
 	static Value to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static Value to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
+#pragma endregion
 
-	// String functions
+#pragma region stdstr
 	static Value str_find(const std::vector<Value> &args, VM *vm);        ///< Find string in string
 	static Value str_len(const std::vector<Value> &args, VM *vm);         ///< Get string length
 	static Value str_char_at(const std::vector<Value> &args, VM *vm);     ///< Get character at index
@@ -140,8 +145,9 @@ class StdLib
 	static Value sb_to_string(const std::vector<Value> &args, VM *vm); ///< Convert string builder to string
 	static Value sb_clear(const std::vector<Value> &args, VM *vm);     ///< Clear string builder
 	static Value sb_free(const std::vector<Value> &args, VM *vm);      ///< Free string builder
+#pragma endregion
 
-	// IO
+#pragma region stdio
 	static Value io_c_format(const std::vector<Value> &args, VM *vm); ///< Format string
 #ifndef SANDBOXED
 	static Value io_clear(const std::vector<Value> &args, VM *vm);    ///< Clear the console
@@ -157,6 +163,7 @@ class StdLib
 	                           VM                       *vm); ///< Print formatted string with newline to error output
 	static Value io_puts_error(const std::vector<Value> &args, VM *vm); ///< Print string with newline to error output
 #endif
+#pragma endregion
 };
 
 } // namespace Phasor
