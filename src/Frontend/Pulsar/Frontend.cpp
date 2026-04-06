@@ -60,7 +60,15 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	});
 
 	if (status != 0) {
-		if (ownVM) delete vm;
+		if (ownVM) 
+		{ 
+			delete vm;
+		} 
+		else 
+		{
+			vm->resetStatus();
+			vm->reset(true, false, false);
+		}
 		return status;
 	}
 

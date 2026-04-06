@@ -65,7 +65,15 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	});
 
 	if (status != 0) {
-		if (ownVM) delete vm;
+		if (ownVM) 
+		{ 
+			delete vm;
+		} 
+		else 
+		{
+			vm->resetStatus();
+			vm->reset(true, false, false);
+		}
 		return status;
 	}
 

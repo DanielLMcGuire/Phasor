@@ -213,6 +213,7 @@ class VM
 	
 	/// @brief Set VM exit code
 	inline void setStatus(int newStatus) { status = newStatus; }
+	inline void resetStatus() { status = 0; }
 
 	/** 
 	 * @brief Run an opcode with arguments pre-loaded into registers

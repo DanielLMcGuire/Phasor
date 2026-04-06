@@ -109,7 +109,14 @@ int NativeRuntime::run()
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
 		});
 
-		return m_vm->run(m_bytecode);
+		int status = m_vm->run(m_bytecode);
+
+		if (status != 0) { 
+			m_vm->reset(true, false, false);
+			m_vm->resetStatus(); 
+		}
+
+		return status;
 	}
 	catch (const std::exception &e)
 	{
