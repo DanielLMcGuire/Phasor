@@ -8,7 +8,6 @@ char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 char **StdLib::envp = nullptr;
 
-#ifndef __EMSCRIPTEN__
 #ifndef SANDBOXED
 int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 {
@@ -39,7 +38,6 @@ int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
 	return 0;
 }
 #endif
-#endif
 
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
@@ -58,52 +56,42 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 
 Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
-#ifdef __EMSCRIPTEN__
-	return false;
-#else
 	checkArgCount(args, 1, "using", true);
+	
+	std::unordered_map<std::string, std::function<void(Phasor::VM*)>>  modules {
+		{"stdio", registerIOFunctions},
+		{"stdsys", registerSysFunctions},
+		{"stdmath", registerMathFunctions},
+		{"stdstr", registerStringFunctions},
+		{"stdtype", registerTypeConvFunctions},
+#ifndef SANDBOXED
+		{"stdfile", registerFileFunctions},
+#endif
+		{"std*", [](Phasor::VM* vm) {
+			registerIOFunctions(vm);
+			registerSysFunctions(vm);
+			registerMathFunctions(vm);
+			registerStringFunctions(vm);
+			registerTypeConvFunctions(vm);
+#ifndef SANDBOXED
+			registerFileFunctions(vm);			
+#endif
+		}},
+	};
+
 	for (const auto &arg : args)
 	{
-		if (arg.getType() != ValueType::String)
+		auto it = modules.find(arg.asString());
+		if (it != modules.end())
 		{
-			throw std::runtime_error("All arguments to 'using' must be strings");
-			return false;
-		}
-		auto moduleName = arg.asString();
-		
-		if (moduleName == "stdio") [[likely]]
-			registerIOFunctions(vm);
-		else if (moduleName == "stdsys") [[likely]]
-			registerSysFunctions(vm);
-		else if (moduleName == "stdmath") 
-			registerMathFunctions(vm);
-		else if (moduleName == "stdstr") 
-			registerStringFunctions(vm);
-		else if (moduleName == "stdtype") 
-			registerTypeConvFunctions(vm);
-#ifndef SANDBOXED
-		else if (moduleName == "stdfile")
-			registerFileFunctions(vm);
-#endif
-		else if (moduleName == "std*") [[unlikely]]
-		{	
-			registerIOFunctions(vm);
-			registerSysFunctions(vm);
-			registerMathFunctions(vm);
-			registerStringFunctions(vm);
-			registerTypeConvFunctions(vm);
-#ifndef SANDBOXED
-			registerFileFunctions(vm);
-#endif
+			it->second(vm);
 		}
 		else
 		{
-			throw std::runtime_error("Unknown standard library module: " + moduleName);
-			return false;
+			throw std::runtime_error("Unknown module: " + arg.asString());
 		}
 	}
 	return true;
-#endif
 }
 
 #ifndef SANDBOXED

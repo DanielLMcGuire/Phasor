@@ -12,9 +12,9 @@
 #endif
 
 #if defined(PLATFORM_LEGACY_GAME)
-#define MAX_REGISTERS 8
+#define MAX_REGISTERS 4
 #elif defined(PLATFORM_DESKTOP_GAME) || defined(PLATFORM_MODERN_GAME)
-#define MAX_REGISTERS 16
+#define MAX_REGISTERS 8
 #elif defined(PLATFORM_DESKTOP_STANDARD)
-#define MAX_REGISTERS 32
+#define MAX_REGISTERS 16
 #endif
