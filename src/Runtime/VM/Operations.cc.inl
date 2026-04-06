@@ -16,33 +16,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	switch (op)
 	{
 
-#pragma region _______STACK_______
-
-	[[likely]] case OpCode::PUSH_CONST: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index");
-		push(m_bytecode->constants[operand1]);
-		break;
-	}
-
-	[[likely]] case OpCode::POP: {
-		pop();
-		break;
-	}
-
-	[[likely]] case OpCode::STORE_VAR: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
-		variables[operand1] = pop();
-		break;
-	}
-
-	[[likely]] case OpCode::LOAD_VAR: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
-		push(variables[operand1]);
-		break;
-	}
+	#pragma region CONTROL FLOW
 
 	[[likely]] case OpCode::JUMP: {
 #ifdef TRACING
@@ -59,7 +33,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		auto        it = m_bytecode->functionEntries.find(funcName);
 		if (it == m_bytecode->functionEntries.end())
 			throw std::runtime_error("Unknown function: " + funcName);
-
+#ifdef TRACING
+		log(std::format("CALL: {} -> {}: {}\n", pc, funcName, it->second));
+		flush();
+#endif
 		callStack.push_back(static_cast<int>(pc));
 		pc = it->second;
 		break;
@@ -71,6 +48,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			throw std::runtime_error("Cannot return from outside a function");
 			break;
 		}
+#ifdef TRACING
+		log(std::format("RETURN: {} -> {}\n", pc, callStack.back()));
+		flush();
+#endif
 		pc = callStack.back();
 		callStack.pop_back();
 		break;
@@ -106,34 +87,35 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::JUMP_IF_FALSE: {
-		if (!pop().isTruthy())
-			pc = operand1;
+#ifdef TRACING
+		size_t oldPC = pc;
+		if (!pop().isTruthy()) pc = operand1;
+		log(std::format("JUMP_IF_TRUE: {} -> {}\n", oldPC, pc));
+		flush();
+#else 
+		if (!pop().isTruthy()) pc = operand1;
+#endif
 		break;
 	}
 
 	case OpCode::JUMP_IF_TRUE: {
-		if (pop().isTruthy())
-			pc = operand1;
+#ifdef TRACING
+		size_t oldPC = pc;
+		if (pop().isTruthy()) pc = operand1;
+		log(std::format("JUMP_IF_TRUE: {} -> {}\n", oldPC, pc));
+		flush();
+#else 
+		if (pop().isTruthy()) pc = operand1;
+#endif
 		break;
 	}
 
 	case OpCode::JUMP_BACK: {
+#ifdef TRACING
+		log(std::format("JUMP_BACK: {} -> {}\n", pc, operand1));
+		flush();
+#endif
 		pc = operand1;
-		break;
-	}
-
-	case OpCode::TRUE_P: {
-		push(Value(true));
-		break;
-	}
-
-	case OpCode::FALSE_P: {
-		push(Value(false));
-		break;
-	}
-
-	case OpCode::NULL_VAL: {
-		push(Value());
 		break;
 	}
 
@@ -153,6 +135,51 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
+	#pragma endregion
+	#pragma region STACK CORE
+
+	[[likely]] case OpCode::PUSH_CONST: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+			throw std::runtime_error("Invalid constant index");
+		push(m_bytecode->constants[operand1]);
+		break;
+	}
+
+	[[likely]] case OpCode::POP: {
+		pop();
+		break;
+	}
+
+	[[likely]] case OpCode::STORE_VAR: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+			throw std::runtime_error("Invalid variable index");
+		variables[operand1] = pop();
+		break;
+	}
+
+	[[likely]] case OpCode::LOAD_VAR: {
+		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+			throw std::runtime_error("Invalid variable index");
+		push(variables[operand1]);
+		break;
+	}
+
+	case OpCode::TRUE_P: {
+		push(Value(true));
+		break;
+	}
+
+	case OpCode::FALSE_P: {
+		push(Value(false));
+		break;
+	}
+
+	case OpCode::NULL_VAL: {
+		push(Value());
+		break;
+	}
+
+	#pragma endregion
 	#pragma region STACK ARITHMETIC
 
 	case OpCode::IADD: {
@@ -399,7 +426,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::PRINT: {
 		Value       v = pop();
 		std::string s = v.toString();
-#ifdef _TRACING
+#ifdef TRACING
 		log(std::format("PRINT: (stdout) {:T}\n", v));
 #else
 		c_print_stdout(s.c_str(), (int64_t)s.length());
@@ -410,7 +437,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	[[unlikely]] case OpCode::PRINTERROR: {
 		Value       v = pop();
 		std::string s = v.toString();
-#ifdef _TRACING
+#ifdef TRACING
 		log(std::format("PRINTERROR: (stderr) {:T}\n", v));
 #else
 		c_print_stderr(s.c_str(), (int64_t)s.length());
@@ -638,9 +665,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-#pragma endregion
+	#pragma endregion
 
-#pragma region _____REGISTER_____
+	#pragma region REGISTER CORE
 
 	[[likely]] case OpCode::MOV: {
 		registers[rA] = registers[rB];
