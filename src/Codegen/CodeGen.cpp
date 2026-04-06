@@ -347,7 +347,6 @@ void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
 void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 {
 	// Optimizations
-	// Optimizations
 	if (callExpr->callee == "len" && callExpr->arguments.size() == 1)
 	{
 		if (auto strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
@@ -1108,41 +1107,40 @@ void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 
 void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 {
-	generateExpression(switchStmt->expr.get());
+    generateExpression(switchStmt->expr.get());
+    std::string tempName = "__switch_" + std::to_string(bytecode.instructions.size());
+    int tempVarIndex = bytecode.getOrCreateVar(tempName);
+    bytecode.emit(OpCode::STORE_VAR, tempVarIndex);
 
-	std::vector<int> caseJumps;
+    std::vector<int> endJumps; // one per case, all patched to end
 
-	for (const auto &caseClause : switchStmt->cases)
-	{
-		generateExpression(caseClause.value.get());
-		bytecode.emit(OpCode::FLEQUAL);
-		int jumpIndex = static_cast<int>(bytecode.instructions.size());
-		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
-		caseJumps.push_back(jumpIndex);
+    for (const auto &caseClause : switchStmt->cases)
+    {
+        // Reload switch value for every comparison
+        bytecode.emit(OpCode::LOAD_VAR, tempVarIndex);
+        generateExpression(caseClause.value.get());
+        bytecode.emit(OpCode::FLEQUAL);
 
-		for (const auto &stmt : caseClause.statements)
-		{
-			generateStatement(stmt.get());
-		}
+        int skipJump = static_cast<int>(bytecode.instructions.size());
+        bytecode.emit(OpCode::JUMP_IF_FALSE, 0); // skip this case if no match
 
-		int endJump = static_cast<int>(bytecode.instructions.size());
-		bytecode.emit(OpCode::JUMP, 0);
-		bytecode.instructions[jumpIndex].operand1 = static_cast<int>(bytecode.instructions.size());
-		caseJumps.back() = endJump;
-	}
+        for (const auto &stmt : caseClause.statements)
+            generateStatement(stmt.get());
 
-	if (!switchStmt->defaultStmts.empty())
-	{
-		for (const auto &stmt : switchStmt->defaultStmts)
-		{
-			generateStatement(stmt.get());
-		}
-	}
+        int endJump = static_cast<int>(bytecode.instructions.size());
+        bytecode.emit(OpCode::JUMP, 0); // after executing, jump to end
+        endJumps.push_back(endJump);
 
-	int endIndex = static_cast<int>(bytecode.instructions.size());
-	for (int jumpIdx : caseJumps)
-	{
-		bytecode.instructions[jumpIdx].operand1 = endIndex;
-	}
+        // Patch skip jump to point at the next case
+        bytecode.instructions[skipJump].operand1 =
+            static_cast<int>(bytecode.instructions.size());
+    }
+
+    for (const auto &stmt : switchStmt->defaultStmts)
+        generateStatement(stmt.get());
+
+    int endIndex = static_cast<int>(bytecode.instructions.size());
+    for (int jumpIdx : endJumps)
+        bytecode.instructions[jumpIdx].operand1 = endIndex;
 }
 } // namespace Phasor
