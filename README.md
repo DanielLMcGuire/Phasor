@@ -225,4 +225,8 @@ To avoid legal complications, Phasor will not be officially available on Linux-b
 
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
+Phasor Toolchain is licensed for use under the Apache 2.0 License. 
+
+Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `PhasorRT.h`, etc) is licensed for use under the Apache 2.0 with LLVM-Exceptions License.
+
 Phasor and the "sinewave Phasor" logo are trademarks of Daniel McGuire.
