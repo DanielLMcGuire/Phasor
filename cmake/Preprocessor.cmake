@@ -25,3 +25,7 @@ if(IS_XDURANGO)
     add_compile_definitions(PLATFORM_OVERRIDE)
     add_compile_definitions(PLATFORM_LEGACY_GAME)
 endif()
+
+if(EMSCRIPTEN)
+    set(IS_SANDBOXED ON)
+endif()
