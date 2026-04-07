@@ -46,7 +46,7 @@ jobs:
     - name: Configure (macOS)
       if: matrix.os == 'macos-latest'
       shell: bash
-      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} --preset macos-arm64-rel
+      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} --preset macos-arm-rel
 
     - name: Configure 
       if: matrix.os != 'macos-latest'
