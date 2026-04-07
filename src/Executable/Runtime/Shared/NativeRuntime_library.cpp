@@ -15,9 +15,14 @@
 #define PHASOR_API __attribute__((visibility("default")))
 #endif
 
-#include <vector>
-#include <cstring>
-#include <sstream>
+#if defined(_WIN32) && defined(_DEBUG)
+	#define msg(x, y)	\
+	MessageBoxA(nullptr, y, (std::string(x) + " | Phasor Runtime - Error").c_str(), \
+				MB_OK | MB_ICONERROR)
+#else
+	#define msg(x, y)	\
+	std::cerr << x << " | Error: " << y << "\n\a"
+#endif
 
 extern "C"
 {
@@ -38,12 +43,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-#ifdef _WIN32
-			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
-			            MB_OK | MB_ICONERROR);
-#else
-			std::cerr << "Error: " << e.what() << "\n\a";
-#endif
+			msg(moduleName, e.what());
 		}
 		return -1;
 	}
@@ -61,12 +61,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-#ifdef _WIN32
-			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
-			            MB_OK | MB_ICONERROR);
-#else
-			std::cerr << "Error: " << e.what() << "\n\a";
-#endif
+			msg(moduleName, e.what());
 		}
 		return -1;
 	}
@@ -83,12 +78,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-#ifdef _WIN32
-			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
-			            MB_OK | MB_ICONERROR);
-#else
-			std::cerr << "Error: " << e.what() << "\n\a";
-#endif
+			msg(moduleName, e.what());
 		}
 		return -1;
 	}
@@ -127,12 +117,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-#ifdef _WIN32
-			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
-			            MB_OK | MB_ICONERROR);
-#else
-			std::cerr << "Error: " << e.what() << "\n\a";
-#endif
+			msg(moduleName, e.what());
 		}
 		return false;
 	}
@@ -166,12 +151,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-#ifdef _WIN32
-			MessageBoxA(nullptr, e.what(), (std::string(moduleName) + " | Phasor Runtime - Error").c_str(),
-			            MB_OK | MB_ICONERROR);
-#else
-			std::cerr << "Error: " << e.what() << "\n\a";
-#endif
+			msg(moduleName, e.what());
 		}
 		return false;
 	}
@@ -184,8 +164,7 @@ extern "C"
 
 	PHASOR_API void initStdLib(void *vmPtr)
 	{
-		auto vm = static_cast<Phasor::VM *>(vmPtr);
-		Phasor::StdLib::registerFunctions(*vm);
+		Phasor::StdLib::registerFunctions(*static_cast<Phasor::VM *>(vmPtr));
 	}
 
 	PHASOR_API bool freeState(void *vmPtr)
