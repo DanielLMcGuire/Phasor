@@ -95,7 +95,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
             set(CMAKE_CXX_FLAGS_RELEASE
                 "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
             )
-        elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|"aarch64")
+        elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
             if(APPLE)
                 set(CMAKE_C_FLAGS_RELEASE
                     "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=armv8.5-a"
@@ -110,6 +110,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
                 set(CMAKE_CXX_FLAGS_RELEASE
                     "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=armv8-a"
                 )
+            endif()
         else() 
             set(CMAKE_C_FLAGS_RELEASE
                 "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=x86-64-v3"
