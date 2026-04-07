@@ -26,13 +26,8 @@
 
 extern "C"
 {
-#ifdef _WIN32
 	PHASOR_API int exec(void *vmPtr, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
 	                    int argc, const char **argv)
-#else
-	PHASOR_API int exec(void *vmPtr, const unsigned char *bytecode, size_t bytecodeSize, const char *,
-	                    int argc, const char **argv)
-#endif
 	{
 		try
 		{
@@ -47,13 +42,9 @@ extern "C"
 		}
 		return -1;
 	}
-#ifdef _WIN32
+
 	PHASOR_API int evaluatePHS(void *vmPtr, const char *script, const char *moduleName, 
 								const char *modulePath, bool verbose)
-#else
-	PHASOR_API int evaluatePHS(void *vmPtr, const char *script, const char *,
-								const char *modulePath, bool verbose)
-#endif
 	{
 		try
 		{
@@ -66,11 +57,7 @@ extern "C"
 		return -1;
 	}
 
-#ifdef _WIN32
 	PHASOR_API int evaluatePUL(void *vmPtr, const char *script, const char *moduleName)
-#else
-	PHASOR_API int evaluatePUL(void *vmPtr, const char *script, const char *)
-#endif
 	{
 		try
 		{
