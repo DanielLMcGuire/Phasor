@@ -34,11 +34,11 @@ Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
 }
 #endif
 
-Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
+std::string StdLib::io_c_format(const std::vector<Value> &args, VM *)
 {
 	if (args.empty())
 	{
-		return Value(""); // Return empty string if no arguments
+		return ""; // Return empty string if no arguments
 	}
 
 	const std::string &fmt = args[0].asString();
@@ -82,14 +82,14 @@ Value StdLib::io_c_format(const std::vector<Value> &args, VM *)
 		}
 		out += fmt[i];
 	}
-	return Value(out);
+	return out;
 }
 
 Value StdLib::io_prints(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "prints");
 	vm->regRun(OpCode::PRINT_R, args[0]);
-	return Value("");
+	return Value();
 }
 
 Value StdLib::io_printf(const std::vector<Value> &args, VM *vm)
@@ -97,7 +97,7 @@ Value StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "printf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
-	return Value("");
+	return Value();
 }
 
 Value StdLib::io_puts(const std::vector<Value> &args, VM *vm)
@@ -105,16 +105,16 @@ Value StdLib::io_puts(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "puts", true);
 	std::string input = args[0].toString();
 	vm->regRun(OpCode::PRINT_R, input + "\n");
-	return Value("");
+	return Value();
 }
 
 Value StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	std::string        input = io_c_format(formatArgs, vm).toString();
+	std::string        input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINT_R, input + "\n");
-	return Value("");
+	return Value();
 }
 
 #ifndef SANDBOXED
@@ -130,15 +130,15 @@ Value StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "puts_error", true);
 	std::string input = args[0].toString();
 	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
-	return Value("");
+	return Value();
 }
 
 Value StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	std::string        input = io_c_format(formatArgs, vm).toString();
+	std::string        input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
-	return Value("");
+	return Value();
 }
 } // namespace Phasor

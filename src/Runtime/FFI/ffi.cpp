@@ -210,7 +210,7 @@ FFI::~FFI()
 #endif
 }
 
-Value FFI::native_add_plugin(const std::vector<Value> &args, VM *)
+bool FFI::native_add_plugin(const std::vector<Value> &args, VM *)
 {
 	if (args.size() != 1)
 	{

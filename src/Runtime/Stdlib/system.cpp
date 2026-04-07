@@ -30,7 +30,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
-	vm->registerNativeFunction("sys_get_memory", StdLib::system_get_free_memory);
+	vm->registerNativeFunction("sys_get_memory", StdLib::sys_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
 	vm->registerNativeFunction("sys_fork", StdLib::sys_fork);
@@ -46,7 +46,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 }
 
-Value StdLib::sys_time(const std::vector<Value> &args, VM *vm)
+double StdLib::sys_time(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "time");
 	auto   now = std::chrono::steady_clock::now();
@@ -89,26 +89,25 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 
-Value StdLib::sys_os(const std::vector<Value> &args, VM *vm)
+std::string StdLib::sys_os(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
-	return Value("win32");
+	return "win32";
 #elif defined(__linux__)
-	return Value("Linux");
+	return "Linux";
 #elif defined(__APPLE__)
-	return Value("Darwin");
+	return "Darwin";
 #elif defined(__FreeBSD__)
-	return Value("FreeBSD");
+	return "FreeBSD";
 #elif defined(__unix__)
-	return Value("UNIX");
+	return "UNIX";
 #else
-	return Value("Unknown");
+	return "Unknown";
 #endif
-	return false;
 }
 
-Value StdLib::sys_env(const std::vector<Value> &args, VM *vm)
+std::string StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "sys_env");
 	std::string key = args[0].asString();
@@ -139,13 +138,13 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 		return Value();
 }
 
-Value StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_argc");
-	return argc;
+	return static_cast<int64_t>(argc);
 }
 
-Value StdLib::system_get_free_memory(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_get_memory");
 	return static_cast<int64_t>(PHASORstd_sys_getAvailableMemory());
@@ -164,7 +163,7 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-Value StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "sys_fork", true);
 	const char         *executable = args[0].c_str();
@@ -174,10 +173,10 @@ Value StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
 	{
 		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
 	}
-	return PHASORstd_sys_run(executable, argc, v_argv.data());
+	return static_cast<int64_t>(PHASORstd_sys_run(executable, argc, v_argv.data()));
 }
 
-Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_fork_detached(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "sys_fork_detached", true);
 	const char         *executable = args[0].c_str();
@@ -187,7 +186,7 @@ Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *vm)
 	{
 		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
 	}
-	return PHASORstd_sys_run_detached(executable, argc, v_argv.data());
+	return static_cast<int64_t>(PHASORstd_sys_run_detached(executable, argc, v_argv.data()));
 }
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
@@ -205,7 +204,7 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 	return Value();
 }
 
-Value StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_pid");
 #if defined(_WIN32)

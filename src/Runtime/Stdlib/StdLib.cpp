@@ -54,7 +54,7 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 	}
 }
 
-Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
+bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "using", true);
 	
