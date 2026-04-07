@@ -88,25 +88,19 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::JUMP_IF_FALSE: {
 #ifdef TRACING
-		size_t oldPC = pc;
-		if (!pop().isTruthy()) pc = operand1;
-		log(std::format("JUMP_IF_TRUE: {} -> {}\n", oldPC, pc));
+		log(std::format("JUMP_IF_FALSE: {} {} -> {}\n", pop().isTruthy() ? "TRUE" : "FALSE", pc, operand1));
 		flush();
-#else 
-		if (!pop().isTruthy()) pc = operand1;
 #endif
+		if (!pop().isTruthy()) pc = operand1;
 		break;
 	}
 
 	case OpCode::JUMP_IF_TRUE: {
 #ifdef TRACING
-		size_t oldPC = pc;
-		if (pop().isTruthy()) pc = operand1;
-		log(std::format("JUMP_IF_TRUE: {} -> {}\n", oldPC, pc));
+		log(std::format("JUMP_IF_TRUE: {} {} -> {}\n", pop().isTruthy() ? "TRUE" : "FALSE", pc, operand1));
 		flush();
-#else 
-		if (pop().isTruthy()) pc = operand1;
 #endif
+		if (pop().isTruthy()) pc = operand1;
 		break;
 	}
 
