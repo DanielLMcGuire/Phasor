@@ -110,14 +110,21 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
                 set(CMAKE_CXX_FLAGS_RELEASE
                     "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=armv8-a"
                 )
-            endif()
-        else() 
+            endif() 
+        elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|x64")
             set(CMAKE_C_FLAGS_RELEASE
                 "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=x86-64-v3"
             )
             set(CMAKE_CXX_FLAGS_RELEASE
                 "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=x86-64-v3"
+           ) 
+        else() 
+            set(CMAKE_C_FLAGS_RELEASE
+                "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_WARN} -march=native"
             )
+            set(CMAKE_CXX_FLAGS_RELEASE
+                "${PLATFORM_OPT} ${COMMON_FP} ${COMMON_CXX_LANG} ${COMMON_WARN} -march=native"
+           ) 
         endif()
     endif()
 
