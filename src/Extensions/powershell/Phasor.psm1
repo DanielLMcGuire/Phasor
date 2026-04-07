@@ -37,7 +37,18 @@ public static class PHASOR_INTERNAL_ABI_3_1_1 {
 "@
 }
 
-# ─── State Management ────────────────────────────────────────────────────────
+
+$script:_PhasorTrackedStates = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
+    foreach ($state in $script:_PhasorTrackedStates) {
+        if ($state.Pointer -ne [IntPtr]::Zero) {
+            [PHASOR_INTERNAL_ABI_3_1_1]::freeState($state.Pointer) | Out-Null
+            $state.Pointer = [IntPtr]::Zero
+        }
+    }
+    $script:_PhasorTrackedStates.Clear()
+} | Out-Null
 
 <#
 .SYNOPSIS
@@ -68,10 +79,12 @@ function New-PhasorState {
         throw "phasorrt.dll returned a null pointer from createState()."
     }
 
-    [PSCustomObject]@{
+    $state = [PSCustomObject]@{
         PSTypeName = 'PhasorState'
         Pointer    = $ptr
     }
+    $script:_PhasorTrackedStates.Add($state)
+    $state
 }
 
 <#
@@ -103,6 +116,8 @@ function Remove-PhasorState {
         }
         # Null out the pointer so accidental reuse fails loudly.
         $State.Pointer = [IntPtr]::Zero
+        # Deregister from the auto-cleanup list — state is already freed.
+        $script:_PhasorTrackedStates.Remove($State) | Out-Null
     }
 }
 
@@ -173,8 +188,6 @@ function Register-PhasorStdLib {
 
     [PHASOR_INTERNAL_ABI_3_1_1]::initStdLib($State.Pointer)
 }
-
-# ─── Compilation ─────────────────────────────────────────────────────────────
 
 <#
 .SYNOPSIS
@@ -294,8 +307,6 @@ function Build-PulsarScript {
     }
 }
 
-# ─── Bytecode Execution ───────────────────────────────────────────────────────
-
 <#
 .SYNOPSIS
     Executes pre-compiled Phasor VM bytecode.
@@ -354,8 +365,6 @@ function Invoke-PhasorBytecode {
         }
     }
 }
-
-# ─── Source Evaluation ────────────────────────────────────────────────────────
 
 <#
 .SYNOPSIS

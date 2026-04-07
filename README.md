@@ -166,19 +166,26 @@ This repo contains:
     ```powershell
     Import-Module .\src\Extensions\powershell\Phasor.psd1
     Get-Help Phasor
+    Get-Help <cmdlet>
 
-    # state is always optional
+    # state is always optional (-State is optional)
+    # anything not using state will create thier own
     Start-PhasorScript -ScriptPath .\hello.phs
     Start-PulsarScript -ScriptPath .\hello.pul
 
     $vm = New-PhasorState
-    Register-PhasorStdlib -State $vm # automatic if not managing manually
+    # stdlib is already registered if not using your own state
+    Register-PhasorStdlib -State $vm 
 
     Start-PhasorEval -State $vm -Script 'var x = 42; var y = 53;'
-    Start-PhasorEval -State $vm -Script 'print(x + y);'   # x and y still in scope
-    Remove-PhasorState $vm # avoid leaking
+    # x and y still in scope
+    Start-PhasorEval -State $vm -Script 'print(x + y);' 
+    
+    # all states are cleared at powershell shutdown, but to clear them early:
+    Remove-PhasorState $vm
 
     $bytecode = Build-PhasorScript -Script 'print("hi\n");'
+    # can also optionally accept state
     Invoke-PhasorBytecode -Bytecode $bytecode
     ```
 
