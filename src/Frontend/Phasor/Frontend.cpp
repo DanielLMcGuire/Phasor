@@ -64,22 +64,17 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 		runScript(buffer.str(), vm, path);
 	});
 
-	if (status != 0) {
-		if (ownVM) 
-		{ 
-			delete vm;
-		} 
-		else 
-		{
-			vm->resetStatus();
-			vm->reset(true, false, false);
-		}
-		return status;
-	}
-
 	try
 	{
 		status = vm->run(bytecode);
+
+		if (status != 0) {
+			if (!ownVM) 
+			{
+				vm->resetStatus();
+				vm->reset(true, false, false);
+			}
+		}
 	}
 	catch (...)
 	{

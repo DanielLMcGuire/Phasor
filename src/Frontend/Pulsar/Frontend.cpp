@@ -30,8 +30,9 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	CodeGenerator codegen;
 	Lexer lexer(source);
 	Parser parser(lexer.tokenize());
-	auto program = parser.parse();
-	auto bytecode = codegen.generate(*program);
+	
+	auto   program = parser.parse();
+	auto          bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
 	{
@@ -48,7 +49,7 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([vm](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -56,28 +57,28 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		runScript(buffer.str(), vm);
 	});
 
-	if (status != 0) {
-		if (ownVM) 
-		{ 
-			delete vm;
-		} 
-		else 
-		{
-			vm->resetStatus();
-			vm->reset(true, false, false);
-		}
-		return status;
-	}
-
-	status = vm->run(bytecode);
-
-	if (ownVM)
+	try
 	{
-		delete vm;
+		status = vm->run(bytecode);
+
+		if (status != 0) {
+			if (!ownVM)  
+			{
+				vm->resetStatus();
+				vm->reset(true, false, false);
+			}
+		}
 	}
+	catch (...)
+	{
+		if (ownVM) delete vm;
+		throw;
+	}
+
+	if (ownVM) delete vm;
 
 	return status;
 }
