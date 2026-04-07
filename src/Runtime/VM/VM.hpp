@@ -32,14 +32,14 @@ class VM
 	explicit VM()
 	{
 #ifdef TRACING
-		log(std::format("VM::{}(): normal instance created {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): normal instance created {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 	}
 	explicit VM(const Bytecode &bytecode)
 	{
 #ifdef TRACING
-		log(std::format("VM::{}(): fast instance created {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): fast instance created {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 		run(bytecode);
@@ -47,7 +47,7 @@ class VM
 	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0)
 	{
 #ifdef TRACING
-		log(std::format("VM::{}(): operation instance created {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): operation instance created {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 		operation(op, operand1, operand2, operand3);
@@ -57,7 +57,7 @@ class VM
 	{
 		cleanup();
 #ifdef TRACING
-		log(std::format("VM::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
 		flush();
 #endif
 	}

@@ -14,6 +14,8 @@
 #include <unistd.h>
 #endif
 
+/// Keeps FFI reference intact
+/// @param fn Local member to register
 #define INSTANCED_FFI(fn) [this](const std::vector<Value> &args, VM *vm) { return this->fn(args, vm); }
 
 namespace Phasor
@@ -181,7 +183,7 @@ void FFI::unloadAll()
 FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(pluginFolder), vm_(vm)
 {
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("Phasor::FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();
 #endif
 	vm_->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
@@ -203,7 +205,7 @@ FFI::~FFI()
 {
 	unloadAll();
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("Phasor::FFI::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();
 #endif
 }
