@@ -20,7 +20,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::JUMP: {
 #ifdef TRACING
-		log(std::format("JUMP: {} -> {}\n", pc, operand1));
+		log(std::format("JUMP: {} -> {}\n", pc - 1, operand1));
 		flush();
 #endif
 		pc = operand1;
@@ -34,7 +34,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (it == m_bytecode->functionEntries.end())
 			throw std::runtime_error("Unknown function: " + funcName);
 #ifdef TRACING
-		log(std::format("CALL: {} -> {}: {}\n", pc, funcName, it->second));
+		log(std::format("CALL: {} -> {}: {}\n", pc - 1, funcName, it->second));
 		flush();
 #endif
 		callStack.push_back(static_cast<int>(pc));
@@ -49,7 +49,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			break;
 		}
 #ifdef TRACING
-		log(std::format("RETURN: {} -> {}\n", pc, callStack.back()));
+		log(std::format("RETURN: {} -> {}\n", pc - 1, callStack.back()));
 		flush();
 #endif
 		pc = callStack.back();
@@ -88,7 +88,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::JUMP_IF_FALSE: {
 #ifdef TRACING
-		log(std::format("JUMP_IF_FALSE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc, operand1));
+		log(std::format("JUMP_IF_FALSE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
 		flush();
 #endif
 		if (!pop().isTruthy()) pc = operand1;
@@ -97,7 +97,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::JUMP_IF_TRUE: {
 #ifdef TRACING
-		log(std::format("JUMP_IF_TRUE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc, operand1));
+		log(std::format("JUMP_IF_TRUE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
 		flush();
 #endif
 		if (pop().isTruthy()) pc = operand1;
@@ -106,7 +106,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::JUMP_BACK: {
 #ifdef TRACING
-		log(std::format("JUMP_BACK: {} -> {}\n", pc, operand1));
+		log(std::format("JUMP_BACK: {} -> {}\n", pc - 1, operand1));
 		flush();
 #endif
 		pc = operand1;
