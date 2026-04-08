@@ -2,15 +2,7 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import type { IncomingMessage } from 'node:http';
 import type { ServerInstance } from 'zorvix';
-
-function readBody(req: IncomingMessage): Promise<string> {
-    return new Promise((res, rej) => {
-        const chunks: Buffer[] = [];
-        req.on('data', (c) => chunks.push(c));
-        req.on('end',  ()  => res(Buffer.concat(chunks).toString('utf8')));
-        req.on('error', rej);
-    });
-}
+import { createBodyParser } from 'zorvix';
 
 async function runViaPipe(
     executablePath: string,
@@ -46,6 +38,7 @@ async function runViaPipe(
 }
 
 export function registerRoutes(server: ServerInstance) {
+    server.use('/run', createBodyParser({ limit: 2 * 1048576 }));
     server.use("/run",  (req, res, next) => {
         const APIKEY =
         typeof req.query.apikey === 'string'
@@ -65,7 +58,7 @@ export function registerRoutes(server: ServerInstance) {
             res.json({ error: 'Code too large' }, 413);
             return;
         }
-        const code = await readBody(req);
+        const code = await req.body as string;
         if (!code.trim()) { res.json({ error: 'Request body must contain source code.' }, 400); return; }
 
         const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
