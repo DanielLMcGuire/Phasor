@@ -19,8 +19,9 @@ if (!existsSync(exePath)) {
 
 if (resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     serve({ port: 62811, logging: false, workers: true }, async (server) => {
-        // @ts-ignore // This is executed by the worker at ./node_modules/zorvix/dist, which ts could not possibly know
-        const { registerRoutes } = await import('../../../dist/routes.min.mjs');
+        const { resolve } = await import('node:path');
+        const { pathToFileURL } = await import('node:url');
+        const { registerRoutes } = await import(pathToFileURL(resolve(process.cwd(), 'dist', 'routes.min.mjs')).href);
         registerRoutes(server);
         await server.start();
         console.log(`Phasor is live at http://0.0.0.0:${(server.server.address() as AddressInfo).port}`);
