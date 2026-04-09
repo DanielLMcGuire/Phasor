@@ -11,4 +11,4 @@
 | Language   | Lexer / Parser Implementations.                  |
 | Repl       | REPL Code for Phasor / Pulsar.                   |
 | Runtime    | Contains code for the VM, STDLIB, FFI, etc.      |
-| utils      | Other misc utils used for Phasor Toolchain.      |
+| **/core    | Low level (C/Assembly) implementations.          |
