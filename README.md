@@ -1,7 +1,7 @@
 # Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
 
-[![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor)](https://phasor.pages.dev/downloads?version=latest)
-[![AUR Version](https://img.shields.io/aur/version/phasor)](https://aur.archlinux.org/packages/phasor)
+[![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor.svg)](https://phasor.pages.dev/downloads?version=latest)
+[![AUR Version](https://img.shields.io/aur/version/phasor.svg)](https://aur.archlinux.org/packages/phasor)
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/DanielLMcGuire/Phasor.svg?label=commits)
 
