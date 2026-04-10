@@ -2,14 +2,14 @@
 
 [![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor)](https://phasor.pages.dev/downloads?version=latest)
 [![AUR Version](https://img.shields.io/aur/version/phasor)](https://aur.archlinux.org/packages/phasor)
-[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/Phasor.phasor-programming-language?label=VSCODE%20version)](https://marketplace.visualstudio.com/items?itemName=Phasor.phasor-programming-language)
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/DanielLMcGuire/Phasor.svg?label=commits)
 
 A statically typed, compiled programming language with a fast bytecode virtual machine.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides C++ RAII support to the runtime.
 
-Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs some work.
+Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs some work. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
@@ -57,6 +57,12 @@ shutdown(code); // from stdsys
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
+
+> [!NOTE]
+>
+> While everything (ISA, STDLIB, Phasor Language, Pulsar Language, VM, and the C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me. 
+>
+> I have used this in actual projects, security researching on embedded devices [see here](https://github.com/DanielLMcGuire/XboxSeries), and more. So it's not like I wouldn't recommend it, just that I cannot make any actual promises for the future.
 
 ---
 
