@@ -60,9 +60,9 @@ shutdown(code); // from stdsys
 
 > [!NOTE]
 >
-> While everything (ISA, STDLIB, Phasor Language, Pulsar Language, VM, and the C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me. 
+> While everything (AST, ISA, stdlib, both languages, VM, C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me. 
 >
-> I have used this in actual projects, security researching on embedded devices [see here](https://github.com/DanielLMcGuire/XboxSeries), and more. So it's not like I wouldn't recommend it, just that I cannot make any actual promises for the future.
+> I have used this in actual projects, security researching on embedded devices [see here](https://github.com/DanielLMcGuire/XboxSeries), and more. So it's not like I wouldn't recommend it, just that I cannot make any actual promises for the future. I will keep it usable however, and support will never drop for the latest version.
 
 ---
 
