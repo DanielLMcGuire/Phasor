@@ -60,9 +60,9 @@ shutdown(code); // from stdsys
 
 > [!NOTE]
 >
-> While everything (AST, ISA, stdlib, both languages, VM, C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me. 
+> While everything (AST, ISA, stdlib, both languages, VM, C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me at least for now. 
 >
-> I have used this in actual projects, security researching on embedded devices [see here](https://github.com/DanielLMcGuire/XboxSeries), and more. So it's not like I wouldn't recommend it, just that I cannot make any actual promises for the future. I will keep it usable however, and support will never drop for the latest version.
+> I have used this in actual projects. So it's not like I wouldn't recommend it, rather I cannot make any actual promises until I have a real use for the project.
 
 ---
 
@@ -105,9 +105,11 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 > [!NOTE]
 >
-> Documentation may be partially AI generated, always confirm the feature works first!!
+> Documentation may be partially wrong, stdlib might have added functions.
 >
 > This will change once I have more time for this project
+>
+> Online docs are always up to date with master, offline (installed) docs are always up to date with that version.
 
 
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
