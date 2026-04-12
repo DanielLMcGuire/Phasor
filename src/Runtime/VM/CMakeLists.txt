@@ -4,7 +4,7 @@ set(VM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Stack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/IO/IO.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/portable/IO.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../ISA/map.cpp
 )
 
@@ -12,8 +12,8 @@ if(ASSEMBLY)
     list(APPEND VM_SOURCES ${ARITHMETIC_ASM} ${LOGICAL_ASM})
 else()
     list(APPEND VM_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/arithmetic/crt.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/logical/crt.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/native/CRT/arithmetic.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/native/CRT/logical.c
     )
 endif()
 
@@ -21,9 +21,9 @@ set(VM_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/VM.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/core.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Operations.cc.inl
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/arithmetic/arithmetic.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/logical/logical.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/IO/IO.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/native/arithmetic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/native/logical.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/portable/IO.h
 )
 
 set(VM_SOURCES ${VM_SOURCES} PARENT_SCOPE)
