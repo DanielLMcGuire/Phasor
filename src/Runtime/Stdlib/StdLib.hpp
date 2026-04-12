@@ -157,16 +157,15 @@ class StdLib
 #ifndef SANDBOXED
 	static Value io_clear(const std::vector<Value> &args, VM *vm);    ///< Clear the console
 #endif
-	static Value io_prints(const std::vector<Value> &args, VM *vm);   ///< Print string without newline
-	static Value io_printf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string
-	static Value io_puts(const std::vector<Value> &args, VM *vm);     ///< Print string with newline
-	static Value io_putf(const std::vector<Value> &args, VM *vm);     ///< Print formatted string with newline
+	static std::string io_prints(const std::vector<Value> &args, VM *vm);   ///< Print string without newline
+	static std::string io_printf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string
+	static std::string io_puts(const std::vector<Value> &args, VM *vm);     ///< Print string with newline
+	static std::string io_putf(const std::vector<Value> &args, VM *vm);     ///< Print formatted string with newline
 #ifndef SANDBOXED
 	static Value io_gets(const std::vector<Value> &args, VM *vm);     ///< Get string
 #endif
-	static Value io_putf_error(const std::vector<Value> &args,
-	                           VM                       *vm); ///< Print formatted string with newline to error output
-	static Value io_puts_error(const std::vector<Value> &args, VM *vm); ///< Print string with newline to error output
+	static std::string io_putf_error(const std::vector<Value> &args, VM *vm); ///< Print formatted string with newline to error output
+	static std::string io_puts_error(const std::vector<Value> &args, VM *vm); ///< Print string with newline to error output
 #endif
 #pragma endregion
 };
