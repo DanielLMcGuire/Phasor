@@ -34,7 +34,7 @@ double StdLib::math_pow(const std::vector<Value> &args, VM *vm)
 	return asm_pow(base, expv);
 }
 
-double StdLib::math_abs(const std::vector<Value> &args, VM *vm)
+Value StdLib::math_abs(const std::vector<Value> &args, VM *vm)
 {
 	// @TODO: Implement abs natively
 	checkArgCount(args, 1, "math_abs");

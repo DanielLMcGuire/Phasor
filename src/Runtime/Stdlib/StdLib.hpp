@@ -69,7 +69,7 @@ class StdLib
 #pragma region stdmath
 	static double math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
 	static double math_pow(const std::vector<Value> &args, VM *vm);   ///< Power
-	static double math_abs(const std::vector<Value> &args, VM *vm);   ///< Absolute value
+	static Value math_abs(const std::vector<Value> &args, VM *vm);   ///< Absolute value
 	static double math_floor(const std::vector<Value> &args, VM *vm); ///< Floor
 	static double math_ceil(const std::vector<Value> &args, VM *vm);  ///< Ceiling
 	static double math_round(const std::vector<Value> &args, VM *vm); ///< Round
