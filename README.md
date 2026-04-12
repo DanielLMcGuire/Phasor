@@ -212,9 +212,13 @@ This repo contains:
 
 ### Prerequisites
 
-- CMake 3.21+
-- CC (23) compiler and CXX (23) compiler (MSVC latest, GCC 14, Clang (LLVM Latest) are officially supported)
-- Ninja
+- [CMake 3.21+](https://cmake.org/download/)
+- CC (23) compiler and CXX (23) compiler ([MSVC latest](https://visualstudio.microsoft.com/downloads/?q=build+tools), [GCC 14](https://gcc.gnu.org/install/), [Clang (LLVM Latest)](https://releases.llvm.org/) are officially supported)
+- [Ninja](https://github.com/ninja-build/ninja/releases)
+- [Python](https://www.python.org/downloads/) (for the python API, optional)
+- [PowerShell](https://github.com/PowerShell/PowerShell/releases/) (for the powershell module, optional)
+- [Node.js](https://nodejs.org/en/download) (for the vscode extension / web server, both optional)
+- [Docker](https://docs.docker.com/get-started/get-docker/) (for the docs (man to pdf), optional)
 
 ### Build Steps
 
