@@ -16,7 +16,8 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 [Download Phasor Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
 
 ```bash
-$ nix run github:DanielLMcGuire/Phasor
+$ nix run github:DanielLMcGuire/Phasor -- -- <options>
+$ phasor <options>
 ```
 
 ## Language Features
