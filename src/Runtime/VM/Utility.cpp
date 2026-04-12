@@ -11,9 +11,23 @@
 #include <chrono>
 #endif
 
+#ifdef _DEBUG
+	#ifdef _WIN32
+	#include <windows.h>
+	inline bool isDebuggerAttached() {
+		return IsDebuggerPresent() == TRUE;
+	}
+	#else 
+	#include <unistd.h>
+	#include <sys/ptrace.h>
+	inline bool isDebuggerAttached() {
+		return ptrace(PTRACE_TRACEME, 0, 1, 0) == -1;
+	}
+	#endif
+#endif
+
 namespace Phasor
 {
-
 int VM::run(const Bytecode &bc)
 {
 	m_bytecode = &bc;
@@ -59,11 +73,15 @@ int VM::run(const Bytecode &bc)
 			
 #endif
 #ifdef _DEBUG
-			assert(status == 0);
+			if (isDebuggerAttached()) assert(status == 0);
 #endif
 			return status;
 		}
+#if defined(TRACING) || defined(_DEBUG)
 		catch (const std::exception &e)
+#else 
+		catch (const std::exception &)
+#endif
 		{
 #ifdef TRACING
 			logerr(std::format("\nVM::{}(): UNCAUGHT EXCEPTION!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
