@@ -1,4 +1,4 @@
-#include "logical.h"
+#include "../logical.h"
 
 int64_t asm_inot(int64_t a)
 {
