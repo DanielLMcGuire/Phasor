@@ -118,3 +118,5 @@ if (NOT IS_SANDBOXED)
         )
     endif()
 endif()
+
+add_subdirectory(Help)

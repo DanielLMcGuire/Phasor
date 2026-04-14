@@ -15,6 +15,7 @@ if(IS_XBOX)
 elseif(WIN32)
     set(NON_STATIC_TARGETS
         phasor_main
+        phasor_help
         phasor_compiler
         phasor_cxx_transpiler
         phasor_lsp
@@ -60,6 +61,7 @@ elseif(WIN32)
 elseif(APPLE)
     install(TARGETS
         phasor_main
+        phasor_help
         phasor_compiler
         phasor_cxx_transpiler
         phasor_lsp
@@ -93,6 +95,7 @@ elseif(APPLE)
 else()
     install(TARGETS
         phasor_main
+        phasor_help
         phasor_compiler
         phasor_cxx_transpiler
         phasor_lsp

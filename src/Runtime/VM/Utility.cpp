@@ -70,7 +70,6 @@ int VM::run(const Bytecode &bc)
 #ifdef TRACING
 			log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n", __func__, status, getInformation()));
 			flush();
-			
 #endif
 #ifdef _DEBUG
 			if (isDebuggerAttached()) assert(status == 0);
