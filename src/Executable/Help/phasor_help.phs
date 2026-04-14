@@ -17,7 +17,7 @@ fn gatherDocumentation(part: string, type: int) -> string {
         return concat("\"start file:///", concat(path, "\""));
     } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX" || os == "Darwin") {
         sb_append(sb, part);
-        sb_append(sb, ".");
+        sb_append(sb, " ");
         sb_append(sb, type);
         var path = sb_to_string(sb);
         sb_free(sb);
