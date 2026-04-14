@@ -16,8 +16,6 @@ elseif(WIN32)
     set(NON_STATIC_TARGETS
         phasor_main
         phasor_compiler
-        phasor_repl
-        phasor_interpreter
         phasor_cxx_transpiler
         phasor_lsp
     
@@ -63,8 +61,6 @@ elseif(APPLE)
     install(TARGETS
         phasor_main
         phasor_compiler
-        phasor_repl
-        phasor_interpreter
         phasor_cxx_transpiler
         phasor_lsp
     
@@ -98,8 +94,6 @@ else()
     install(TARGETS
         phasor_main
         phasor_compiler
-        phasor_repl
-        phasor_interpreter
         phasor_cxx_transpiler
         phasor_lsp
     

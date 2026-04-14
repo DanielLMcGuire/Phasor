@@ -30,13 +30,6 @@ set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasor
 
 if(NOT IS_XBOX)
 
-add_executable(phasor_repl
-    ${CMAKE_CURRENT_SOURCE_DIR}/Repl/Phasor/Repl.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Repl/Phasor/Repl_main.cpp
-)
-target_link_libraries(phasor_repl PhasorFrontend)
-set_target_properties(phasor_repl PROPERTIES OUTPUT_NAME phasorrepl)
-
 add_executable(phasor_compiler
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler_main.cpp
@@ -85,14 +78,6 @@ add_executable(phasor_runtime_exe
 )
 target_link_libraries(phasor_runtime_exe phasor_binary_runtime_lib)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
-
-add_executable(phasor_interpreter
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/ScriptingRuntime.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Phasor/ScriptingRuntime_main.cpp
-)
-target_link_libraries(phasor_interpreter phasor_scripting_runtime_lib PhasorFrontend)
-set_target_properties(phasor_interpreter PROPERTIES OUTPUT_NAME phasorjit)
-
 endif()
 
 if (NOT IS_SANDBOXED)

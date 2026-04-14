@@ -73,17 +73,17 @@ shutdown(code); // from stdsys
 # Compile and run a program
 $ phasor input.phs
 
-# Interactive REPL 
-$ phasorrepl # or use 'phasor'
+# Repl
+$ phasor
 
 # Compile to bytecode
 $ phasorcompiler input.phs (-o, --output output.phsb)
 
 # Run bytecode
-$ phasorvm output.phsb # or use 'phasor output.phsb'
+$ phasorvm output.phsb
 
 # Run a script raw
-$ echo "print \"Hello World!\\n\"" | phasor
+$ echo "print \"Hello World\!\\n\"" | phasor
 Hello World!
 $
 ```
@@ -130,7 +130,6 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 - **[phasor](https://phasor-docs.pages.dev/man?f=phasor.1)** - Combines the Scripting Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
 - **[phasor-lsp](https://phasor-docs.pages.dev/man?f=phasorlsp.1)** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
-- **REPL** ([`phasorrepl`](https://phasor-docs.pages.dev/man?f=phasorrepl.1)) - Interactive interpreter
 - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
 - **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
 - **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
