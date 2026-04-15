@@ -8,38 +8,6 @@
 #include <format>
 #include <string>
 
-inline std::string escapeString(const std::string& input) {
-		std::string output;
-		output.reserve(input.size());
-
-		for (char c : input) {
-			switch (c) {
-				case '\n': output += "\\n";  break;
-				case '\t': output += "\\t";  break;
-				case '\r': output += "\\r";  break;
-				case '\0': output += "\\0";  break;
-				case '\\': output += "\\\\"; break;
-				case '\"': output += "\\\""; break;
-				case '\'': output += "\\'";  break;
-				case '\a': output += "\\a";  break;
-				case '\b': output += "\\b";  break;
-				case '\f': output += "\\f";  break;
-				case '\v': output += "\\v";  break;
-				default:
-					if (c < 0x20 || c == 0x7F) {
-						char buf[5];
-						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
-						output += buf;
-					} else {
-						output += c;
-					}
-					break;
-			}
-		}
-
-    return output;
-}
-
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -511,11 +479,43 @@ class Value
 };
 } // namespace Phasor
 
+inline std::string _value_escapeString(const std::string& input) {
+		std::string output;
+		output.reserve(input.size());
+
+		for (char c : input) {
+			switch (c) {
+				case '\n': output += "\\n";  break;
+				case '\t': output += "\\t";  break;
+				case '\r': output += "\\r";  break;
+				case '\0': output += "\\0";  break;
+				case '\\': output += "\\\\"; break;
+				case '\"': output += "\\\""; break;
+				case '\'': output += "\\'";  break;
+				case '\a': output += "\\a";  break;
+				case '\b': output += "\\b";  break;
+				case '\f': output += "\\f";  break;
+				case '\v': output += "\\v";  break;
+				default:
+					if (c < 0x20 || c == 0x7F) {
+						char buf[5];
+						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+						output += buf;
+					} else {
+						output += c;
+					}
+					break;
+			}
+		}
+
+    return output;
+}
+
 template <>
 struct std::formatter<Phasor::Value>
 {
     enum class Style { Value, TypeOnly, TypeValue, Debug, Quoted };
-    Style            style       = Style::Value;
+    Style style = Style::Value;
     std::string_view passthrough;
 
     constexpr auto parse(std::format_parse_context &ctx)
@@ -567,14 +567,14 @@ struct std::formatter<Phasor::Value>
 
         case Style::TypeValue:
             return fwd(Value::typeToString(v.getType()).asString()
-                       + "(" + escapeString(v.toString()) + ")");
+                       + "(" + _value_escapeString(v.toString()) + ")");
 
         case Style::Debug:
             return fwd(debug_repr(v));
 
         case Style::Quoted:
             if (v.isString())
-                return fwd("\"" + escapeString(v.asString()) + "\"");
+                return fwd("\"" + _value_escapeString(v.asString()) + "\"");
             [[fallthrough]];
 
         case Style::Value:
@@ -585,7 +585,7 @@ struct std::formatter<Phasor::Value>
             case ValueType::Bool:   return fwd(v.asBool());
             case ValueType::Int:    return fwd(v.asInt());
             case ValueType::Float:  return fwd(v.asFloat());
-            case ValueType::String: return fwd(debug_repr(escapeString(v.asString())));
+            case ValueType::String: return fwd(debug_repr(_value_escapeString(v.asString())));
             case ValueType::Array:  return fwd(v.toString());
             case ValueType::Struct: return fwd(v.toString());
             }
@@ -600,7 +600,7 @@ struct std::formatter<Phasor::Value>
         switch (v.getType())
         {
         case ValueType::Null:   return "null";
-        case ValueType::String: return "\"" + escapeString(v.asString()) + "\"";
+        case ValueType::String: return "\"" + _value_escapeString(v.asString()) + "\"";
         case ValueType::Array:
         {
             const auto &arr = *v.asArray();
