@@ -1,4 +1,4 @@
-# Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
+# Phasor <kbd><img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="250" height="130"></kbd> Language
 
 [![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor.svg)](https://phasor.pages.dev/downloads?version=latest)
 [![AUR Version](https://img.shields.io/aur/version/phasor.svg)](https://aur.archlinux.org/packages/phasor)
