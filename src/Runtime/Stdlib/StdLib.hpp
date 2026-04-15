@@ -100,7 +100,6 @@ class StdLib
 	static int64_t file_property_get(const std::vector<Value> &args, VM *vm);
 	static bool file_create(const std::vector<Value> &args, VM *vm);
 	static Value file_read_directory(const std::vector<Value> &args, VM *vm);
-	static Value file_statistics(const std::vector<Value> &args, VM *vm);
 	static bool file_create_directory(const std::vector<Value> &args, VM *vm);
 	static bool file_remove_directory(const std::vector<Value> &args, VM *vm);
 #pragma endregion

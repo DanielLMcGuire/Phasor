@@ -27,7 +27,6 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("fmkdir", StdLib::file_create_directory);
 	vm->registerNativeFunction("frmdir", StdLib::file_remove_directory);
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);
-	vm->registerNativeFunction("fstat", StdLib::file_statistics);
 }
 
 std::string StdLib::file_absolute(const std::vector<Value> &args, VM *vm)
@@ -318,67 +317,6 @@ Value StdLib::file_read_directory(const std::vector<Value> &args, VM *vm)
 	}
 	if (!result.empty()) return result;
 	return false;
-}
-
-Value StdLib::file_statistics(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "fstat");
-	std::string path = args[0].asString();
-	uid_t       uid = 0;
-	gid_t       gid = 0;
-	nlink_t     nlink = PHASORstd_file_getLinksCount(path.c_str());
-	PHASORstd_file_getOwnerId(path.c_str(), &uid, &gid);
-	try
-	{
-		auto status = std::filesystem::status(path);
-		auto perms = status.permissions();
-
-		Value::StructInstance stat;
-		stat.structName = "FileStat";
-
-		// Convert permissions to mode_t style
-		int mode = 0;
-
-		// Set file type bits
-		if (std::filesystem::is_directory(status))
-		{
-			mode |= 0x4000; // Directory
-		}
-		else if (std::filesystem::is_symlink(status))
-		{
-			mode |= 0xA000; // Symbolic link
-		}
-		else
-		{
-			mode |= 0x8000; // Default to regular file
-		}
-
-		// Set permission bits
-		mode |= ((perms & std::filesystem::perms::owner_read) != std::filesystem::perms::none) ? 0x100 : 0;
-		mode |= ((perms & std::filesystem::perms::owner_write) != std::filesystem::perms::none) ? 0x80 : 0;
-		mode |= ((perms & std::filesystem::perms::owner_exec) != std::filesystem::perms::none) ? 0x40 : 0;
-		mode |= ((perms & std::filesystem::perms::group_read) != std::filesystem::perms::none) ? 0x20 : 0;
-		mode |= ((perms & std::filesystem::perms::group_write) != std::filesystem::perms::none) ? 0x10 : 0;
-		mode |= ((perms & std::filesystem::perms::group_exec) != std::filesystem::perms::none) ? 0x8 : 0;
-		mode |= ((perms & std::filesystem::perms::others_read) != std::filesystem::perms::none) ? 0x4 : 0;
-		mode |= ((perms & std::filesystem::perms::others_write) != std::filesystem::perms::none) ? 0x2 : 0;
-		mode |= ((perms & std::filesystem::perms::others_exec) != std::filesystem::perms::none) ? 0x1 : 0;
-
-		// Set file stats
-		stat.fields["mode"] = Value(static_cast<int64_t>(mode));
-		stat.fields["nlink"] = Value(static_cast<int64_t>(nlink));
-		stat.fields["uid"] = Value(static_cast<int64_t>(uid));
-		stat.fields["gid"] = Value(static_cast<int64_t>(gid));
-		stat.fields["size"] = Value(static_cast<int64_t>(std::filesystem::file_size(path)));
-
-		return Value(std::make_shared<Value::StructInstance>(std::move(stat)));
-	}
-	catch (const std::exception &e)
-	{
-		vm->logerr(std::format("fstat error: {}", e.what()));
-		vm->flusherr();
-		return Value(); // Return null on error
-	}
 }
 
 bool StdLib::file_create_directory(const std::vector<Value> &args, VM *vm)
