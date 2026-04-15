@@ -101,8 +101,6 @@ WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcomp
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe" "Path" "$INSTDIR\bin"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"   "" "$INSTDIR\bin\phasordecomp.exe"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"   "Path" "$INSTDIR\bin"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorjit.exe"      "" "$INSTDIR\bin\phasorjit.exe"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorjit.exe"      "Path" "$INSTDIR\bin"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"       "" "$INSTDIR\bin\phasorvm.exe"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"       "Path" "$INSTDIR\bin"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-lsp.exe"     "" "$INSTDIR\bin\phasor-lsp.exe"
@@ -169,11 +167,6 @@ WriteRegStr HKCR "Applications\phasordecomp.exe\DefaultIcon" "" "$INSTDIR\bin\ph
 WriteRegStr HKCR "Applications\phasordecomp.exe\SupportedTypes" ".phsb" ""
 WriteRegStr HKCR "Applications\phasordecomp.exe\shell\open\command" "" '"$INSTDIR\bin\phasordecomp.exe" "%1" %*'
 
-WriteRegStr HKCR "Applications\phasorjit.exe"         "FriendlyAppName" "Phasor JIT"
-WriteRegStr HKCR "Applications\phasorjit.exe\DefaultIcon" "" "$INSTDIR\bin\phasorjit.exe"
-WriteRegStr HKCR "Applications\phasorjit.exe\SupportedTypes" ".phs" ""
-WriteRegStr HKCR "Applications\phasorjit.exe\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
-
 WriteRegStr HKCR "Applications\phasorvm.exe"         "FriendlyAppName" "Phasor VM"
 WriteRegStr HKCR "Applications\phasorvm.exe\DefaultIcon" "" "$INSTDIR\bin\phasorvm.exe"
 WriteRegStr HKCR "Applications\phasorvm.exe\SupportedTypes" ".phsb" ""
@@ -206,9 +199,9 @@ WriteRegStr HKCU "Software\Classes\PhasorDecomp.PHSB\shell\open" "FriendlyAppNam
 WriteRegStr HKCU "Software\Classes\PhasorDecomp.PHSB\shell\open\command" "" '"$INSTDIR\bin\phasordecomp.exe" "%1" %*'
 
 WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB" "" "Phasor Binary File"
-WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\DefaultIcon" "" "$INSTDIR\bin\phasorvm.exe"
+WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\DefaultIcon" "" "$INSTDIR\bin\phasor.exe"
 WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\shell\open" "FriendlyAppName" "Phasor VM"
-WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\shell\open\command" "" '"$INSTDIR\bin\phasorvm.exe" "%1" %*'
+WriteRegStr HKCU "Software\Classes\PhasorVM.PHSB\shell\open\command" "" '"$INSTDIR\bin\phasor.exe" "%1" %*'
 
 WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "Phasor.PHSB"        ""
 WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "PhasorDecomp.PHSB" ""
@@ -225,11 +218,6 @@ WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\DefaultIcon" "" "$INSTDIR\
 WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open" "FriendlyAppName" "Phasor Compiler"
 WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open\command" "" '"$INSTDIR\bin\phasorcompiler.exe" "%1" %*'
 
-WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS" "" "Phasor Source File"
-WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS\DefaultIcon" "" "$INSTDIR\bin\phasorjit.exe"
-WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS\shell\open" "FriendlyAppName" "Phasor JIT"
-WriteRegStr HKCU "Software\Classes\PhasorJIT.PHS\shell\open\command" "" '"$INSTDIR\bin\phasorjit.exe" "%1" %*'
-
 WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "Phasor.PHS"          ""
 WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "PhasorCompiler.PHS" ""
 WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "PhasorJIT.PHS"      ""
@@ -241,7 +229,6 @@ WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\shell\open" "FriendlyAppName" 
 WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR\shell\open\command" "" '"$INSTDIR\bin\phasorasm.exe" "%1" %*'
 
 WriteRegStr HKCU "Software\Classes\.phir\OpenWithProgids" "PhasorASM.PHIR" ""
-
 
 WriteRegStr HKCU "Software\Classes\Pulsar.PUL" "" "Pulsar Script File"
 WriteRegStr HKCU "Software\Classes\Pulsar.PUL\DefaultIcon" "" "$INSTDIR\bin\pulsar.exe"
@@ -278,11 +265,6 @@ WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities" "ApplicationName"  
 WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities" "ApplicationDescription" "Phasor binary decompiler"
 WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities\FileAssociations" ".phsb" "PhasorDecomp.PHSB"
 WriteRegStr HKLM "Software\RegisteredApplications" "PhasorDecomp" "Software\Phasor\phasordecomp\Capabilities"
-
-WriteRegStr HKLM "Software\Phasor\phasorjit\Capabilities" "ApplicationName"        "Phasor JIT"
-WriteRegStr HKLM "Software\Phasor\phasorjit\Capabilities" "ApplicationDescription" "Phasor JIT runner"
-WriteRegStr HKLM "Software\Phasor\phasorjit\Capabilities\FileAssociations" ".phs" "PhasorJIT.PHS"
-WriteRegStr HKLM "Software\RegisteredApplications" "PhasorJIT" "Software\Phasor\phasorjit\Capabilities"
 
 WriteRegStr HKLM "Software\Phasor\phasorvm\Capabilities" "ApplicationName"        "Phasor VM"
 WriteRegStr HKLM "Software\Phasor\phasorvm\Capabilities" "ApplicationDescription" "Phasor virtual machine"
@@ -322,7 +304,6 @@ DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.ex
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"
-DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorjit.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-lsp.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsar.exe"
@@ -333,7 +314,6 @@ DeleteRegKey HKCR "Applications\phasor.exe"
 DeleteRegKey HKCR "Applications\phasorasm.exe"
 DeleteRegKey HKCR "Applications\phasorcompiler.exe"
 DeleteRegKey HKCR "Applications\phasordecomp.exe"
-DeleteRegKey HKCR "Applications\phasorjit.exe"
 DeleteRegKey HKCR "Applications\phasorvm.exe"
 DeleteRegKey HKCR "Applications\pulsar.exe"
 DeleteRegKey HKCR "Applications\pulsarcompiler.exe"
@@ -348,7 +328,6 @@ DeleteRegKey HKCU "Software\Classes\PhasorDecomp.PHSB"
 DeleteRegKey HKCU "Software\Classes\PhasorVM.PHSB"
 DeleteRegKey HKCU "Software\Classes\Phasor.PHS"
 DeleteRegKey HKCU "Software\Classes\PhasorCompiler.PHS"
-DeleteRegKey HKCU "Software\Classes\PhasorJIT.PHS"
 DeleteRegKey HKCU "Software\Classes\PhasorASM.PHIR"
 DeleteRegKey HKCU "Software\Classes\Pulsar.PUL"
 DeleteRegKey HKCU "Software\Classes\PulsarCompiler.PUL"
@@ -359,7 +338,6 @@ DeleteRegValue HKLM "Software\RegisteredApplications" "Phasor"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorASM"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorCompiler"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorDecomp"
-DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorJIT"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorVM"
 DeleteRegValue HKLM "Software\RegisteredApplications" "Pulsar"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PulsarCompiler"
