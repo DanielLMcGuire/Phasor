@@ -228,6 +228,20 @@ class Value
 		throw std::runtime_error("Cannot subtract these value types");
 	}
 
+	Value operator--() const
+	{
+		if (isInt()) return Value(asInt() - 1);
+		if (isNumber()) return Value(asFloat() - 1);
+		throw std::runtime_error("Cannot decrement this value type");
+	}
+
+	Value operator++() const
+	{
+		if (isInt()) return Value(asInt() + 1);
+		if (isNumber()) return Value(asFloat() + 1);
+		throw std::runtime_error("Cannot increment this value type");
+	}
+
 	/// @brief Multiply two values
 	Value operator*(const Value &other) const
 	{
@@ -266,16 +280,6 @@ class Value
 			return Value(asInt() % other.asInt());
 		}
 		throw std::runtime_error("Modulo requires integer operands");
-	}
-
-	/// @brief Unary negation
-	Value operator-() const
-	{
-		if (isInt())
-			return Value(-asInt());
-		if (isFloat())
-			return Value(-asFloat());
-		throw std::runtime_error("Cannot negate this value type");
 	}
 
 	/// @brief Logical negation
