@@ -59,6 +59,7 @@ class StdLib
 	static int dupenv(std::string &out, const char *name, char *const argp[]);
 #endif
 
+	static void registerMetaFunctions(VM *vm);
 	static void registerMathFunctions(VM *vm);
 	static void registerStringFunctions(VM *vm);
 	static void registerTypeConvFunctions(VM *vm);
@@ -66,6 +67,12 @@ class StdLib
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
 
+#pragma region stdmeta
+
+	static Value meta_operation(const std::vector<Value> &args, VM *vm);
+	static Value meta_stack_run(const std::vector<Value> &args, VM *vm);
+
+#pragma endregion stdmeta
 #pragma region stdmath
 	static double math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
 	static double math_pow(const std::vector<Value> &args, VM *vm);   ///< Power
