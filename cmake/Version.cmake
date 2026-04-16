@@ -1,39 +1,81 @@
-# Get latest tag (fallback to 0.0.0 if none exist)
-execute_process(
-    COMMAND git describe --tags --abbrev=0
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_TAG
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-)
+set(GIT_TAG "")
+set(GIT_COMMITS_SINCE_TAG 0)
 
-if(NOT GIT_TAG)
-    set(GIT_TAG "0.0.0")
+set(GITHUB_HEADERS "")
+if(DEFINED ENV{GITHUB_TOKEN})
+    list(APPEND GITHUB_HEADERS "Authorization: Bearer $ENV{GITHUB_TOKEN}")
 endif()
 
-# Count commits since tag
-execute_process(
-    COMMAND git rev-list ${GIT_TAG}..HEAD --count
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_COMMITS_SINCE_TAG
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(GITHUB_HEADERS)
+    set(GITHUB_TAGS_FILE "${CMAKE_BINARY_DIR}/github_tags.json")
+    set(TAG_DL_ARGS "https://api.github.com/repos/DanielLMcGuire/Phasor/tags?per_page=1" "${GITHUB_TAGS_FILE}" STATUS TAGS_STATUS TLS_VERIFY ON HTTPHEADER ${GITHUB_HEADERS})
+    file(DOWNLOAD ${TAG_DL_ARGS})
+    list(GET TAGS_STATUS 0 TAGS_CODE)
 
-# Get short commit hash
-execute_process(
-    COMMAND git rev-parse --short HEAD
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_COMMIT_HASH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+    if(TAGS_CODE EQUAL 0 AND EXISTS "${GITHUB_TAGS_FILE}")
+        file(READ "${GITHUB_TAGS_FILE}" TAGS_JSON)
+        string(JSON API_TAG ERROR_VARIABLE JSON_ERR GET "${TAGS_JSON}" 0 "name")
+        if(NOT JSON_ERR AND API_TAG)
+            set(GIT_TAG "${API_TAG}")
+            execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_HEAD_SHA OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+            set(GITHUB_COMPARE_FILE "${CMAKE_BINARY_DIR}/github_compare.json")
+            set(COMPARE_DL_ARGS "https://api.github.com/repos/DanielLMcGuire/Phasor/compare/${GIT_TAG}...${GIT_HEAD_SHA}" "${GITHUB_COMPARE_FILE}" STATUS COMPARE_STATUS TLS_VERIFY ON HTTPHEADER ${GITHUB_HEADERS})
+            file(DOWNLOAD ${COMPARE_DL_ARGS})
+            list(GET COMPARE_STATUS 0 COMPARE_CODE)
+            if(COMPARE_CODE EQUAL 0 AND EXISTS "${GITHUB_COMPARE_FILE}")
+                file(READ "${GITHUB_COMPARE_FILE}" COMPARE_JSON)
+                string(JSON API_COMMITS ERROR_VARIABLE CMP_ERR GET "${COMPARE_JSON}" "ahead_by")
+                if(NOT CMP_ERR AND API_COMMITS)
+                    set(GIT_COMMITS_SINCE_TAG "${API_COMMITS}")
+                endif()
+            endif()
+        endif()
+    endif()
+else()
+    execute_process(COMMAND git describe --tags --abbrev=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE LOCAL_GIT_TAG OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET RESULT_VARIABLE GIT_DESCRIBE_RESULT)
+    if(GIT_DESCRIBE_RESULT EQUAL 0 AND NOT LOCAL_GIT_TAG STREQUAL "")
+        set(GIT_TAG "${LOCAL_GIT_TAG}")
+        execute_process(COMMAND git rev-list ${GIT_TAG}..HEAD --count WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE LOCAL_GIT_COMMITS OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET RESULT_VARIABLE GIT_REVLIST_RESULT)
+        if(GIT_REVLIST_RESULT EQUAL 0 AND LOCAL_GIT_COMMITS)
+            set(GIT_COMMITS_SINCE_TAG "${LOCAL_GIT_COMMITS}")
+        endif()
+    endif()
 
-# Detect dirty state (includes untracked files)
-execute_process(
-    COMMAND git status --porcelain
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_STATUS
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+    if(NOT GIT_TAG)
+        set(GITHUB_TAGS_FILE "${CMAKE_BINARY_DIR}/github_tags.json")
+        file(DOWNLOAD "https://api.github.com/repos/DanielLMcGuire/Phasor/tags?per_page=1" "${GITHUB_TAGS_FILE}" STATUS TAGS_STATUS TLS_VERIFY ON)
+        list(GET TAGS_STATUS 0 TAGS_CODE)
+        if(TAGS_CODE EQUAL 0 AND EXISTS "${GITHUB_TAGS_FILE}")
+            file(READ "${GITHUB_TAGS_FILE}" TAGS_JSON)
+            string(JSON API_TAG ERROR_VARIABLE JSON_ERR GET "${TAGS_JSON}" 0 "name")
+            if(NOT JSON_ERR AND API_TAG)
+                set(GIT_TAG "${API_TAG}")
+                execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_HEAD_SHA OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+                set(GITHUB_COMPARE_FILE "${CMAKE_BINARY_DIR}/github_compare.json")
+                file(DOWNLOAD "https://api.github.com/repos/DanielLMcGuire/Phasor/compare/${GIT_TAG}...${GIT_HEAD_SHA}" "${GITHUB_COMPARE_FILE}" STATUS COMPARE_STATUS TLS_VERIFY ON)
+                list(GET COMPARE_STATUS 0 COMPARE_CODE)
+                if(COMPARE_CODE EQUAL 0 AND EXISTS "${GITHUB_COMPARE_FILE}")
+                    file(READ "${GITHUB_COMPARE_FILE}" COMPARE_JSON)
+                    string(JSON API_COMMITS ERROR_VARIABLE CMP_ERR GET "${COMPARE_JSON}" "ahead_by")
+                    if(NOT CMP_ERR AND API_COMMITS)
+                        set(GIT_COMMITS_SINCE_TAG "${API_COMMITS}")
+                    endif()
+                endif()
+            endif()
+        endif()
+    endif()
+endif()
+
+if(NOT GIT_TAG)
+    if(PROJECT_VERSION)
+        set(GIT_TAG "${PROJECT_VERSION}")
+    else()
+        set(GIT_TAG "0.0.0")
+    endif()
+endif()
+
+execute_process(COMMAND git rev-parse --short HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_COMMIT_HASH OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+execute_process(COMMAND git status --porcelain WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_STATUS OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 
 if(GIT_STATUS STREQUAL "")
     set(GIT_IS_DIRTY FALSE)
@@ -41,13 +83,10 @@ else()
     set(GIT_IS_DIRTY TRUE)
 endif()
 
-# Build version string
 set(GIT_VERSION_STRING "${GIT_TAG}")
-
 if(NOT GIT_COMMITS_SINCE_TAG EQUAL 0)
     set(GIT_VERSION_STRING "${GIT_VERSION_STRING}.${GIT_COMMITS_SINCE_TAG}")
 endif()
-
 if(GIT_IS_DIRTY)
     set(GIT_VERSION_STRING "${GIT_VERSION_STRING}-${GIT_COMMIT_HASH}")
 endif()

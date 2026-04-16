@@ -44,11 +44,15 @@ jobs:
     
     - name: Configure (macOS)
       if: matrix.os == 'macos-latest'
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
       run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DIS_TRACING=ON -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
     - name: Configure 
       if: matrix.os != 'macos-latest'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
       run: cmake -S . -G Ninja -B build -DIS_TRACING=ON -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=RelWithDebInfo
     
