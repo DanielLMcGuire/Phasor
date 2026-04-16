@@ -63,14 +63,17 @@ class StdLib
 	static void registerMathFunctions(VM *vm);
 	static void registerStringFunctions(VM *vm);
 	static void registerTypeConvFunctions(VM *vm);
+#ifndef SANDBOXED
 	static void registerFileFunctions(VM *vm);
+#endif
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
 
 #pragma region stdmeta
-
+#ifndef SANDBOXED
 	static Value meta_operation(const std::vector<Value> &args, VM *vm);
 	static Value meta_stack_run(const std::vector<Value> &args, VM *vm);
+#endif
     static Value meta_get_version(const std::vector<Value> &args, VM *vm);
 
 #pragma endregion stdmeta
@@ -115,9 +118,7 @@ class StdLib
 
 #pragma region stdsys
 	static std::string sys_env(const std::vector<Value> &args, VM *vm);            ///< Get the current environment variables
-	static Value sys_argv(const std::vector<Value> &args, VM *vm);           ///< Get the current command line arguments
 	static int64_t sys_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
-	static int64_t sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
 	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm);  ///< Wait for input
 	static Value sys_shell(const std::vector<Value> &args, VM *vm);            ///< Run a shell command
 	static int64_t sys_fork(const std::vector<Value> &args, VM *vm);           ///< Run a native program
@@ -126,8 +127,10 @@ class StdLib
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);    ///< Reset the VM
 	static int64_t sys_pid(const std::vector<Value> &args, VM *vm);      ///< Get the current process ID
 	static std::string sys_os(const std::vector<Value> &args, VM *vm);             ///< Get the current OS
-	static Value sys_isatty(const std::vector<Value> &args, VM *vm);
+	static Value sys_isatty(const std::vector<Value> &args, VM *vm);          ///< Check if the current output is a terminal
 #endif
+	static Value  sys_argv(const std::vector<Value> &args, VM *vm); ///< Get the current command line arguments
+	static int64_t sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
 	static double sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
 	static Value sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
 	static Value sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
