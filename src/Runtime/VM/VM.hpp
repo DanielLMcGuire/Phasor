@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <platform.h>
+#include <version.h>
 #ifndef SANDBOXED
 	#include "../FFI/ffi.hpp"
 #endif
@@ -32,14 +33,14 @@ class VM
 	explicit VM()
 	{
 #ifdef TRACING
-		log(std::format("Phasor::VM::{}(): normal instance created {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): v{}:\nnormal instance created {:#x}\n", __func__, getVersion(), (uintptr_t)this));
 		flush();
 #endif
 	}
 	explicit VM(const Bytecode &bytecode)
 	{
 #ifdef TRACING
-		log(std::format("Phasor::VM::{}(): fast instance created {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): v{}:\nfast instance created {:#x}\n", __func__, getVersion(),(uintptr_t)this));
 		flush();
 #endif
 		run(bytecode);
@@ -47,7 +48,7 @@ class VM
 	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0)
 	{
 #ifdef TRACING
-		log(std::format("Phasor::VM::{}(): operation instance created {:#x}\n", __func__, (uintptr_t)this));
+		log(std::format("Phasor::VM::{}(): v{}:\noperation instance created {:#x}\n", __func__, getVersion(), (uintptr_t)this));
 		flush();
 #endif
 		operation(op, operand1, operand2, operand3);
@@ -67,6 +68,9 @@ class VM
 		ffi = std::make_unique<FFI>(path, this);
 #endif
 	}
+
+	/// @brief Get Phasor VM version
+	inline const std::string getVersion() const { return PHASOR_VERSION_STRING; }
 
 	/// @class Halt
 	/// @brief Throws when the HALT opcode is reached
