@@ -119,4 +119,6 @@ if (NOT IS_SANDBOXED)
     endif()
 endif()
 
-add_subdirectory(Help)
+if (NOT IS_XBOX)
+    add_subdirectory(Help)
+endif()
