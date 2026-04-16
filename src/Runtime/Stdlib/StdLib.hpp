@@ -71,6 +71,7 @@ class StdLib
 
 	static Value meta_operation(const std::vector<Value> &args, VM *vm);
 	static Value meta_stack_run(const std::vector<Value> &args, VM *vm);
+    static Value meta_get_version(const std::vector<Value> &args, VM *vm);
 
 #pragma endregion stdmeta
 #pragma region stdmath

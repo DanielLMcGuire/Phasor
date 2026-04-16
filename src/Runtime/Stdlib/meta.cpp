@@ -1,4 +1,5 @@
 #include "StdLib.hpp"
+#include <version.h>
 
 namespace Phasor
 {
@@ -7,6 +8,7 @@ void StdLib::registerMetaFunctions(VM *vm)
 {
 	vm->registerNativeFunction("phs_op", StdLib::meta_operation);
     vm->registerNativeFunction("phs_stack_run", StdLib::meta_stack_run);
+    vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
 }
 
 Value StdLib::meta_operation(const std::vector<Value> &args, VM *vm) {
@@ -32,6 +34,11 @@ Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm) {
 
     vm->operation(opcode);
     return vm->pop();
+}
+
+Value StdLib::meta_get_version(const std::vector<Value> &args, VM *vm) {
+    checkArgCount(args, 0, "phs_version");
+    return PHASOR_VERSION_STRING;
 }
 
 } // namespace Phasor

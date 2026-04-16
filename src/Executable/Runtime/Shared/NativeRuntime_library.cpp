@@ -9,6 +9,8 @@
 #include "../../../Codegen/CodeGen.hpp"
 #include "../../../Codegen/Bytecode/BytecodeSerializer.hpp"
 
+#include <version.h>
+
 #include <cstring>
 
 #ifdef _WIN32
@@ -28,6 +30,11 @@
 
 extern "C"
 {
+	PHASOR_API const char* getVersion() 
+	{
+		return PHASOR_VERSION_STRING;
+	}
+
 	PHASOR_API int exec(void *vmPtr, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
 	                    int argc, const char **argv)
 	{

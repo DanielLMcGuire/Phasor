@@ -28,6 +28,11 @@
 extern "C"
 {
 #endif
+    /**
+     * @brief  Get the version string for Phasor VM.
+     * @return The version string.
+     */
+    PHASOR_API const char* getVersion();
 
 	/**
 	 * @brief Executes pre-compiled Phasor bytecode.
