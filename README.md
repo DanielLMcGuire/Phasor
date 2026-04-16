@@ -59,6 +59,8 @@ shutdown(code); // from stdsys
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
 
+Plans for RAII support for the actual runtime (in terms of the VM's variables), are not yet ready. I have some plans for modules / translation units, but will wait until I have a clearer view of what I am doing.
+
 > [!NOTE]
 >
 > While everything (AST, ISA, stdlib, both languages, VM, C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me at least for now. 
