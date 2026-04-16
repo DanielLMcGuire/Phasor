@@ -38,16 +38,16 @@ if(WIN32 AND ASSEMBLY)
     enable_language(RC)
 endif()
 
+# Prebuild config
+include(cmake/Preprocessor.cmake)
+include(cmake/CompilerFlags.cmake)
+include(cmake/AssemblyConfig.cmake)
+include(cmake/Version.cmake)
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/include/version.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
     @ONLY
 )
-
-# Prebuild config
-include(cmake/Preprocessor.cmake)
-include(cmake/CompilerFlags.cmake)
-include(cmake/AssemblyConfig.cmake)
 
 # Build config
 add_subdirectory(src)
