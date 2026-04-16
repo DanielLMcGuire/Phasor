@@ -217,6 +217,10 @@ This repo contains:
 
 <sub>Using Arch BTW? Just run `makepkg -si`</sub>
 
+> [!NOTE] 
+> 
+> If you have forked and do not plan to contribute back, you should modify `cmake/Version.cmake` to match your forks URL!
+
 ### Prerequisites
 
 - [CMake 3.21+](https://cmake.org/download/)
