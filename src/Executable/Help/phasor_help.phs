@@ -1,6 +1,6 @@
 using("stdio", "stdsys", "stdstr", "stdtype");
 
-fn gatherDocumentation(part: string, type: int) -> string {
+fn getDocCmd(part: string, type: int) -> string {
     var sb = sb_new();
     var os = sys_os();
     if (os == "win32") {
@@ -33,7 +33,7 @@ fn main() -> int {
     if (sys_argc() == 3) {
         var page = to_string(sys_argv(1));
         var section = to_int(sys_argv(2));
-        sys_shell(gatherDocumentation(page, section));
+        sys_shell(getDocCmd(page, section));
     } else {
         puts_error("Usage: phasor-help <page> <section>\ne.g. phasor-help phasor 1\nphasor-help phsb 5\nphasor-help phasorstd_io 3"); 
         return 1;
