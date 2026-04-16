@@ -130,13 +130,19 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 ## Applications
 
-- **[phasor](https://phasor-docs.pages.dev/man?f=phasor.1)** - Combines the Scripting Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
-- **[phasor-lsp](https://phasor-docs.pages.dev/man?f=phasorlsp.1)** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
-- **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
-- **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
-- **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
-- **Disassembler** ([`phasordecomp`](https://phasor-docs.pages.dev/man?f=phasordecomp.1))
-- **Assembler** ([`phasorasm`](https://phasor-docs.pages.dev/man?f=phasorasm.1))
+- **Phasor**
+  - **[phasor](https://phasor-docs.pages.dev/man?f=phasor.1)** - Combines the Scripting Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
+  - **[phasor-lsp](https://phasor-docs.pages.dev/man?f=phasorlsp.1)** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
+  - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
+  - **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
+  - **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
+  - **Disassembler** ([`phasordecomp`](https://phasor-docs.pages.dev/man?f=phasordecomp.1))
+  - **Assembler** ([`phasorasm`](https://phasor-docs.pages.dev/man?f=phasorasm.1))
+
+- **Pulsar**
+  - **[pulsar](https://phasor-docs.pages.dev/man?f=pulsar.1)** - Scripting runtime and REPL
+  - **Bytecode Compiler** ([`pulsarcompiler`](https://phasor-docs.pages.dev/man?f=pulsarcompiler.1)) - Script to bytecode compiler
+  - Uses the Phasor VM Runtime for bytecode ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1))
 
 ---
 
