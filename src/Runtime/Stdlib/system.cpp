@@ -28,8 +28,6 @@ void StdLib::registerSysFunctions(VM *vm)
 #ifndef SANDBOXED
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
-	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
-	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 	vm->registerNativeFunction("sys_get_memory", StdLib::sys_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
@@ -40,6 +38,8 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 	vm->registerNativeFunction("isatty", StdLib::sys_isatty);
 #endif
+	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
+	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 	vm->registerNativeFunction("time", StdLib::sys_time);
 	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
 	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
@@ -116,34 +116,6 @@ std::string StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 	return value;
 }
 
-Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
-{
-	if (args.size() == 0)
-	{
-		auto l_argv = std::make_shared<Value::StructInstance>();
-
-		for (size_t i = 0; i < static_cast<size_t>(argc); i++)
-		{
-			l_argv->fields["arg" + std::to_string(i)] = Value(argv[i]);
-		}
-
-		return Value(l_argv);
-	}
-
-	checkArgCount(args, 1, "sys_argv");
-	int64_t index = args[0].asInt();
-	if (argv != nullptr)
-		return argv[index];
-	else
-		return Value();
-}
-
-int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 0, "sys_argc");
-	return static_cast<int64_t>(argc);
-}
-
 int64_t StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_get_memory");
@@ -207,25 +179,42 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "sys_pid");
-#if defined(_WIN32)
+	#if defined(_WIN32)
 	return static_cast<int64_t>(GetCurrentProcessId());
-#else
+	#else
 	return static_cast<int64_t>(getpid());
-#endif
+	#endif
 }
 
 Value StdLib::sys_isatty(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "isatty");
-#ifdef _WIN32
+	#ifdef _WIN32
 	return _isatty(_fileno(stdin));
-#else
+	#else
 	return isatty(fileno(stdin));
-#endif
+	#endif
 
 }
 
 #endif
+
+Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "sys_argv");
+	int64_t index = args[0].asInt();
+	if (argv)
+		if (argc > index && index >= 0) return argv[index];
+		else throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
+	else
+		return Value();
+}
+
+int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 0, "sys_argc");
+	return static_cast<int64_t>(argc);
+}
 
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 {
