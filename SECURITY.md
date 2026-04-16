@@ -5,7 +5,10 @@
 | Version | Supported          |
 | ------- | ------------------ |
 | >= 3.1.X   | :white_check_mark: |
-| < 2.1.X | :x:                |
+| = 3.0.X | :eight_spoked_asterisk: |
+| < 3.1.X | :x:                |
+
+:eight_spoked_asterisk: - Partial support
 
 ## Report a Security Issue
 
