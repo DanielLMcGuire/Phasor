@@ -24,7 +24,7 @@ BEGIN
             VALUE "FileDescription", "Phasor VM Runtime"
             VALUE "FileVersion", "3.1.1.0"
             VALUE "InternalName", "phasorvm.exe"
-           VALUE "LegalCopyright", "© 2026 Daniel McGuire"
+           VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
             VALUE "OriginalFilename", "phasorvm.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
             VALUE "ProductVersion", "3.1.1.0"

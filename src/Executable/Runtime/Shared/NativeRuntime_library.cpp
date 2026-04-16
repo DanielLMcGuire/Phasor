@@ -8,7 +8,6 @@
 #include "../../../Language/Pulsar/Parser/Parser.hpp"
 #include "../../../Codegen/CodeGen.hpp"
 #include "../../../Codegen/Bytecode/BytecodeSerializer.hpp"
-
 #include <version.h>
 
 #include <cstring>

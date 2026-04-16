@@ -24,7 +24,7 @@ BEGIN
             VALUE "FileDescription", "Pulsar Interpreter"
             VALUE "FileVersion", "3.1.1.0"
             VALUE "InternalName", "pulsar.exe"
-            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
+            VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
             VALUE "OriginalFilename", "pulsar.exe"
             VALUE "ProductName", "Pulsar Scripting Language"
             VALUE "ProductVersion", "3.1.1.0"

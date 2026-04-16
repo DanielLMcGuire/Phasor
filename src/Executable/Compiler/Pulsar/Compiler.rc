@@ -25,7 +25,7 @@ BEGIN
             VALUE "FileDescription", "Pulsar Compiler for Phasor"
             VALUE "FileVersion", "3.1.1.0"
             VALUE "InternalName", "pulsarcompiler.exe"
-            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
+            VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
             VALUE "OriginalFilename", "pulsarcompiler.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
             VALUE "ProductVersion", "3.1.1.0"

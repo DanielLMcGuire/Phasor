@@ -22,7 +22,7 @@ BEGIN
             VALUE "FileDescription", "Phasor Language Server Protocol Host"
             VALUE "FileVersion", "3.1.1.0"
             VALUE "InternalName", "phasor-lsp.exe"
-            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
+            VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
             VALUE "OriginalFilename", "phasor-lsp.exe"
             VALUE "ProductName", "Phasor Programming Language"
             VALUE "ProductVersion", "3.1.1.0"

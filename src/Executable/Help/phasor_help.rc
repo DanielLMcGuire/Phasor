@@ -4,8 +4,8 @@
 // pmake
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,3,0,0
- PRODUCTVERSION 3,0,0,0
+ FILEVERSION 3,1,1,0
+ PRODUCTVERSION 3,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG 
  FILEFLAGS VS_FF_DEBUG
@@ -21,13 +21,13 @@ BEGIN
         BLOCK "040904b0" // Language: US English, Codepage: Unicode
         BEGIN
             VALUE "CompanyName", "Phasor"
-            VALUE "FileDescription", "pmake Build Tool"
-            VALUE "FileVersion", "1.0.0.0"
-            VALUE "InternalName", "pmake.exe"
-            VALUE "LegalCopyright", "© 2026 Daniel McGuire"
-            VALUE "OriginalFilename", "pmake.exe"
+            VALUE "FileDescription", "Phasor Toolchain CLI Help Helper"
+            VALUE "FileVersion", "3.1.1.0"
+            VALUE "InternalName", "phasor-help.exe"
+            VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
+            VALUE "OriginalFilename", "phasor-help.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
-            VALUE "ProductVersion", "3.0.0.0"
+            VALUE "ProductVersion", "3.1.1.0"
         END
     END
     BLOCK "VarFileInfo"
