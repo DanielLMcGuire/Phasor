@@ -73,7 +73,10 @@ jobs:
       with:
         subject-path: |
           install/**/bin/*
+          install/**/bin/**/*
           install/**/lib/*
+          install/**/lib/**/*
+          install/**/Library/**/*
         show-summary: false
         
     - name: Create attestations.json
@@ -81,10 +84,14 @@ jobs:
       run: |
         cat > install/attestations.json << 'EOF'
         {
+          "os": "${{ matrix.os }}",
+          "cc": "${{ matrix.c_compiler }}",
+          "cxx": "${{ matrix.cpp_compiler }}",
           "attestation_url": "${{ steps.attest.outputs.attestation-url }}",
           "attestation_id": "${{ steps.attest.outputs.attestation-id }}",
           "commit": "${{ github.sha }}",
-          "run_id": "${{ github.run_id }}"
+          "run_id": "${{ github.run_id }}",
+          "files": ["install/**/bin/*", "install/**/lib/*", "install/**/lib/*", "install/**/lib/**/*", "install/**/Library/**/*"]
         }
         EOF
 
