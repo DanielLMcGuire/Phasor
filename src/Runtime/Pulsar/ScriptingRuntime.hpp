@@ -16,7 +16,7 @@ namespace pulsar
 class Interpreter
 {
   public:
-	Interpreter(int argc, char *argv[], char *envp[]);
+	Interpreter(int argc, char *argv[]);
 	int run();
 
   private:
@@ -26,7 +26,6 @@ class Interpreter
 		bool                  verbose = false;
 		int                   scriptArgc = 0;
 		char                **scriptArgv = nullptr;
-		char                **envp = nullptr;
 		std::filesystem::path program;
 	} m_args;
 

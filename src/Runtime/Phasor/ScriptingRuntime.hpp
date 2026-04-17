@@ -21,7 +21,7 @@ namespace Phasor
 class ScriptingRuntime
 {
   public:
-	ScriptingRuntime(int argc, char *argv[], char *envp[]);
+	ScriptingRuntime(int argc, char *argv[]);
 	int run();
 
   private:
@@ -31,7 +31,6 @@ class ScriptingRuntime
 		bool        verbose = false;
 		int         scriptArgc = 0;
 		char      **scriptArgv = nullptr;
-		char      **envp = nullptr;
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);

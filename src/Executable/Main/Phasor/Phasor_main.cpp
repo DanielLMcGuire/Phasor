@@ -53,7 +53,7 @@ void showHelp(const fs::path &program = "phasor")
 #endif
 }
 
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
 	try
 	{
@@ -96,12 +96,12 @@ int main(int argc, char *argv[], char *envp[])
 
 		if (ext == ".phs")
 		{
-			Phasor::ScriptingRuntime ScriptRT(argc, argv, envp);
+			Phasor::ScriptingRuntime ScriptRT(argc, argv);
 			return ScriptRT.run();
 		}
 		else if (ext == ".phsb")
 		{
-			Phasor::BinaryRuntime BinRT(argc, argv, envp);
+			Phasor::BinaryRuntime BinRT(argc, argv);
 			return BinRT.run();
 		}
 		else if (ext == ".phir")

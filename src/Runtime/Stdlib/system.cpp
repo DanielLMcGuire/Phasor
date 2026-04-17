@@ -112,7 +112,7 @@ std::string StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 1, "sys_env");
 	std::string key = args[0].asString();
 	std::string value;
-	dupenv(value, key.c_str(), envp);
+	dupenv(value, key.c_str());
 	return value;
 }
 

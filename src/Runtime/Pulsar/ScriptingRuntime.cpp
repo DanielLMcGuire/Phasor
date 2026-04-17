@@ -14,9 +14,8 @@
 namespace pulsar
 {
 
-Interpreter::Interpreter(int argc, char *argv[], char *envp[])
+Interpreter::Interpreter(int argc, char *argv[])
 {
-	m_args.envp = envp;
 	parseArguments(argc, argv);
 }
 
@@ -80,7 +79,6 @@ std::unique_ptr<Phasor::VM> Interpreter::createVm()
 	Phasor::StdLib::registerFunctions(*vm);
 	Phasor::StdLib::argv = m_args.scriptArgv;
 	Phasor::StdLib::argc = m_args.scriptArgc;
-	Phasor::StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
 	vm->initFFI("plugins");

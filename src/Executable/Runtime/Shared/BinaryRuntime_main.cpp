@@ -1,11 +1,11 @@
 #include "../../../Runtime/Shared/BinaryRuntime.hpp"
 #include <nativeerror.h>
 
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
 	try
 	{
-		Phasor::BinaryRuntime BinRT(argc, argv, envp);
+		Phasor::BinaryRuntime BinRT(argc, argv);
 		return BinRT.run();
 	}
 	catch (const std::exception &e)

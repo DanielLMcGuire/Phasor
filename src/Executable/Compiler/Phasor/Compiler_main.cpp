@@ -2,11 +2,11 @@
 #include "../../../Frontend/Phasor/Frontend.hpp"
 #include <nativeerror.h>
 
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
 	try
 	{
-		Phasor::Compiler compiler(argc, argv, envp);
+		Phasor::Compiler compiler(argc, argv);
 		return compiler.run();
 	}
 	catch (const std::exception &e)

@@ -1,41 +1,45 @@
 #include "StdLib.hpp"
 #include <cassert>
+#ifdef _WIN32
+#include <stdlib.h>
+#else
+#include <cstdlib>
+#endif
 
 namespace Phasor
 {
 
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
-char **StdLib::envp = nullptr;
 
 #ifndef SANDBOXED
-int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
+int StdLib::dupenv(std::string &out, const char *name)
 {
-	if (!name || !argp)
-	{
-		return 1;
-	}
+    if (!name || name[0] == '\0') 
+    {
+        return 1;
+    }
 
-	const size_t key_len = strlen(name);
+#ifdef _WIN32
+    char *buffer = nullptr;
+    size_t len = 0;
+    if (_dupenv_s(&buffer, &len, name) == 0 && buffer != nullptr) 
+    {
+        out = buffer;
+        free(buffer);
+        return 0;
+    }
+#else
+    const char *val = std::getenv(name);
+    if (val) 
+    {
+        out = val;
+        return 0;
+    }
+#endif
 
-	const char *val = NULL;
-	for (size_t i = 0; argp[i]; i++)
-	{
-		const char *entry = argp[i];
-		if (strncmp(entry, name, key_len) == 0 && entry[key_len] == '=')
-		{
-			val = entry + key_len + 1;
-			break;
-		}
-	}
-	if (!val)
-	{
-		out.clear();
-		return 2;
-	}
-
-	out = std::string(val);
-	return 0;
+    out.clear();
+    return 2; // Not found
 }
 #endif
 

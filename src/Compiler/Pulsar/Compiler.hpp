@@ -15,7 +15,7 @@ namespace pulsar
 class Compiler
 {
   public:
-	Compiler(int argc, char *argv[], char *envp[]);
+	Compiler(int argc, char *argv[]);
 	int run();
 
   private:
@@ -28,7 +28,6 @@ class Compiler
 		bool        irMode = false;
 		int         scriptArgc = 0;
 		char      **scriptArgv = nullptr;
-		char      **envp = nullptr;
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);

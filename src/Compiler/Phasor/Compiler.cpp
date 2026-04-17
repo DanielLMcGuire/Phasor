@@ -13,9 +13,8 @@
 namespace Phasor
 {
 
-Compiler::Compiler(int argc, char *argv[], char *envp[])
+Compiler::Compiler(int argc, char *argv[])
 {
-	m_args.envp = envp;
 	parseArguments(argc, argv);
 }
 

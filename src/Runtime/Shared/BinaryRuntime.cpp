@@ -10,9 +10,8 @@
 namespace Phasor
 {
 
-BinaryRuntime::BinaryRuntime(int argc, char *argv[], char *envp[])
+BinaryRuntime::BinaryRuntime(int argc, char *argv[])
 {
-	m_args.envp = envp;
 	parseArguments(argc, argv);
 }
 
@@ -43,7 +42,6 @@ int BinaryRuntime::run()
 		StdLib::registerFunctions(*vm);
 		StdLib::argv = m_args.scriptArgv;
 		StdLib::argc = m_args.scriptArgc;
-		StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
 		vm->initFFI("plugins");

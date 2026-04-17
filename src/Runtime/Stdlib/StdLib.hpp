@@ -44,7 +44,6 @@ class StdLib
 
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
-	static char **envp; ///< Environment variables
 	
 	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
@@ -56,7 +55,7 @@ class StdLib
 
 #ifndef __EMSCRIPTEN__
 #ifndef SANDBOXED
-	static int dupenv(std::string &out, const char *name, char *const argp[]);
+	static int dupenv(std::string &out, const char *name);
 #endif
 
 	static void registerMetaFunctions(VM *vm);

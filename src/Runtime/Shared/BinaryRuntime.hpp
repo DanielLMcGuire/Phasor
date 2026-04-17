@@ -15,7 +15,7 @@ namespace Phasor
 class BinaryRuntime
 {
   public:
-	BinaryRuntime(int argc, char *argv[], char *envp[]);
+	BinaryRuntime(int argc, char *argv[]);
 	int run();
 
   private:
@@ -25,7 +25,6 @@ class BinaryRuntime
 		bool        verbose = false;
 		int         scriptArgc = 0;
 		char      **scriptArgv = nullptr;
-		char      **envp = nullptr;
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);

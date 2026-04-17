@@ -16,7 +16,7 @@ extern "C" int exec(void *state, const unsigned char embeddedBytecode[], size_t 
                     const char *moduleName, int argc, const char *argv[]);
 
 // Main entry point
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
     try
 	{
