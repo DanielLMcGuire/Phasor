@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <iterator>
 
+#include <version.h>
+
 #ifdef _WIN32
 #include <io.h>
 #define IS_TERMINAL _isatty(_fileno(stdin))
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
 			return Phasor::Frontend::runRepl();
 		}
 
-		const fs::path program = argv[0];
+		const fs::path programPath = argv[0];
 		const fs::path file = argv[1];
 
 		if (!fs::exists(file))
@@ -82,13 +84,16 @@ int main(int argc, char *argv[])
 				m_path.erase(0, m_path.find_first_not_of("-/"));
 				if (m_path == "help" || m_path == "h" || m_path == "?" || m_path == "h" || m_path == "help")
 				{
-					showHelp(program);
+					showHelp(programPath);
 					return 0;
+				} else if (m_path == "version" || m_path == "v") { 
+					std::println(PHASOR_VERSION_STRING); 
+				} else {
+					std::println(std::cerr, "Invalid argument: {}", m_path);
 				}
-				std::println(std::cerr, "Invalid argument: {}", m_path);
-			}
-			else
+			} else {
 				std::println(std::cerr, "File not found: {}", raw);
+			}
 			return 1;
 		}
 

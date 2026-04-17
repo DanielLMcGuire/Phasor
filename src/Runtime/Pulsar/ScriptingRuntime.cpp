@@ -6,9 +6,11 @@
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
 #include <filesystem>
+#include <print>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <version.h>
 #include <nativeerror.h>
 
 namespace pulsar
@@ -115,6 +117,11 @@ void Interpreter::parseArguments(int argc, char *argv[])
 		else if (arg == "-h" || arg == "--help")
 		{
 			showHelp();
+			exit(0);
+		}
+		else if (arg == "--version") 
+		{
+			std::println(PHASOR_VERSION_STRING);
 			exit(0);
 		}
 		else
