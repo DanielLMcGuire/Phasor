@@ -94,6 +94,10 @@ jobs:
           "files": ["install/**/bin/*", "install/**/lib/*", "install/**/lib/*", "install/**/lib/**/*", "install/**/Library/**/*"]
         }
         EOF
+    - name: Note version
+      if: matrix.os == 'ubuntu-latest' # run one time
+      shell: bash
+      run: echo "using(\"stdmeta\"); print(phs_version());" | ./build/src/Executable/phasor >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v6
