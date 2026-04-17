@@ -254,6 +254,8 @@ This repo contains:
 
 To avoid legal complications, Phasor will not be officially available on Linux-based (and many Unix-based) operating systems in the U.S. states of Colorado effective 1-1-2028 and California effective 1-1-2027 due to lack of stable struct/array support, therefore lacking D-Bus / OS specific compatibility without unofficial plugins. This does not imply limited support or that binaries won't be available.
 
+Regarding any other age verification laws, I will not entertain them.
+
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
 Phasor Toolchain is licensed for use under the Apache 2.0 License. 
