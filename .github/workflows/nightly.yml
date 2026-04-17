@@ -71,7 +71,9 @@ jobs:
     - name: Attest build provenance
       uses: actions/attest-build-provenance@v4
       with:
-        subject-path: 'install/bin/**'
+        subject-path: |
+          install/**/bin/*
+          install/**/lib/*
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v6
