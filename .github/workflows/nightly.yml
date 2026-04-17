@@ -9,7 +9,6 @@ permissions:
   contents: read
   id-token: write
   attestations: write
-  artifact-metadata: write
 
 jobs:
   build:
@@ -69,11 +68,25 @@ jobs:
       run: cmake --install build --prefix install
 
     - name: Attest build provenance
+      id: attest
       uses: actions/attest-build-provenance@v4
       with:
         subject-path: |
           install/**/bin/*
           install/**/lib/*
+        show-summary: false
+        
+    - name: Create attestations.json
+      shell: bash
+      run: |
+        cat > install/attestations.json << 'EOF'
+        {
+          "attestation_url": "${{ steps.attest.outputs.attestation-url }}",
+          "attestation_id": "${{ steps.attest.outputs.attestation-id }}",
+          "commit": "${{ github.sha }}",
+          "run_id": "${{ github.run_id }}"
+        }
+        EOF
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v6
