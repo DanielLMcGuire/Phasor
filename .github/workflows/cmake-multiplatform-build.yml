@@ -35,7 +35,7 @@ jobs:
       with:
         arch: x64
 
-    - name: Install GCC 14 (Linux)
+    - name: Install GCC 15 (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
