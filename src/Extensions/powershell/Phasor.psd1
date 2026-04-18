@@ -1,5 +1,5 @@
 @{
-    ModuleVersion     = '3.1.1'
+    ModuleVersion     = '3.2.0'
     GUID              = 'b128b4a9-d5e1-4611-8f84-5ebf5b02ea18'
     RootModule        = 'Phasor.psm1'
     Author            = 'Daniel McGuire'

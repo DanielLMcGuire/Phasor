@@ -68,6 +68,9 @@ export function registerRoutes(server: ServerInstance) {
     });
 
     server.get('/version', async (req, res) => {
-        res.json({ version: '3.1.1', build: 'sandboxed' });
+        const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
+        const exePath = resolve(process.cwd(), 'phasor', 'bin', exeName);
+
+        res.json({ version: `${runViaPipe(exePath, '--version')}` });
     });
 }

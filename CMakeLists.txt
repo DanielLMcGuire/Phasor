@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)
-project(Phasor VERSION 3.1.1 LANGUAGES C CXX)
+project(Phasor VERSION 3.2.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 23)
@@ -33,6 +33,7 @@ option(CLANG_SAN_LEAK  "Enable Clang LeakSanitizer" OFF)
 option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
 option(STATIC "Compile statically" OFF)
 option(NATIVE "Use if you only plan to use on THIS machine" OFF)
+option(FORCE_PROJECT_VERSION "Force project version string to lock to cmake project_version" OFF)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
