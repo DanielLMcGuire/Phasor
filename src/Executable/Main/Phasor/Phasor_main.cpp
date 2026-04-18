@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 					return 0;
 				} else if (m_path == "version" || m_path == "v") { 
 					std::println(PHASOR_VERSION_STRING); 
+					return 0;
 				} else {
 					std::println(std::cerr, "Invalid argument: {}", m_path);
 				}
