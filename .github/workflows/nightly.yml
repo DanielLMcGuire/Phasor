@@ -82,33 +82,23 @@ jobs:
     - name: Create attestations.json
       shell: python
       run: |
-        import json
-        import glob
-        import os
-        patterns = [
-            "install/**/bin/*",
-            "install/**/lib/*",
-            "install/**/lib/**/*",
-            "install/**/Library/**/*"
-        ]
-        matched_files = set()
-        for pattern in patterns:
-            for filepath in glob.glob(pattern, recursive=True):
-                if os.path.isfile(filepath):
-                    matched_files.add(filepath.replace('\\', '/'))
-        attestation_data = {
-            "os": "${{ matrix.os }}",
-            "cc": "${{ matrix.c_compiler }}",
-            "cxx": "${{ matrix.cpp_compiler }}",
-            "attestation_url": "${{ steps.attest.outputs.attestation-url }}",
-            "attestation_id": "${{ steps.attest.outputs.attestation-id }}",
-            "commit": "${{ github.sha }}",
-            "run_id": "${{ github.run_id }}",
-            "files": sorted(list(matched_files))
-        }
-        os.makedirs('install', exist_ok=True)
-        with open('install/attestations.json', 'w') as f:
-            json.dump(attestation_data, f, indent=2)
+        import json,glob,os,hashlib as D
+        E=['install/**/bin/*','install/**/lib/*','install/**/lib/**/*','install/**/Library/**/*']
+        def F(path):
+          A=D.sha256()
+          with open(path,'rb')as B:
+            for C in iter(lambda:B.read(8192),b''):A.update(C)
+          return A.hexdigest()
+        A={}
+        for G in E:
+          for B in glob.glob(G,recursive=True):
+            if os.path.isfile(B):
+              C=B.replace('\\','/')
+              if C not in A:A[C]=F(B)
+        H=[{'path':A,'sha256':B}for(A,B)in sorted(A.items())]
+        I={'os':'${{ matrix.os }}','cc':'${{ matrix.c_compiler }}','cxx':'${{ matrix.cpp_compiler }}','attestation_url':'${{ steps.attest.outputs.attestation-url }}','attestation_id':'${{ steps.attest.outputs.attestation-id }}','commit':'${{ github.sha }}','run_id':'${{ github.run_id }}','files':H}
+        os.makedirs('install',exist_ok=True)
+        with open('install/attestations.json','w')as J:json.dump(I,J,indent=2)
 
     - name: Note version
       if: matrix.os == 'ubuntu-latest' # run one time
