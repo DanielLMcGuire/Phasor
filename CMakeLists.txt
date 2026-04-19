@@ -31,7 +31,7 @@ option(IS_SANDBOXED "Enable VM sandbox" OFF)
 option(CLANG_SAN_ADDR  "Enable Clang AddressSanitizer"  OFF)
 option(CLANG_SAN_LEAK  "Enable Clang LeakSanitizer" OFF)
 option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
-option(STATIC "Compile statically" OFF)
+option(STATIC "Compile executables statically against C/CXX RT" OFF)
 option(NATIVE "Use if you only plan to use on THIS machine" OFF)
 option(FORCE_PROJECT_VERSION "Force project version string to lock to cmake project_version" OFF)
 
