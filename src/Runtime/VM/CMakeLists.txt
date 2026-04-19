@@ -17,6 +17,10 @@ else()
     )
 endif()
 
+if(CMAKE_PCH)
+    list(APPEND VM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Operations.cc.inl)
+endif()
+
 set(VM_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/VM.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/core.h

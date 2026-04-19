@@ -1,5 +1,7 @@
 #ifndef OPS_ARE_INCLUDED
-#include "VM.hpp" // avoid breaking IDEs
+	#ifndef CMAKE_PCH
+		#include "VM.hpp" // avoid breaking IDEs
+	#endif
 #endif
 
 namespace Phasor {

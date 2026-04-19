@@ -1,5 +1,9 @@
 add_compile_definitions(CMAKE)
 
+if(CMAKE_PCH)
+    add_compile_definitions(CMAKE_PCH)
+endif()
+
 if(IS_TRACING)
     add_compile_definitions(TRACING)
 endif()

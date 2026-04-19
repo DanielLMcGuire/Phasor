@@ -1,4 +1,4 @@
-#ifndef CMAKE
+#ifndef CMAKE_PCH
 #include "VM.hpp"
 #endif
 #include <iostream>

@@ -1,3 +1,5 @@
+if(PROJECT_IS_TOP_LEVEL)
+
 add_executable(phasor_main 
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
@@ -78,9 +80,10 @@ add_executable(phasor_runtime_exe
 )
 target_link_libraries(phasor_runtime_exe phasor_binary_runtime_lib)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
-endif()
 
-if (NOT IS_SANDBOXED)
+endif() # NOT IS_XBOX
+
+if(NOT IS_SANDBOXED)
     if(WIN32)
         add_executable(phasor_winapi_gen
             ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/bindgen_main.cpp
@@ -100,25 +103,23 @@ if (NOT IS_SANDBOXED)
             ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/main.rc
             ${CMAKE_SOURCE_DIR}/scripts/winapi.h
         )
-        set_target_properties(phasor_winapi_bindings PROPERTIES 
-            OUTPUT_NAME winapi_phs
-        )
+        set_target_properties(phasor_winapi_bindings PROPERTIES OUTPUT_NAME winapi_phs)
         install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
         install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
     else()
         add_library(phasor_posix_bindings SHARED
             ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
         )
-        set_target_properties(phasor_posix_bindings PROPERTIES 
-            OUTPUT_NAME posix_phs
-        )
+        set_target_properties(phasor_posix_bindings PROPERTIES OUTPUT_NAME posix_phs)
         install(TARGETS phasor_posix_bindings
             LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
             RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
     endif()
-endif()
+endif() # NOT IS_SANDBOXED
 
-if (NOT IS_XBOX)
+if(NOT IS_XBOX)
     add_subdirectory(Help)
 endif()
+
+endif() # PROJECT_IS_TOP_LEVEL
