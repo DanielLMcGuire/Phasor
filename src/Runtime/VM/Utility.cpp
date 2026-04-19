@@ -28,6 +28,18 @@
 
 namespace Phasor
 {
+
+std::string VM::getVersion() { return PHASOR_VERSION_STRING; }
+void VM::setStatus(int newStatus) { status = newStatus; }
+void VM::resetStatus() { status = 0; }
+int  VM::getStatus() { return status; }
+
+void VM::initFFI(const std::filesystem::path &path) {
+#ifndef SANDBOXED
+	ffi = std::make_unique<FFI>(path, this);
+#endif
+}
+
 int VM::run(const Bytecode &bc)
 {
 	m_bytecode = &bc;

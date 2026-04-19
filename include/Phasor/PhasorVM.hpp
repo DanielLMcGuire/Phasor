@@ -1,23 +1,16 @@
 #pragma once
-#include "../../Codegen/CodeGen.hpp"
-#include <Value.hpp>
+#include "../Value.hpp"
+#include "PhasorISA.hpp"
 #include <vector>
 #include <filesystem>
 #include <functional>
 #include <map>
 #include <array>
 #include <ranges>
-#include "core/core.h"
 #include <iostream>
 #include <stdexcept>
-#ifdef TRACING
-#include <format>
-#include "../../ISA/map.hpp"
-#endif
-#include <platform.h>
-#include <version.h>
 #ifndef SANDBOXED
-	#include "../FFI/ffi.hpp"
+	#include "PhasorFFI.hpp"
 #endif
 
 /// @brief The Phasor Programming Language and Runtime
@@ -29,13 +22,8 @@ namespace Phasor
 class VM
 {
   public:
-	VM();
-	VM(const Bytecode &bytecode);
-	VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
-	~VM();
 
-	/// @brief Initialize the FFI plugins
-	void initFFI(const std::filesystem::path &path);
+	inline void initFFI(const std::filesystem::path &path);
 
 	/// @brief Get Phasor VM version
 	std::string getVersion();
@@ -145,10 +133,10 @@ class VM
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #else
 	/// @brief Execute a single operation
-	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #endif
 	/// @brief Push a value onto the stack
 	void push(const Value &value);
@@ -216,37 +204,5 @@ class VM
 		operation(opcode);
 		return pop();
 	}
-
-  private:
-#ifndef SANDBOXED
-	/// @brief FFI
-	std::unique_ptr<FFI> ffi;
-#endif
-    /// @brief Exit code
-	int status = 0;
-	
-	/// @brief Import handler for loading modules
-	ImportHandler importHandler;
-
-	/// @brief Virtual registers for register-based operations (v2.0)
-	std::array<Value, MAX_REGISTERS> registers;
-
-	/// @brief Stack for function calls
-	std::vector<Value> stack;
-
-	/// @brief Call stack for function calls
-	std::vector<int> callStack;
-
-	/// @brief Variable storage indexed by variable index
-	std::vector<Value> variables;
-
-	/// @brief Bytecode to execute
-	const Bytecode *m_bytecode{};
-
-	/// @brief Program counter
-	size_t pc = 0;
-
-	/// @brief Native function registry
-	std::map<std::string, NativeFunction> nativeFunctions;
 };
 } // namespace Phasor

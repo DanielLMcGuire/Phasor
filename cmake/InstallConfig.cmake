@@ -42,9 +42,8 @@ elseif(WIN32)
             OPTIONAL
         )
     endforeach()
-    install(FILES
-        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/
         DESTINATION include
     )
     install(DIRECTORY
@@ -79,9 +78,8 @@ elseif(APPLE)
         ARCHIVE DESTINATION usr/local/lib
         FRAMEWORK DESTINATION frameworks
     )
-    install(FILES
-        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/
         DESTINATION usr/local/include
     )
     install(DIRECTORY
@@ -112,9 +110,8 @@ else()
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib
     )
-    install(FILES
-        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/
         DESTINATION usr/include
     )
     install(DIRECTORY
