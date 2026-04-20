@@ -165,7 +165,7 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
-  - [Python Module ](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py`
+  - [Python Module ](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py/phasor`
     ```python
     from phasor import Bytecode, Value, OpCode, Runtime
     help(phasor)
@@ -178,9 +178,9 @@ This repo contains:
     Runtime.run(bc) # wraps phasorrt lib
     ```
 
-  - [PowerShell Module (windows only, phasorrt.dll bindings)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell`
+  - [PowerShell Module (windows only, phasorrt.dll bindings)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell/Phasor`
     ```powershell
-    Import-Module .\src\Extensions\powershell\Phasor.psd1
+    Import-Module .\src\Extensions\powershell\Phasor\Phasor.psd1
     Get-Help Phasor
     Get-Help <cmdlet>
 
