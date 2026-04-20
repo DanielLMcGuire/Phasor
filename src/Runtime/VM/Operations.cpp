@@ -65,7 +65,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (it == nativeFunctions.end())
 			throw std::runtime_error("Unknown native function: " + funcName);
 
-		int                argCount = static_cast<int>(pop().asInt());
+		int argCount = static_cast<int>(pop().asInt());
 		std::vector<Value> args(argCount);
 		for (int i = argCount - 1; i >= 0; --i)
 			args[i] = pop();

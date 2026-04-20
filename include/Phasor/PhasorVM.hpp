@@ -35,6 +35,10 @@ namespace Phasor
 class VM
 {
   public:
+	VM();
+	VM(const Bytecode &bytecode);
+	VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	~VM();
 
 	inline void initFFI(const std::filesystem::path &path);
 
