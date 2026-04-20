@@ -71,6 +71,6 @@ export function registerRoutes(server: ServerInstance) {
         const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
         const exePath = resolve(process.cwd(), 'phasor', 'bin', exeName);
 
-        res.json({ version: `${runViaPipe(exePath, '--version')}` });
+        res.json({ version: `${(await runViaPipe(exePath, 'using("stdmeta");print(phs_version());')).stdout.trim()}` });
     });
 }
