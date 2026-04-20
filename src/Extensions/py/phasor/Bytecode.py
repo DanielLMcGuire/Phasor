@@ -136,8 +136,7 @@ class Bytecode:
             for name, addr in self.function_entries.items():
                 if addr == i:
                     lines.append(f"\n<function {name}>:")
-            ops = [instr.operand1, instr.operand2, instr.operand3,
-                   instr.operand4, instr.operand5]
+            ops = [instr.operand1, instr.operand2, instr.operand3]
             non_zero = [str(o) for o in ops if o != 0]
             operands = ("  " + ", ".join(non_zero)) if non_zero else ""
             lines.append(f"  {i:>4}  {instr.op.name:<20}{operands}")
