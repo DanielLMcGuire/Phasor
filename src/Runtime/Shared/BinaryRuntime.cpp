@@ -102,7 +102,8 @@ void BinaryRuntime::parseArguments(int argc, char *argv[])
 void BinaryRuntime::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Binary Runtime\n\n";
+	std::cout << "Phasor Runtime v" << PHASOR_VERSION_STRING << "\n";
+	std::cout << "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n";
 	std::cout << "Usage:\n";
 	std::cout << "  " << filename << " [options] <file.phsb> [...script args]\n\n";
 	std::cout << "Options:\n";

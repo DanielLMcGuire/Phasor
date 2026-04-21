@@ -1,6 +1,6 @@
 ﻿#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
-
+#include <version.h>
 #include "Disassembler.hpp"
 
 #include <filesystem>
@@ -18,10 +18,6 @@ Disassembler::Disassembler(int argc, char *argv[])
 
 int Disassembler::run()
 {
-	if (!m_args.noLogo)
-	{
-		std::println("Phasor Decompiler\nCopyright (c) 2026 Daniel McGuire");
-	}
 	if (m_args.showHelp)
 	{
 		showHelp();
@@ -62,13 +58,8 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 				return true;
 			}
 		}
-		else if (arg == "-n" || arg == "--nologo")
-		{
-			m_args.noLogo = true;
-		}
 		if (arg == "-s" || arg == "--silent")
 		{
-			m_args.noLogo = true;
 			m_args.silent = true;
 		}
 		else if (arg[0] == '-')
@@ -94,13 +85,14 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 
 void Disassembler::showHelp()
 {
-	std::println("Usage:\n" 
-	"  {} [options] <input.phsb>"
-	"Options:"
-    "  -o, --output <file>   Output file"
-    "  -h, --help            Show this help message"
-    "  -n, --nologo          Do not show banner"
-    "  -s, --silent          Do not print anything except errors (no stdout)", m_args.program.stem().string());
+	std::println("Phasor Disassembler v{}\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Usage:\n" 
+	"  {} [options] <input.phsb>\n"
+	"Options:\n"
+    "  -o, --output <file>   Output file\n"
+    "  -h, --help            Show this help message\n"
+    "  -s, --silent          Do not print anything except errors (no stdout)\n", PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 bool Disassembler::decompileBinary()

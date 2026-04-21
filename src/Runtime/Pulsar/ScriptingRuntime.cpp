@@ -144,6 +144,8 @@ void Interpreter::parseArguments(int argc, char *argv[])
 
 void Interpreter::showHelp()
 {
+	std::cout << "Pulsar Scripting Language (Phasor v" << PHASOR_VERSION_STRING << ")\n";
+	std::cout << "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n";
 	std::cout << "Usage:\n" << "  " << m_args.program.stem().string() << " [inFile] [...script args]\n\n";
 	std::cout << "Options:\n";
 	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";

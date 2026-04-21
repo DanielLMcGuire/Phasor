@@ -4,6 +4,7 @@
 #include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/Cpp/CppCodeGenerator.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
+#include <version.h>
 #include <filesystem>
 #include <fstream>
 #include <print>
@@ -19,9 +20,6 @@ CppCompiler::CppCompiler(int argc, char *argv[])
 
 int CppCompiler::run()
 {
-	if (!m_args.noLogo)
-		std::println("Phasor C++ Code Generator\nCopyright (c) 2026 Daniel McGuire\n");
-	
 	if (m_args.showHelp)
 	{
 		showHelp("phasornative");
@@ -154,10 +152,6 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 				return true;
 			}
 		}
-		else if (arg == "-n" || arg == "--nologo")
-		{
-			m_args.noLogo = true;
-		}
 		else if (arg == "-H" || arg == "--header-only")
 		{
 			m_args.headerOnly = true;
@@ -249,7 +243,9 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 
 bool CppCompiler::showHelp(const std::string &programName)
 {
-	std::println("Usage:\n"
+	std::println("Phasor C++ Bytecode Embedder v{}\n"	
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Usage:\n"
 	"  {} [options] <input.phs>\n\n"
 	"Options:\n"
 	"  -c, --compiler <name>   Compiler to use (default: g++)\n"
@@ -267,7 +263,7 @@ bool CppCompiler::showHelp(const std::string &programName)
 	"  {} program.phs -o program.exe -c clang++ -l lld\n"
 	"  {} -O program.phs -o program.obj -c clang++\n"
 	"  {} -H program.phs -o program.hpp\n"
-	"  {} -g program.phs -o program.cpp", programName, programName, programName, programName, programName);
+	"  {} -g program.phs -o program.cpp", PHASOR_VERSION_STRING, programName, programName, programName, programName, programName);
 	return true;
 }
 

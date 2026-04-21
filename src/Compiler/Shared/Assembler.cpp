@@ -1,7 +1,7 @@
 
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
-
+#include <version.h>
 #include "Assembler.hpp"
 
 #include <filesystem>
@@ -19,9 +19,6 @@ Assembler::Assembler(int argc, char *argv[])
 
 int Assembler::run()
 {
-	if (!m_args.noLogo)
-		std::println("Phasor Assembler\nCopyright (c) 2026 Daniel McGuire\n");
-	
 	if (m_args.showHelp)
 	{
 		showHelp();
@@ -62,13 +59,8 @@ bool Assembler::parseArguments(int argc, char *argv[])
 				return true;
 			}
 		}
-		else if (arg == "-n" || arg == "--nologo")
-		{
-			m_args.noLogo = true;
-		}
 		if (arg == "-s" || arg == "--silent")
 		{
-			m_args.noLogo = true;
 			m_args.silent = true;
 		}
 		else if (arg[0] == '-')
@@ -94,13 +86,15 @@ bool Assembler::parseArguments(int argc, char *argv[])
 
 void Assembler::showHelp()
 {
-	std::println("Usage:\n"
+	std::println("Phasor Assembler v{}\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Usage:\n"
 	"  {} [options] <input.phsb>\n\n"
 	"Options:\n"
 	"  -o, --output <file>   Output file\n"
 	"  -h, --help            Show this help message\n"
 	"  -n, --nologo          Do not show banner\n"
-	"  -s, --silent          Do not print anything except errors (no stdout)\n", m_args.program.stem().string());
+	"  -s, --silent          Do not print anything except errors (no stdout)\n", PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 bool Assembler::assembleBinary()

@@ -4,6 +4,7 @@
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
+#include <version.h>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -20,8 +21,6 @@ Compiler::Compiler(int argc, char *argv[])
 
 int Compiler::run()
 {
-	if (m_args.showLogo)
-		std::println("Phasor Compiler\n(C) 2026 Daniel McGuire\n");
 	if (m_args.inputFile.empty())
 	{
 		std::println(std::cerr, "Error: No input file provided\n");
@@ -76,8 +75,7 @@ int Compiler::compileToBytecode()
 			return 1;
 		}
 
-		if (m_args.showLogo)
-			std::println("Compiled successfully: {} -> {}", m_args.inputFile, m_args.outputFile);
+		std::println("Compiled successfully: {} -> {}", m_args.inputFile, m_args.outputFile);
 		return 0;
 	}
 	catch (const std::exception &e)
@@ -149,10 +147,6 @@ void Compiler::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		}
-		else if (arg == "--no-logo")
-		{
-			m_args.showLogo = false;
-		}
 		else if (arg == "-o" || arg == "--output")
 		{
 			if (i + 1 < argc)
@@ -189,12 +183,14 @@ void Compiler::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
 
-	std::println("Phasor Compiler\n\nUsage:\n"
+	std::println("Phasor Compiler v{}\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Usage:\n"
 	"  {} [options] <file.phs>\n\n"
 	"Options:\n  -o, --output FILE   Specify output file\n"
 	"  -i, --ir            Compile to IR format (.phir) instead of bytecode\n"
 	"  -v, --verbose       Enable verbose output\n"
-	"  -h, --help          Show this help message", filename);
+	"  -h, --help          Show this help message", PHASOR_VERSION_STRING, filename);
 }
 
 } // namespace Phasor

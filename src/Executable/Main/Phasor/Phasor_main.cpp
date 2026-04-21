@@ -36,7 +36,8 @@ namespace fs = std::filesystem;
 void showHelp(const fs::path &program = "phasor")
 {
 	const std::string programName = program.stem().string();
-	std::println("Phasor Programming Language v{}\n"
+	std::println("Phasor Programming Language and Toolchain v{}\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
 	"Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
 	"A. PIPE:    <text> | {}\n"
 	"B. JIT/BYTECODE:     {} <file>\n"
