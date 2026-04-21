@@ -9,6 +9,7 @@
 #include "../../../Codegen/CodeGen.hpp"
 #include "../../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include <version.h>
+#include <nativeerror.h>
 
 #include <cstring>
 
@@ -18,14 +19,7 @@
 #define PHASOR_API __attribute__((visibility("default")))
 #endif
 
-#if defined(_WIN32) && defined(_DEBUG)
-	#define msg(x, y)	\
-	MessageBoxA(nullptr, y, (std::string(x) + " | Phasor Runtime - Error").c_str(), \
-				MB_OK | MB_ICONERROR)
-#else
-	#define msg(x, y)	\
-	std::cerr << x << " | Error: " << y << "\n\a"
-#endif
+#define msg error
 
 extern "C"
 {
@@ -46,7 +40,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(moduleName, e.what());
+			msg(std::string(moduleName) + ": " + e.what());
 		}
 		return -1;
 	}
@@ -60,7 +54,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(moduleName, e.what());
+			msg(std::string(moduleName) + ": " + e.what());
 		}
 		return -1;
 	}
@@ -73,7 +67,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(moduleName, e.what());
+			msg(std::string(moduleName) + ": " + e.what());
 		}
 		return -1;
 	}
@@ -112,7 +106,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(moduleName, e.what());
+			msg(std::string(moduleName) + ": " + e.what());
 		}
 		return false;
 	}
@@ -146,7 +140,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(moduleName, e.what());
+			msg(std::string(moduleName) + ": " + e.what());
 		}
 		return false;
 	}
