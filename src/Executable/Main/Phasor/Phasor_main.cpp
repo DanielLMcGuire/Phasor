@@ -58,8 +58,7 @@ void showHelp(const fs::path &program = "phasor")
 Options:
     -h, --help     Show this help message and exit
     -v, --version  Show the version number and exit
-    -c, --command  Run a raw script string
-)");
+    -c, --command  Run a raw script string)");
 }
 
 int main(int argc, char *argv[])

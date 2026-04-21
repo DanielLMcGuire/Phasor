@@ -258,7 +258,6 @@ bool CppCompiler::showHelp(const std::string &programName)
 	"  -O, --object-only     Generate and compile to object only\n"
 	"  -v, --verbose         Enable verbose output\n"
 	"  -h, --help            Show this help message\n"
-	"  -n, --nologo          Do not show banner\n\n"
 	"Example:\n"
 	"  {} program.phs -o program.exe -c clang++ -l lld\n"
 	"  {} -O program.phs -o program.obj -c clang++\n"

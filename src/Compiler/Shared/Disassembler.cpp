@@ -92,7 +92,7 @@ void Disassembler::showHelp()
 	"Options:\n"
     "  -o, --output <file>   Output file\n"
     "  -h, --help            Show this help message\n"
-    "  -s, --silent          Do not print anything except errors (no stdout)\n", PHASOR_VERSION_STRING, m_args.program.stem().string());
+    "  -s, --silent          Do not print anything except errors (no stdout)", PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 bool Disassembler::decompileBinary()

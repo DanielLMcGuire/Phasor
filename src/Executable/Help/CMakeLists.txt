@@ -1,6 +1,6 @@
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp
-    COMMAND $<TARGET_FILE:phasor_cxx_transpiler> ${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs -o ${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp -H --nologo
+    COMMAND $<TARGET_FILE:phasor_cxx_transpiler> ${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs -o ${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp -H
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs phasor_cxx_transpiler
     COMMENT "Building PHS bytecode phasor_help.hpp"
 )
