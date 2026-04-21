@@ -161,7 +161,7 @@
             "inherits": "cfg-xbox",
             "cacheVariables": {
                 "ASSEMBLY": "ON",
-                "IS_XSCARLET": "1"
+                "IS_XSCARLETT": "1"
             }
         },
         {
@@ -826,7 +826,7 @@
         },
         {
             "name": "xbox-series",
-            "displayName": "Scarlet",
+            "displayName": "Scarlett",
             "inherits": [
                 "cfg-xbox-series",
                 "cfg-rel"
