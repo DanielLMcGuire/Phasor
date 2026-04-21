@@ -145,6 +145,11 @@ void Interpreter::parseArguments(int argc, char *argv[])
 void Interpreter::showHelp()
 {
 	std::cout << "Usage:\n" << "  " << m_args.program.stem().string() << " [inFile] [...script args]\n\n";
+	std::cout << "Options:\n";
+	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";
+	std::cout << "  -h, --help          Show this help message\n";
+	std::cout << "      --version       Print version string to stdout\n";
+	std::cout << "  -c, --command       Run a source string from argv\n";
 }
 
 } // namespace pulsar

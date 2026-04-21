@@ -36,12 +36,12 @@ namespace fs = std::filesystem;
 void showHelp(const fs::path &program = "phasor")
 {
 	const std::string programName = program.stem().string();
-	std::println("Phasor Programming Language\n"
+	std::println("Phasor Programming Language v{}\n"
 	"Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
 	"A. PIPE:    <text> | {}\n"
 	"B. JIT/BYTECODE:     {} <file>\n"
 	"C. REPL:             {}\n\n"
-	"Example:", programName, programName, programName, programName);
+	"Example:", PHASOR_VERSION_STRING, programName, programName, programName, programName);
 
 #ifdef _WIN32
 	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^);\" | {}\n"
@@ -53,6 +53,12 @@ void showHelp(const fs::path &program = "phasor")
 	"B. {} hello.phs\n"
 	"B. {} hello.phsb", programName, programName, programName);
 #endif
+	std::println(R"(
+Options:
+    -h, --help     Show this help message and exit
+    -v, --version  Show the version number and exit
+    -c, --command  Run a raw script string
+)");
 }
 
 int main(int argc, char *argv[])

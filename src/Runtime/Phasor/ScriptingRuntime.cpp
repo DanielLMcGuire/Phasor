@@ -147,6 +147,7 @@ void ScriptingRuntime::showHelp(const std::string &programName)
 	std::cout << "Options:\n";
 	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";
 	std::cout << "  -h, --help          Show this help message\n";
+	std::cout << "  -c, --command       Run a source string from argv\n";
 }
 
 } // namespace Phasor
