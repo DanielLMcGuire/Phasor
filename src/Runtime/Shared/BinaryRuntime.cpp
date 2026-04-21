@@ -102,13 +102,16 @@ void BinaryRuntime::parseArguments(int argc, char *argv[])
 void BinaryRuntime::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Runtime v" << PHASOR_VERSION_STRING << "\n";
-	std::cout << "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n";
-	std::cout << "Usage:\n";
-	std::cout << "  " << filename << " [options] <file.phsb> [...script args]\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -v, --verbose       Enable verbose output\n";
-	std::cout << "  -h, --help          Show this help message\n";
+	std::println(
+		"Phasor Runtime v{}\n"
+		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+		"Usage:\n"
+		"  {} [options] <file.phsb> [...script args]\n\n"
+		"Options:\n"
+		"  -v, --verbose       Enable verbose output\n"
+		"  -h, --help          Show this help message",
+		PHASOR_VERSION_STRING, filename
+	);
 }
 
 } // namespace Phasor

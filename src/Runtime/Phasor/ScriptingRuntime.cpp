@@ -67,9 +67,9 @@ int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 
 	if (m_args.verbose)
 	{
-		std::cout << "AST:\n";
+		std::println("AST:");
 		program->print();
-		std::cout << "\n";
+		std::println();
 	}
 
 	CodeGenerator codegen;
@@ -142,14 +142,17 @@ void ScriptingRuntime::parseArguments(int argc, char *argv[])
 void ScriptingRuntime::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Scripting Runtime v" << PHASOR_VERSION_STRING << "\n";
-	std::cout << "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n";
-	std::cout << "Usage:\n";
-	std::cout << "  " << filename << " [options] [file.phs] [...script args]\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";
-	std::cout << "  -h, --help          Show this help message\n";
-	std::cout << "  -c, --command       Run a source string from argv\n";
+	std::println(
+		"Phasor Scripting Runtime v{}\n"
+		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+		"Usage:\n"
+		"  {} [options] [file.phs] [...script args]\n\n"
+		"Options:\n"
+		"  -v, --verbose       Enable verbose output (print AST)\n"
+		"  -h, --help          Show this help message\n"
+		"  -c, --command       Run a source string from argv",
+		PHASOR_VERSION_STRING, filename
+	);
 }
 
 } // namespace Phasor

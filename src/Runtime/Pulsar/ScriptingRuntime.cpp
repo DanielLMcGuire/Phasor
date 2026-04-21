@@ -66,9 +66,9 @@ int Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
 
 	if (m_args.verbose)
 	{
-		std::cout << "AST:\n";
+		std::println("AST:");
 		program->print();
-		std::cout << "\n";
+		std::println();
 	}
 	auto bytecode = codegen.generate(*program);
 
@@ -144,14 +144,18 @@ void Interpreter::parseArguments(int argc, char *argv[])
 
 void Interpreter::showHelp()
 {
-	std::cout << "Pulsar Scripting Language (Phasor v" << PHASOR_VERSION_STRING << ")\n";
-	std::cout << "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n";
-	std::cout << "Usage:\n" << "  " << m_args.program.stem().string() << " [inFile] [...script args]\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";
-	std::cout << "  -h, --help          Show this help message\n";
-	std::cout << "      --version       Print version string to stdout\n";
-	std::cout << "  -c, --command       Run a source string from argv\n";
+	std::println(
+		"Pulsar Scripting Language (Phasor v{})\n"
+		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+		"Usage:\n"
+		"  {} [inFile] [...script args]\n\n"
+		"Options:\n"
+		"  -v, --verbose       Enable verbose output (print AST)\n"
+		"  -h, --help          Show this help message\n"
+		"      --version       Print version string to stdout\n"
+		"  -c, --command       Run a source string from argv",
+		PHASOR_VERSION_STRING, m_args.program.stem().string()
+	);
 }
 
 } // namespace pulsar
