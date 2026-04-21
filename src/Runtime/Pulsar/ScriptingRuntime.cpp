@@ -114,6 +114,13 @@ void Interpreter::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		}
+		if (arg == "-c" || arg == "--command")
+		{
+			auto vm = createVm();
+			runSourceString(argv[i + 1], *vm);
+			int ret = vm->getStatus();
+			exit(ret);
+		}
 		else if (arg == "-h" || arg == "--help")
 		{
 			showHelp();

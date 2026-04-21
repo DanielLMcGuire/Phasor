@@ -24,6 +24,11 @@ class ScriptingRuntime
 	ScriptingRuntime(int argc, char *argv[]);
 	int run();
 
+	int  runSource();
+	int runSourceString(const std::string &source, VM &vm);
+
+	std::unique_ptr<VM> createVm();
+
   private:
 	struct Args
 	{
@@ -35,11 +40,6 @@ class ScriptingRuntime
 
 	void parseArguments(int argc, char *argv[]);
 	void showHelp(const std::string &programName);
-
-	int  runSource();
-	int runSourceString(const std::string &source, VM &vm);
-
-	std::unique_ptr<VM> createVm();
 };
 
 } // namespace Phasor
