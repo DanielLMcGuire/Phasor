@@ -70,10 +70,10 @@ class StdLib
 
 #pragma region stdmeta
 #ifndef SANDBOXED
-	static Value meta_operation(const std::vector<Value> &args, VM *vm);
+	static int64_t meta_operation(const std::vector<Value> &args, VM *vm);
 	static Value meta_stack_run(const std::vector<Value> &args, VM *vm);
 #endif
-    static Value meta_get_version(const std::vector<Value> &args, VM *vm);
+    static std::string meta_get_version(const std::vector<Value> &args, VM *vm);
 
 #pragma endregion stdmeta
 #pragma region stdmath
