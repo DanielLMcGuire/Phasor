@@ -9,15 +9,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// README
+//
+// The FFI is used by the VM, these declarations should only be used for loading external C plugins
+
 #pragma once
-
-#include <functional>
-#include "Value.hpp"
-
-#include <filesystem>
-#include <vector>
-#include <string>
-
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -25,7 +21,13 @@
 #include <dlfcn.h>
 #endif
 
+#include <functional>
+#include <filesystem>
+#include <vector>
+#include <string>
+
 #include "PhasorFFI.h"
+#include "Value.hpp"
 
 namespace Phasor {
     class VM;

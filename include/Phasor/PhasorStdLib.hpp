@@ -9,18 +9,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// README
+//
+// Usage:
+// ```cpp
+// #include "PhasorStdLib.hpp"
+// // later
+// Phasor::StdLib::registerFunctions(vm);
+// ```
+
 #pragma once
+
+#include <cmath>
+#include <stdlib.h>
+#include <string.h>
+
 #include <functional>
 #include <map>
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <stdlib.h>
-#include <string.h>
 
 #include "PhasorVM.hpp"
 #include "../Value.hpp"

@@ -2,18 +2,30 @@
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// http://www.apache.org/licenses/LICENSE-2.0
+// https://llvm.org/LICENSE.txt
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// See info about the applicable terms of the LLVM-Exceptions at
-// https://llvm.org/LICENSE.txt
+
+// README
+// 
+// Because the VM is such a complex component, this readme only covers
+// basic high-level use cases.
+// For more information, please refer to the below, and the internal header 
+// at src/Runtime/VM/VM.hpp, as well as the [doxygen](phasor-docs.pages.dev)
+//
+// Usage:
+// ```cpp
+// // Initialize VM
+// Phasor::VM vm;
+// // Run bytecode
+// vm.run(bytecode);
+// ```
 
 #pragma once
-#include "../Value.hpp"
-#include "PhasorISA.hpp"
+
 #include <vector>
 #include <filesystem>
 #include <functional>
@@ -22,9 +34,12 @@
 #include <ranges>
 #include <iostream>
 #include <stdexcept>
+
 #ifndef SANDBOXED
 	#include "PhasorFFI.hpp"
 #endif
+#include "PhasorISA.hpp"
+#include "../Value.hpp"
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor

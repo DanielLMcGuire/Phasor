@@ -9,6 +9,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// README
+//
+// See below:
+
 #ifndef PHASOR_FFI_HPP
 #define PHASOR_FFI_HPP
 

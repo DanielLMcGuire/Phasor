@@ -9,6 +9,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// README
+// 
+// Provides types for the Phasor (and Pulsar) Programming Language.
+// Wraps a std::variant over null, bool, int64_t, double, string, struct, and array,
+// with structs and arrays heap-allocated via std::shared_ptr. Provides arithmetic,
+// comparison, and logical operators, and isTruthy() and toString().
+//
+// Also includes a std::formatter<Phasor::Value> implementation for use with std::format (or std::print).
+// Supports four format specifiers: default (value as-is), t (type name only),
+// T (type and value), ? (debug repr with quoted strings and recursive expansion), and
+// q (quoted strings, default otherwise).
+
 #pragma once
 #include <iostream>
 #include <string>
