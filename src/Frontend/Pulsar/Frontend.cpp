@@ -127,8 +127,8 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	bool cleanExit = false;
 
 	std::println("Pulsar REPL (using Phasor VM v{})\n"
-	"(C) 2026 Daniel McGuire\n\n"
-	"Type 'exit();' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Type 'exit()' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
 
 	
 	while (true)

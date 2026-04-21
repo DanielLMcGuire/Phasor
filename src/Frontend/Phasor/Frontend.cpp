@@ -131,7 +131,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 	bool cleanExit = false;
 
 	std::println("Phasor REPL (using Phasor VM v{})\n"
-	"(C) 2026 Daniel McGuire\n\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
 	"Type 'exit();' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
 	
 	while (true)
