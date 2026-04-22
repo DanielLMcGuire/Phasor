@@ -219,7 +219,8 @@ class VM
 	{
 		int regIndex = 0;
 		(setRegister(regIndex++, std::forward<Args>(args)), ...);
-		return operation(opcode);
+		operation(opcode);
+		return getRegister(REGISTER1);
 	}
 
 	/**
