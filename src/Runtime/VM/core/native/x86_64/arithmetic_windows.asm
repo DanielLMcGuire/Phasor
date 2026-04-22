@@ -61,10 +61,17 @@ asm_ineg ENDP
 ; int64_t asm_idiv(int64_t a, int64_t b)
 ; asm_idiv rcx a, rdx b
 asm_idiv PROC
-    mov rax, rcx      ; copy dividend into rax
-    mov r8, rdx       ; save divisor in r8 to avoid clobber from cqo
-    cqo                ; sign-extend rax into rdx:rax
-    idiv r8           ; divide by b
+    mov rax, rcx  ; copy dividend into rax
+    test rdx, rdx ; check for zero
+    jz div_zero
+
+    mov r8, rdx   ; save divisor in r8 to avoid clobber from cqo
+    cqo           ; sign-extend rax into rdx:rax
+    idiv r8       ; divide by b
+    ret
+
+div_zero:
+    xor rax, rax  ; return zero
     ret
 asm_idiv ENDP
 

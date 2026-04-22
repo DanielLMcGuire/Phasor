@@ -51,8 +51,15 @@ _asm_ineg:
 
 _asm_idiv:
     mov rax, rdi
+    test rsi, rsi
+    jz .div_zero
+
     cqo
     idiv rsi
+    ret
+
+.div_zero:
+    xor rax, rax
     ret
 
 _asm_imod:

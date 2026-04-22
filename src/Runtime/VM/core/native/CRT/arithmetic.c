@@ -40,6 +40,8 @@ double asm_flneg(double a)
 
 int64_t asm_idiv(int64_t a, int64_t b)
 {
+	if (b == 0)
+		return 0;
 	return a / b;
 }
 double asm_fldiv(double a, double b)
