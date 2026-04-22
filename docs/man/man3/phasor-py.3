@@ -4,6 +4,7 @@ phasor \- Python module for reading, writing, and manipulating Phasor VM bytecod
 .SH SYNOPSIS
 .nf
 .B from phasor import Bytecode, Value, OpCode
+.B from phasor import Runtime
 .fi
 .SH DESCRIPTION
 .B phasor
@@ -46,6 +47,12 @@ A typed constant-pool entry.
 .B ValueType
 Enumeration of constant-pool value types.
 .RE
+.PP
+The
+.B phasor.Runtime
+submodule provides cffi bindings for the PhasorRT shared library,
+exposing VM state management, compilation, and execution functions
+directly from Python.
 .SH CLASSES
 .SS Bytecode
 .PP
@@ -406,6 +413,203 @@ Int (2)	Integer
 Float (3)	Floating-point
 String (4)	String
 .TE
+.SH RUNTIME MODULE
+.PP
+.B phasor.Runtime
+provides cffi bindings for the PhasorRT shared library
+(\fIlibphasorrt.so\fR on Linux, \fIlibphasorrt.dylib\fR on macOS,
+\fIphasorrt.dll\fR on Windows).
+The library is loaded lazily on first use.
+All functions raise
+.B OSError
+if the shared library cannot be located.
+.PP
+The module defines the opaque type alias
+.B StateHandle
+(a cffi
+.I void\ *
+pointer) used to identify a live VM instance across calls.
+.SS "State management"
+.TP
+.B new_state()
+Allocate a fresh Phasor VM state and return its opaque
+.B StateHandle.
+The handle preserves globals, registered functions, and execution
+context across multiple calls.
+Always pair with
+.BR free_state() .
+.RS
+.TP
+\fBRaises:\fR
+.B RuntimeError
+if
+.I createState()
+returns NULL;
+.B OSError
+if the library cannot be loaded.
+.RE
+.TP
+.BI "init_stdlib(" state )
+Register the standard library functions into
+.IR state .
+Call once after
+.B new_state()
+when built-in functions are required.
+.RS
+.TP
+\fBRaises:\fR
+.B RuntimeError
+on failure.
+.RE
+.TP
+.BI "free_state(" state )
+Release a VM state.
+The handle must not be used after this call.
+.RS
+.TP
+\fBRaises:\fR
+.B RuntimeError
+on double-free or corrupt pointer.
+.RE
+.TP
+.BI "reset_state(" state ", reset_functions=False, reset_variables=False)"
+Clear the stack, program counter, and loaded bytecode of
+.IR state .
+When
+.I reset_functions
+is
+.BR True ,
+all registered functions are also removed.
+When
+.I reset_variables
+is
+.BR True ,
+all global variables are cleared.
+.RS
+.TP
+\fBRaises:\fR
+.B RuntimeError
+if the reset fails.
+.RE
+.SS "Compilation"
+All compile functions return a
+.B Bytecode
+object that can be inspected, modified, passed to
+.BR run() ,
+or serialised with
+.B Bytecode.save()
+/
+.BR Bytecode.to_bytes() .
+They raise
+.B RuntimeError
+on compilation failure and
+.B OSError
+if the library cannot be loaded.
+File-reading variants additionally raise
+.B FileNotFoundError
+when the source path does not exist.
+.TP
+.BI "compile_phs(" script ", module_name=" \(dqPython\(dq ", module_path=" None )
+Compile a Phasor
+.RI ( .phs )
+source string.
+.I module_path
+sets the directory used to resolve compile-time imports; defaults to
+the current working directory.
+.TP
+.BI "compile_phs_file(" path ", module_name=" None ", module_path=" None )
+Read a
+.I .phs
+file and compile it.
+.I module_name
+defaults to the file stem;
+.I module_path
+defaults to the file's parent directory.
+.TP
+.BI "compile_pul(" script ", module_name=" \(dqPython\(dq )
+Compile a Pulsar
+.RI ( .pul )
+source string.
+.TP
+.BI "compile_pul_file(" path ", module_name=" None )
+Read a
+.I .pul
+file and compile it.
+.I module_name
+defaults to the file stem.
+.SS "Execution"
+.TP
+.BI "run(" bytecode ", state=" None ", module_name=" \(dqPython\(dq ", args=" () )
+Execute pre-compiled
+.I .phsb
+bytecode.
+.I bytecode
+may be a raw
+.B bytes
+/
+.B bytearray
+object or a
+.B Bytecode
+instance.
+When
+.I state
+is
+.BR None ,
+PhasorRT creates and manages a transient state internally.
+.I args
+is forwarded to the script as
+.IR argv .
+Returns the script's integer exit code
+.RB ( \-1
+may indicate an unhandled VM exception).
+.TP
+.BI "run_file(" path ", state=" None ", module_name=" None ", args=" () )
+Load a
+.I .phsb
+file and execute it.
+.I module_name
+defaults to the file stem.
+Raises
+.B FileNotFoundError
+if
+.I path
+does not exist.
+.TP
+.BI "evaluate_phs(" script ", state=" None ", module_name=" \(dqPython\(dq ", module_path=" None ", verbose=" False )
+Compile and execute a Phasor source string in a single call.
+When
+.I verbose
+is
+.BR True ,
+the AST is printed to stdout.
+Returns the script's exit code.
+.TP
+.BI "evaluate_phs_file(" path ", state=" None ", module_name=" None ", verbose=" False )
+Read and evaluate a
+.I .phs
+source file.
+The file's parent directory is used automatically for import resolution.
+Returns the script's exit code.
+Raises
+.B FileNotFoundError
+if
+.I path
+does not exist.
+.TP
+.BI "evaluate_pul(" script ", state=" None ", module_name=" \(dqPython\(dq )
+Compile and execute a Pulsar source string.
+Returns the script's exit code.
+.TP
+.BI "evaluate_pul_file(" path ", state=" None ", module_name=" None )
+Read and evaluate a
+.I .pul
+source file.
+Returns the script's exit code.
+Raises
+.B FileNotFoundError
+if
+.I path
+does not exist.
 .SH MODULE-LEVEL DATA
 .TP
 .B MAGIC
@@ -521,11 +725,50 @@ bc = Bytecode.from_native_binary("program")
 print(bc.disassemble())
 .fi
 .RE
+.PP
+Compile and run a Phasor script, reusing the same VM state:
+.PP
+.RS 4
+.nf
+from phasor import Runtime
+
+vm = Runtime.new_state()
+Runtime.init_stdlib(vm)
+
+bc = Runtime.compile_phs('print("hello, world")', module_name="demo")
+Runtime.run(bc, state=vm)
+
+# Soft-reset between runs; globals and functions are preserved.
+Runtime.reset_state(vm)
+Runtime.run_file("next.phsb", state=vm)
+
+Runtime.free_state(vm)
+.fi
+.RE
+.PP
+Evaluate a Phasor source file directly, without managing state explicitly:
+.PP
+.RS 4
+.nf
+from phasor import Runtime
+
+exit_code = Runtime.evaluate_phs_file("script.phs")
+.fi
+.RE
 .SH FILES
 .TP
 .I *.phsb
 Phasor VM bytecode files consumed and produced by this module.
+.TP
+.I libphasorrt.so / libphasorrt.dylib / phasorrt.dll
+PhasorRT shared library required by
+.BR phasor.Runtime .
 .SH DEPENDENCIES
+.TP
+.B cffi
+Required by
+.BR phasor.Runtime .
+Used to load and call the PhasorRT shared library at runtime.
 .TP
 .B lief
 Optional.  Required only for
@@ -539,3 +782,4 @@ and
 See the
 .B phasor
 package metadata for information.
+
