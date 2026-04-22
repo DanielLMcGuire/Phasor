@@ -1,8 +1,8 @@
 #include "../../../LSP/Phasor/LSP.hpp"
 #include <json.hpp>
-#include <iostream>
 #include <string>
 #include <stdexcept>
+#include <nativeerror.h>
 #ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
@@ -42,8 +42,8 @@ static std::string readMessage()
 static void writeMessage(const json &msg)
 {
 	const std::string body = msg.dump();
-	std::cout << "Content-Length: " << body.size() << "\r\n\r\n" << body;
-	std::cout.flush();
+	std::print("Content-Length: {}\r\n\r\n{}", body.size(), body);
+	std::fflush(stdout);
 }
 
 static json makeResponse(const json &id, json result)

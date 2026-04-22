@@ -21,8 +21,13 @@ namespace Phasor
 class ScriptingRuntime
 {
   public:
-	ScriptingRuntime(int argc, char *argv[], char *envp[]);
+	ScriptingRuntime(int argc, char *argv[]);
 	int run();
+
+	int  runSource();
+	int runSourceString(const std::string &source, VM &vm);
+
+	std::unique_ptr<VM> createVm();
 
   private:
 	struct Args
@@ -31,16 +36,10 @@ class ScriptingRuntime
 		bool        verbose = false;
 		int         scriptArgc = 0;
 		char      **scriptArgv = nullptr;
-		char      **envp = nullptr;
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);
 	void showHelp(const std::string &programName);
-
-	int  runSource();
-	int runSourceString(const std::string &source, VM &vm);
-
-	std::unique_ptr<VM> createVm();
 };
 
 } // namespace Phasor

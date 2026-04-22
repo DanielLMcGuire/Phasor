@@ -10,3 +10,24 @@ Phasor_IR
     filter remove_inline ;.*$
     extension phir
     3rd_gen_scale 1.00
+
+Man Page
+    filter remove_matches  ^\.\\"
+    filter remove_matches  ^\\'\"
+    filter remove_matches  ^\\\"
+    extension 1
+    extension 1m
+    extension 1p
+    extension 2
+    extension 3
+    extension 3p
+    extension 3pm
+    extension 4
+    extension 5
+    extension 6
+    extension 7
+    extension 8
+    extension 9
+    extension man
+    extension mdoc
+    3rd_gen_scale 1.00

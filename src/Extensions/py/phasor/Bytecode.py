@@ -59,8 +59,7 @@ class Bytecode:
         return self.variables[name]
 
     def emit(self, op: OpCode,
-             op1: int = 0, op2: int = 0, op3: int = 0,
-             op4: int = 0, op5: int = 0) -> int:
+             op1: int = 0, op2: int = 0, op3: int = 0) -> int:
         """Append a new :class:`~phasor.Instruction.Instruction` to :attr:`instructions` and return its index.
 
         Args:
@@ -70,7 +69,7 @@ class Bytecode:
         Returns:
             The zero-based index of the newly appended instruction.
         """
-        self.instructions.append(Instruction(op, op1, op2, op3, op4, op5))
+        self.instructions.append(Instruction(op, op1, op2, op3))
         return len(self.instructions) - 1
 
     def patch_operand1(self, instr_index: int, value: int) -> None:
@@ -116,7 +115,7 @@ class Bytecode:
 
         Delegates to :class:`~phasor.Serializer.BytecodeSerializer`.
         """
-        from .Deserializer import BytecodeSerializer
+        from .Serializer import BytecodeSerializer
         return bytes(BytecodeSerializer().serialize(self))
 
     @classmethod
@@ -137,8 +136,7 @@ class Bytecode:
             for name, addr in self.function_entries.items():
                 if addr == i:
                     lines.append(f"\n<function {name}>:")
-            ops = [instr.operand1, instr.operand2, instr.operand3,
-                   instr.operand4, instr.operand5]
+            ops = [instr.operand1, instr.operand2, instr.operand3]
             non_zero = [str(o) for o in ops if o != 0]
             operands = ("  " + ", ".join(non_zero)) if non_zero else ""
             lines.append(f"  {i:>4}  {instr.op.name:<20}{operands}")

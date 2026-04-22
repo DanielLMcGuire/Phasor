@@ -3,10 +3,9 @@
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 #include <string>
 #include <version.h>
@@ -31,8 +30,9 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	CodeGenerator codegen;
 	Lexer lexer(source);
 	Parser parser(lexer.tokenize());
-	auto program = parser.parse();
-	auto bytecode = codegen.generate(*program);
+	
+	auto   program = parser.parse();
+	auto          bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
 	{
@@ -42,14 +42,14 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm);
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI("/opt/Phasor/plugins", vm);
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
-	vm->setImportHandler([](const std::filesystem::path &path) {
+	vm->setImportHandler([vm](const std::filesystem::path &path) {
 		std::ifstream file(path);
 		if (!file.is_open())
 		{
@@ -57,20 +57,28 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str());
+		runScript(buffer.str(), vm);
 	});
 
-	if (status != 0) {
-		if (ownVM) delete vm;
-		return status;
-	}
-
-	status = vm->run(bytecode);
-
-	if (ownVM)
+	try
 	{
-		delete vm;
+		status = vm->run(bytecode);
+
+		if (status != 0) {
+			if (!ownVM)  
+			{
+				vm->resetStatus();
+				vm->reset(true, false, false);
+			}
+		}
 	}
+	catch (...)
+	{
+		if (ownVM) delete vm;
+		throw;
+	}
+
+	if (ownVM) delete vm;
 
 	return status;
 }
@@ -89,11 +97,11 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	}
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm);
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm);
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm);
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 	vm->setImportHandler([](const std::filesystem::path &path) {
@@ -109,7 +117,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 
 	if (status != 0) {
 		if (ownVM) delete vm;
-		std::cout << "Failed to create FFI handler!";
+		std::println(std::cerr, "Failed to create FFI handler!");
 		return status;
 	}
 
@@ -118,18 +126,19 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 	std::string line;
 	bool cleanExit = false;
 
-	std::cout << "Pulsar REPL (using Phasor VM v" << PHASOR_VERSION_STRING << ")\n(C) 2026 Daniel McGuire\n\n";
-	std::cout << "Type 'exit();' to quit. Function declarations will not work.\n";
+	std::println("Pulsar REPL (using Phasor VM v{})\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Type 'exit()' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
 
 	
 	while (true)
 	{
 		try
 		{
-			std::cout << "\n> ";
+			std::print("\n> ");
 			if (!std::getline(std::cin, line))
 				break;
-				
+			
 			if (startsWith(line, "exit"))
 			{
 				cleanExit = true;
@@ -137,7 +146,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			}
 			if (line.empty())
 			{
-				std::cerr << "Empty line\n";
+				std::println(std::cerr, "Empty line");
 				continue;
 			}
 

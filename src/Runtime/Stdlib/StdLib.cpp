@@ -1,40 +1,47 @@
 #include "StdLib.hpp"
+#include <cassert>
+#ifdef _WIN32
+#include <stdlib.h>
+#else
+#include <cstdlib>
+#endif
 
 namespace Phasor
 {
 
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
-char **StdLib::envp = nullptr;
 
-int StdLib::dupenv(std::string &out, const char *name, char *const argp[])
+#ifndef SANDBOXED
+int StdLib::dupenv(std::string &out, const char *name)
 {
-	if (!name || !argp)
-	{
-		return 1;
-	}
+    if (!name || name[0] == '\0') 
+    {
+        return 1;
+    }
 
-	const size_t key_len = strlen(name);
+#ifdef _WIN32
+    char *buffer = nullptr;
+    size_t len = 0;
+    if (_dupenv_s(&buffer, &len, name) == 0 && buffer != nullptr) 
+    {
+        out = buffer;
+        free(buffer);
+        return 0;
+    }
+#else
+    const char *val = std::getenv(name);
+    if (val) 
+    {
+        out = val;
+        return 0;
+    }
+#endif
 
-	const char *val = NULL;
-	for (size_t i = 0; argp[i]; i++)
-	{
-		const char *entry = argp[i];
-		if (strncmp(entry, name, key_len) == 0 && entry[key_len] == '=')
-		{
-			val = entry + key_len + 1;
-			break;
-		}
-	}
-	if (!val)
-	{
-		out.clear();
-		return 2;
-	}
-
-	out = std::string(val);
-	return 0;
+    out.clear();
+    return 2; // Not found
 }
+#endif
 
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
@@ -51,30 +58,72 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 	}
 }
 
-Value StdLib::std_import(const std::vector<Value> &args, VM *vm)
+bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "using", true);
+	
+	std::unordered_map<std::string, std::function<void(Phasor::VM*)>>  modules {
+		{"stdio", registerIOFunctions},
+		{"stdsys", registerSysFunctions},
+		{"stdmath", registerMathFunctions},
+		{"stdstr", registerStringFunctions},
+		{"stdtype", registerTypeConvFunctions},
+	    {"stdmeta", registerMetaFunctions},
+#ifndef SANDBOXED
+		{"stdfile", registerFileFunctions},
+#endif
+		{"std*", [](Phasor::VM* vm) {
+			registerIOFunctions(vm);
+			registerSysFunctions(vm);
+			registerMathFunctions(vm);
+			registerStringFunctions(vm);
+			registerTypeConvFunctions(vm);
+		    registerMetaFunctions(vm);
+#ifndef SANDBOXED
+			registerFileFunctions(vm);
+#endif
+		}},
+	};
+
 	for (const auto &arg : args)
 	{
-		if (arg.getType() != ValueType::String)
+		auto it = modules.find(arg.asString());
+		if (it != modules.end())
 		{
-			throw std::runtime_error("All arguments to 'using' must be strings");
-			return false;
+			it->second(vm);
 		}
-		auto moduleName = arg.asString();
-		if (moduleName == "stdio") registerIOFunctions(vm);
-		else if (moduleName == "stdsys") registerSysFunctions(vm);
-		else if (moduleName == "stdmath") registerMathFunctions(vm);
-		else if (moduleName == "stdstr") registerStringFunctions(vm);
-		else if (moduleName == "stdtype") registerTypeConvFunctions(vm);
-		else if (moduleName == "stdfile") registerFileFunctions(vm);
 		else
 		{
-			throw std::runtime_error("Unknown standard library module: " + moduleName);
-			return false;
+			throw std::runtime_error("Unknown module: " + arg.asString());
 		}
 	}
 	return true;
 }
+
+#ifndef SANDBOXED
+Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)
+{
+	checkArgCount(args, 1, "assert");
+
+#ifdef TRACING
+	#ifndef NDEBUG
+		vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
+	#else
+		vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
+	#endif
+	vm->flush();
+#endif
+
+#ifndef NDEBUG
+	if (!args[0].isTruthy())
+	{
+		vm->logerr(std::format("StdLib::{}({:T}): Assertion failed!\n", __func__, args[0]));
+		vm->flusherr();
+	}
+	assert(args[0].isTruthy());
+#endif
+	return Value();
+}
+#endif
 
 } // namespace Phasor

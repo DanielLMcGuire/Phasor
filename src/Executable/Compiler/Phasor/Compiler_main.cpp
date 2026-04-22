@@ -1,17 +1,17 @@
 #include "../../../Compiler/Phasor/Compiler.hpp"
 #include "../../../Frontend/Phasor/Frontend.hpp"
-#include <iostream>
+#include <nativeerror.h>
 
-int main(int argc, char *argv[], char *envp[])
+int main(int argc, char *argv[])
 {
 	try
 	{
-		Phasor::Compiler compiler(argc, argv, envp);
+		Phasor::Compiler compiler(argc, argv);
 		return compiler.run();
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Error: " << e.what() << "\n";
+		error(e.what());
 		return 1;
 	}
 

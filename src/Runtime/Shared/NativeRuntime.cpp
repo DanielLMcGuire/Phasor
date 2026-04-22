@@ -1,0 +1,142 @@
+#include "NativeRuntime.hpp"
+#include "../../Language/Phasor/Lexer/Lexer.hpp"
+#include "../../Language/Phasor/Parser/Parser.hpp"
+#include "../../AST/AST.hpp"
+#include "../../Codegen/CodeGen.hpp"
+#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
+#include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
+#include "../../Codegen/Cpp/CppCodeGenerator.hpp"
+#include "../../Runtime/VM/VM.hpp"
+#include "../../Runtime/Stdlib/StdLib.hpp"
+#include <filesystem>
+#include <iostream>
+#include <nativeerror.h>
+
+namespace Phasor
+{
+
+NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv)
+    : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	BytecodeDeserializer deserializer;
+	m_bytecode = deserializer.deserialize(m_bytecodeData);
+	m_vm = std::make_unique<VM>();
+}
+
+NativeRuntime::NativeRuntime(const std::string &script, const int argc, const char **argv)
+    : m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	Lexer lexer(m_script);
+	auto  tokens = lexer.tokenize();
+
+	Parser parser(tokens);
+	auto   program = parser.parse();
+
+	CodeGenerator codegen;
+	m_bytecode = codegen.generate(*program);
+	m_vm = std::make_unique<VM>();
+
+	m_vm->registerNativeFunction("lib_Phasor", runScript);
+}
+
+NativeRuntime::NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv)
+    : m_vm(const_cast<VM *>(&vm), [](VM *) {}), m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	Lexer         lexer(m_script);
+	Parser        parser(lexer.tokenize());
+	CodeGenerator codegen;
+	m_bytecode = codegen.generate(*parser.parse());
+}
+
+NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc,
+                             const char **argv)
+    : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	if (vm)
+		m_vm = std::shared_ptr<VM>(vm, [](VM *) {}); // non-owning, caller manages lifetime
+	else
+		m_vm = std::make_shared<VM>(); // owning, we manage lifetime
+
+	BytecodeDeserializer deserializer;
+	m_bytecode = deserializer.deserialize(m_bytecodeData);
+}
+
+
+NativeRuntime::~NativeRuntime()
+{
+	m_vm.reset();
+	m_vm = nullptr;
+}
+
+void NativeRuntime::addNativeFunction(const std::string &name, void *function)
+{
+	using RawFunctionPtr = Value (*)(const std::vector<Value> &, VM *);
+	RawFunctionPtr rawPtr = reinterpret_cast<RawFunctionPtr>(function);
+	NativeFunction nativeFunction = rawPtr;
+	m_vm->registerNativeFunction(name, nativeFunction);
+}
+
+int NativeRuntime::eval(VM *vm, const std::string &script)
+{
+	Lexer lexer(script);
+	auto  tokens = lexer.tokenize();
+
+	Parser parser(tokens);
+	auto   program = parser.parse();
+
+	CodeGenerator codegen;
+	auto          bytecode = codegen.generate(*program);
+
+	return vm->run(bytecode);
+}
+
+int NativeRuntime::run()
+{
+
+	try
+	{
+		StdLib::argc = m_argc;
+		StdLib::argv = m_argv;
+		StdLib::registerFunctions(*m_vm);
+#if defined(_WIN32)
+		m_vm->initFFI("plugins");
+#elif defined(__APPLE__)
+		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+#elif defined(__linux__)
+		m_vm->initFFI("/usr/lib/phasor/plugins/");
+#endif
+		m_vm->setImportHandler([](const std::filesystem::path &path) {
+			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
+		});
+
+		int status = m_vm->run(m_bytecode);
+
+		if (status != 0) { 
+			m_vm->reset(true, false, false);
+			m_vm->resetStatus(); 
+		}
+
+		return status;
+	}
+	catch (const std::exception &e)
+	{
+		std::string errorMsg = std::string(e.what()) + " | " + m_vm->getInformation() + "\n";
+		error(errorMsg);
+		return 1;
+	}
+	return 0;
+}
+
+Value NativeRuntime::runScript(const std::vector<Value> &args, VM *vm)
+{
+	VM newVM;
+	StdLib::checkArgCount(args, 1, "phasor_eval");
+	Lexer lexer(args[1].asString());
+	Parser parser(lexer.tokenize());
+	CodeGenerator codegen;
+	auto program = parser.parse();
+	auto bytecode = codegen.generate(*program);
+	return newVM.run(bytecode);
+}
+
+} // namespace Phasor

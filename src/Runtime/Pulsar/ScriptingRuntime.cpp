@@ -5,19 +5,19 @@
 #include "../../Frontend/Pulsar/Frontend.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
 #include <filesystem>
+#include <print>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <version.h>
 #include <nativeerror.h>
 
 namespace pulsar
 {
 
-Interpreter::Interpreter(int argc, char *argv[], char *envp[])
+Interpreter::Interpreter(int argc, char *argv[])
 {
-	m_args.envp = envp;
 	parseArguments(argc, argv);
 }
 
@@ -66,9 +66,9 @@ int Interpreter::runSourceString(const std::string &source, Phasor::VM &vm)
 
 	if (m_args.verbose)
 	{
-		std::cout << "AST:\n";
+		std::println("AST:");
 		program->print();
-		std::cout << "\n";
+		std::println();
 	}
 	auto bytecode = codegen.generate(*program);
 
@@ -81,14 +81,13 @@ std::unique_ptr<Phasor::VM> Interpreter::createVm()
 	Phasor::StdLib::registerFunctions(*vm);
 	Phasor::StdLib::argv = m_args.scriptArgv;
 	Phasor::StdLib::argc = m_args.scriptArgc;
-	Phasor::StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
-	Phasor::FFI ffi("plugins", vm.get());
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	Phasor::FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	Phasor::FFI ffi("/opt/Phasor/plugins", vm.get());
+	vm->initFFI("/opt/Phasor/plugins");
 #endif
 
 	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {
@@ -115,9 +114,21 @@ void Interpreter::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		}
+		if (arg == "-c" || arg == "--command")
+		{
+			auto vm = createVm();
+			runSourceString(argv[i + 1], *vm);
+			int ret = vm->getStatus();
+			exit(ret);
+		}
 		else if (arg == "-h" || arg == "--help")
 		{
 			showHelp();
+			exit(0);
+		}
+		else if (arg == "--version") 
+		{
+			std::println(PHASOR_VERSION_STRING);
 			exit(0);
 		}
 		else
@@ -133,7 +144,18 @@ void Interpreter::parseArguments(int argc, char *argv[])
 
 void Interpreter::showHelp()
 {
-	std::cout << "Usage:\n" << "  " << m_args.program.stem().string() << " [inFile] [...script args]\n\n";
+	std::println(
+		"Pulsar Scripting Language (Phasor v{})\n"
+		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+		"Usage:\n"
+		"  {} [inFile] [...script args]\n\n"
+		"Options:\n"
+		"  -v, --verbose       Enable verbose output (print AST)\n"
+		"  -h, --help          Show this help message\n"
+		"      --version       Print version string to stdout\n"
+		"  -c, --command       Run a source string from argv",
+		PHASOR_VERSION_STRING, m_args.program.stem().string()
+	);
 }
 
 } // namespace pulsar

@@ -11,13 +11,13 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
 }
 
-Value StdLib::to_int(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::to_int(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "to_int");
 	if (args[0].isInt())
-		return args[0];
+		return args[0].asInt();
 	if (args[0].isFloat())
-		return Value(static_cast<int64_t>(args[0].asFloat()));
+		return static_cast<int64_t>(args[0].asFloat());
 	if (args[0].isString())
 	{
 		try
@@ -34,28 +34,22 @@ Value StdLib::to_int(const std::vector<Value> &args, VM *vm)
 	return 0;
 }
 
-Value StdLib::to_float(const std::vector<Value> &args, VM *vm)
+double StdLib::to_float(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "to_float");
 	return args[0].asFloat();
 }
 
-Value StdLib::to_string(const std::vector<Value> &args, VM *vm)
+std::string StdLib::to_string(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "to_string");
 	return args[0].toString();
 }
 
-Value StdLib::to_bool(const std::vector<Value> &args, VM *vm)
+bool StdLib::to_bool(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "to_bool");
-	if (args[0].isBool())
-		return args[0];
-	if (args[0].isInt())
-		return args[0].asInt() != 0;
-	if (args[0].isString())
-		return !args[0].asString().empty();
-	return false;
+	return args[0].isTruthy();
 }
 
 } // namespace Phasor

@@ -1,3 +1,26 @@
+// Copyright 2026 Daniel McGuire
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// README
+// 
+// Provides types for the Phasor (and Pulsar) Programming Language.
+// Wraps a std::variant over null, bool, int64_t, double, string, struct, and array,
+// with structs and arrays heap-allocated via std::shared_ptr. Provides arithmetic,
+// comparison, and logical operators, and isTruthy() and toString().
+//
+// Also includes a std::formatter<Phasor::Value> implementation for use with std::format (or std::print).
+// Supports four format specifiers: default (value as-is), t (type name only),
+// T (type and value), ? (debug repr with quoted strings and recursive expansion), and
+// q (quoted strings, default otherwise).
+
 #pragma once
 #include <iostream>
 #include <string>
@@ -7,38 +30,6 @@
 #include <vector>
 #include <format>
 #include <string>
-
-inline std::string escapeString(const std::string& input) {
-		std::string output;
-		output.reserve(input.size());
-
-		for (char c : input) {
-			switch (c) {
-				case '\n': output += "\\n";  break;
-				case '\t': output += "\\t";  break;
-				case '\r': output += "\\r";  break;
-				case '\0': output += "\\0";  break;
-				case '\\': output += "\\\\"; break;
-				case '\"': output += "\\\""; break;
-				case '\'': output += "\\'";  break;
-				case '\a': output += "\\a";  break;
-				case '\b': output += "\\b";  break;
-				case '\f': output += "\\f";  break;
-				case '\v': output += "\\v";  break;
-				default:
-					if (c < 0x20 || c == 0x7F) {
-						char buf[5];
-						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
-						output += buf;
-					} else {
-						output += c;
-					}
-					break;
-			}
-		}
-
-    return output;
-}
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -260,6 +251,20 @@ class Value
 		throw std::runtime_error("Cannot subtract these value types");
 	}
 
+	Value operator--() const
+	{
+		if (isInt()) return Value(asInt() - 1);
+		if (isNumber()) return Value(asFloat() - 1);
+		throw std::runtime_error("Cannot decrement this value type");
+	}
+
+	Value operator++() const
+	{
+		if (isInt()) return Value(asInt() + 1);
+		if (isNumber()) return Value(asFloat() + 1);
+		throw std::runtime_error("Cannot increment this value type");
+	}
+
 	/// @brief Multiply two values
 	Value operator*(const Value &other) const
 	{
@@ -298,16 +303,6 @@ class Value
 			return Value(asInt() % other.asInt());
 		}
 		throw std::runtime_error("Modulo requires integer operands");
-	}
-
-	/// @brief Unary negation
-	Value operator-() const
-	{
-		if (isInt())
-			return Value(-asInt());
-		if (isFloat())
-			return Value(-asFloat());
-		throw std::runtime_error("Cannot negate this value type");
 	}
 
 	/// @brief Logical negation
@@ -474,7 +469,7 @@ class Value
 
 	static Value createStruct(const std::string &name)
 	{
-		return Value(std::make_shared<StructInstance>(StructInstance{name}));
+		return Value(std::make_shared<StructInstance>(StructInstance{.structName = name, .fields = {}}));
 	}
 
 	static Value createArray(std::vector<Value> elements = {})
@@ -511,11 +506,43 @@ class Value
 };
 } // namespace Phasor
 
+inline std::string _value_escapeString(const std::string& input) {
+		std::string output;
+		output.reserve(input.size());
+
+		for (char c : input) {
+			switch (c) {
+				case '\n': output += "\\n";  break;
+				case '\t': output += "\\t";  break;
+				case '\r': output += "\\r";  break;
+				case '\0': output += "\\0";  break;
+				case '\\': output += "\\\\"; break;
+				case '\"': output += "\\\""; break;
+				case '\'': output += "\\'";  break;
+				case '\a': output += "\\a";  break;
+				case '\b': output += "\\b";  break;
+				case '\f': output += "\\f";  break;
+				case '\v': output += "\\v";  break;
+				default:
+					if (c < 0x20 || c == 0x7F) {
+						char buf[5];
+						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+						output += buf;
+					} else {
+						output += c;
+					}
+					break;
+			}
+		}
+
+    return output;
+}
+
 template <>
 struct std::formatter<Phasor::Value>
 {
     enum class Style { Value, TypeOnly, TypeValue, Debug, Quoted };
-    Style            style       = Style::Value;
+    Style style = Style::Value;
     std::string_view passthrough;
 
     constexpr auto parse(std::format_parse_context &ctx)
@@ -567,14 +594,14 @@ struct std::formatter<Phasor::Value>
 
         case Style::TypeValue:
             return fwd(Value::typeToString(v.getType()).asString()
-                       + "(" + escapeString(v.toString()) + ")");
+                       + "(" + _value_escapeString(v.toString()) + ")");
 
         case Style::Debug:
             return fwd(debug_repr(v));
 
         case Style::Quoted:
             if (v.isString())
-                return fwd("\"" + escapeString(v.asString()) + "\"");
+                return fwd("\"" + _value_escapeString(v.asString()) + "\"");
             [[fallthrough]];
 
         case Style::Value:
@@ -585,7 +612,7 @@ struct std::formatter<Phasor::Value>
             case ValueType::Bool:   return fwd(v.asBool());
             case ValueType::Int:    return fwd(v.asInt());
             case ValueType::Float:  return fwd(v.asFloat());
-            case ValueType::String: return fwd(debug_repr(escapeString(v.asString())));
+            case ValueType::String: return fwd(debug_repr(_value_escapeString(v.asString())));
             case ValueType::Array:  return fwd(v.toString());
             case ValueType::Struct: return fwd(v.toString());
             }
@@ -600,7 +627,7 @@ struct std::formatter<Phasor::Value>
         switch (v.getType())
         {
         case ValueType::Null:   return "null";
-        case ValueType::String: return "\"" + escapeString(v.asString()) + "\"";
+        case ValueType::String: return "\"" + _value_escapeString(v.asString()) + "\"";
         case ValueType::Array:
         {
             const auto &arr = *v.asArray();

@@ -10,11 +10,14 @@
 #include "core/core.h"
 #include <iostream>
 #include <stdexcept>
-#include <platform.h>
-
 #ifdef TRACING
 #include <format>
 #include "../../ISA/map.hpp"
+#endif
+#include <platform.h>
+#include <version.h>
+#ifndef SANDBOXED
+	#include "../FFI/ffi.hpp"
 #endif
 
 /// @brief The Phasor Programming Language and Runtime
@@ -26,39 +29,16 @@ namespace Phasor
 class VM
 {
   public:
-	explicit VM()
-	{
-#ifdef TRACING
-		log(std::format("VM::{}(): normal instance created {:#x}\n", __func__, (uintptr_t)this));
-		flush();
-#endif
-	}
-	explicit VM(const Bytecode &bytecode)
-	{
-#ifdef TRACING
-		log(std::format("VM::{}(): fast instance created {:#x}\n", __func__, (uintptr_t)this));
-		flush();
-#endif
-		run(bytecode);
-	}
-	explicit VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
-	            const int &operand4 = 0, const int &operand5 = 0)
-	{
-#ifdef TRACING
-		log(std::format("VM::{}(): operation instance created {:#x}\n", __func__, (uintptr_t)this));
-		flush();
-#endif
-		operation(op, operand1, operand2, operand3, operand4, operand5);
+	VM();
+	VM(const Bytecode &bytecode);
+	VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	~VM();
 
-	}
-	~VM()
-	{
-		cleanup();
-#ifdef TRACING
-		log(std::format("VM::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
-		flush();
-#endif
-	}
+	/// @brief Initialize the FFI plugins
+	void initFFI(const std::filesystem::path &path);
+
+	/// @brief Get Phasor VM version
+	std::string getVersion();
 
 	/// @class Halt
 	/// @brief Throws when the HALT opcode is reached
@@ -72,7 +52,7 @@ class VM
 	};
 
 	/// @brief Run the virtual machine
-	/// Exits -11654 on unknown error
+	/// Exits -1 on uncaught exception
 	int run(const Bytecode &bytecode);
 
 	/// @brief Native function signature
@@ -165,12 +145,10 @@ class VM
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
-	                           const int &operand3 = 0, const int &operand4 = 0, const int &operand5 = 0);
+	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #else
 	/// @brief Execute a single operation
-	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0,
-	                const int &operand4 = 0, const int &operand5 = 0);
+	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #endif
 	/// @brief Push a value onto the stack
 	void push(const Value &value);
@@ -190,6 +168,9 @@ class VM
 	/// @brief Get VM information for debugging
 	std::string getInformation();
 
+	/// @brief Get bytecode information for debugging
+	std::string getBytecodeInformation();
+
 	/// @brief Log a Value to stdout
 	void log(const Value &msg);
 
@@ -203,7 +184,9 @@ class VM
 	void flusherr();
 	
 	/// @brief Set VM exit code
-	inline void setStatus(int newStatus) { status = newStatus; }
+	void setStatus(int newStatus);
+	void resetStatus();
+	int getStatus();
 
 	/** 
 	 * @brief Run an opcode with arguments pre-loaded into registers
@@ -216,7 +199,8 @@ class VM
 	{
 		int regIndex = 0;
 		(setRegister(regIndex++, std::forward<Args>(args)), ...);
-		return operation(opcode);
+		operation(opcode);
+		return getRegister(REGISTER1);
 	}
 
 	/**
@@ -235,9 +219,13 @@ class VM
 	}
 
   private:
+#ifndef SANDBOXED
+	/// @brief FFI
+	std::unique_ptr<FFI> ffi;
+#endif
     /// @brief Exit code
 	int status = 0;
-
+	
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
 
@@ -263,6 +251,3 @@ class VM
 	std::map<std::string, NativeFunction> nativeFunctions;
 };
 } // namespace Phasor
-
-#define OPS_ARE_INCLUDED
-#include "Operations.cc.inl"

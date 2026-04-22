@@ -1,4 +1,4 @@
-.TH PHASORNATIVE 1 "January 2026" "Phasor 3.1.0" "Phasor Manual"
+.TH PHASORNATIVE 1 "January 2026" "Phasor 3.2.0" "Phasor Manual"
 .SH NAME
 phasornative \- Phasor C++ code generator and native compiler
 .SH SYNOPSIS
@@ -44,9 +44,6 @@ Generate, compile to object file, but do not link. Useful for creating libraries
 .TP
 .BR \-v ", " \-\-verbose
 Enable verbose output showing detailed compilation steps and statistics.
-.TP
-.BR \-n ", " \-\-nologo
-Suppress the banner and copyright information.
 .TP
 .BR \-h ", " \-\-help
 Display help information and exit.
@@ -157,7 +154,7 @@ Error in any stage of the process
 .SH DIAGNOSTICS
 Each stage of compilation is clearly labeled in the output. Compiler and linker output is displayed directly, allowing for easy identification of build errors.
 .SH NOTES
-The native compiler requires a working C++20-compatible compiler toolchain and the Phasor runtime library to be installed on the system.
+The native compiler requires a working C++23-compatible compiler toolchain and the Phasor runtime library to be installed on the system.
 .PP
 Generated executables are statically linked against the Phasor runtime where possible, reducing deployment dependencies.
 .SH SEE ALSO

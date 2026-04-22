@@ -1,0 +1,18 @@
+#!/usr/bin/env phasor
+
+using("stdsys", "stdio");
+
+// @todo Something more probably
+
+var x = 15;
+var y = 24;
+var z = 72;
+
+fn main() -> int 
+{
+    puts("Hello World!");
+    putf("%d + %d * %d = %d", x, y, z, x + y * z);
+    return 0;
+}
+
+shutdown(main());

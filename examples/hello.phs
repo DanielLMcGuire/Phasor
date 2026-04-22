@@ -1,3 +1,4 @@
+#!/usr/bin/env phasor
 using("stdsys", "stdio");
 
 fn main() -> int 

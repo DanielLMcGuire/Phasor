@@ -27,7 +27,7 @@ void StdLib::registerStringFunctions(VM *vm)
 static std::vector<std::string> sbPool;
 static std::vector<size_t>      sbFreeIndices;
 
-Value StdLib::str_find(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::str_find(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 2, "find", true);
 	std::string s = args[0].asString();
@@ -54,7 +54,7 @@ Value StdLib::str_find(const std::vector<Value> &args, VM *vm)
 	return pos != std::string::npos ? static_cast<int64_t>(pos) : false;
 }
 
-Value StdLib::sb_new(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sb_new(const std::vector<Value> &args, VM *vm)
 {
 	StdLib::checkArgCount(args, 0, "sb_new");
 	size_t idx;
@@ -83,17 +83,17 @@ Value StdLib::sb_append(const std::vector<Value> &args, VM *vm)
 	return args[0]; // Return handle for chaining
 }
 
-Value StdLib::sb_to_string(const std::vector<Value> &args, VM *vm)
+std::string StdLib::sb_to_string(const std::vector<Value> &args, VM *vm)
 {
 	StdLib::checkArgCount(args, 1, "sb_to_string");
 	int64_t idx = args[0].asInt();
 	if (idx < 0 || idx >= static_cast<int64_t>(sbPool.size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
 
-	return Value(sbPool[idx]);
+	return sbPool[idx];
 }
 
-Value StdLib::sb_free(const std::vector<Value> &args, VM *vm)
+std::string StdLib::sb_free(const std::vector<Value> &args, VM *vm)
 {
 	StdLib::checkArgCount(args, 1, "sb_free");
 	size_t      idx = args[0].asInt();
@@ -145,7 +145,7 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *vm)
 	return Value(s.substr(start, len));
 }
 
-Value StdLib::str_concat(const std::vector<Value> &args, VM *vm)
+std::string StdLib::str_concat(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 2, "concat");
 	std::string result = "";
@@ -153,30 +153,30 @@ Value StdLib::str_concat(const std::vector<Value> &args, VM *vm)
 	{
 		result += arg.toString();
 	}
-	return Value(result);
+	return result;
 }
 
-Value StdLib::str_len(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::str_len(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "len");
 	std::string s = args[0].toString();
 	return static_cast<int64_t>(s.length());
 }
 
-Value StdLib::str_upper(const std::vector<Value> &args, VM *vm)
+std::string StdLib::str_upper(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "to_upper");
 	std::string s = args[0].asString();
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
-	return Value(s);
+	return s;
 }
 
-Value StdLib::str_lower(const std::vector<Value> &args, VM *vm)
+std::string StdLib::str_lower(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "to_lower");
 	std::string s = args[0].asString();
 	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-	return Value(s);
+	return s;
 }
 
 Value StdLib::str_starts_with(const std::vector<Value> &args, VM *vm)

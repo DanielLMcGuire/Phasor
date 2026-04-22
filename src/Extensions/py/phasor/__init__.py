@@ -1,7 +1,7 @@
 """
 phasor
 ======
-Python module for reading, writing, and manipulating Phasor VM bytecode.
+Python module for reading, writing, manipulating, and executing Phasor VM bytecode.
 
 -----------
 Load a ``.phsb`` file::
@@ -28,14 +28,46 @@ Build bytecode programmatically::
     bc.emit(OpCode.PUSH_CONST, ci)
     bc.emit(OpCode.HALT)
     bc.save("hello.phsb")
+
+Compile and run via the libphasorrt library::
+
+    from phasor import new_state, free_state, evaluate_phs, compile_phs, run
+
+    evaluate_phs('print("hello");')
+
+    vm = new_state()
+    evaluate_phs('var x = 42;, state=vm)
+    evaluate_phs('print(x);',   state=vm)
+    free_state(vm)
+
+    bytecode = compile_phs('print("hello");')
+    run(bytecode)
+
+    evaluate_phs_file("scripts/hello.phs", state=vm)
+    run_file("scripts/hello.phsb")
 """
 
 from .Bytecode      import Bytecode
 from .Deserializer  import BytecodeDeserializer
-from .Instruction  import Instruction
+from .Instruction   import Instruction
 from .Metadata      import MAGIC, VERSION
 from .Native        import extract_phsb_bytes
-from .OpCode       import OpCode
+from .OpCode        import OpCode
+from .Runtime       import (
+    new_state,
+    free_state,
+    reset_state,
+    compile_phs,
+    compile_phs_file,
+    compile_pul,
+    compile_pul_file,
+    run,
+    run_file,
+    evaluate_phs,
+    evaluate_phs_file,
+    evaluate_pul,
+    evaluate_pul_file,
+)
 from .Serializer    import BytecodeSerializer
 from .Value         import Value, ValueType
 
@@ -50,4 +82,17 @@ __all__ = [
     "extract_phsb_bytes",
     "MAGIC",
     "VERSION",
+    "new_state",
+    "free_state",
+    "reset_state",
+    "compile_phs",
+    "compile_phs_file",
+    "compile_pul",
+    "compile_pul_file",
+    "run",
+    "run_file",
+    "evaluate_phs",
+    "evaluate_phs_file",
+    "evaluate_pul",
+    "evaluate_pul_file",
 ]

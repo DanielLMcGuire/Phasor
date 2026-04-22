@@ -4,21 +4,14 @@
 #include "../../Runtime/VM/VM.hpp"
 #include <filesystem>
 #include <iostream>
-#include "../../Runtime/FFI/ffi.hpp"
 
-#ifdef _WIN32
-#include <Windows.h>
-#define error(msg) MessageBoxA(NULL, std::string(msg).c_str(), "Phasor Runtime Error", MB_OK | MB_ICONERROR)
-#else
-#define error(msg) std::cerr << "Error: " << msg << std::endl
-#endif
+#include <nativeerror.h>
 
 namespace Phasor
 {
 
-BinaryRuntime::BinaryRuntime(int argc, char *argv[], char *envp[])
+BinaryRuntime::BinaryRuntime(int argc, char *argv[])
 {
-	m_args.envp = envp;
 	parseArguments(argc, argv);
 }
 
@@ -49,14 +42,13 @@ int BinaryRuntime::run()
 		StdLib::registerFunctions(*vm);
 		StdLib::argv = m_args.scriptArgv;
 		StdLib::argc = m_args.scriptArgc;
-		StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
-		FFI ffi("plugins", vm.get());
+		vm->initFFI("plugins");
 #elif defined(__APPLE__)
-		FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+		vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-		FFI ffi("/opt/Phasor/plugins", vm.get());
+		vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 		vm->setImportHandler([](const std::filesystem::path &path) {
@@ -110,12 +102,16 @@ void BinaryRuntime::parseArguments(int argc, char *argv[])
 void BinaryRuntime::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Binary Runtime\n\n";
-	std::cout << "Usage:\n";
-	std::cout << "  " << filename << " [options] <file.phsb> [...script args]\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -v, --verbose       Enable verbose output\n";
-	std::cout << "  -h, --help          Show this help message\n";
+	std::println(
+		"Phasor Runtime v{}\n"
+		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+		"Usage:\n"
+		"  {} [options] <file.phsb> [...script args]\n\n"
+		"Options:\n"
+		"  -v, --verbose       Enable verbose output\n"
+		"  -h, --help          Show this help message",
+		PHASOR_VERSION_STRING, filename
+	);
 }
 
 } // namespace Phasor

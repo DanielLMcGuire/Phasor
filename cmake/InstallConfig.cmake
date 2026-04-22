@@ -13,11 +13,10 @@ if(IS_XBOX)
         DESTINATION include
     )
 elseif(WIN32)
-    install(TARGETS
+    set(NON_STATIC_TARGETS
         phasor_main
+        phasor_help
         phasor_compiler
-        phasor_repl
-        phasor_interpreter
         phasor_cxx_transpiler
         phasor_lsp
     
@@ -28,20 +27,30 @@ elseif(WIN32)
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
+    )
+    install(TARGETS 
+        ${NON_STATIC_TARGETS}
         phasor_native_runtime_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
     )
-    install(FILES
-        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    foreach(TARGET ${NON_STATIC_TARGETS})
+        install(
+            FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:${TARGET}>>"
+            DESTINATION bin
+            OPTIONAL
+        )
+    endforeach()
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/
         DESTINATION include
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION man
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.py" EXCLUDE
         PATTERN "*.1" EXCLUDE
         PATTERN "*.3" EXCLUDE
         PATTERN "*.5" EXCLUDE
@@ -51,9 +60,8 @@ elseif(WIN32)
 elseif(APPLE)
     install(TARGETS
         phasor_main
+        phasor_help
         phasor_compiler
-        phasor_repl
-        phasor_interpreter
         phasor_cxx_transpiler
         phasor_lsp
     
@@ -70,24 +78,23 @@ elseif(APPLE)
         ARCHIVE DESTINATION usr/local/lib
         FRAMEWORK DESTINATION frameworks
     )
-    install(FILES
-        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/
         DESTINATION usr/local/include
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
-        DESTINATION "Library/Application Support/org.Phasor.Phasor/man"
+        DESTINATION usr/local/share/man
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.py" EXCLUDE
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
 else()
     install(TARGETS
         phasor_main
+        phasor_help
         phasor_compiler
-        phasor_repl
-        phasor_interpreter
         phasor_cxx_transpiler
         phasor_lsp
     
@@ -103,15 +110,15 @@ else()
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib
     )
-    install(FILES
-        ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
-        ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/
         DESTINATION usr/include
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/share/man/
         PATTERN "*.sh" EXCLUDE
+        PATTERN "*.py" EXCLUDE
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )

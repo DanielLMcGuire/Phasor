@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phasor"
-version = "3.1.0"
+version = "3.2.0"
 description = "Python library for reading, writing, and manipulating Phasor VM bytecode"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
-dependencies = ["lief>=0.14"]
+dependencies = ["lief>=0.14", "cffi>=1.15"]
 
 [project.optional-dependencies]
 dev = [

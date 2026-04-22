@@ -15,7 +15,7 @@ namespace Phasor
 class Compiler
 {
   public:
-	Compiler(int argc, char *argv[], char *envp[]);
+	Compiler(int argc, char *argv[]);
 	int run();
 
   private:
@@ -23,12 +23,10 @@ class Compiler
 	{
 		std::string inputFile;
 		std::string outputFile;
-		bool        showLogo = true;
 		bool        verbose = false;
 		bool        irMode = false;
 		int         scriptArgc = 0;
 		char      **scriptArgv = nullptr;
-		char      **envp = nullptr;
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);

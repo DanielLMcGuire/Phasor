@@ -1,18 +1,24 @@
-# Phasor <img src="https://phasor.pages.dev/assets/logo.svg" alt="Phasor Logo (Hand-drawn sinewave)" width="320" height="160"> Language
+# Phasor <kbd><img src="https://phasor.pages.dev/assets/logo.svg" width="250" height="130"></kbd> Language
 
-> [!CAUTION]
->
-> This branch contains compilable, but non-functional code. Use at your own risk.
+[![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor.svg)](https://phasor.pages.dev/downloads?version=latest)
+[![AUR Version](https://img.shields.io/aur/version/phasor.svg)](https://aur.archlinux.org/packages/phasor)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/DanielLMcGuire/Phasor.svg?label=commits)
 
-A statically typed, compiled programming language with a hybrid stack/register-based bytecode virtual machine.
+A statically typed, compiled programming language with a fast bytecode virtual machine.
 
-Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system for ease of maintenance, and also RAII purposes.
+Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides C++ RAII support to the runtime.
 
-Phasor is still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs a vast amount of work. Although it's perfectly stable now, at least enough for me to prototype with.
+Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs some work. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
-[Download Phasor](https://phasor.pages.dev/downloads?version=latest)
+[Download Phasor Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
+
+```bash
+$ nix run github:DanielLMcGuire/Phasor -- -- <options>
+$ phasor <options>
+```
 
 ## Language Features
 
@@ -53,9 +59,13 @@ shutdown(code); // from stdsys
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
 
----
+Plans for RAII support for the actual runtime (in terms of the VM's variables), are not yet ready. I have some plans for modules / translation units, but will wait until I have a clearer view of what I am doing.
 
-Anything below this line may be partially AI generated, I don't care about docs
+> [!NOTE]
+>
+> While everything (AST, ISA, stdlib, both languages, VM, C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me at least for now. 
+>
+> I have used this in actual projects. So it's not like I wouldn't recommend it, rather I cannot make any actual promises until I have a real use for the project.
 
 ---
 
@@ -63,19 +73,19 @@ Anything below this line may be partially AI generated, I don't care about docs
 
 ```bash
 # Compile and run a program
-$ phasorjit input.phs # or use 'phasor input.phs'
+$ phasor input.phs
 
-# Interactive REPL 
-$ phasorrepl # or use 'phasor'
+# Repl
+$ phasor
 
 # Compile to bytecode
 $ phasorcompiler input.phs (-o, --output output.phsb)
 
 # Run bytecode
-$ phasorvm output.phsb # or use 'phasor output.phsb'
+$ phasorvm output.phsb
 
 # Run a script raw
-$ echo "print \"Hello World!\\n\"" | phasor
+$ echo "print \"Hello World\!\\n\"" | phasor
 Hello World!
 $
 ```
@@ -98,9 +108,11 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 > [!NOTE]
 >
-> Documentation may be partially AI generated, always confirm the feature works first
+> Documentation may be partially wrong, stdlib might have added functions.
 >
 > This will change once I have more time for this project
+>
+> Online docs are always up to date with master, offline (installed) docs are always up to date with that version.
 
 
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
@@ -118,15 +130,19 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 ## Applications
 
-- **phasor** - Combines the JIT Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
-- **phasor-lsp** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
-- **REPL** ([`phasorrepl`](https://phasor-docs.pages.dev/man?f=phasorrepl.1)) - Interactive interpreter
-- **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
-- **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
-- **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
-- **JIT Runtime** ([`phasorjit`](https://phasor-docs.pages.dev/man?f=phasorjit.1)) - Direct script executor
-- **Shell** (`shell`) - Phasor-based command shell **PREVIEW**
-- **Core Utils** (`cat-phs`, `cp-phs`, `echo-phs`, `ls-phs`, `mv-phs`, `rm-phs`, `touch-phs`) - Unix-like utilities **PREVIEW**
+- **Phasor**
+  - **[phasor](https://phasor-docs.pages.dev/man?f=phasor.1)** - Combines the Scripting Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
+  - **[phasor-lsp](https://phasor-docs.pages.dev/man?f=phasorlsp.1)** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
+  - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
+  - **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
+  - **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
+  - **Disassembler** ([`phasordecomp`](https://phasor-docs.pages.dev/man?f=phasordecomp.1))
+  - **Assembler** ([`phasorasm`](https://phasor-docs.pages.dev/man?f=phasorasm.1))
+
+- **Pulsar**
+  - **[pulsar](https://phasor-docs.pages.dev/man?f=pulsar.1)** - Scripting runtime and REPL
+  - **Bytecode Compiler** ([`pulsarcompiler`](https://phasor-docs.pages.dev/man?f=pulsarcompiler.1)) - Script to bytecode compiler
+  - Uses the Phasor VM Runtime for bytecode ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1))
 
 ---
 
@@ -135,13 +151,13 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 This repo contains:
 
 - Frontend:
-  - [Phasor Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Phasor) ([Specifications](https://github.com/DanielLMcGuire/Phasor/blob/master/docs/man/man5/PHS.5), C++)
+  - [Phasor Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Phasor) ([Specifications](https://phasor-docs.pages.dev/man?f=PHS.5), C++)
   - [Pulsar Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Pulsar) (C++)
-  - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://github.com/DanielLMcGuire/Phasor/blob/master/docs/man/man7/phasor-isa.7), C/C++/Assembly)
+  - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
   - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
  
 - Backend:
-  - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Backend) (C++)
+  - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Codegen) (C++)
   - [FFI API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h) (C)
   - [Runtime API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h) (C)
 
@@ -149,7 +165,51 @@ This repo contains:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
   -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
 
-- Python module `scripts/phasor`
+  - [Python Module ](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py/phasor`
+    ```python
+    from phasor import Bytecode, Value, OpCode, Runtime
+    help(phasor)
+
+    bc = Bytecode()
+    bc.emit(OpCode.PUSH_CONST, bc.add_constant(Value.from_string("Hello, World!\n")))
+    bc.emit(OpCode.PRINT)
+    bc.emit(OpCode.HALT)
+    bc.save("hello_world.phsb")
+    Runtime.run(bc) # wraps phasorrt lib
+    ```
+
+  - [PowerShell Module (windows only, phasorrt.dll bindings)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell/Phasor`
+    ```powershell
+    Import-Module .\src\Extensions\powershell\Phasor\Phasor.psd1
+    Get-Help Phasor
+    Get-Help <cmdlet>
+
+    # state is always optional (-State is optional)
+    # anything not using state will create thier own
+    Start-PhasorScript -ScriptPath .\hello.phs
+    Start-PulsarScript -ScriptPath .\hello.pul
+
+    $vm = New-PhasorState
+    # stdlib is already registered if not using your own state
+    Register-PhasorStdlib -State $vm 
+
+    Start-PhasorEval -State $vm -Script 'var x = 42; var y = 53;'
+    # x and y still in scope
+    Start-PhasorEval -State $vm -Script 'print(x + y);' 
+    
+    # all states are cleared at powershell shutdown, but to clear them early:
+    Remove-PhasorState $vm
+
+    $bytecode = Build-PhasorScript -Script 'print("hi\n");'
+    # can also optionally accept state
+    Invoke-PhasorBytecode -Bytecode $bytecode
+    ```
+
+  - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
+    ```bash
+    $ curl -d 'using("stdio"); puts("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
+    {stdout: "Hi!\n", stderr: "", exitCode = 0}
+    ```
 
 ---
 
@@ -157,11 +217,19 @@ This repo contains:
 
 <sub>Using Arch BTW? Just run `makepkg -si`</sub>
 
+> [!NOTE] 
+> 
+> If you have forked and do not plan to contribute back, you should modify `cmake/Version.cmake` to match your forks URL!
+
 ### Prerequisites
 
-- CMake 3.10+
-- C++20 compiler (MSVC, GCC, Clang)
-- Ninja
+- [CMake 3.21+](https://cmake.org/download/)
+- CC (23) compiler and CXX (23) compiler ([MSVC latest](https://visualstudio.microsoft.com/downloads/?q=build+tools), [GCC 14](https://gcc.gnu.org/install/), [Clang (LLVM Latest)](https://releases.llvm.org/) are officially supported)
+- [Ninja](https://github.com/ninja-build/ninja/releases)
+- [Python](https://www.python.org/downloads/) (for the python API, optional)
+- [PowerShell](https://github.com/PowerShell/PowerShell/releases/) (for the powershell module, optional)
+- [Node.js](https://nodejs.org/en/download) (for the vscode extension / web server, both optional)
+- [Docker](https://docs.docker.com/get-started/get-docker/) (for the docs (man to pdf), optional)
 
 ### Build Steps
 
@@ -170,7 +238,7 @@ This repo contains:
 ### Plugin locations
 (Like win32 api, posix) are available in different locations based on your OS:
 
-- Unix - `/opt/Phasor/plugins/`
+- Unix - `/usr/lib/phasor/plugins/`
 - macOS - `/library/Application Support/org.Phasor.Phasor/plugins/`
 - Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\` 
 
@@ -178,12 +246,18 @@ This repo contains:
 
 **Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
 
+[GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
+
 - Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-To avoid legal complications, Phasor will not be officially available on Linux-based (and many Unix-based) operating systems in the U.S. states of Colorado effective 1-1-2028 and California effective 1-1-2027 due to lack of stable struct/array support, therefore lacking D-Bus / OS specific compatibility without unofficial plugins.
+Regarding any age verification laws, I will not entertain rules set in place by people who do not understand the core aspect of OSS.
 
 Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
+
+Phasor Toolchain is licensed for use under the Apache 2.0 License. 
+
+Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `PhasorRT.h`, etc) is licensed for use under the Apache 2.0 with LLVM-Exceptions License.
 
 Phasor and the "sinewave Phasor" logo are trademarks of Daniel McGuire.

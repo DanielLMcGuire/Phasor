@@ -1,3 +1,4 @@
+#!/usr/bin/env phasor
 using("stdsys", "stdio", "stdstr", "stdfile", "stdtype");
 
 fn print_help() -> void {

@@ -1,4 +1,4 @@
 // Native machine functions
-#include "arithmetic/arithmetic.h"
-#include "logical/logical.h"
-#include "IO/IO.h"
+#include "native/arithmetic.h"
+#include "native/logical.h"
+#include "portable/IO.h"

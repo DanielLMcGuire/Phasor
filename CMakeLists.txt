@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
-project(Phasor VERSION 3.1.0 LANGUAGES C CXX)
+cmake_policy(SET CMP0091 NEW)
+project(Phasor VERSION 3.2.0 LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -15,36 +18,50 @@ if(WIN32)
 elseif(APPLE)
     set(PLUGIN_INSTALL_DIR "Library/Application Support/org.Phasor.Phasor/plugins")
 else()
-    set(PLUGIN_INSTALL_DIR "opt/Phasor/plugins")
+    set(PLUGIN_INSTALL_DIR "usr/lib/phasor/plugins")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 
 option(ASSEMBLY "Enable assembly for core code" ON)
 option(IS_TRACING "Enable VM tracing to stdout" OFF)
+option(IS_TIMING "Time how long a program takes to run" OFF)
+option(IS_TRACING_STACK "Enable VM stack tracing to stdout" OFF)
+option(IS_SANDBOXED "Enable VM sandbox" OFF)
+option(CLANG_SAN_ADDR  "Enable Clang AddressSanitizer"  OFF)
+option(CLANG_SAN_LEAK  "Enable Clang LeakSanitizer" OFF)
+option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
+option(STATIC "Compile executables statically against C/CXX RT" OFF)
+option(NATIVE "Use if you only plan to use on THIS machine" OFF)
+option(FORCE_PROJECT_VERSION "Force project version string to lock to cmake project_version" OFF)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
 endif()
 
+# Prebuild config
+include(cmake/Preprocessor.cmake)
+include(cmake/CompilerFlags.cmake)
+include(cmake/AssemblyConfig.cmake)
+include(cmake/Version.cmake)
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/include/version.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
     @ONLY
 )
 
-# Prebuild config
-include(cmake/Preprocessor.cmake)
-include(cmake/CompilerFlags.cmake)
-include(cmake/AssemblyConfig.cmake)
-
 # Build config
 add_subdirectory(src)
-if(NOT IS_XBOX)
-add_subdirectory(thirdparty)
+
+if(PROJECT_IS_TOP_LEVEL)
+    if(NOT IS_XBOX)
+        add_subdirectory(thirdparty)
+    endif()
+    include(cmake/PCH.cmake)
+    APPLY_GLOBAL_PCH(${CMAKE_CURRENT_SOURCE_DIR} "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include/Value.hpp>")
+    set(CMAKE_PCH ON)
+    include(cmake/InstallConfig.cmake)
 endif()
-include(cmake/PCH.cmake)
-APPLY_GLOBAL_PCH(${CMAKE_CURRENT_SOURCE_DIR} "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include/Value.hpp>")
 
 # Install config
 include(cmake/InstallConfig.cmake)

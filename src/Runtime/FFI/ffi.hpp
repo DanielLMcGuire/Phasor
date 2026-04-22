@@ -2,18 +2,22 @@
 
 #include <functional>
 #include <Value.hpp>
-#include "../VM/VM.hpp"
 
 #include <vector>
 #include <string>
 
+
 #if defined(_WIN32)
 #include <windows.h>
-#else
+#else 
 #include <dlfcn.h>
 #endif
 
 #include <PhasorFFI.h>
+
+namespace Phasor {
+    class VM;
+}
 
 using FFIFunction = void (*)(const PhasorAPI *api, PhasorVM *vm);
 /// @brief The Phasor Programming Language and Runtime
@@ -23,7 +27,7 @@ namespace Phasor
 /**
  * @brief Represents a loaded plugin.
  *
- * Stores the platform-specific library handle, the plugin's file path,
+ * Stores the library handle, the plugin's file path,
  * the initialization function, and an optional shutdown function.
  */
 struct Plugin
@@ -40,12 +44,6 @@ struct Plugin
 
 /**
  * @brief The "trampoline" that wraps a C function from a plugin.
- *
- * This function is the bridge between the C++ VM and the C plugin. It is called
- * by the VM and is responsible for:
- * 1. Converting C++ arguments to C arguments, with production-ready memory management for strings.
- * 2. Calling the plugin's C function.
- * 3. Converting the C return value back to a C++ value.
  */
 Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM *vm,
                                     const std::vector<Phasor::Value> &args);
@@ -87,10 +85,11 @@ class FFI
 	 */
 	bool addPlugin(const std::filesystem::path &pluginPath);
 
+  private:
 	/**
 	 * @brief Native function to load a plugin at runtime.
 	 */
-	Value native_add_plugin(const std::vector<Value> &args, VM *vm);
+	bool native_add_plugin(const std::vector<Value> &args, VM *vm);
 
   private:
 	/**

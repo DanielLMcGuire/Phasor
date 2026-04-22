@@ -5,7 +5,7 @@
 #include "../../Frontend/Phasor/Frontend.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
-#include "../../Runtime/FFI/ffi.hpp"
+#include <version.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -16,9 +16,8 @@
 namespace Phasor
 {
 
-ScriptingRuntime::ScriptingRuntime(int argc, char *argv[], char *envp[])
+ScriptingRuntime::ScriptingRuntime(int argc, char *argv[])
 {
-	m_args.envp = envp;
 	parseArguments(argc, argv);
 }
 
@@ -68,9 +67,9 @@ int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 
 	if (m_args.verbose)
 	{
-		std::cout << "AST:\n";
+		std::println("AST:");
 		program->print();
-		std::cout << "\n";
+		std::println();
 	}
 
 	CodeGenerator codegen;
@@ -85,14 +84,13 @@ std::unique_ptr<VM> ScriptingRuntime::createVm()
 	StdLib::registerFunctions(*vm);
 	StdLib::argv = m_args.scriptArgv;
 	StdLib::argc = m_args.scriptArgc;
-	StdLib::envp = m_args.envp;
 
 #if defined(_WIN32)
-	FFI ffi("plugins", vm.get());
+	vm->initFFI("plugins");
 #elif defined(__APPLE__)
-	FFI ffi("/Library/Application Support/org.Phasor.Phasor/plugins", vm.get());
+	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
 #elif defined(__linux__)
-	FFI ffi("/opt/Phasor/plugins", vm.get());
+	vm->initFFI("/usr/lib/phasor/plugins/");
 #endif
 
 	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {
@@ -118,6 +116,13 @@ void ScriptingRuntime::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		}
+		if (arg == "-c" || arg == "--command")
+		{
+			auto vm = createVm();
+			runSourceString(argv[i + 1], *vm);
+			int ret = vm->getStatus();
+			exit(ret);
+		}
 		else if (arg == "-h" || arg == "--help")
 		{
 			showHelp(argv[0]);
@@ -137,12 +142,17 @@ void ScriptingRuntime::parseArguments(int argc, char *argv[])
 void ScriptingRuntime::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::cout << "Phasor Scripting Runtime\n\n";
-	std::cout << "Usage:\n";
-	std::cout << "  " << filename << " [options] [file.phs] [...script args]\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -v, --verbose       Enable verbose output (print AST)\n";
-	std::cout << "  -h, --help          Show this help message\n";
+	std::println(
+		"Phasor Scripting Runtime v{}\n"
+		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+		"Usage:\n"
+		"  {} [options] [file.phs] [...script args]\n\n"
+		"Options:\n"
+		"  -v, --verbose       Enable verbose output (print AST)\n"
+		"  -h, --help          Show this help message\n"
+		"  -c, --command       Run a source string from argv",
+		PHASOR_VERSION_STRING, filename
+	);
 }
 
 } // namespace Phasor

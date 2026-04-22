@@ -16,5 +16,8 @@ A clear and concise description of what you want to happen.
 **Describe alternatives you've considered**
 A clear and concise description of any alternative solutions or features you've considered.
 
+**What is the subsystem that the feature relates to?**
+An optional name (if any, or if known) for the related subsystem (e.g. Language, Parser, Runtime, etc).
+
 **Additional context**
 Add any other context or screenshots about the feature request here.

@@ -1,11 +1,11 @@
 ﻿#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
-
+#include <version.h>
 #include "Disassembler.hpp"
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 
 namespace Phasor
@@ -18,12 +18,6 @@ Disassembler::Disassembler(int argc, char *argv[])
 
 int Disassembler::run()
 {
-	if (!m_args.noLogo)
-	{
-		std::cout << "Phasor Decompiler\n";
-		std::cout << "Copyright (c) 2026 Daniel McGuire\n";
-		std::cout << "\n";
-	}
 	if (m_args.showHelp)
 	{
 		showHelp();
@@ -31,10 +25,10 @@ int Disassembler::run()
 	}
 
 	if (decompileBinary()) {
-		if (!m_args.silent) std::cout << "Success! Output to " << m_args.outputFile << '\n';
+		if (!m_args.silent) std::println("Success! Output to {}", m_args.outputFile.string());
 		return 0;
 	} else {
-		std::cout << "Failed to disassemble program!\n";
+		std::println(std::cerr, "Failed to disassemble program!");
 		return 1;
 	}
 }
@@ -59,23 +53,18 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::cerr << "Error: " << arg << " requires an argument\n";
+				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
 			}
 		}
-		else if (arg == "-n" || arg == "--nologo")
-		{
-			m_args.noLogo = true;
-		}
 		if (arg == "-s" || arg == "--silent")
 		{
-			m_args.noLogo = true;
 			m_args.silent = true;
 		}
 		else if (arg[0] == '-')
 		{
-			std::cerr << "Error: Unknown option: " << arg << "\n";
+			std::println(std::cerr, "Error: Unknown option: {}", arg);
 			m_args.showHelp = true;
 			return true;
 		}
@@ -85,7 +74,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 				m_args.inputFile = arg;
 			else
 			{
-				std::cerr << "Error: Multiple input files specified\n";
+				std::println(std::cerr, "Error: Multiple input files specified");
 				m_args.showHelp = true;
 				return true;
 			}
@@ -96,13 +85,14 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 
 void Disassembler::showHelp()
 {
-	std::cout << "Usage:\n";
-	std::cout << "  " << m_args.program.stem().string() << " [options] <input.phsb>\n\n";
-	std::cout << "Options:\n";
-	std::cout << "  -o, --output <file>   Output file\n";
-	std::cout << "  -h, --help            Show this help message\n";
-	std::cout << "  -n, --nologo          Do not show banner\n";
-	std::cout << "  -s, --silent          Do not print anything except errors (no stdout)\n\n";
+	std::println("Phasor Disassembler v{}\n"
+	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	"Usage:\n" 
+	"  {} [options] <input.phsb>\n"
+	"Options:\n"
+    "  -o, --output <file>   Output file\n"
+    "  -h, --help            Show this help message\n"
+    "  -s, --silent          Do not print anything except errors (no stdout)", PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 bool Disassembler::decompileBinary()

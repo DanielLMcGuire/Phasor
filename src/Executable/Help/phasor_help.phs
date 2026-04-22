@@ -1,0 +1,44 @@
+using("stdio", "stdsys", "stdstr", "stdtype");
+
+fn getDocCmd(part: string, type: int) -> string {
+    var sb = sb_new();
+    var os = sys_os();
+    if (os == "win32") {
+        sb_append(sb, "C:/Program%20Files/Phasor%20Programming%20Language/man/man");
+        sb_append(sb, type);
+        sb_append(sb, "/");
+        sb_append(sb, part);
+        sb_append(sb, ".");
+        sb_append(sb, type);
+        sb_append(sb, ".");
+        sb_append(sb, "pdf");
+        var path = sb_to_string(sb);
+        sb_free(sb);
+        return concat("\"start file:///", concat(path, "\""));
+    } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX" || os == "Darwin") {
+        sb_append(sb, type);
+        sb_append(sb, " ");
+        sb_append(sb, part);
+        var path = sb_to_string(sb);
+        sb_free(sb);
+        return concat("man ", path);
+    } else {
+        putf_error("Could not find documentation for %s(%d) on %s", part, type, os);
+        shutdown(-1);
+        return "cd ."; // noop if somehow reached
+    }
+}
+
+fn main() -> int {
+    if (sys_argc() == 3) {
+        var page = to_string(sys_argv(1));
+        var section = to_int(sys_argv(2));
+        sys_shell(getDocCmd(page, section));
+    } else {
+        puts_error("Usage: phasor-help <page> <section>\ne.g. phasor-help phasor 1\nphasor-help phsb 5\nphasor-help phasorstd_io 3"); 
+        return 1;
+    }
+    return 0;
+}
+
+shutdown(main());

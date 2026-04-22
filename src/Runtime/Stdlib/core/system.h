@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 
-	size_t PHASORstd_sys_getAvailableMemory();
+	size_t PHASORstd_sys_getAvailableMemory(void);
 
 	int PHASORstd_sys_run(const char *name, int argc, char **argv);
 

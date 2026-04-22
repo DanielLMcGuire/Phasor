@@ -1,7 +1,7 @@
 # Maintainer: Daniel McGuire <danielmcguire2023@gmail.com>
 pkgname=phasor-dev
 PACKAGER="Daniel McGuire <danielmcguire2023@gmail.com>"
-pkgver=3.1.0.dev
+pkgver=3.2.0.dev
 pkgrel=1
 pkgdesc="Phasor Programming Language Toolchain"
 arch=('x86_64')
@@ -17,7 +17,7 @@ sha256sums=()
 
 pkgver() {
     cd "$startdir"
-    tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "3.1.0")
+    tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "3.2.0")
     commits_since_tag=$(git rev-list "${tag}"..HEAD --count 2>/dev/null || echo 0)
     if [ "$commits_since_tag" -eq 0 ]; then
         echo "$tag.dev"
@@ -33,8 +33,9 @@ prepare() {
 
 build() {
     cd "$startdir"
-    cmake -S "$startdir" -B "$startdir/build" -G Ninja --preset linux-64-rel
-    cmake --build "$startdir/build"
+    "/usr/bin/python" "$startdir/pmake-bootstrap.py" --native
+    chmod +x "$startdir/pmake"
+    "$startdir/pmake" linux-64-rel -s "$startdir" -b
 
     cd "$startdir/src/Extensions/py/phasor"
     "/usr/bin/python" -m build --wheel
@@ -42,10 +43,10 @@ build() {
 
 package() {
     cd "$startdir"
-    cmake --install "$startdir/build" --prefix "$pkgdir"
+    "$startdir/pmake" -i "$pkgdir" 
     
     install -Dm644 "$startdir/src/Extensions/unix/phasor.magic" \
-        "$pkgdir/usr/share/file/magic/phasor"
+        "$pkgdir/usr/share/file/misc/magic/phasor"
 
     python -m installer --destdir="$pkgdir" "$startdir/src/Extensions/py/phasor/dist/"*.whl
 }

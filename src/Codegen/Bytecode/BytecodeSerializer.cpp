@@ -5,17 +5,6 @@
 #include <fstream>
 #include "metadata.h"
 
-#if defined(_MSC_VER)
-#define COMPILE_MESSAGE(msg) __pragma(message(msg))
-#elif defined(__GNUC__) || defined(__clang__)
-#define DO_PRAGMA(x) _Pragma(#x)
-#define COMPILE_MESSAGE(msg) DO_PRAGMA(message msg)
-#else
-#define COMPILE_MESSAGE(msg)
-#endif
-#define STR2(x) #x
-#define STR(x) STR2(x)
-
 // Section IDs
 const uint8_t SECTION_CONSTANTS = 0x01;    //< Constants Section
 const uint8_t SECTION_VARIABLES = 0x02;    //< Variables Section
@@ -156,11 +145,11 @@ void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
 			writeString(constant.asString());
 			break;
 		case ValueType::Struct:
-			COMPILE_MESSAGE("Warning: PHS_01 Structs have not been implemented! Line " STR(__LINE__))
+#warning "Warning: PHS_01 Structs have not been implemented!"
 			throw std::runtime_error("Structs have not been implemented!");
 			break;
 		case ValueType::Array:
-			COMPILE_MESSAGE("Warning: PHS_02 Arrays have not been implemented! Line " STR(__LINE__))
+#warning "Warning: PHS_02 Arrays have not been implemented!"
 			throw std::runtime_error("Arrays have not been implemented!");
 			break;
 		}

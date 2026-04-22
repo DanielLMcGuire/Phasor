@@ -34,7 +34,6 @@ class CppCompiler
 		bool                  headerOnly = false;
 		bool                  objectOnly = false;
 		bool                  generateOnly = false;
-		bool                  noLogo = false;
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);

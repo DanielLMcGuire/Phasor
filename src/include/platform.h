@@ -16,5 +16,5 @@
 #elif defined(PLATFORM_DESKTOP_GAME) || defined(PLATFORM_MODERN_GAME)
 #define MAX_REGISTERS 16
 #elif defined(PLATFORM_DESKTOP_STANDARD)
-#define MAX_REGISTERS 32
+#define MAX_REGISTERS 24
 #endif

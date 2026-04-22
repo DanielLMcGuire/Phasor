@@ -2,7 +2,7 @@
 
 **Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
 
-The phasor python package provides a simple abstraction for modification/creation of Phasor bytecode binaries.
+The phasor python package provides a simple abstraction for modification/creation of Phasor bytecode binaries as well as the ability to use the runtime at a higher level.
 
 See the  [repository](https://github.com/DanielLMcGuire/Phasor) for more info.
 

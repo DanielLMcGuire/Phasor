@@ -1,0 +1,113 @@
+name: Nightly Build
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025-vs2026
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc-15
+            cpp_compiler: g++-15
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Set up MSVC
+      if: matrix.os == 'windows-2025-vs2026'
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+    - name: Install GCC 15(Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+        sudo apt-get install -y g++-15 gcc-15
+    
+    - name: Configure (macOS)
+      if: matrix.os == 'macos-latest'
+      shell: bash
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} --preset macos-arm-rel
+
+    - name: Configure 
+      if: matrix.os != 'macos-latest'
+      shell: bash
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: cmake -S . -G Ninja -B build -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      shell: bash
+      run: cmake --build build --config Release
+
+    - name: Install 
+      shell: bash
+      run: cmake --install build --prefix install
+
+    - name: Attest build provenance
+      id: attest
+      uses: actions/attest-build-provenance@v4
+      with:
+        subject-path: |
+          install/**/bin/*
+          install/**/bin/**/*
+          install/**/lib/*
+          install/**/lib/**/*
+          install/**/Library/**/*
+        show-summary: false
+        
+    - name: Create attestations.json
+      shell: python
+      run: |
+        import json,glob,os,hashlib as D
+        E=['install/**/bin/*','install/**/lib/*','install/**/lib/**/*','install/**/Library/**/*']
+        def F(path):
+          A=D.sha256()
+          with open(path,'rb')as B:
+            for C in iter(lambda:B.read(8192),b''):A.update(C)
+          return A.hexdigest()
+        A={}
+        for G in E:
+          for B in glob.glob(G,recursive=True):
+            if os.path.isfile(B):
+              C=B.replace('\\','/')
+              if C not in A:A[C]=F(B)
+        H=[{'path':A,'sha256':B}for(A,B)in sorted(A.items())]
+        I={'os':'${{ matrix.os }}','cc':'${{ matrix.c_compiler }}','cxx':'${{ matrix.cpp_compiler }}','attestation_url':'${{ steps.attest.outputs.attestation-url }}','attestation_id':'${{ steps.attest.outputs.attestation-id }}','commit':'${{ github.sha }}','run_id':'${{ github.run_id }}','files':H}
+        os.makedirs('install',exist_ok=True)
+        with open('install/attestations.json','w')as J:json.dump(I,J,indent=2)
+
+    - name: Note version
+      if: matrix.os == 'ubuntu-latest' # run one time
+      shell: bash
+      run: ./build/src/Executable/phasor --version >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v6
+      with:
+        name: build-${{ matrix.os }}
+        path: ${{ github.workspace }}/install
+        retention-days: 2

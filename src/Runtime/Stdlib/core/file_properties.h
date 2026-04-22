@@ -24,7 +24,7 @@ extern "C"
 	 * @param epoch Epoch time to set
 	 * @return Status of operation
 	 */
-	bool file_set_properties(char *path, char param, int64_t epoch);
+	bool PHASORstd_file_setProperties(char *path, char param, int64_t epoch);
 
 	/**
 	 * @brief Get file metadata time property
@@ -33,7 +33,7 @@ extern "C"
 	 * @param param What to get a=Access c=Creation m=Modified
 	 * @returns epoch Epoch time
 	 */
-	int64_t file_get_properties(char *path, char param);
+	int64_t PHASORstd_file_getProperties(char *path, char param);
 
 	/**
 	 * @brief Retrieves the number of hard links to a file.
@@ -45,7 +45,7 @@ extern "C"
 	 * @param path The path to the file.
 	 * @return The number of hard links to the file. Returns 0 if the file cannot be accessed.
 	 */
-	nlink_t file_get_links_count(const char *path);
+	nlink_t PHASORstd_file_getLinksCount(const char *path);
 
 	/**
 	 * @brief Retrieves the owner identifier of a file.
@@ -59,7 +59,7 @@ extern "C"
 	 * @param gid Pointer to a variable that receives the owner's GID.
 	 * @return `true` if the owner information was successfully retrieved, `false` otherwise.
 	 */
-	bool file_get_owner_id(const char *path, uid_t *uid, gid_t *gid);
+	bool PHASORstd_file_getOwnerId(const char *path, uid_t *uid, gid_t *gid);
 #ifdef __cplusplus
 } // extern "C"
 #endif

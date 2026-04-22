@@ -1,4 +1,5 @@
 #include "ffi.hpp"
+#include "../VM/VM.hpp"
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -13,11 +14,9 @@
 #include <unistd.h>
 #endif
 
+/// Keeps FFI reference intact
+/// @param fn Local member to register
 #define INSTANCED_FFI(fn) [this](const std::vector<Value> &args, VM *vm) { return this->fn(args, vm); }
-
-#define VM_PRINT(str)                                                                                                  \
-	vm->setRegister(VM::r0, str);                                                                                      \
-	vm->operation(OpCode::PRINT_R, VM::r0);
 
 namespace Phasor
 {
@@ -72,7 +71,7 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 
 	entry_point(&api, reinterpret_cast<PhasorVM *>(vm));
 
-	plugins_.push_back(Plugin{lib, library.string(), nullptr});
+	plugins_.push_back(Plugin{.handle = lib, .path = library.string(), .shutdown = nullptr});
 	return true;
 }
 
@@ -101,32 +100,37 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 	std::filesystem::path              exeDir;
 	std::vector<std::filesystem::path> foldersToScan;
 
+	if (folder.is_absolute())
+	{
+		foldersToScan.push_back(folder);
+	}
+	else
+	{
 #if defined(_WIN32)
-	char path[MAX_PATH];
-	GetModuleFileNameA(nullptr, path, MAX_PATH);
-	exeDir = std::filesystem::path(path).parent_path();
-#elif defined(__APPLE__)
-	char     path[1024];
-	uint32_t size = sizeof(path);
-	if (_NSGetExecutablePath(path, &size) == 0)
+		char path[MAX_PATH];
+		GetModuleFileNameA(nullptr, path, MAX_PATH);
 		exeDir = std::filesystem::path(path).parent_path();
-	else
-		exeDir = std::filesystem::current_path();
+#elif defined(__APPLE__)
+		char     path[1024];
+		uint32_t size = sizeof(path);
+		if (_NSGetExecutablePath(path, &size) == 0)
+			exeDir = std::filesystem::path(path).parent_path();
+		else
+			exeDir = std::filesystem::current_path();
 #elif defined(__linux__)
-	char    path[1024];
-	ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
-	if (count != -1)
-		exeDir = std::filesystem::path(std::string(path, count)).parent_path();
-	else
-		exeDir = std::filesystem::current_path();
+		char    path[1024];
+		ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
+		if (count != -1)
+			exeDir = std::filesystem::path(std::string(path, count)).parent_path();
+		else
+			exeDir = std::filesystem::current_path();
 #else
-	exeDir = std::filesystem::current_path();
+		exeDir = std::filesystem::current_path();
 #endif
 
-	foldersToScan.push_back(exeDir / folder);
-	if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
-	{
-		foldersToScan.push_back(std::filesystem::current_path() / folder);
+		foldersToScan.push_back(exeDir / folder);
+		if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
+			foldersToScan.push_back(std::filesystem::current_path() / folder);
 	}
 
 	for (auto &folderPath : foldersToScan)
@@ -179,7 +183,7 @@ void FFI::unloadAll()
 FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(pluginFolder), vm_(vm)
 {
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("Phasor::FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();
 #endif
 	vm_->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
@@ -199,14 +203,14 @@ FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(plug
 
 FFI::~FFI()
 {
+	unloadAll();
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(): deconstruct {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("Phasor::FFI::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();
 #endif
-	unloadAll();
 }
 
-Value FFI::native_add_plugin(const std::vector<Value> &args, VM *)
+bool FFI::native_add_plugin(const std::vector<Value> &args, VM *)
 {
 	if (args.size() != 1)
 	{
