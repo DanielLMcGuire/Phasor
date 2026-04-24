@@ -36,5 +36,5 @@ BEGIN
     END
 END
 
-IDI_APP_ICON ICON "..\\assets\\ScriptingRuntime.ico"
+IDI_APP_ICON ICON "..\\assets\\pulsar.ico"
 
