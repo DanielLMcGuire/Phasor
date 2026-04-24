@@ -91,15 +91,15 @@
     "configuration": {
       "title": "Phasor",
       "properties": {
-        "phasor.jitPath": {
+        "phasor.mainExePath": {
           "type": "string",
-          "default": "phasorjit",
-          "description": "Path to the Phasor JIT executable."
+          "default": "phasor",
+          "description": "Path to the Phasor executable."
         },
-        "phasor.jitArgs": {
+        "phasor.mainExeArgs": {
           "type": "array",
           "default": [],
-          "description": "Additional arguments to pass to the Phasor JIT executable.",
+          "description": "Additional arguments to pass to the Phasor executable.",
           "items": {
             "type": "string"
           }
@@ -136,8 +136,5 @@
     "@vscode/vsce": "^3.9.1",
     "eslint": "^10.0.1",
     "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "lodash": "4.18.0"
   }
 }

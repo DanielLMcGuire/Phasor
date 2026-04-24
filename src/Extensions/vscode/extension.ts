@@ -122,8 +122,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 async function runPhasorFile(filePath: string): Promise<void> {
     const config = vscode.workspace.getConfiguration("phasor");
-    const jitPath = config.get<string>("jitPath", "phasor");
-    const jitArgs = config.get<string[]>("jitArgs", []);
+    const mainExePath = config.get<string>("mainExePath", "phasor");
+    const mainExeArgs = config.get<string[]>("mainExeArgs", []);
     const clearOutput = config.get<boolean>("clearOutputBeforeRun", true);
 
     if (clearOutput && outputChannel) {
@@ -132,16 +132,16 @@ async function runPhasorFile(filePath: string): Promise<void> {
 
     outputChannel?.show(true);
     outputChannel?.appendLine(`Running: ${path.basename(filePath)}`);
-    outputChannel?.appendLine(`Command: ${jitPath} ${jitArgs.join(" ")} "${filePath}"`);
+    outputChannel?.appendLine(`Command: ${mainExePath} ${mainExeArgs.join(" ")} "${filePath}"`);
     outputChannel?.appendLine("---");
 
-    if (await executableExists(jitPath) === false) {
-        await fileError("Phasor JIT", "phasor.jitPath");
+    if (await executableExists(mainExePath) === false) {
+        await fileError("Phasor", "phasor.mainExePath");
         return;
     }
 
-    const args = [...jitArgs, filePath].map(arg => `"${arg}"`).join(" ");
-    const command = `"${jitPath}" ${args}`;
+    const args = [...mainExeArgs, filePath].map(arg => `"${arg}"`).join(" ");
+    const command = `"${mainExePath}" ${args}`;
     const cwd = path.dirname(filePath);
 
     exec(command, { cwd }, (error, stdout, stderr) => {
