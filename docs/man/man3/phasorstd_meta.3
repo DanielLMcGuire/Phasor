@@ -1,0 +1,149 @@
+.TH PHASORSTD_META 3 "April 2026" "Phasor 3.2.0" "Phasor Standard Library 2.0.0"
+.SH NAME
+phasorstd_meta \- Phasor VM introspection and meta-programming functions
+.SH SYNOPSIS
+.nf
+.B using("stdmeta");
+.PP
+.B phs_version()
+.B phs_op(opcode[, a, b, c])
+.B phs_stack_run(opcode, ...)
+.fi
+.PP
+.B Note:
+.B phs_op()
+and
+.B phs_stack_run()
+are only available in non-sandboxed builds.
+.SH FUNCTIONS
+.TP
+.BR phs_version ()
+Return the current Phasor runtime version string.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+String containing the Phasor version (e.g.\& \fB"3.2.0"\fR)
+.RE
+.PP
+.TP
+.BR phs_op (opcode, a, b, c)
+Execute a VM opcode directly with three optional operands as per the ISA spec.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBopcode\fR 12
+Integer OpCode to execute
+.IP \fBa\fR 12
+First integer operand (optional, default 0)
+.IP \fBb\fR 12
+Second integer operand (optional, default 0)
+.IP \fBc\fR 12
+Third integer operand (optional, default 0)
+.RE
+.PP
+.B Returns:
+Integer result of the operation, or 0 if the operation does not produce an integer value
+.PP
+.B Throws:
+Runtime error if
+.B opcode
+is not an integer, or if more than 4 arguments are provided
+.RE
+.PP
+.TP
+.BR phs_stack_run (opcode, ...)
+Push arguments onto the VM stack, execute a VM opcode, then pop and return the result.
+Operands are pushed in reverse order so they appear in the expected order when the opcode
+executes. Only available in non-sandboxed builds.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBopcode\fR 12
+Integer OpCode to execute
+.IP \fB...\fR 12
+Operands to push onto the stack before execution (variadic)
+.RE
+.PP
+.B Returns:
+The value on top of the VM stack after execution
+.PP
+.B Throws:
+Runtime error if
+.B opcode
+is not an integer
+.RE
+.SH EXAMPLES
+.B Getting the Runtime Version
+.PP
+.nf
+.RS
+using("stdmeta");
+
+var ver = phs_version();
+.RE
+.fi
+.PP
+.B Executing an Opcode
+.PP
+.nf
+.RS
+// Execute opcode 42 with operands
+var result = phs_op(42, 1, 0, 0);
+.RE
+.fi
+.PP
+.B Stack Opcode Execution
+.PP
+.nf
+.RS
+// Push operands and execute opcode
+var result = phs_stack_run(OP_ADD, 10, 20);
+.RE
+.fi
+.PP
+.B Version-Gated Behaviour
+.PP
+.nf
+.RS
+using("stdmeta");
+
+var ver = phs_version();
+if (ver == "3.2.0") {
+    // Use features specific to this version
+}
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+.B phs_op()
+and
+.B phs_stack_run()
+are unavailable in sandboxed builds; attempting to call them will result in an
+undefined function error
+.IP \(bu 2
+Operands passed to
+.B phs_op()
+that are not integers are silently treated as 0
+.IP \(bu 2
+.B phs_stack_run()
+pushes arguments in reverse order to preserve natural argument ordering for the opcode
+.IP \(bu 2
+Direct opcode execution bypasses all safety checks enforced by the compiler; incorrect
+use can corrupt VM state
+.IP \(bu 2
+.B phs_version()
+reflects the version of the running runtime, which may differ from the version used to
+compile the script
+.SH SEE ALSO
+.BR phasorstd_io (3),
+.BR phasorstd_file (3),
+.BR phasor-isa (7)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
