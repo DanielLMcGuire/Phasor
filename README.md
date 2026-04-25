@@ -64,6 +64,12 @@ shutdown(code); // from stdsys
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
 - **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
 
+> [!NOTE]
+>
+> free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VM at shutdown.
+>
+> free() behavior can be replicated via ```value = null;```
+
 ---
 
 ## Quick Start
@@ -90,7 +96,7 @@ $
 ### Example Program
 
 ```javascript
-using("stdio", "stdtype");
+using("stdio", "stdtype", "stdmem");
 
 puts("Enter a number:");
 var input = gets();
