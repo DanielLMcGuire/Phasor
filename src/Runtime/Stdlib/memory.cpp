@@ -18,6 +18,7 @@ Value StdLib::var_free(const std::vector<Value> &args, VM *vm)
         throw std::runtime_error("stdmem(): argument must be a string");
 
     vm->freeVariableByName(arg.asString());
+    return Value();
 }
 
 } // namespace Phasor
