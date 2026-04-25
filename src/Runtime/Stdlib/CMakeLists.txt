@@ -4,6 +4,7 @@ if (IS_SANDBOXED)
         ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/typeconv.cpp
@@ -17,6 +18,7 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/core/system.c
         ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/typeconv.cpp

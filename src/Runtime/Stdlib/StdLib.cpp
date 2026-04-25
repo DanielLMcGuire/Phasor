@@ -69,6 +69,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		{"stdstr", registerStringFunctions},
 		{"stdtype", registerTypeConvFunctions},
 	    {"stdmeta", registerMetaFunctions},
+		{"stdmem", registerMemoryFunctions},
 #ifndef SANDBOXED
 		{"stdfile", registerFileFunctions},
 #endif
@@ -79,6 +80,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 			registerStringFunctions(vm);
 			registerTypeConvFunctions(vm);
 		    registerMetaFunctions(vm);
+			registerMemoryFunctions(vm);
 #ifndef SANDBOXED
 			registerFileFunctions(vm);
 #endif

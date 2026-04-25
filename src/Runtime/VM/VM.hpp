@@ -67,6 +67,9 @@ class VM
 
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
+    
+    /// @brief Free a variable by name in the VM
+    void freeVariableByName(const std::string& name);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add

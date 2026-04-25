@@ -59,6 +59,7 @@ class StdLib
 #endif
 
 	static void registerMetaFunctions(VM *vm);
+	static void registerMemoryFunctions(VM *vm);
 	static void registerMathFunctions(VM *vm);
 	static void registerStringFunctions(VM *vm);
 	static void registerTypeConvFunctions(VM *vm);
@@ -76,6 +77,11 @@ class StdLib
     static std::string meta_get_version(const std::vector<Value> &args, VM *vm);
 
 #pragma endregion stdmeta
+
+#pragma region stdmemory
+	static Value var_free(const std::vector<Value> &args, VM *vm); ///< Free a variable
+#pragma endregion
+
 #pragma region stdmath
 	static double math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
 	static double math_pow(const std::vector<Value> &args, VM *vm);   ///< Power
