@@ -133,25 +133,23 @@ extern "C"
 	 * Dependence on the internal structure of the VM class is not *officially* supported and will not work across compilers. 
 	 * This version of the C API is designed to work across compilers and outlive minor, potentially even major versions of the VM.
 	 * 
-	 * 
-	 *
 	@code
-		void *state = createState();
-		initStdLib(state);
+	void *state = createState();
+	initStdLib(state);
 
-		const char *script = "using(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
+	const char *script = "using(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
 
-		size_t bytecodeSize = 0;
-		compilePHS(script, "example", NULL, NULL, 0, &bytecodeSize);
+	size_t bytecodeSize = 0;
+	compilePHS(script, "example", NULL, NULL, 0, &bytecodeSize);
 
-		unsigned char *bytecode = (unsigned char *)malloc(bytecodeSize);
-		compilePHS(script, "example", NULL, bytecode, bytecodeSize, &bytecodeSize);
+	unsigned char *bytecode = (unsigned char *)malloc(bytecodeSize);
+	compilePHS(script, "example", NULL, bytecode, bytecodeSize, &bytecodeSize);
 
-		const char *argv[] = { "program", "script", "arg1", "arg2" };
-		int result = exec(state, bytecode, bytecodeSize, "example", 4, argv);
+	const char *argv[] = { "program", "script", "arg1", "arg2" };
+	int result = exec(state, bytecode, bytecodeSize, "example", 4, argv);
 
-		free(bytecode);
-		freeState(state);
+	free(bytecode);
+	freeState(state);
 	@endcode
 	 */
 	PHASOR_API void *createState();
