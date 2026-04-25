@@ -69,6 +69,8 @@ shutdown(code); // from stdsys
 > free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VM at shutdown.
 >
 > free() behavior can be replicated via ```value = null;```
+>
+> You cannot get a [use after free](https://cwe.mitre.org/data/definitions/416.html), as in the runtime its more like a use-after-reset.
 
 ---
 
