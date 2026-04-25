@@ -59,6 +59,8 @@ shutdown(code); // from stdsys
 > [!IMPORTANT]
 >
 > Some may *appear* to work before actual implementation
+>
+> The existance of a keyword/token type does not imply there is planned support for said feature
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
