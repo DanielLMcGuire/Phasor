@@ -66,6 +66,7 @@ shutdown(code); // from stdsys
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
 - **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
 - **stdrand** xorshift+ psuedo-random number generator (already in master!) 
+- **AppleScript bindings** (already in master!)
 
 > [!NOTE]
 >
@@ -250,7 +251,7 @@ See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building
 
 - Unix - `/usr/lib/phasor/plugins/`
 - macOS - `/library/Application Support/org.Phasor.Phasor/plugins/`
-- Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\` 
+- Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`
 
 ---
 
