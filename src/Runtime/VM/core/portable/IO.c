@@ -100,13 +100,11 @@ static void free_argv(char **argv)
 void c_print_stdout(const char *s, int64_t len)
 {
 	fwrite(s, 1, (size_t)len, stdout);
-	fflush(stdout);
 }
 
 void c_print_stderr(const char *s, int64_t len)
 {
 	fwrite(s, 1, (size_t)len, stderr);
-	fflush(stderr);
 }
 
 int64_t c_system(const char *cmd)

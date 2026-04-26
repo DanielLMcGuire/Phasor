@@ -426,6 +426,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 		c_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
+		flush();
 		break;
 	}
 
@@ -940,6 +941,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 		c_print_stdout(s.c_str(), (int64_t)s.length());
 #endif
+		flush();
 		break;
 	}
 
