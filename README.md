@@ -11,7 +11,7 @@ Phasor *does not* have a traditional garbage collector, the entire toolchain mak
 
 See [Upcoming](#upcoming) for more info on memory management.
 
-See [building](#building) for info on building from source.
+See [Building](#building) for info on building from source.
 
 Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs ***some* work**. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
 
@@ -70,7 +70,7 @@ shutdown(code); // from stdsys
 >
 > free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VM at shutdown.
 >
-> free() behavior can be replicated via ```value = null;```
+> free() behavior can be done in ANY release of Phasor (or pulsar) via ```value = null```
 >
 > You cannot get a [use after free](https://cwe.mitre.org/data/definitions/416.html), as in the runtime its more like a use-after-reset.
 
@@ -242,7 +242,7 @@ This repo contains:
 
 ### Build Steps
 
-See the [Build Steps](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor) wiki.
+See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor) wiki.
 
 ### Plugin locations
 (Like win32 api, posix) are available in different locations based on your OS:
