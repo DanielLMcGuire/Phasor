@@ -11,7 +11,7 @@ Phasor *does not* have a traditional garbage collector, the entire toolchain mak
 
 See [Upcoming](#upcoming) for more info on memory management.
 
-See [Prerequisites](#prerequisites) and [building](#build-steps) for info on building from source.
+See [building](#building) for info on building from source.
 
 Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs ***some* work**. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
 
@@ -222,7 +222,7 @@ This repo contains:
 
 ## Building
 
-<sub>Using Arch BTW? Just run `makepkg -si`</sub>
+<sub>Using Arch BTW? Just run `makepkg -si`, or get `phasor-git` on the AUR</sub>
 
 > [!NOTE] 
 > 
