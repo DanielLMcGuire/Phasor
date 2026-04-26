@@ -842,9 +842,20 @@
             ]
         },
         {
-            "name": "embedded",
-            "displayName": "Embedded",
-            "inherits": ["cfg-embedded"]
+            "name": "embedded-rel",
+            "displayName": "Embedded Release",
+            "inherits": [
+                "cfg-embedded",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "embedded-dbg",
+            "displayName": "Embedded Debug",
+            "inherits": [
+                "cfg-embedded",
+                "cfg-dbg"
+            ]
         }
     ]
 }
