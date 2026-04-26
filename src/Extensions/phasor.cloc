@@ -6,12 +6,12 @@ Pulsar
     filter remove_inline //.*$
     extension pul
     3rd_gen_scale 2.50
-Phasor_IR
+Phasor IR
     filter remove_inline ;.*$
     extension phir
     3rd_gen_scale 1.00
 
-Man Page
+Troff source
     filter remove_matches  ^\.\\"
     filter remove_matches  ^\\'\"
     filter remove_matches  ^\\\"
@@ -31,3 +31,11 @@ Man Page
     extension man
     extension mdoc
     3rd_gen_scale 1.00
+
+NSIS source
+    filter call_regexp_common C
+    filter remove_matches ^\s*;
+    filter remove_matches ^\s*#
+    extension nsi
+    extension nsh
+    3rd_gen_scale 2.00
