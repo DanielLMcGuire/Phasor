@@ -9,7 +9,9 @@
 #include <string>
 #include <vector>
 
+#ifndef CMAKE_PCH
 #include <Value.hpp>
+#endif
 
 // Forward declare native runtime entry points (linked in from the runtime library)
 extern "C" int exec(void *state, const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize,

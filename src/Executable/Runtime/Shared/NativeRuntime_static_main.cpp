@@ -6,7 +6,10 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+
+#ifndef CMAKE_PCH
 #include <Value.hpp>
+#endif
 
 extern "C" int exec(void *state, const unsigned char embeddedBytecode[], size_t embeddedBytecodeSize,
                     const char *moduleName, int argc, const char *argv[]);

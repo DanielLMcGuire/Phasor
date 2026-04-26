@@ -1,8 +1,10 @@
 #pragma once
 
 #include <functional>
-#include <Value.hpp>
 
+#ifndef CMAKE_PCH
+#include <Value.hpp>
+#endif
 #include <vector>
 #include <string>
 

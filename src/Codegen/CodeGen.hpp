@@ -1,6 +1,8 @@
 #pragma once
 #include "../AST/AST.hpp"
+#ifndef CMAKE_PCH
 #include <Value.hpp>
+#endif
 #include "../ISA/ISA.hpp"
 #include <cstdint>
 #include <map>

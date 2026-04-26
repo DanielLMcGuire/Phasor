@@ -12,7 +12,9 @@
 #include <string.h>
 
 #include "../VM/VM.hpp"
+#ifndef CMAKE_PCH
 #include <Value.hpp>
+#endif
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor

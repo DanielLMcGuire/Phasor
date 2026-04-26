@@ -1,6 +1,8 @@
 #pragma once
 #include "../../Codegen/CodeGen.hpp"
+#ifndef CMAKE_PCH
 #include <Value.hpp>
+#endif
 #include <vector>
 #include <filesystem>
 #include <functional>
