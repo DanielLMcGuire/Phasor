@@ -109,7 +109,7 @@ class Value
 	}
 
 	/// @brief Get the type of the value
-	ValueType getType() const
+	ValueType getType() const noexcept
 	{
 		if (std::holds_alternative<std::monostate>(data))
 			return ValueType::Null;
@@ -152,48 +152,48 @@ class Value
 	}
 
 	/// @brief Check if the value is null
-	bool isNull() const
+	bool isNull() const noexcept
 	{
 		return getType() == ValueType::Null;
 	}
 	/// @brief Check if the value is a boolean
-	bool isBool() const
+	bool isBool() const noexcept
 	{
 		return getType() == ValueType::Bool;
 	}
 	/// @brief Check if the value is an integer
-	bool isInt() const
+	bool isInt() const noexcept
 	{
 		return getType() == ValueType::Int;
 	}
 	/// @brief Check if the value is a double
-	bool isFloat() const
+	bool isFloat() const noexcept
 	{
 		return getType() == ValueType::Float;
 	}
 	/// @brief Check if the value is a string
-	bool isString() const
+	bool isString() const noexcept
 	{
 		return getType() == ValueType::String;
 	}
 	/// @brief Check if the value is a number
-	bool isNumber() const
+	bool isNumber() const noexcept
 	{
 		return isInt() || isFloat();
 	}
 	/// @brief Check if the value is an array
-	bool isArray() const
+	bool isArray() const noexcept
 	{
 		return std::holds_alternative<std::shared_ptr<ArrayInstance>>(data);
 	}
 
 	/// @brief Get the value as a boolean
-	bool asBool() const
+	bool asBool() const noexcept
 	{
 		return std::get<bool>(data);
 	}
 	/// @brief Get the value as an integer
-	int64_t asInt() const
+	int64_t asInt() const noexcept
 	{
 		if (isInt())
 			return std::get<int64_t>(data);
@@ -202,7 +202,7 @@ class Value
 		return 0;
 	}
 	/// @brief Get the value as a double
-	double asFloat() const
+	double asFloat() const noexcept
 	{
 		if (isFloat())
 			return std::get<double>(data);
@@ -211,7 +211,7 @@ class Value
 		return 0.0;
 	}
 	/// @brief Get the value as a string
-	std::string asString() const
+	std::string asString() const noexcept
 	{
 		if (isString())
 			return std::get<std::string>(data);
@@ -224,7 +224,7 @@ class Value
 	}
 
 	/// @brief Get the value as an array (const)
-	const std::shared_ptr<const ArrayInstance> asArray() const
+	const std::shared_ptr<const ArrayInstance> asArray() const noexcept
 	{
 		return std::get<std::shared_ptr<ArrayInstance>>(data);
 	}
@@ -306,25 +306,25 @@ class Value
 	}
 
 	/// @brief Logical negation
-	Value operator!() const
+	Value operator!() const noexcept
 	{
 		return Value(!isTruthy());
 	}
 
 	/// @brief Logical AND
-	Value logicalAnd(const Value &other) const
+	Value logicalAnd(const Value &other) const noexcept
 	{
 		return Value(isTruthy() && other.isTruthy());
 	}
 
 	/// @brief Logical OR
-	Value logicalOr(const Value &other) const
+	Value logicalOr(const Value &other) const noexcept
 	{
 		return Value(isTruthy() || other.isTruthy());
 	}
 
 	/// @brief Helper to determine truthiness
-	bool isTruthy() const
+	bool isTruthy() const noexcept
 	{
 		if (isNull())
 			return false;
@@ -340,7 +340,7 @@ class Value
 	}
 
 	/// @brief Comparison operations
-	bool operator==(const Value &other) const
+	bool operator==(const Value &other) const noexcept
 	{
 		if (getType() != other.getType())
 			return false;
@@ -366,7 +366,7 @@ class Value
 	}
 
 	/// @brief Inequality comparison
-	bool operator!=(const Value &other) const
+	bool operator!=(const Value &other) const noexcept
 	{
 		return !(*this == other);
 	}
@@ -396,18 +396,18 @@ class Value
 	}
 
 	/// @brief Less than or equal to comparison
-	bool operator<=(const Value &other) const
+	bool operator<=(const Value &other) const noexcept
 	{
 		return !(*this > other);
 	}
 	/// @brief Greater than or equal to comparison
-	bool operator>=(const Value &other) const
+	bool operator>=(const Value &other) const noexcept
 	{
 		return !(*this < other);
 	}
 
 	/// @brief Convert to string for printing
-	std::string toString() const
+	std::string toString() const noexcept
 	{
 		if (isNull())
 			return "null";
@@ -417,8 +417,10 @@ class Value
 			return std::to_string(asInt());
 		if (isFloat())
 			return std::to_string(asFloat());
-		if (isString())
+		if (isString()) {
+			[[likely]]
 			return asString();
+		}
 		if (isArray())
 		{
 			std::string result = "[";
@@ -441,7 +443,10 @@ class Value
 	const char *c_str() const
 	{
 		if (!isString())
+		{
+			[[unlikely]]
 			throw std::runtime_error("c_str() can only be called on string values");
+		}
 		return std::get<std::string>(data).c_str();
 	}
 
@@ -462,7 +467,7 @@ class Value
 		return std::get<std::shared_ptr<StructInstance>>(data);
 	}
 
-	const std::shared_ptr<const StructInstance> asStruct() const
+	const std::shared_ptr<const StructInstance> asStruct() const noexcept
 	{
 		return std::get<std::shared_ptr<StructInstance>>(data);
 	}
@@ -480,7 +485,10 @@ class Value
 	Value getField(const std::string &name) const
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
-			throw std::runtime_error("getField() called on non-struct value");
+			{
+				[[unlikely]]
+				throw std::runtime_error("getField() called on non-struct value");
+			}
 		auto s = std::get<std::shared_ptr<StructInstance>>(data);
 		auto it = s->fields.find(name);
 		if (it == s->fields.end())
@@ -491,12 +499,15 @@ class Value
 	void setField(const std::string &name, Value value)
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+		{
+			[[unlikely]]
 			throw std::runtime_error("setField() called on non-struct value");
+		}
 		auto s = std::get<std::shared_ptr<StructInstance>>(data);
 		s->fields[name] = std::move(value);
 	}
 
-	bool hasField(const std::string &name) const
+	bool hasField(const std::string &name) const noexcept
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 			return false;
