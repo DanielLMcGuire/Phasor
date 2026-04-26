@@ -29,7 +29,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v5
 
-    - name: Set up MSVC
+    - name: Set up MSVC (Windows)
       if: matrix.os == 'windows-2025-vs2026'
       uses: egor-tensin/vs-shell@v2
       with:
@@ -45,16 +45,16 @@ jobs:
     - name: Configure (macOS)
       if: matrix.os == 'macos-latest'
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
-      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DIS_TRACING=ON -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DIS_TRACING=ON -DNATIVE=ON -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release
 
-    - name: Configure 
+    - name: Configure (Windows/Linux)
       if: matrix.os != 'macos-latest'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
-      run: cmake -S . -G Ninja -B build -DIS_TRACING=ON -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      run: cmake -S . -G Ninja -B build -DNATIVE=ON -DIS_TRACING=ON -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=Release
     
     - name: Build
       shell: bash
