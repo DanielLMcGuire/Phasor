@@ -1,4 +1,4 @@
-if(IS_XBOX)
+if(IS_XBOX OR EMBEDDED)
     install(TARGETS
         phasor_main
         pulsar_main

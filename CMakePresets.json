@@ -165,6 +165,15 @@
             }
         },
         {
+            "name": "cfg-embedded",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "EMBEDDED": "1",
+                "ASSEMBLY": "OFF"
+            }
+        },
+        {
             "name": "cfg-dbg",
             "hidden": true,
             "cacheVariables": {
@@ -831,6 +840,11 @@
                 "cfg-xbox-series",
                 "cfg-rel"
             ]
+        },
+        {
+            "name": "embedded",
+            "displayName": "Embedded",
+            "inherits": ["cfg-embedded"]
         }
     ]
 }

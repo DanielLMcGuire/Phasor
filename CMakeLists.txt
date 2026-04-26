@@ -28,6 +28,7 @@ option(IS_TRACING "Enable VM tracing to stdout" OFF)
 option(IS_TIMING "Time how long a program takes to run" OFF)
 option(IS_TRACING_STACK "Enable VM stack tracing to stdout" OFF)
 option(IS_SANDBOXED "Enable VM sandbox" OFF)
+option(EMBEDDED "Strip down to the essentials" OFF)
 option(CLANG_SAN_ADDR  "Enable Clang AddressSanitizer"  OFF)
 option(CLANG_SAN_LEAK  "Enable Clang LeakSanitizer" OFF)
 option(CLANG_USES_LLVM_RUNTIME "Clang is configured to use compiler-rt/libunwind/libc++ instead of GCC's runtime" ON)
@@ -53,9 +54,13 @@ configure_file(
 # Build config
 add_subdirectory(src)
 
+if(EMBEDDED)
+    set(IS_SANDBOXED ON)
+endif()
+
 if(PROJECT_IS_TOP_LEVEL)
     set(CMAKE_PCH ON)
-    if(NOT IS_XBOX)
+    if(NOT IS_XBOX AND NOT EMBEDDED)
         add_subdirectory(thirdparty)
     endif()
     include(cmake/PCH.cmake)

@@ -30,7 +30,7 @@ add_library(phasor_native_runtime_static STATIC
 target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
-if(NOT IS_XBOX)
+if(NOT IS_XBOX AND NOT EMBEDDED)
 
 add_executable(phasor_compiler
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler.rc
@@ -81,7 +81,7 @@ add_executable(phasor_runtime_exe
 target_link_libraries(phasor_runtime_exe phasor_binary_runtime_lib)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
-endif() # NOT IS_XBOX
+endif() # NOT IS_XBOX AND NOT EMBEDDED
 
 if(NOT IS_SANDBOXED)
     if(WIN32)
@@ -130,7 +130,7 @@ if(NOT IS_SANDBOXED)
     endif()
 endif() # NOT IS_SANDBOXED
 
-if(NOT IS_XBOX)
+if(NOT IS_XBOX AND NOT EMBEDDED)
     add_subdirectory(Help)
 endif()
 
