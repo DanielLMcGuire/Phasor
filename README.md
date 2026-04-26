@@ -66,6 +66,7 @@ shutdown(code); // from stdsys
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
 - **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
 - **stdrand** xorshift+ psuedo-random number generator (already in master!) 
+- **AppleScript bindings** (already in master!)
 
 > [!NOTE]
 >
