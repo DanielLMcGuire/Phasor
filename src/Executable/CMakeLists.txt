@@ -107,6 +107,15 @@ if(NOT IS_SANDBOXED)
         install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
         install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
     else()
+        if(APPLE)
+            enable_language(OBJC)
+            add_library(phasor_applescript_bindings SHARED
+                ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/macOS/main.c
+                ${CMAKE_SOURCE_DIR}/src/Bindings/macOS/AppleScript.m
+                ${CMAKE_SOURCE_DIR}/src/Bindings/macOS/AppleScript.h
+            )
+            set_target_properties(phasor_applescript_bindings PROPERTIES OUTPUT_NAME applescript_phs)
+        endif()
         add_library(phasor_posix_bindings SHARED
             ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
         )
