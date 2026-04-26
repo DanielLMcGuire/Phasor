@@ -22,7 +22,7 @@ endif()
 set(STDLIB_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/core/file_properties.h
     ${CMAKE_CURRENT_SOURCE_DIR}/core/system.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/random.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/random.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.hpp
 )
 
