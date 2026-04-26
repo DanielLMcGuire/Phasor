@@ -13,7 +13,11 @@ A statically typed, compiled programming language with a fast bytecode virtual m
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides C++ RAII support to the runtime.
 
-Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs some work. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
+See [Upcoming](#upcoming) for more info on memory management.
+
+See [Building](#building) for info on building from source.
+
+Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs ***some* work**. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
@@ -59,17 +63,20 @@ shutdown(code); // from stdsys
 > [!IMPORTANT]
 >
 > Some may *appear* to work before actual implementation
+>
+> The existance of a keyword/token type does not imply there is planned support for said feature
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
-
-Plans for RAII support for the actual runtime (in terms of the VM's variables), are not yet ready. I have some plans for modules / translation units, but will wait until I have a clearer view of what I am doing.
+- **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
 
 > [!NOTE]
 >
-> While everything (AST, ISA, stdlib, both languages, VM, C API, not to mention CLIs) is standardized, it's a lot to manage, for that reason I don't think this project will be much more than a learning experience for me at least for now. 
+> free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VM at shutdown.
 >
-> I have used this in actual projects. So it's not like I wouldn't recommend it, rather I cannot make any actual promises until I have a real use for the project.
+> free() behavior can be done in ANY release of Phasor (or pulsar) via ```value = null```
+>
+> You cannot get a [use after free](https://cwe.mitre.org/data/definitions/416.html), as in the runtime its more like a use-after-reset.
 
 ---
 
@@ -97,7 +104,7 @@ $
 ### Example Program
 
 ```javascript
-using("stdio", "stdtype");
+using("stdio", "stdtype", "stdmem");
 
 puts("Enter a number:");
 var input = gets();
@@ -112,11 +119,11 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 > [!NOTE]
 >
-> Documentation may be partially wrong, stdlib might have added functions.
+> Documentation may be partially wrong, stdlib might have added functions or changed features.
 >
 > This will change once I have more time for this project
 >
-> Online docs are always up to date with master, offline (installed) docs are always up to date with that version.
+> Online docs are always up to date with master (as much as I can at least), offline (installed) docs are always up to date with that version.
 
 
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
@@ -186,7 +193,7 @@ This repo contains:
     ```powershell
     Import-Module .\src\Extensions\powershell\Phasor\Phasor.psd1
     Get-Help Phasor
-    Get-Help <cmdlet>
+    # Get-Help <cmdlet>
 
     # state is always optional (-State is optional)
     # anything not using state will create thier own
@@ -219,7 +226,7 @@ This repo contains:
 
 ## Building
 
-<sub>Using Arch BTW? Just run `makepkg -si`</sub>
+<sub>Using Arch BTW? Just run `makepkg -si`, or get `phasor-git` on the AUR</sub>
 
 > [!NOTE] 
 > 
@@ -227,17 +234,19 @@ This repo contains:
 
 ### Prerequisites
 
-- [CMake 3.21+](https://cmake.org/download/)
-- CC (23) compiler and CXX (23) compiler ([MSVC latest](https://visualstudio.microsoft.com/downloads/?q=build+tools), [GCC 14](https://gcc.gnu.org/install/), [Clang (LLVM Latest)](https://releases.llvm.org/) are officially supported)
-- [Ninja](https://github.com/ninja-build/ninja/releases)
-- [Python](https://www.python.org/downloads/) (for the python API, optional)
-- [PowerShell](https://github.com/PowerShell/PowerShell/releases/) (for the powershell module, optional)
-- [Node.js](https://nodejs.org/en/download) (for the vscode extension / web server, both optional)
-- [Docker](https://docs.docker.com/get-started/get-docker/) (for the docs (man to pdf), optional)
+- Required:
+  - [CMake 3.21+](https://cmake.org/download/)
+  - Supported CC (23) compiler and CXX (23) compiler ([MSVC latest](https://visualstudio.microsoft.com/downloads/?q=build+tools), [GCC 14](https://gcc.gnu.org/install/), [Clang (LLVM Latest)](https://releases.llvm.org/) )
+  - [Ninja](https://github.com/ninja-build/ninja/releases)
+- Optional:
+  - [Python](https://www.python.org/downloads/) (for the python API)
+  - [PowerShell](https://github.com/PowerShell/PowerShell/releases/) (for the powershell module)
+  - [Node.js](https://nodejs.org/en/download) (for the web server, and building the vscode extension)
+  - [Docker](https://docs.docker.com/get-started/get-docker/) (for the docs (man to pdf), optional)
 
 ### Build Steps
 
-[Moved over to the wiki](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor)
+See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor) wiki.
 
 ### Plugin locations
 (Like win32 api, posix) are available in different locations based on your OS:

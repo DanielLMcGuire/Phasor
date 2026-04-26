@@ -36,5 +36,5 @@ BEGIN
     END
 END
 
-IDI_APP_ICON ICON "..\\assets\\BinaryRuntime.ico"
+IDI_APP_ICON ICON "..\\assets\\vm.ico"
 

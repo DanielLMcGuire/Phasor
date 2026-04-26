@@ -32,9 +32,7 @@ void StdLib::registerFileFunctions(VM *vm)
 std::string StdLib::file_absolute(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "fabsolute");
-	std::filesystem::path path = args[0].asString();
-	std::filesystem::path fullPath = std::filesystem::weakly_canonical(path);
-	return fullPath.string();
+	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].asString())).string();
 }
 
 Value StdLib::file_read(const std::vector<Value> &args, VM *vm)
@@ -162,23 +160,23 @@ bool StdLib::file_delete(const std::vector<Value> &args, VM *vm)
 	std::filesystem::path path = args[0].asString();
 	if (std::filesystem::exists(path))
 	{
-		std::filesystem::remove(path);
-		return true;
+		return std::filesystem::remove(path);
 	}
 	return false;
 }
 
 bool StdLib::file_rename(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 2, "frn");
-	std::filesystem::path src = args[0].asString();
-	std::string           dest = args[1].asString();
-	if (std::filesystem::exists(src))
-	{
-		std::filesystem::rename(src, dest);
-		return true;
-	}
-	return false;
+    checkArgCount(args, 2, "frn");
+    std::filesystem::path src  = args[0].asString();
+    std::filesystem::path dest = args[1].asString();
+
+    if (!std::filesystem::exists(src))
+        return false;
+
+    std::error_code ec;
+    std::filesystem::rename(src, dest, ec);
+    return !ec;
 }
 
 Value StdLib::file_current_directory(const std::vector<Value> &args, VM *vm)

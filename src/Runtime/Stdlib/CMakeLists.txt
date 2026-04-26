@@ -1,30 +1,28 @@
-if (IS_SANDBOXED)
-    set(STDLIB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/typeconv.cpp
-    )
-else()
-    set(STDLIB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/file.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp
+set(STDLIB_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/random.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/random.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/typeconv.cpp
+)
+
+if (NOT IS_SANDBOXED)
+    list(APPEND STDLIB_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/core/file_properties.c
         ${CMAKE_CURRENT_SOURCE_DIR}/core/system.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/typeconv.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/file.cpp
     )
 endif()
+
 set(STDLIB_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/core/file_properties.h
     ${CMAKE_CURRENT_SOURCE_DIR}/core/system.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/random.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.hpp
 )
 

@@ -1,0 +1,72 @@
+.TH PHASORSTD_MEM 3 "January 2026" "Phasor 3.2.0" "Phasor Standard Library 3.2.0"
+.SH NAME
+phasorstd_mem \- Phasor memory management functions
+.SH SYNOPSIS
+.nf
+.B using("stdmem");
+.PP
+.B stdmem(name)
+.fi
+.SH FUNCTIONS
+.TP
+.BR stdmem (name)
+Free a named variable from the VM's memory, releasing any resources associated with it.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBname\fR 12
+String name of the variable to free
+.RE
+.PP
+.B Returns:
+Null value
+.PP
+.B Throws:
+Runtime error if the argument is not a string
+.RE
+.SH EXAMPLES
+.B Freeing a Variable
+.PP
+.nf
+.RS
+using("stdmem");
+
+var large_data = fread("bigfile.txt");
+
+// Process data...
+
+// Release memory when no longer needed
+stdmem("large_data");
+.RE
+.fi
+.PP
+.B Conditional Cleanup
+.PP
+.nf
+.RS
+var buffer = allocate_buffer();
+
+if (done) {
+    stdmem("buffer");
+}
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+The argument to
+.B stdmem()
+must be the variable name as a string literal, not the variable itself
+.IP \(bu 2
+Freeing a variable that does not exist has no effect
+.IP \(bu 2
+After calling
+.BR stdmem() ,
+any further access to the freed variable is undefined behaviour
+.SH SEE ALSO
+.BR phasorstd_file (3),
+.BR Phasor_StdLib (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

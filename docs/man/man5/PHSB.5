@@ -17,7 +17,7 @@ A PHSB file consists of a header followed by multiple data sections. All multi-b
 4-byte magic number: 0x50485342 (ASCII: "PHSB")
 .TP
 .B Offset 4-7: Version
-4-byte version number: 0x03000000 (version 3.2.0.0)
+4-byte version number: 0x03000000 (version 3.0.0.0)
 .TP
 .B Offset 8-11: Flags
 4-byte flags field (reserved for future use, currently 0)
@@ -133,13 +133,6 @@ Operand 1: First operand (4 bytes, int32)
 Operand 2: Second operand (4 bytes, int32)
 .IP \(bu 2
 Operand 3: Third operand (4 bytes, int32)
-.IP \(bu 2
-Operand 4: Fourth operand (4 bytes, int32)
-.IP \(bu 2
-Operand 5: Fifth operand (4 bytes, int32)
-.RE
-.PP
-Total instruction size: 21 bytes
 .RE
 .SH INTEGRITY VERIFICATION
 The PHSB format includes integrity checking through CRC32 checksums:

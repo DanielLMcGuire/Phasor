@@ -251,17 +251,17 @@ class Value
 		throw std::runtime_error("Cannot subtract these value types");
 	}
 
-	Value operator--() const
+	Value& operator--()
 	{
-		if (isInt()) return Value(asInt() - 1);
-		if (isNumber()) return Value(asFloat() - 1);
+		if (isInt())   { data = asInt()   - 1;   return *this; }
+		if (isFloat()) { data = asFloat() - 1.0; return *this; }
 		throw std::runtime_error("Cannot decrement this value type");
 	}
 
-	Value operator++() const
+	Value& operator++()
 	{
-		if (isInt()) return Value(asInt() + 1);
-		if (isNumber()) return Value(asFloat() + 1);
+		if (isInt())   { data = asInt()   + 1;   return *this; }
+		if (isFloat()) { data = asFloat() + 1.0; return *this; }
 		throw std::runtime_error("Cannot increment this value type");
 	}
 
@@ -506,38 +506,6 @@ class Value
 };
 } // namespace Phasor
 
-inline std::string _value_escapeString(const std::string& input) {
-		std::string output;
-		output.reserve(input.size());
-
-		for (char c : input) {
-			switch (c) {
-				case '\n': output += "\\n";  break;
-				case '\t': output += "\\t";  break;
-				case '\r': output += "\\r";  break;
-				case '\0': output += "\\0";  break;
-				case '\\': output += "\\\\"; break;
-				case '\"': output += "\\\""; break;
-				case '\'': output += "\\'";  break;
-				case '\a': output += "\\a";  break;
-				case '\b': output += "\\b";  break;
-				case '\f': output += "\\f";  break;
-				case '\v': output += "\\v";  break;
-				default:
-					if (c < 0x20 || c == 0x7F) {
-						char buf[5];
-						snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
-						output += buf;
-					} else {
-						output += c;
-					}
-					break;
-			}
-		}
-
-    return output;
-}
-
 template <>
 struct std::formatter<Phasor::Value>
 {
@@ -594,14 +562,14 @@ struct std::formatter<Phasor::Value>
 
         case Style::TypeValue:
             return fwd(Value::typeToString(v.getType()).asString()
-                       + "(" + _value_escapeString(v.toString()) + ")");
+                       + "(" + escapeString(v.toString()) + ")");
 
         case Style::Debug:
             return fwd(debug_repr(v));
 
         case Style::Quoted:
             if (v.isString())
-                return fwd("\"" + _value_escapeString(v.asString()) + "\"");
+                return fwd("\"" + escapeString(v.asString()) + "\"");
             [[fallthrough]];
 
         case Style::Value:
@@ -612,7 +580,7 @@ struct std::formatter<Phasor::Value>
             case ValueType::Bool:   return fwd(v.asBool());
             case ValueType::Int:    return fwd(v.asInt());
             case ValueType::Float:  return fwd(v.asFloat());
-            case ValueType::String: return fwd(debug_repr(_value_escapeString(v.asString())));
+            case ValueType::String: return fwd(debug_repr(escapeString(v.asString())));
             case ValueType::Array:  return fwd(v.toString());
             case ValueType::Struct: return fwd(v.toString());
             }
@@ -621,13 +589,44 @@ struct std::formatter<Phasor::Value>
     }
 
   private:
+    static std::string escapeString(const std::string& input)
+    {
+        std::string output;
+        output.reserve(input.size());
+        for (char c : input) {
+            switch (c) {
+                case '\n': output += "\\n";  break;
+                case '\t': output += "\\t";  break;
+                case '\r': output += "\\r";  break;
+                case '\0': output += "\\0";  break;
+                case '\\': output += "\\\\"; break;
+                case '\"': output += "\\\""; break;
+                case '\'': output += "\\'";  break;
+                case '\a': output += "\\a";  break;
+                case '\b': output += "\\b";  break;
+                case '\f': output += "\\f";  break;
+                case '\v': output += "\\v";  break;
+                default:
+                    if (c < 0x20 || c == 0x7F) {
+                        char buf[5];
+                        snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+                        output += buf;
+                    } else {
+                        output += c;
+                    }
+                    break;
+            }
+        }
+        return output;
+    }
+
     static std::string debug_repr(const Phasor::Value &v)
     {
         using Phasor::ValueType;
         switch (v.getType())
         {
         case ValueType::Null:   return "null";
-        case ValueType::String: return "\"" + _value_escapeString(v.asString()) + "\"";
+        case ValueType::String: return "\"" + escapeString(v.asString()) + "\"";
         case ValueType::Array:
         {
             const auto &arr = *v.asArray();
@@ -654,21 +653,5 @@ struct std::formatter<Phasor::Value>
         }
         default: return v.toString();
         }
-    }
-
-    static std::string escape(const std::string &s)
-    {
-        std::string out;
-        out.reserve(s.size());
-        for (char c : s)
-            switch (c)
-            {
-            case '"':  out += "\\\""; break;
-            case '\\': out += "\\\\"; break;
-            case '\n': out += "\\n";  break;
-            case '\t': out += "\\t";  break;
-            default:   out += c;
-            }
-        return out;
     }
 };

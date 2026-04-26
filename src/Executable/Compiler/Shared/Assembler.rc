@@ -37,6 +37,6 @@ BEGIN
     END
 END
 
-IDI_APP_ICON ICON "..\\assets\\Compiler.ico"
+IDI_APP_ICON ICON "..\\assets\\assembler.ico"
 
 
