@@ -138,7 +138,8 @@ char *c_system_out(const char *cmd)
 		free_argv(argv);
 		return NULL;
 	}
-	STARTUPINFO si = {sizeof(STARTUPINFO)};
+	STARTUPINFO si = {0};
+	si.cb = sizeof(si);
 	si.dwFlags = STARTF_USESTDHANDLES;
 	si.hStdOutput = hWrite; // capture stdout
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
@@ -262,7 +263,8 @@ char *c_system_err(const char *cmd)
 		free_argv(argv);
 		return NULL;
 	}
-	STARTUPINFO si = {sizeof(STARTUPINFO)};
+	STARTUPINFO si = {0};
+	si.cb = sizeof(si);
 	si.dwFlags = STARTF_USESTDHANDLES;
 	si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	si.hStdError = hWrite;

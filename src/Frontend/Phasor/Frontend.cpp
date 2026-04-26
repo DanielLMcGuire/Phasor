@@ -125,7 +125,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 		return status;
 	}
 
-	std::map<std::string, int> globalVars;
+	std::unordered_map<std::string, int> globalVars;
 	int                        nextVarIdx = 0;	
 	std::string line;
 	bool cleanExit = false;

@@ -35,8 +35,6 @@ NativeRuntime::NativeRuntime(const std::string &script, const int argc, const ch
 	CodeGenerator codegen;
 	m_bytecode = codegen.generate(*program);
 	m_vm = std::make_unique<VM>();
-
-	m_vm->registerNativeFunction("lib_Phasor", runScript);
 }
 
 NativeRuntime::NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv)
@@ -125,18 +123,6 @@ int NativeRuntime::run()
 		return 1;
 	}
 	return 0;
-}
-
-Value NativeRuntime::runScript(const std::vector<Value> &args, VM *vm)
-{
-	VM newVM;
-	StdLib::checkArgCount(args, 1, "phasor_eval");
-	Lexer lexer(args[1].asString());
-	Parser parser(lexer.tokenize());
-	CodeGenerator codegen;
-	auto program = parser.parse();
-	auto bytecode = codegen.generate(*program);
-	return newVM.run(bytecode);
 }
 
 } // namespace Phasor

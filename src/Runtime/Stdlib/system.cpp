@@ -46,7 +46,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 }
 
-double StdLib::sys_time(const std::vector<Value> &args, VM *vm)
+double StdLib::sys_time(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "time");
 	auto   now = std::chrono::steady_clock::now();
@@ -55,7 +55,7 @@ double StdLib::sys_time(const std::vector<Value> &args, VM *vm)
 	return millis;
 }
 
-Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "timef");
 	std::string format = args[0].asString();
@@ -79,7 +79,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *vm)
 	return std::string(buffer);
 }
 
-Value StdLib::sys_sleep(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
 	int64_t ms = args[0].asInt();
@@ -89,7 +89,7 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 
-std::string StdLib::sys_os(const std::vector<Value> &args, VM *vm)
+std::string StdLib::sys_os(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
@@ -107,7 +107,7 @@ std::string StdLib::sys_os(const std::vector<Value> &args, VM *vm)
 #endif
 }
 
-std::string StdLib::sys_env(const std::vector<Value> &args, VM *vm)
+std::string StdLib::sys_env(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
 	std::string key = args[0].asString();
@@ -116,7 +116,7 @@ std::string StdLib::sys_env(const std::vector<Value> &args, VM *vm)
 	return value;
 }
 
-int64_t StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_get_memory");
 	return static_cast<int64_t>(PHASORstd_sys_getAvailableMemory());
@@ -135,7 +135,7 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-int64_t StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork", true);
 	const char         *executable = args[0].c_str();
@@ -148,7 +148,7 @@ int64_t StdLib::sys_fork(const std::vector<Value> &args, VM *vm)
 	return static_cast<int64_t>(PHASORstd_sys_run(executable, argc, v_argv.data()));
 }
 
-int64_t StdLib::sys_fork_detached(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork_detached", true);
 	const char         *executable = args[0].c_str();
@@ -176,7 +176,7 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 	return Value();
 }
 
-int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_pid");
 	#if defined(_WIN32)
@@ -186,7 +186,7 @@ int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *vm)
 	#endif
 }
 
-Value StdLib::sys_isatty(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_isatty(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "isatty");
 	#ifdef _WIN32
@@ -199,7 +199,7 @@ Value StdLib::sys_isatty(const std::vector<Value> &args, VM *vm)
 
 #endif
 
-Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
 	int64_t index = args[0].asInt();
@@ -210,7 +210,7 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *vm)
 		return Value();
 }
 
-int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_argc");
 	return static_cast<int64_t>(argc);

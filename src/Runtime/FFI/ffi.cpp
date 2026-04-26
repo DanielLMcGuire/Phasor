@@ -71,7 +71,7 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 
 	entry_point(&api, reinterpret_cast<PhasorVM *>(vm));
 
-	plugins_.push_back(Plugin{.handle = lib, .path = library.string(), .shutdown = nullptr});
+	plugins_.push_back(Plugin{.handle = lib, .path = library.string(), .init = entry_point, .shutdown = nullptr});
 	return true;
 }
 

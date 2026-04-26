@@ -20,13 +20,13 @@ void StdLib::registerMathFunctions(VM *vm)
 	vm->registerNativeFunction("math_tan", StdLib::math_tan);
 }
 
-double StdLib::math_sqrt(const std::vector<Value> &args, VM *vm)
+double StdLib::math_sqrt(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_sqrt");
 	return asm_sqrt(args[0].asFloat());
 }
 
-double StdLib::math_pow(const std::vector<Value> &args, VM *vm)
+double StdLib::math_pow(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "math_pow");
 	double base = args[0].asFloat();
@@ -34,37 +34,37 @@ double StdLib::math_pow(const std::vector<Value> &args, VM *vm)
 	return asm_pow(base, expv);
 }
 
-Value StdLib::math_abs(const std::vector<Value> &args, VM *vm)
+Value StdLib::math_abs(const std::vector<Value> &args, VM *)
 {
-	// @TODO: Implement abs natively
+	/// @todo Implement abs natively
 	checkArgCount(args, 1, "math_abs");
 	if (args[0].isInt())
 		return std::abs(args[0].asInt());
 	return std::abs(args[0].asFloat());
 }
 
-double StdLib::math_floor(const std::vector<Value> &args, VM *vm)
+double StdLib::math_floor(const std::vector<Value> &args, VM *)
 {
 	/// @todo Implement floor natively
 	checkArgCount(args, 1, "math_floor");
 	return std::floor(args[0].asFloat());
 }
 
-double StdLib::math_ceil(const std::vector<Value> &args, VM *vm)
+double StdLib::math_ceil(const std::vector<Value> &args, VM *)
 {
-	// @TODO: Implement ceil natively
+	/// @todo Implement ceil natively
 	checkArgCount(args, 1, "math_ceil");
 	return std::ceil(args[0].asFloat());
 }
 
-double StdLib::math_round(const std::vector<Value> &args, VM *vm)
+double StdLib::math_round(const std::vector<Value> &args, VM *)
 {
-	// @TODO: Implement round natively
+	/// @todo Implement round natively
 	checkArgCount(args, 1, "math_round");
 	return std::round(args[0].asFloat());
 }
 
-Value StdLib::math_min(const std::vector<Value> &args, VM *vm)
+Value StdLib::math_min(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "math_min");
 	const Value &a = args[0];
@@ -84,7 +84,7 @@ Value StdLib::math_min(const std::vector<Value> &args, VM *vm)
 	return a < b ? a : b;
 }
 
-Value StdLib::math_max(const std::vector<Value> &args, VM *vm)
+Value StdLib::math_max(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "math_max");
 	const Value &a = args[0];
@@ -104,31 +104,31 @@ Value StdLib::math_max(const std::vector<Value> &args, VM *vm)
 	return a > b ? a : b;
 }
 
-double StdLib::math_log(const std::vector<Value> &args, VM *vm)
+double StdLib::math_log(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_log");
 	return asm_log(args[0].asFloat());
 }
 
-double StdLib::math_exp(const std::vector<Value> &args, VM *vm)
+double StdLib::math_exp(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_exp");
 	return asm_exp(args[0].asFloat());
 }
 
-double StdLib::math_sin(const std::vector<Value> &args, VM *vm)
+double StdLib::math_sin(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_sin");
 	return asm_sin(args[0].asFloat());
 }
 
-double StdLib::math_cos(const std::vector<Value> &args, VM *vm)
+double StdLib::math_cos(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_cos");
 	return asm_cos(args[0].asFloat());
 }
 
-double StdLib::math_tan(const std::vector<Value> &args, VM *vm)
+double StdLib::math_tan(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_tan");
 	return asm_tan(args[0].asFloat());

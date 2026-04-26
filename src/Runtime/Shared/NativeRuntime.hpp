@@ -28,9 +28,7 @@ class NativeRuntime
 
 	static int eval(VM *vm, const std::string &script);
 
-  private:
-	static Value runScript(const std::vector<Value> &args, VM *vm);
-	
+  private:	
 	std::shared_ptr<Phasor::VM> m_vm;
 	Bytecode             m_bytecode;
 	std::vector<uint8_t> m_bytecodeData;

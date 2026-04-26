@@ -24,7 +24,7 @@ bool PHASORstd_file_setProperties(char *path, char param, int64_t epoch)
 		return false;
 
 	FILETIME ft;
-	LONGLONG ll = Int32x32To64(epoch, 10000000) + 116444736000000000; // convert epoch to FILETIME
+	LONGLONG ll = ((long long)epoch * 10000000LL) + 116444736000000000LL;
 	ft.dwLowDateTime = (DWORD)ll;
 	ft.dwHighDateTime = (DWORD)(ll >> 32);
 

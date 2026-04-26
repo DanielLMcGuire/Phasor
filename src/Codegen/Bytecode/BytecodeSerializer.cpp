@@ -156,7 +156,7 @@ void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
 	}
 }
 
-void BytecodeSerializer::writeVariableMapping(const std::map<std::string, int> &variables, int nextVarIndex)
+void BytecodeSerializer::writeVariableMapping(const std::unordered_map<std::string, int> &variables, int nextVarIndex)
 {
 	writeUInt8(SECTION_VARIABLES);
 	writeUInt32(static_cast<uint32_t>(variables.size()));
@@ -183,7 +183,7 @@ void BytecodeSerializer::writeInstructions(const std::vector<Instruction> &instr
 	}
 }
 
-void BytecodeSerializer::writeFunctionEntries(const std::map<std::string, int> &functionEntries)
+void BytecodeSerializer::writeFunctionEntries(const std::unordered_map<std::string, int> &functionEntries)
 {
 	writeUInt8(SECTION_FUNCTIONS);
 	writeUInt32(static_cast<uint32_t>(functionEntries.size()));

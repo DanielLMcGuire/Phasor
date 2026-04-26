@@ -12,7 +12,7 @@ void StdLib::registerRandomFunctions(VM *vm)
     vm->registerNativeFunction("rand_next_float", StdLib::rand_next_float);
 }
 
-Value StdLib::rand_seed(const std::vector<Value> &args, VM *vm)
+Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "rand_seed");
     int64_t s1 = args[0].isInt() ? args[0].asInt() : 0;
@@ -26,7 +26,7 @@ Value StdLib::rand_seed(const std::vector<Value> &args, VM *vm)
     return Value();
 }
 
-int64_t StdLib::rand_next_range(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::rand_next_range(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "rand_next_range");
     int64_t min = args[0].isInt() ? args[0].asInt() : 0;
@@ -39,7 +39,7 @@ int64_t StdLib::rand_next_range(const std::vector<Value> &args, VM *vm)
     return PHASORstd_rand_next_range(static_cast<uint64_t>(min), static_cast<uint64_t>(max));
 }
 
-double StdLib::rand_next_float(const std::vector<Value> &args, VM *vm)
+double StdLib::rand_next_float(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 0, "rand_next_float");
     return PHASORstd_rand_next_double();

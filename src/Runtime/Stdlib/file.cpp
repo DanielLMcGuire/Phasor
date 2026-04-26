@@ -29,13 +29,13 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);
 }
 
-std::string StdLib::file_absolute(const std::vector<Value> &args, VM *vm)
+std::string StdLib::file_absolute(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fabsolute");
 	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].asString())).string();
 }
 
-Value StdLib::file_read(const std::vector<Value> &args, VM *vm)
+Value StdLib::file_read(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fread");
 	std::filesystem::path path = args[0].asString();
@@ -49,7 +49,7 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *vm)
 	return buffer.str();
 }
 
-std::string StdLib::file_read_line(const std::vector<Value> &args, VM *vm)
+std::string StdLib::file_read_line(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "freadln");
 	std::filesystem::path path = args[0].asString();
@@ -68,7 +68,7 @@ std::string StdLib::file_read_line(const std::vector<Value> &args, VM *vm)
 	return lineContent;
 }
 
-bool StdLib::file_write_line(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 3, "fwriteln");
 	std::filesystem::path path = args[0].asString();
@@ -120,7 +120,7 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-bool StdLib::file_write(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_write(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fwrite");
 	std::filesystem::path path = args[0].asString();
@@ -134,13 +134,13 @@ bool StdLib::file_write(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-bool StdLib::file_exists(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_exists(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fexists");
 	return std::filesystem::exists(args[0].asString());
 }
 
-bool StdLib::file_append(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_append(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fappend");
 	std::filesystem::path path = args[0].asString();
@@ -154,7 +154,7 @@ bool StdLib::file_append(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-bool StdLib::file_delete(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_delete(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "frm");
 	std::filesystem::path path = args[0].asString();
@@ -165,7 +165,7 @@ bool StdLib::file_delete(const std::vector<Value> &args, VM *vm)
 	return false;
 }
 
-bool StdLib::file_rename(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_rename(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "frn");
     std::filesystem::path src  = args[0].asString();
@@ -179,7 +179,7 @@ bool StdLib::file_rename(const std::vector<Value> &args, VM *vm)
     return !ec;
 }
 
-Value StdLib::file_current_directory(const std::vector<Value> &args, VM *vm)
+Value StdLib::file_current_directory(const std::vector<Value> &args, VM *)
 {
 	// If no arguments, return current directory
 	if (args.empty())
@@ -267,7 +267,7 @@ bool StdLib::file_move(const std::vector<Value> &args, VM *vm)
 	return status;
 }
 
-bool StdLib::file_property_edit(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_property_edit(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 3, "fpropedit");
 	if (args[2].isInt() && args[2].asInt() < 0)
@@ -280,7 +280,7 @@ bool StdLib::file_property_edit(const std::vector<Value> &args, VM *vm)
 	return PHASORstd_file_setProperties(const_cast<char *>(path.string().c_str()), param, epoch);
 }
 
-int64_t StdLib::file_property_get(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::file_property_get(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fpropget");
 	std::filesystem::path path = args[0].asString();
@@ -288,7 +288,7 @@ int64_t StdLib::file_property_get(const std::vector<Value> &args, VM *vm)
 	return PHASORstd_file_getProperties(const_cast<char *>(path.string().c_str()), param);
 }
 
-bool StdLib::file_create(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_create(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fcreate");
 	std::filesystem::path path = args[0].asString();
@@ -302,7 +302,7 @@ bool StdLib::file_create(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-Value StdLib::file_read_directory(const std::vector<Value> &args, VM *vm)
+Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "freaddir");
 	std::string path = args[0].asString();
@@ -317,7 +317,7 @@ Value StdLib::file_read_directory(const std::vector<Value> &args, VM *vm)
 	return false;
 }
 
-bool StdLib::file_create_directory(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fmkdir");
 	std::filesystem::path path = args[0].asString();
@@ -327,7 +327,7 @@ bool StdLib::file_create_directory(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-bool StdLib::file_remove_directory(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "frmdir");
 	std::filesystem::path path = args[0].asString();

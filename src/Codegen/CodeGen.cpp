@@ -1,10 +1,11 @@
 #include "CodeGen.hpp"
 #include <iostream>
+#include <unordered_map>
 
 namespace Phasor
 {
 
-Bytecode CodeGenerator::generate(const AST::Program &program, const std::map<std::string, int> &existingVars,
+Bytecode CodeGenerator::generate(const AST::Program &program, const std::unordered_map<std::string, int> &existingVars,
                                  int nextVarIdx, bool replMode)
 {
 	bytecode = Bytecode(); // Reset bytecode
@@ -99,9 +100,9 @@ void CodeGenerator::generateStatement(const AST::Statement *stmt)
 	{
 		generatePrintStmt(printStmt);
 	}
-	else if (auto includeStmt = dynamic_cast<const AST::IncludeStmt *>(stmt))
+	else if (dynamic_cast<const AST::IncludeStmt *>(stmt))
 	{
-		// Precompiler statement
+		// preprocessor include
 	}
 	else if (auto importStmt = dynamic_cast<const AST::ImportStmt *>(stmt))
 	{
@@ -273,7 +274,7 @@ void CodeGenerator::generatePrintStmt(const AST::PrintStmt *printStmt)
 
 void CodeGenerator::generateImportStmt(const AST::ImportStmt *importStmt)
 {
-	int constIndex = bytecode.addConstant(Value(importStmt->modulePath));
+	int constIndex = bytecode.addStringConstant(importStmt->modulePath);
 	bytecode.emit(OpCode::IMPORT, constIndex);
 }
 
@@ -423,12 +424,11 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	int constIndex = bytecode.addConstant(Value(static_cast<int64_t>(callExpr->arguments.size())));
 	bytecode.emit(OpCode::PUSH_CONST, constIndex);
 
-	// Emit CALL_NATIVE or CALL
 	// Check if it's a user function
-	if (bytecode.functionEntries.count(callExpr->callee))
+	auto entryIt = bytecode.functionEntries.find(callExpr->callee);
+	if (entryIt != bytecode.functionEntries.end())
 	{
-		int nameIndex = bytecode.addConstant(Value(callExpr->callee));
-		// The best fix of all time: check if the function exists and has the correct number of parameters
+		int nameIndex = bytecode.addStringConstant(callExpr->callee);
 		auto itParam = bytecode.functionParamCounts.find(callExpr->callee);
 		if (itParam != bytecode.functionParamCounts.end())
 		{
@@ -445,7 +445,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	}
 	else
 	{
-		int nameIndex = bytecode.addConstant(Value(callExpr->callee));
+		int nameIndex = bytecode.addStringConstant(callExpr->callee);
 		bytecode.emit(OpCode::CALL_NATIVE, nameIndex);
 	}
 }
@@ -965,7 +965,7 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 		generateExpression(assignExpr->value.get());
 
 		// Use dynamic field access since we don't have type information
-		int fieldNameIndex = bytecode.addConstant(Value(fieldExpr->fieldName));
+		int fieldNameIndex = bytecode.addStringConstant(fieldExpr->fieldName);
 		bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
 
 		// Reload the assigned field value so the assignment expression evaluates to it
@@ -992,20 +992,20 @@ void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *ex
 		for (const auto &[fieldName, fieldValue] : expr->fieldValues)
 		{
 			generateExpression(fieldValue.get());
-			int fieldNameIndex = bytecode.addConstant(Value(fieldName));
+			int fieldNameIndex = bytecode.addStringConstant(fieldName);
 			bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
 		}
 	}
 	else
 	{
-		// Fallback: use the original dynamic struct creation path.
-		int structNameIndex = bytecode.addConstant(Value(expr->structName));
+		// Fallback
+		int structNameIndex = bytecode.addStringConstant(expr->structName);
 		bytecode.emit(OpCode::NEW_STRUCT, structNameIndex);
 
 		for (const auto &[fieldName, fieldValue] : expr->fieldValues)
 		{
 			generateExpression(fieldValue.get());
-			int fieldNameIndex = bytecode.addConstant(Value(fieldName));
+			int fieldNameIndex = bytecode.addStringConstant(fieldName);
 			bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
 		}
 	}
@@ -1013,13 +1013,8 @@ void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *ex
 
 void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
 {
-	// Generate code for the object being accessed
 	generateExpression(expr->object.get());
-
-	// For now, we'll use dynamic field access since we don't have type information
-	// In a future version, we could add type inference or require type annotations
-	// to enable static field access
-	int fieldNameIndex = bytecode.addConstant(Value(expr->fieldName));
+	int fieldNameIndex = bytecode.addStringConstant(expr->fieldName);
 	bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
 }
 
@@ -1065,7 +1060,6 @@ void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
 
 void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 {
-	// Store a human-readable struct definition in the constant pool (existing behavior)
 	std::string structDef = "struct " + decl->name + " {";
 	for (const auto &field : decl->fields)
 	{
@@ -1077,13 +1071,11 @@ void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 	}
 	structDef += " }";
 	bytecode.addConstant(Value(structDef));
-
-	// Register struct metadata in the struct section (no runtime use yet)
-	// Allocate placeholder default constants (currently all null) for each field.
+	// reg metadata
 	int firstConstIndex = static_cast<int>(bytecode.constants.size());
 	for (const auto &field : decl->fields)
 	{
-		(void)field; // field.type is not yet used for typed defaults
+		(void)field;
 		bytecode.addConstant(Value());
 	}
 
@@ -1108,7 +1100,7 @@ void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 {
     generateExpression(switchStmt->expr.get());
-    std::string tempName = "__switch_" + std::to_string(bytecode.instructions.size());
+    std::string tempName = "__switch_" + std::to_string(switchCounter++);
     int tempVarIndex = bytecode.getOrCreateVar(tempName);
     bytecode.emit(OpCode::STORE_VAR, tempVarIndex);
 

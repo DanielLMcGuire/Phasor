@@ -11,7 +11,7 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
 }
 
-int64_t StdLib::to_int(const std::vector<Value> &args, VM *vm)
+int64_t StdLib::to_int(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_int");
 	if (args[0].isInt())
@@ -34,19 +34,19 @@ int64_t StdLib::to_int(const std::vector<Value> &args, VM *vm)
 	return 0;
 }
 
-double StdLib::to_float(const std::vector<Value> &args, VM *vm)
+double StdLib::to_float(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_float");
 	return args[0].asFloat();
 }
 
-std::string StdLib::to_string(const std::vector<Value> &args, VM *vm)
+std::string StdLib::to_string(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_string");
 	return args[0].toString();
 }
 
-bool StdLib::to_bool(const std::vector<Value> &args, VM *vm)
+bool StdLib::to_bool(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_bool");
 	return args[0].isTruthy();

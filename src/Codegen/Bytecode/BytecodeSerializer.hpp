@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <unordered_map>
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -36,11 +37,11 @@ class BytecodeSerializer
 	/// @brief Section writers
 	void writeHeader(uint32_t dataChecksum);                     ///< Helper method to write header
 	void writeConstantPool(const std::vector<Value> &constants); ///< Helper method to write Constants Table
-	void writeVariableMapping(const std::map<std::string, int> &variables,
+	void writeVariableMapping(const std::unordered_map<std::string, int> &variables,
 	                          int nextVarIndex);                          ///< Helper method to write Variable Map Table
 	void writeInstructions(const std::vector<Instruction> &instructions); ///< Helper method to write Instruction Table
 	void writeFunctionEntries(
-	    const std::map<std::string, int> &functionEntries); ///< Helper method to write Function Table
+	    const std::unordered_map<std::string, int> &functionEntries); ///< Helper method to write Function Table
 
 	/// @brief Calculate CRC32 checksum
 	uint32_t calculateCRC32(const std::vector<uint8_t> &data);
