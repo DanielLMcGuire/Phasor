@@ -69,6 +69,7 @@ shutdown(code); // from stdsys
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];``` 
 - **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
+- **stdrand** xorshift+ psuedo-random number generator (already in master!) 
 
 > [!NOTE]
 >
