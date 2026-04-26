@@ -3,7 +3,7 @@
 !define COMP_NAME "Phasor"
 !define VERSION "3.2.0.0"
 !define COPYRIGHT "(C) 2026 Daniel McGuire"
-!define LICENSE_TXT "../LICENSE"
+!define LICENSE_TXT "../assets/LICENSE.rtf"
 !define DESCRIPTION "Functional VM Compiled Programming Language"
 !define INSTALLER_NAME "phasor-3.2.0_setup.exe"
 !define INSTALL_TYPE "SetShellVarContext all"
