@@ -116,7 +116,6 @@ if(NOT IS_SANDBOXED)
             )
             target_link_libraries(phasor_applescript_bindings
                 "-framework Foundation"
-                "-framework AppleScript"
             )
             set_target_properties(phasor_applescript_bindings PROPERTIES OUTPUT_NAME applescript_phs)
         endif()
