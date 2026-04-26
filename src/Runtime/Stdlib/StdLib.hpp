@@ -61,6 +61,7 @@ class StdLib
 	static void registerMetaFunctions(VM *vm);
 	static void registerMemoryFunctions(VM *vm);
 	static void registerMathFunctions(VM *vm);
+	static void registerRandomFunctions(VM *vm);
 	static void registerStringFunctions(VM *vm);
 	static void registerTypeConvFunctions(VM *vm);
 #ifndef SANDBOXED
@@ -147,6 +148,14 @@ class StdLib
 	static double to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
 	static std::string to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static bool to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
+#pragma endregion
+
+#pragma region stdrand
+
+	static Value rand_seed(const std::vector<Value> &args, VM *vm); ///< Seed the random number generator
+	static int64_t rand_next_range(const std::vector<Value> &args, VM *vm); ///< Get a random number in range
+	static double rand_next_float(const std::vector<Value> &args, VM *vm); ///< Get a random float (technically a double at a low level)
+
 #pragma endregion
 
 #pragma region stdstr

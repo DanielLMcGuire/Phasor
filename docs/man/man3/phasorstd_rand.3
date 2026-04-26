@@ -1,0 +1,163 @@
+.TH PHASORSTD_RAND 3 "January 2026" "Phasor 3.2.0" "Phasor Standard Library 2.0.0"
+.SH NAME
+phasorstd_rand \- Phasor pseudo-random number generation (xorshift+) functions
+.SH SYNOPSIS
+.nf
+.B using("stdrand");
+.PP
+.B rand_seed(s1, s2)
+.B rand_next_range(min, max)
+.B rand_next_float()
+.fi
+.SH FUNCTIONS
+.TP
+.BR rand_seed (s1, s2)
+Seed the pseudo-random number generator with two positive integer values. Must be called
+before using
+.B rand_next_range()
+or
+.B rand_next_float()
+to ensure reproducible sequences.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBs1\fR 12
+First seed value; must be a positive non-zero integer
+.IP \fBs2\fR 12
+Second seed value; must be a positive non-zero integer
+.RE
+.PP
+.B Returns:
+Null value
+.PP
+.B Throws:
+Runtime error if either seed is not a positive integer.
+.RE
+.PP
+.TP
+.BR rand_next_range (min, max)
+Generate a pseudo-random integer in the closed interval [\fBmin\fR, \fBmax\fR].
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBmin\fR 12
+Lower bound of the range (inclusive). Non-integer values are treated as 0.
+.IP \fBmax\fR 12
+Upper bound of the range (inclusive). Non-integer values are treated as 0.
+.RE
+.PP
+.B Returns:
+Integer in the range [\fBmin\fR, \fBmax\fR]
+.PP
+.B Throws:
+Runtime error if
+.B min
+is greater than
+.B max
+.RE
+.PP
+.TP
+.BR rand_next_float ()
+Generate a pseudo-random float (double-percision) value.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+float in the range [0.0, 1.0)
+.RE
+.SH EXAMPLES
+.B Basic Usage
+.PP
+.nf
+.RS
+using("stdrand");
+
+// Seed the generator
+rand_seed(123456, 789012);
+
+// Generate a random integer between 1 and 100
+var n = rand_next_range(1, 100);
+putf("Random number: %d", n);
+
+// Generate a random float
+var d = rand_next_float();
+putf("Random float: %f", d);
+.RE
+.fi
+.PP
+.B Reproducible Sequences
+.PP
+.nf
+.RS
+// Same seeds always produce the same sequence
+rand_seed(42, 1337);
+var a = rand_next_range(0, 9);
+var b = rand_next_range(0, 9);
+
+rand_seed(42, 1337);
+var c = rand_next_range(0, 9);
+var d = rand_next_range(0, 9);
+
+// a == c and b == d
+.RE
+.fi
+.PP
+.B Simulating a Coin Flip
+.PP
+.nf
+.RS
+rand_seed(seed1, seed2);
+
+var flip = rand_next_range(0, 1);
+if (flip == 0) {
+    puts("Heads");
+} else {
+    puts("Tails");
+}
+.RE
+.fi
+.PP
+.B Scaling a float to a Custom Range
+.PP
+.nf
+.RS
+rand_seed(111, 222);
+
+// Random float between 0.0 and 10.0
+var scaled = rand_next_float() * 10.0;
+putf("Scaled value: %f", scaled);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+The generator must be seeded with
+.B rand_seed()
+before use; behaviour is undefined if
+.B rand_next_range()
+or
+.B rand_next_float()
+are called without a prior seed
+.IP \(bu 2
+Using the same pair of seeds always produces the same set of values, which is
+useful for various purposes.
+.IP \(bu 2
+Both seeds must be strictly positive; zero and negative values are rejected
+.IP \(bu 2
+Non-integer arguments to
+.B rand_seed()
+and
+.B rand_next_range()
+are silently coerced to 0, which will cause
+.B rand_seed()
+to throw
+.SH SEE ALSO
+.BR phasorstd_io (3),
+.BR phasorstd_sys (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
