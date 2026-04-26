@@ -54,14 +54,11 @@ configure_file(
 add_subdirectory(src)
 
 if(PROJECT_IS_TOP_LEVEL)
+    set(CMAKE_PCH ON)
     if(NOT IS_XBOX)
         add_subdirectory(thirdparty)
     endif()
     include(cmake/PCH.cmake)
-    APPLY_GLOBAL_PCH(${CMAKE_CURRENT_SOURCE_DIR} "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include/Value.hpp>")
-    set(CMAKE_PCH ON)
+    APPLY_GLOBAL_PCH("$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include/Value.hpp>")
     include(cmake/InstallConfig.cmake)
 endif()
-
-# Install config
-include(cmake/InstallConfig.cmake)
