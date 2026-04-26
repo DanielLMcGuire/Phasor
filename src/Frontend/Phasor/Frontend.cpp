@@ -160,6 +160,8 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 #ifndef TRACING
 			if (verbose)
 			{
+#else
+			(void)verbose;
 #endif
 				std::println("AST:");
 				program->print();

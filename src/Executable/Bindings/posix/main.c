@@ -10,10 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// -----------------
-// File I/O Wrappers
-// -----------------
-static PhasorValue phasor_open(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_open(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 2 || !phasor_is_string(argv[0]) || !phasor_is_int(argv[1]))
 		return phasor_make_int(-1);
@@ -23,7 +20,7 @@ static PhasorValue phasor_open(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return phasor_make_int(fd);
 }
 
-static PhasorValue phasor_close(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_close(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 1 || !phasor_is_int(argv[0]))
 		return phasor_make_int(-1);
@@ -31,7 +28,7 @@ static PhasorValue phasor_close(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return phasor_make_int(close(fd));
 }
 
-static PhasorValue phasor_read(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_read(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_int(argv[1]))
 		return phasor_make_string("");
@@ -50,7 +47,7 @@ static PhasorValue phasor_read(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return val;
 }
 
-static PhasorValue phasor_write(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_write(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_string(argv[1]))
 		return phasor_make_int(-1);
@@ -60,17 +57,14 @@ static PhasorValue phasor_write(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return phasor_make_int(r);
 }
 
-static PhasorValue phasor_unlink(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_unlink(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 1 || !phasor_is_string(argv[0]))
 		return phasor_make_int(-1);
 	return phasor_make_int(unlink(phasor_to_string(argv[0])));
 }
 
-// -----------------
-// Directory Wrappers
-// -----------------
-static PhasorValue phasor_mkdir(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_mkdir(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 1 || !phasor_is_string(argv[0]))
 		return phasor_make_int(-1);
@@ -78,23 +72,20 @@ static PhasorValue phasor_mkdir(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return phasor_make_int(mkdir(path, 0777));
 }
 
-static PhasorValue phasor_rmdir(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_rmdir(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 1 || !phasor_is_string(argv[0]))
 		return phasor_make_int(-1);
 	return phasor_make_int(rmdir(phasor_to_string(argv[0])));
 }
 
-// -----------------
-// Process Wrappers
-// -----------------
-static PhasorValue phasor_fork(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_fork(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	pid_t pid = fork();
 	return phasor_make_int((int64_t)pid);
 }
 
-static PhasorValue phasor_execve(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_execve(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 3 || !phasor_is_string(argv[0]) || !phasor_is_array(argv[1]) || !phasor_is_array(argv[2]))
 	{
@@ -121,7 +112,7 @@ static PhasorValue phasor_execve(PhasorVM *vm, int argc, const PhasorValue *argv
 	return phasor_make_int(r); // will only return on error
 }
 
-static PhasorValue phasor_waitpid(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_waitpid(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_int(argv[1]))
 		return phasor_make_int(-1);
@@ -132,10 +123,7 @@ static PhasorValue phasor_waitpid(PhasorVM *vm, int argc, const PhasorValue *arg
 	return phasor_make_array((PhasorValue[]){phasor_make_int(r), phasor_make_int(status)}, 2);
 }
 
-// -----------------
-// Signal Wrappers
-// -----------------
-static PhasorValue phasor_kill(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_kill(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_int(argv[1]))
 		return phasor_make_int(-1);
@@ -144,10 +132,7 @@ static PhasorValue phasor_kill(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return phasor_make_int(kill(pid, sig));
 }
 
-// -----------------
-// Time Wrappers
-// -----------------
-static PhasorValue phasor_sleep(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_sleep(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 1 || !phasor_is_int(argv[0]))
 		return phasor_make_int(-1);
@@ -156,7 +141,7 @@ static PhasorValue phasor_sleep(PhasorVM *vm, int argc, const PhasorValue *argv)
 	return phasor_make_int(r);
 }
 
-static PhasorValue phasor_nanosleep(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_nanosleep(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_int(argv[1]))
 		return phasor_make_int(-1);
@@ -166,7 +151,7 @@ static PhasorValue phasor_nanosleep(PhasorVM *vm, int argc, const PhasorValue *a
 	return phasor_make_int(r);
 }
 
-static PhasorValue phasor_clock_gettime(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue phasor_clock_gettime(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	if (argc < 1 || !phasor_is_int(argv[0]))
 		return phasor_make_int(-1);
@@ -176,9 +161,6 @@ static PhasorValue phasor_clock_gettime(PhasorVM *vm, int argc, const PhasorValu
 	return phasor_make_array(vals, 2);
 }
 
-// -----------------
-// Plugin Entry
-// -----------------
 PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
 {
 	api->register_function(vm, "posix_open", phasor_open);

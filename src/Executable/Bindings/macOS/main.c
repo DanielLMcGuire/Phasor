@@ -5,7 +5,7 @@
 
 static PhasorValue applescript_run(PhasorVM *vm, int argc, const PhasorValue *argv)
 {
-	int status = -1;
+	int64_t status = -1;
 	if (argc < 1 || !phasor_is_string(argv[0]))
 		return phasor_make_int(-1);
 	const char *script = phasor_to_string(argv[0]);
@@ -25,6 +25,7 @@ static PhasorValue applescript_run(PhasorVM *vm, int argc, const PhasorValue *ar
 		freeAppleScriptResult(&result);
 		return ret;
 	}
+	return phasor_make_int(status);
 }
 
 PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
