@@ -114,9 +114,10 @@ if(NOT IS_SANDBOXED)
                 ${CMAKE_SOURCE_DIR}/src/Bindings/macOS/AppleScript.m
                 ${CMAKE_SOURCE_DIR}/src/Bindings/macOS/AppleScript.h
             )
-            find_library(FOUNDATION_LIB Foundation)
-            find_library(APPLESCRIPT_LIB AppleScript)
-            target_link_libraries(phasor_applescript_bindings ${FOUNDATION_LIB} ${APPLESCRIPT_LIB})
+            target_link_libraries(phasor_applescript_bindings
+                "-framework Foundation"
+                "-framework AppleScript"
+            )
             set_target_properties(phasor_applescript_bindings PROPERTIES OUTPUT_NAME applescript_phs)
         endif()
         add_library(phasor_posix_bindings SHARED
