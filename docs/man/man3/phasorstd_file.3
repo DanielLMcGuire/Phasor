@@ -6,6 +6,12 @@ phasorstd_file \- Phasor file system functions
 .B using("stdfile");
 .PP
 .B fabsolute(path)
+.B fstem(path)
+.B fname(path)
+.B fext(path)
+.B fparent(path)
+.B fjoin(path1, path2)
+.B fisdir(path)
 .B fread(path)
 .B fwrite(path, content)
 .B fexists(path)
@@ -23,8 +29,101 @@ phasorstd_file \- Phasor file system functions
 .B fmkdir(path)
 .B frmdir(path, recurse)
 .B freaddir(path)
+.B fsize(path)
 .B fstat(path)
 .fi
+.SH PATH UTILITIES
+.TP
+.BR fabsolute (path)
+Get the absolute path of a file.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+Absolute (weakly canonical) path string
+.RE
+.PP
+.TP
+.BR fstem (path)
+Get the stem (filename without extension) of a path.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+String containing the stem component. For example, given \fB"archive.tar.gz"\fR, returns \fB"archive.tar"\fR.
+.RE
+.PP
+.TP
+.BR fname (path)
+Get the filename component of a path, including its extension.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+String containing the filename. For example, given \fB"/home/user/docs/report.txt"\fR, returns \fB"report.txt"\fR.
+.RE
+.PP
+.TP
+.BR fext (path)
+Get the file extension of a path.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+String containing the extension, including the leading dot. For example, given \fB"report.txt"\fR, returns \fB".txt"\fR. Returns an empty string if there is no extension.
+.RE
+.PP
+.TP
+.BR fparent (path)
+Get the parent directory of a path.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file or directory
+.RE
+.PP
+.B Returns:
+String containing the parent path. For example, given \fB"/home/user/docs/report.txt"\fR, returns \fB"/home/user/docs"\fR.
+.RE
+.PP
+.TP
+.BR fjoin (path1, path2)
+Join two path components together.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath1\fR 12
+The base path
+.IP \fBpath2\fR 12
+The path to append
+.RE
+.PP
+.B Returns:
+String containing the joined path, using the platform's native path separator.
+.RE
 .SH FILE I/O FUNCTIONS
 .TP
 .BR fread (path)
@@ -39,21 +138,6 @@ Path to the file
 .PP
 .B Returns:
 String containing file contents, or null if file cannot be opened
-.RE
-.PP
-.TP
-.BR fabsolute (path)
-Get the absolute path of a file.
-.RS
-.PP
-.B Arguments:
-.RS
-.IP \fBpath\fR 12
-Path to the file
-.RE
-.PP
-.B Returns:
-Absolute path
 .RE
 .PP
 .TP
@@ -145,6 +229,21 @@ Check if a file or directory exists.
 .PP
 .B Returns:
 Boolean true if path exists, false otherwise
+.RE
+.PP
+.TP
+.BR fisdir (path)
+Check if a path refers to a directory.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to check
+.RE
+.PP
+.B Returns:
+Boolean true if the path exists and is a directory, false otherwise
 .RE
 .PP
 .TP
@@ -273,6 +372,21 @@ String with filenames separated by newlines, or error message on failure
 .RE
 .SH FILE METADATA
 .TP
+.BR fsize (path)
+Get the size of a file in bytes.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file
+.RE
+.PP
+.B Returns:
+Integer file size in bytes
+.RE
+.PP
+.TP
 .BR fpropset (path, property, value)
 Set a file property (timestamp).
 .RS
@@ -338,7 +452,7 @@ Returns null on error
 .PP
 .nf
 .RS
-include_stdfile();
+using("stdfile");
 
 // Write to file
 fwrite("data.txt", "Hello, World!");
@@ -348,7 +462,7 @@ var content = fread("data.txt");
 puts(content);
 
 // Append to file
-fappend("data.txt", "\\nNew line");
+fappend("data.txt", "\nNew line");
 .RE
 .fi
 .PP
@@ -361,6 +475,27 @@ var line = freadln("config.txt", 0);
 
 // Update specific line
 fwriteln("config.txt", 2, "new_setting=value");
+.RE
+.fi
+.PP
+.B Path Utilities
+.PP
+.nf
+.RS
+var p = "/home/user/docs/report.txt";
+
+puts(fname(p));    // "report.txt"
+puts(fstem(p));    // "report"
+puts(fext(p));     // ".txt"
+puts(fparent(p));  // "/home/user/docs"
+
+var full = fjoin("/home/user", "docs/report.txt");
+puts(fabsolute("../project"));
+
+// Check before operating
+if (fisdir("/home/user/docs")) {
+    puts(freaddir("/home/user/docs"));
+}
 .RE
 .fi
 .PP
@@ -403,15 +538,20 @@ fmkdir("new_folder");
 var files = freaddir(".");
 puts(files);
 
-// Remove directory
-frmdir("empty_folder");
+// Remove directory recursively
+frmdir("old_folder", true);
 .RE
 .fi
 .PP
-.B File Statistics
+.B File Size and Statistics
 .PP
 .nf
 .RS
+// Get file size
+var bytes = fsize("document.txt");
+putf("Size: %d bytes\n", bytes);
+
+// Get full stat struct
 var stat = fstat("document.txt");
 if (stat != null) {
     putf("Size: %d bytes", stat.size);
@@ -451,11 +591,19 @@ expands the file with empty lines if necessary
 .B fmv()
 is implemented as copy + delete, not an atomic move
 .IP \(bu 2
-Directory removal only works on empty directories
+Directory removal only works on empty directories unless
+.B recurse
+is true
 .IP \(bu 2
 File statistics struct uses Unix-style permissions
 .IP \(bu 2
 Property characters: 'a' for access time, 'm' for modification time
+.IP \(bu 2
+.B fstem()
+strips only the last extension; \fB"archive.tar.gz"\fR yields \fB"archive.tar"\fR
+.IP \(bu 2
+.B fext()
+returns an empty string if the path has no extension
 .SH SEE ALSO
 .BR Phasor_StdLib (3)
 .SH AUTHOR

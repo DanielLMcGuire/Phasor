@@ -121,6 +121,13 @@ class StdLib
 	static Value file_read_directory(const std::vector<Value> &args, VM *vm);
 	static bool file_create_directory(const std::vector<Value> &args, VM *vm);
 	static bool file_remove_directory(const std::vector<Value> &args, VM *vm);
+	static std::string file_join_path(const std::vector<Value> &args, VM *vm);
+	static std::string file_stem(const std::vector<Value> &args, VM *vm);         ///< Get the stem of a path
+	static std::string file_filename(const std::vector<Value> &args, VM *vm);         ///< Get the filename
+	static std::string file_extension(const std::vector<Value> &args, VM *vm);     ///< Get the extension of a path
+	static bool file_is_directory(const std::vector<Value> &args, VM *vm);       ///< Check if path is directory
+	static std::string file_parent(const std::vector<Value> &args, VM *vm);      ///< Get the parent of a path
+	static int64_t file_get_size(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 

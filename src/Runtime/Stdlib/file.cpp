@@ -10,6 +10,11 @@ namespace Phasor
 void StdLib::registerFileFunctions(VM *vm)
 {
 	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
+	vm->registerNativeFunction("fstem", StdLib::file_stem);
+	vm->registerNativeFunction("fname", StdLib::file_filename);
+	vm->registerNativeFunction("fext", StdLib::file_extension);
+	vm->registerNativeFunction("fparent", StdLib::file_parent);
+	vm->registerNativeFunction("fisdir", StdLib::file_is_directory);
 	vm->registerNativeFunction("fread", StdLib::file_read);
 	vm->registerNativeFunction("fwrite", StdLib::file_write);
 	vm->registerNativeFunction("fexists", StdLib::file_exists);
@@ -27,12 +32,58 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("fmkdir", StdLib::file_create_directory);
 	vm->registerNativeFunction("frmdir", StdLib::file_remove_directory);
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);
+	vm->registerNativeFunction("fjoin", StdLib::file_join_path);
+	vm->registerNativeFunction("fsize", StdLib::file_get_size);
 }
 
 std::string StdLib::file_absolute(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fabsolute");
 	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].asString())).string();
+}
+
+std::string StdLib::file_stem(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fstem");
+	return std::filesystem::path(args[0].asString()).stem().string();
+}
+
+std::string StdLib::file_filename(const std::vector<Value> &args, VM*)
+{
+	checkArgCount(args, 1, "fname");
+	return std::filesystem::path(args[0].asString()).filename().string();
+}
+
+std::string StdLib::file_extension(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fext");
+	return std::filesystem::path(args[0].asString()).extension().string();
+}
+
+std::string StdLib::file_parent(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fparent");
+	return std::filesystem::path(args[0].asString()).parent_path().string();
+}
+
+bool StdLib::file_is_directory(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fisdir");
+	return std::filesystem::is_directory(args[0].asString());
+}
+
+std::string StdLib::file_join_path(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 2, "fjoin");
+	std::filesystem::path path1 = args[0].asString();
+	std::filesystem::path path2 = args[1].asString();
+	return (path1 / path2).string();
+}
+
+int64_t StdLib::file_get_size(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fsize");
+	return std::filesystem::file_size(args[0].asString());
 }
 
 Value StdLib::file_read(const std::vector<Value> &args, VM *)
