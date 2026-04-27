@@ -61,7 +61,7 @@ ARGUMENTS
     <page>
     The name of the manual page to open.
 
-<section>  
+    <section>  
     The manual section number. This is an integer corresponding to 
     standard manual sections.  
 
