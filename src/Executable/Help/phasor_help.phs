@@ -1,4 +1,4 @@
-using("stdio", "stdsys", "stdstr", "stdtype", "stdfile");
+using("stdio", "stdsys", "stdstr", "stdtype", "stdfile", "stdmeta");
 
 fn getDocCmd(part: string, type: int) -> string {
     var sb = sb_new();
@@ -46,8 +46,8 @@ fn showHelp(programName: string, exitCode: int) -> void {
     }
 
     var helpStr = c_fmt(`
-    
-PHASOR-HELP(1)           Phasor 3.2.0              PHASOR-HELP(1)
+
+PHASOR-HELP(1)      Phasor %s      PHASOR-HELP(1)
 
 NAME
     %s - open Phasor manual pages
@@ -82,7 +82,7 @@ SEE ALSO
     MAN(1)
 
                               - 1 -
-`, programName, programName, programName, programName, programName, programName, programName, osStr);
+`, phs_version(), programName, programName, programName, programName, programName, programName, programName, osStr);
     if (exitCode == 0) puts(helpStr);
     else puts_error(helpStr);
     shutdown(exitCode);
