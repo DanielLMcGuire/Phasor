@@ -81,10 +81,6 @@ FILES
 SEE ALSO
     MAN(1)
 
-BUGS
-
-    Platform detection may be a bit off
-
                               - 1 -
 `, programName, programName, programName, programName, programName, programName, programName, osStr);
     if (exitCode == 0) puts(helpStr);
