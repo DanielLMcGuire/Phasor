@@ -1,4 +1,4 @@
-using("stdio", "stdsys", "stdstr", "stdtype");
+using("stdio", "stdsys", "stdstr", "stdtype", "stdfile");
 
 fn getDocCmd(part: string, type: int) -> string {
     var sb = sb_new();
@@ -19,14 +19,77 @@ fn getDocCmd(part: string, type: int) -> string {
         sb_append(sb, type);
         sb_append(sb, " ");
         sb_append(sb, part);
-        var path = sb_to_string(sb);
+        var args = sb_to_string(sb);
         sb_free(sb);
-        return concat("man ", path);
+        return concat("man ", args);
     } else {
         putf_error("Could not find documentation for %s(%d) on %s", part, type, os);
         shutdown(-1);
         return "cd ."; // noop if somehow reached
     }
+}
+
+fn showHelp(programName: string, exitCode: int) -> void {
+    var winStr = "C:\\Program Files\\Phasor Programming Language\\man\\man<section>\n    \\<page>.<section>.pdf";
+    var unixStr = "/usr/share/man/man<section>/<page>.<section>(.gz)";
+    var osxStr = "/usr/local/share/man/man<section>/<page>.<section>(.gz)";
+    var osStr;
+    var os = sys_os();
+    if (os == "win32") {
+        osStr = winStr;
+    } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX") {  
+        osStr = unixStr;
+    } else if (os == "Darwin") {
+        osStr = osxStr;
+    } else {
+        osStr = "https://phasor-docs.pages.dev/man?f=<page>.<section>";
+    }
+
+    var helpStr = c_fmt(`
+    
+PHASOR-HELP(1)           Phasor 3.2.0              PHASOR-HELP(1)
+
+NAME
+    %s - open Phasor manual pages
+
+SYNOPSIS
+    %s <page> <section>
+    %s --help
+    %s -h
+
+ARGUMENTS
+    <page>
+    The name of the manual page to open.
+
+<section>  
+    The manual section number. This is an integer corresponding to 
+    standard manual sections.  
+
+EXAMPLES
+    %s phasor 1
+    Open the section 1 manual page for "phasor".
+
+    %s phsb 5  
+    Open the section 5 manual page for "phsb".  
+
+    %s phasorstd_io 3  
+    Open the section 3 manual page for "phasorstd_io".  
+
+FILES
+    %s
+
+SEE ALSO
+    MAN(1)
+
+BUGS
+
+    Platform detection may be a bit off
+
+                              - 1 -
+`, programName, programName, programName, programName, programName, programName, programName, osStr);
+    if (exitCode == 0) puts(helpStr);
+    else puts_error(helpStr);
+    shutdown(exitCode);
 }
 
 fn main() -> int {
@@ -35,8 +98,10 @@ fn main() -> int {
         var section = to_int(sys_argv(2));
         sys_shell(getDocCmd(page, section));
     } else {
-        puts_error("Usage: phasor-help <page> <section>\ne.g. phasor-help phasor 1\nphasor-help phsb 5\nphasor-help phasorstd_io 3"); 
-        return 1;
+        if (page == "--help" || page == "-h") {
+            showHelp(sys_argv(0), 0);
+        }
+        showHelp(fstem(sys_argv(0)), 1);
     }
     return 0;
 }
