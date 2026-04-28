@@ -111,6 +111,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 
 Value VM::runFunction(const std::string &name, const Bytecode &bytecode) 
 {
+	isDirectCall = true;
 	run(bytecode, bytecode.functionEntries.find(name)->second);
 	Value ret = pop();
 	reset(true, false, false);
@@ -159,6 +160,7 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 	}
 	pc = 0;
 	m_bytecode = nullptr;
+	isDirectCall = false;
 }
 
 std::string VM::getInformation()
