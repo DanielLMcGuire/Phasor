@@ -5,7 +5,7 @@
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/DanielLMcGuire/Phasor.svg?label=commits)
 
-A statically typed, compiled programming language with a fast bytecode virtual machine.
+A dynamically typed, compiled programming language with a fast bytecode virtual machine. Types are static in most cases, but not always.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides C++ RAII support to the runtime.
 
