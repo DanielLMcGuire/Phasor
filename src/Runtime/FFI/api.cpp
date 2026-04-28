@@ -52,6 +52,7 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
  * @param string_arena A vector of unique_ptrs to manage the lifetime of C strings.
  *                     Any strings converted will be allocated and their memory will be
  *                     managed by this arena.
+ * @param array_arena A vector of unique_ptrs to manage the lifetime of C arrays.
  * @return The equivalent C-style value for the plugin.
  */
 PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_ptr<char[]>> &string_arena,

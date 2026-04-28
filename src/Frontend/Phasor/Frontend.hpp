@@ -12,12 +12,14 @@ namespace Frontend
  * @param source The source code to run
  * @param vm The virtual machine to run the script on
  * @param path The optional path of the source file
+ * @param verbose Prints AST to stdout.
  * @return The result of the script
  */
 int runScript(const std::string &source, VM *vm, const std::filesystem::path &path = "", bool verbose = false);
     /**
  * @brief Run an REPL
  * @param vm The virtual machine to run the REPL on
+ * @param verbose Prints AST to stdout.
  */
 int runRepl(VM *vm = nullptr, bool verbose = false);
 } // namespace Frontend
