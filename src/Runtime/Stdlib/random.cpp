@@ -16,7 +16,7 @@ Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "rand_seed");
     int64_t s1 = args[0].asInt();
-    int64_t s2 = args[1].asInt()0;
+    int64_t s2 = args[1].asInt();
 
     if (s1 <= 0 || s2 <= 0) {
         throw std::runtime_error("rand_seed(): Both values must be positive integers");

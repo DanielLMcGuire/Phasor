@@ -21,11 +21,11 @@ int64_t StdLib::meta_operation(const std::vector<Value> &args, VM *vm) {
 
     auto ret = vm->operation(
         static_cast<Phasor::OpCode>(args[0].asInt()),
-        args.size() > 1 && args[1].isInt() ? static_cast<int>(args[1].asInt()) : 0,
-        args.size() > 2 && args[2].isInt() ? static_cast<int>(args[2].asInt()) : 0,
-        args.size() > 3 && args[3].isInt() ? static_cast<int>(args[3].asInt()) : 0
+        args.size() > 1 ? static_cast<int>(args[1].asInt()) : 0,
+        args.size() > 2 ? static_cast<int>(args[2].asInt()) : 0,
+        args.size() > 3 ? static_cast<int>(args[3].asInt()) : 0
     );
-    return ret.isInt() ? ret.asInt() : 0;
+    return ret.asInt();
 }
 
 Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm) {
