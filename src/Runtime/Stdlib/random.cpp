@@ -15,8 +15,8 @@ void StdLib::registerRandomFunctions(VM *vm)
 Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "rand_seed");
-    int64_t s1 = args[0].isInt() ? args[0].asInt() : 0;
-    int64_t s2 = args[1].isInt() ? args[1].asInt() : 0;
+    int64_t s1 = args[0].asInt();
+    int64_t s2 = args[1].asInt()0;
 
     if (s1 <= 0 || s2 <= 0) {
         throw std::runtime_error("rand_seed(): Both values must be positive integers");
@@ -29,8 +29,8 @@ Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
 int64_t StdLib::rand_next_range(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "rand_next_range");
-    int64_t min = args[0].isInt() ? args[0].asInt() : 0;
-    int64_t max = args[1].isInt() ? args[1].asInt() : 0;
+    int64_t min = args[0].asInt();
+    int64_t max = args[1].asInt();
 
     if (min > max) {
         throw std::runtime_error("rand_get(): min value cannot be greater than max value");
