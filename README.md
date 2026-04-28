@@ -17,7 +17,9 @@ Phasor is stable, but still in beta, as I wish for a **smooth, stable experience
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
-[Download Phasor Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
+[Download Latest Stable](https://github.com/DanielLMcGuire/Phasor/releases/latest)
+
+[Download Latest Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
 
 ```bash
 $ nix run github:DanielLMcGuire/Phasor -- -- <options>
