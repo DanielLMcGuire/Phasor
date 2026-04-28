@@ -43,6 +43,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 	[[likely]] case OpCode::RETURN: {
+		if (isDirectCall) { pc = 0; break; }
 		if (callStack.empty()) [[unlikely]]
 		{
 			pc = m_bytecode->instructions.size();

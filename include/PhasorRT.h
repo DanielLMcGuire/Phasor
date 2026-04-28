@@ -54,8 +54,8 @@ extern "C"
 	 * @brief Executes pre-compiled Phasor bytecode.
 	 *
 	 * @param state                A pointer to an state to execute the script within. If null, new state will be created and managed for you.
-	 * @param embeddedBytecode     An array of unsigned chars containing the Phasor bytecode.
-	 * @param embeddedBytecodeSize The size of the bytecode array.
+	 * @param bytecode             An array of unsigned chars containing the Phasor bytecode.
+	 * @param bytecodeSize         The size of the bytecode array.
 	 * @param moduleName           The name of the module, used for error reporting.
 	 * @param argc                 Argument count.
 	 * @param argv                 Argument vector.
@@ -63,6 +63,38 @@ extern "C"
 	 */
 	PHASOR_API int exec(void *state, const unsigned char *bytecode, size_t bytecodeSize, 
 							const char *moduleName, int argc, const char **argv);
+
+	/**
+	 * @brief Executes a function from pre-compiled Phasor bytecode, and casts return to an integer.
+	 *
+	 * @param state                A pointer to an state to execute the script within. If null, new state will be created and managed for you.
+	 * @param bytecode             An array of unsigned chars containing the Phasor bytecode.
+	 * @param bytecodeSize         The size of the bytecode array.
+	 * @param moduleName           The name of the module, used for error reporting.
+	 * @param argc                 Argument count.
+	 * @param argv                 Argument vector.
+	 * @param functionName         The name of the function to execute.
+	 * @return                     The return from the function call (-1 might be an unhandled exception in VM).
+	 */
+	PHASOR_API int execFuncInt(void *state, const unsigned char* bytecode, size_t bytecodeSize, const char* moduleName,
+							int argc, const char **argv, const char* functionName);
+
+	/**
+	 * @brief Executes a function from pre-compiled Phasor bytecode, and casts return to an string.
+	 *
+	 * @param state                A pointer to an state to execute the script within. If null, new state will be created and managed for you.
+	 * @param bytecode             An array of unsigned chars containing the Phasor bytecode.
+	 * @param bytecodeSize         The size of the bytecode array.
+	 * @param moduleName           The name of the module, used for error reporting.
+	 * @param argc                 Argument count.
+	 * @param argv                 Argument vector.
+	 * @param functionName         The name of the function to execute.
+	 * @return                     The return from the function call, nullptr on error. This memory is cleared by the C++ runtime when you 
+	 * 							   unload the DLL, and is overwritten after recalling this function. This DOES NOT use two pass for perf reasons.
+	 *                             Copy the string to safe memory, or you will lose the data.
+	 */
+	PHASOR_API const char* execFuncString(void *state, const unsigned char* bytecode, size_t bytecodeSize, const char* moduleName,
+							int argc, const char **argv, const char* functionName);
 
 	/**
 	 * @brief Executes a Phasor Programming Language script.

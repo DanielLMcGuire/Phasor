@@ -40,10 +40,10 @@ void VM::initFFI(const std::filesystem::path &path) {
 #endif
 }
 
-int VM::run(const Bytecode &bc)
+int VM::run(const Bytecode &bc, const size_t startPC)
 {
 	m_bytecode = &bc;
-	pc = 0;
+	pc = startPC;
 	stack.clear();
 	callStack.clear();
 
@@ -107,6 +107,14 @@ int VM::run(const Bytecode &bc)
 		}
 	}
 	return -1;
+}
+
+Value VM::runFunction(const std::string &name, const Bytecode &bytecode) 
+{
+	run(bytecode, bytecode.functionEntries.find(name)->second);
+	Value ret = pop();
+	reset(true, false, false);
+	return ret;
 }
 
 void VM::setImportHandler(const ImportHandler &handler)

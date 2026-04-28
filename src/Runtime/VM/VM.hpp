@@ -55,7 +55,10 @@ class VM
 
 	/// @brief Run the virtual machine
 	/// Exits -1 on uncaught exception
-	int run(const Bytecode &bytecode);
+	int run(const Bytecode &bytecode, const size_t startPC = 0);
+
+	/// @brief Run a function from bytecode on the virtual machine
+	Value runFunction(const std::string &name, const Bytecode &bytecode);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
@@ -224,6 +227,8 @@ class VM
 	}
 
   private:
+	bool isDirectCall = false; ///< is a direct call to a function
+
 #ifndef SANDBOXED
 	/// @brief FFI
 	std::unique_ptr<FFI> ffi;

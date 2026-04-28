@@ -118,11 +118,67 @@ int NativeRuntime::run()
 	}
 	catch (const std::exception &e)
 	{
-		std::string errorMsg = std::string(e.what()) + " | " + m_vm->getInformation() + "\n";
-		error(errorMsg);
-		return 1;
+		throw;
 	}
 	return 0;
+}
+
+int NativeRuntime::runFunctionInt(std::string functionName)
+{
+	try
+	{
+		StdLib::argc = m_argc;
+		StdLib::argv = m_argv;
+		StdLib::registerFunctions(*m_vm);
+#if defined(_WIN32)
+		m_vm->initFFI("plugins");
+#elif defined(__APPLE__)
+		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+#elif defined(__linux__)
+		m_vm->initFFI("/usr/lib/phasor/plugins/");
+#endif
+		m_vm->setImportHandler([](const std::filesystem::path &path) {
+			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
+		});
+
+		Value ret = m_vm->runFunction(functionName, m_bytecode);
+
+		return ret.asInt();
+	}
+	catch (const std::exception &e)
+	{
+		throw;
+	}
+	return 0;
+}
+
+std::optional<std::string> NativeRuntime::runFunctionString(std::string functionName)
+{
+	try
+	{
+		StdLib::argc = m_argc;
+		StdLib::argv = m_argv;
+		StdLib::registerFunctions(*m_vm);
+#if defined(_WIN32)
+		m_vm->initFFI("plugins");
+#elif defined(__APPLE__)
+		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+#elif defined(__linux__)
+		m_vm->initFFI("/usr/lib/phasor/plugins/");
+#endif
+		m_vm->setImportHandler([](const std::filesystem::path &path) {
+			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
+		});
+
+		Value ret = m_vm->runFunction(functionName, m_bytecode);
+
+		return ret.asString();
+	}
+	catch (const std::exception &e)
+	{
+		throw;
+	}
+	return std::nullopt;
 }
 
 } // namespace Phasor

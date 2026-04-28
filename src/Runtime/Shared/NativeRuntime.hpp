@@ -24,6 +24,8 @@ class NativeRuntime
 	NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);
 	~NativeRuntime();
 	int  run();
+	int  runFunctionInt(std::string functionName);
+	std::optional<std::string> runFunctionString(std::string functionName);
 	void addNativeFunction(const std::string &name, void *function);
 
 	static int eval(VM *vm, const std::string &script);

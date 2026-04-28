@@ -45,6 +45,44 @@ extern "C"
 		return -1;
 	}
 
+	PHASOR_API int execFuncInt(void *vmPtr, const unsigned char* bytecode, size_t bytecodeSize, const char* moduleName,
+							int argc, const char **argv, const char* functionName)
+	{
+		try
+		{
+			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
+			Phasor::NativeRuntime NativeRT(static_cast<Phasor::VM *>(vmPtr), bytecodeData, argc, argv);
+
+			return NativeRT.runFunctionInt(functionName);
+		}
+		catch (const std::exception &e)
+		{
+			msg(std::string(moduleName) + ": " + e.what());
+		}
+		return -1;
+	}
+
+	PHASOR_API const char* execFuncString(void *vmPtr, const unsigned char* bytecode, size_t bytecodeSize, const char* moduleName,
+							int argc, const char **argv, const char* functionName)
+	{
+		 static std::string ret;
+		try
+		{
+			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
+			Phasor::NativeRuntime NativeRT(static_cast<Phasor::VM *>(vmPtr), bytecodeData, argc, argv);
+
+			auto result = NativeRT.runFunctionString(functionName);
+			if (!result) return nullptr;
+			else ret = *result;
+			return ret.c_str();
+		}
+		catch (const std::exception &e)
+		{
+			msg(std::string(moduleName) + ": " + e.what());
+			return nullptr;
+		}
+	}
+
 	PHASOR_API int evaluatePHS(void *vmPtr, const char *script, const char *moduleName, 
 								const char *modulePath, bool verbose)
 	{
