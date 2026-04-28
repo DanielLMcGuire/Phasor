@@ -258,6 +258,7 @@ See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building
 **Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
 
 [GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
+[Codeberg Mirror](https://codeberg.org/DanielLMcGuire/Phasor)
 
 - Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
