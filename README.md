@@ -22,10 +22,10 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 [Download Latest Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
 
 ```bash
-$ nix run github:DanielLMcGuire/Phasor -- -- <options>
-...
-$ phasor <options>
-...
+# Run via nix
+nix run github:DanielLMcGuire/Phasor -- -- <options>
+# Run directly (requires install)
+phasor <options>
 ```
 
 ## Language Features
@@ -269,10 +269,11 @@ This repo contains:
   - Supported CC (23) compiler and CXX (23) compiler ([MSVC latest](https://visualstudio.microsoft.com/downloads/?q=build+tools), [GCC 14](https://gcc.gnu.org/install/), [Clang (LLVM Latest)](https://releases.llvm.org/) )
   - [Ninja](https://github.com/ninja-build/ninja/releases)
 - Optional:
-  - [Python](https://www.python.org/downloads/) (for the python API)
-  - [PowerShell](https://github.com/PowerShell/PowerShell/releases/) (for the powershell module)
-  - [Node.js](https://nodejs.org/en/download) (for the web server, and building the vscode extension)
-  - [Docker](https://docs.docker.com/get-started/get-docker/) (for the docs (man to pdf), optional)
+  - [Rust Toolchain](https://rust-lang.org/tools/install/) for the `phasorrt-rs` lib
+  - [CPython](https://www.python.org/downloads/) (or another interpreter) for the Python API
+  - [PowerShell](https://github.com/PowerShell/PowerShell/releases/) for the PowerShell module
+  - [Node.js](https://nodejs.org/en/download) for the web server, and building the Visual Studio Code extension
+  - [Docker](https://docs.docker.com/get-started/get-docker/) for the man page conversions (required only for phasor-help on win32)
 
 ### Build Steps
 
