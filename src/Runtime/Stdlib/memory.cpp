@@ -10,15 +10,15 @@ void StdLib::registerMemoryFunctions(VM *vm)
 
 Value StdLib::var_free(const std::vector<Value> &args, VM *vm)
 {
-    checkArgCount(args, 1, "stdmem");
+	checkArgCount(args, 1, "stdmem");
 
-    const Value &arg = args[0];
+	const Value &arg = args[0];
 
-    if (!arg.isString())
-        throw std::runtime_error("stdmem(): argument must be a string");
+	if (!arg.isString())
+		throw std::runtime_error("stdmem(): argument must be a string");
 
-    vm->freeVariableByName(arg.asString());
-    return Value();
+	vm->freeVariableByName(arg.asString());
+	return Value();
 }
 
 } // namespace Phasor

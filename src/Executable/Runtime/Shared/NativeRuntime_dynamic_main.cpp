@@ -72,7 +72,8 @@ int main(int argc, char *argv[])
 		}
 
 		// Execute the bytecode
-		int exitCode = execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
+		int exitCode =
+		    execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
 
 		// Cleanup
 		dlclose(hRuntime);

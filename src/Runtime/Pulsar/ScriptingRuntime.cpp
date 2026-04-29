@@ -126,7 +126,7 @@ void Interpreter::parseArguments(int argc, char *argv[])
 			showHelp();
 			exit(0);
 		}
-		else if (arg == "--version") 
+		else if (arg == "--version")
 		{
 			std::println(PHASOR_VERSION_STRING);
 			exit(0);
@@ -144,18 +144,16 @@ void Interpreter::parseArguments(int argc, char *argv[])
 
 void Interpreter::showHelp()
 {
-	std::println(
-		"Pulsar Scripting Language (Phasor v{})\n"
-		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-		"Usage:\n"
-		"  {} [inFile] [...script args]\n\n"
-		"Options:\n"
-		"  -v, --verbose       Enable verbose output (print AST)\n"
-		"  -h, --help          Show this help message\n"
-		"      --version       Print version string to stdout\n"
-		"  -c, --command       Run a source string from argv",
-		PHASOR_VERSION_STRING, m_args.program.stem().string()
-	);
+	std::println("Pulsar Scripting Language (Phasor v{})\n"
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage:\n"
+	             "  {} [inFile] [...script args]\n\n"
+	             "Options:\n"
+	             "  -v, --verbose       Enable verbose output (print AST)\n"
+	             "  -h, --help          Show this help message\n"
+	             "      --version       Print version string to stdout\n"
+	             "  -c, --command       Run a source string from argv",
+	             PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 } // namespace pulsar

@@ -82,10 +82,7 @@ static json makePointRange(size_t line, size_t col)
 
 static json handleInitialize(const json &)
 {
-	return {{"capabilities", {
-	          {"textDocumentSync", 1},
-	          {"hoverProvider", true},
-	          {"definitionProvider", true}}},
+	return {{"capabilities", {{"textDocumentSync", 1}, {"hoverProvider", true}, {"definitionProvider", true}}},
 	        {"serverInfo", {{"name", "phasor-lsp"}, {"version", "0.1.0"}}}};
 }
 
@@ -99,9 +96,7 @@ static json handleHover(Phasor::LSP &lsp, const json &params)
 	if (!text.has_value())
 		return nullptr;
 
-	return {{"contents",
-	         {{"kind", "markdown"},
-	          {"value", "```phasor\n" + *text + "\n```"}}},
+	return {{"contents", {{"kind", "markdown"}, {"value", "```phasor\n" + *text + "\n```"}}},
 	        {"range", makePointRange(line, col)}};
 }
 

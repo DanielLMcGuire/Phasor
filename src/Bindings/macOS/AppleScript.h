@@ -4,18 +4,20 @@
 #include <stdlib.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-typedef struct {
-    int   success;
-    char* output;
-    char* error;
-    int   errorCode;
-} AppleScriptResult;
+	typedef struct
+	{
+		int   success;
+		char *output;
+		char *error;
+		int   errorCode;
+	} AppleScriptResult;
 
-AppleScriptResult executeAppleScript(const char* script);
-void              freeAppleScriptResult(AppleScriptResult* result);
+	AppleScriptResult executeAppleScript(const char *script);
+	void              freeAppleScriptResult(AppleScriptResult *result);
 
 #ifdef __cplusplus
 }

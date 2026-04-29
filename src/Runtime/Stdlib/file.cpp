@@ -48,7 +48,7 @@ std::string StdLib::file_stem(const std::vector<Value> &args, VM *)
 	return std::filesystem::path(args[0].asString()).stem().string();
 }
 
-std::string StdLib::file_filename(const std::vector<Value> &args, VM*)
+std::string StdLib::file_filename(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fname");
 	return std::filesystem::path(args[0].asString()).filename().string();
@@ -218,16 +218,16 @@ bool StdLib::file_delete(const std::vector<Value> &args, VM *)
 
 bool StdLib::file_rename(const std::vector<Value> &args, VM *)
 {
-    checkArgCount(args, 2, "frn");
-    std::filesystem::path src  = args[0].asString();
-    std::filesystem::path dest = args[1].asString();
+	checkArgCount(args, 2, "frn");
+	std::filesystem::path src = args[0].asString();
+	std::filesystem::path dest = args[1].asString();
 
-    if (!std::filesystem::exists(src))
-        return false;
+	if (!std::filesystem::exists(src))
+		return false;
 
-    std::error_code ec;
-    std::filesystem::rename(src, dest, ec);
-    return !ec;
+	std::error_code ec;
+	std::filesystem::rename(src, dest, ec);
+	return !ec;
 }
 
 Value StdLib::file_current_directory(const std::vector<Value> &args, VM *)
@@ -306,7 +306,7 @@ bool StdLib::file_move(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 2, "fmv");
 	std::filesystem::path src = args[0].asString();
 	std::filesystem::path dest = args[1].asString();
-	bool status;
+	bool                  status;
 	status = std::filesystem::copy_file(src, dest);
 	if (!status)
 	{
@@ -364,7 +364,8 @@ Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 			result += "\n";
 		result += entry.path().filename().string();
 	}
-	if (!result.empty()) return result;
+	if (!result.empty())
+		return result;
 	return false;
 }
 
@@ -382,16 +383,18 @@ bool StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "frmdir");
 	std::filesystem::path path = args[0].asString();
-	bool recursive = args[1].asBool();	
+	bool                  recursive = args[1].asBool();
 	if (std::filesystem::exists(path))
 	{
 		if (recursive)
 		{
-			if (std::filesystem::remove_all(path) > 0) 
+			if (std::filesystem::remove_all(path) > 0)
 				return true;
 			else
 				return false;
-		} else {
+		}
+		else
+		{
 			return std::filesystem::remove(path);
 		}
 	}

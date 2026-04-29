@@ -12,7 +12,6 @@
 #include <sstream>
 #include <nativeerror.h>
 
-
 namespace Phasor
 {
 
@@ -142,17 +141,15 @@ void ScriptingRuntime::parseArguments(int argc, char *argv[])
 void ScriptingRuntime::showHelp(const std::string &programName)
 {
 	std::string filename = std::filesystem::path(programName).filename().string();
-	std::println(
-		"Phasor Scripting Runtime v{}\n"
-		"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-		"Usage:\n"
-		"  {} [options] [file.phs] [...script args]\n\n"
-		"Options:\n"
-		"  -v, --verbose       Enable verbose output (print AST)\n"
-		"  -h, --help          Show this help message\n"
-		"  -c, --command       Run a source string from argv",
-		PHASOR_VERSION_STRING, filename
-	);
+	std::println("Phasor Scripting Runtime v{}\n"
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage:\n"
+	             "  {} [options] [file.phs] [...script args]\n\n"
+	             "Options:\n"
+	             "  -v, --verbose       Enable verbose output (print AST)\n"
+	             "  -h, --help          Show this help message\n"
+	             "  -c, --command       Run a source string from argv",
+	             PHASOR_VERSION_STRING, filename);
 }
 
 } // namespace Phasor

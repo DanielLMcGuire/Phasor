@@ -58,7 +58,7 @@ int PHASORstd_sys_run(const char *name, int argc, char **argv)
 	char **args = (char **)malloc((argc + 2) * sizeof(char *));
 	if (!args)
 		return -1;
-	 
+
 	args[0] = (char *)name;
 	for (int i = 0; i < argc; i++)
 		args[i + 1] = argv[i];
@@ -130,7 +130,7 @@ int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
 		execvp(name, args);
 		exit(1);
 	}
-	
+
 	free(args);
 	return 0;
 

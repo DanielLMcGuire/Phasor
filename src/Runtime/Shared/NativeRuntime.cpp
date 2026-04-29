@@ -59,7 +59,6 @@ NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecod
 	m_bytecode = deserializer.deserialize(m_bytecodeData);
 }
 
-
 NativeRuntime::~NativeRuntime()
 {
 	m_vm.reset();
@@ -109,9 +108,10 @@ int NativeRuntime::run()
 
 		int status = m_vm->run(m_bytecode);
 
-		if (status != 0) { 
+		if (status != 0)
+		{
 			m_vm->reset(true, false, false);
-			m_vm->resetStatus(); 
+			m_vm->resetStatus();
 		}
 
 		return status;

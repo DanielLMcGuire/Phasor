@@ -15,31 +15,31 @@ int    StdLib::argc = 0;
 #ifndef SANDBOXED
 int StdLib::dupenv(std::string &out, const char *name)
 {
-    if (!name || name[0] == '\0') 
-    {
-        return 1;
-    }
+	if (!name || name[0] == '\0')
+	{
+		return 1;
+	}
 
 #ifdef _WIN32
-    char *buffer = nullptr;
-    size_t len = 0;
-    if (_dupenv_s(&buffer, &len, name) == 0 && buffer != nullptr) 
-    {
-        out = buffer;
-        free(buffer);
-        return 0;
-    }
+	char  *buffer = nullptr;
+	size_t len = 0;
+	if (_dupenv_s(&buffer, &len, name) == 0 && buffer != nullptr)
+	{
+		out = buffer;
+		free(buffer);
+		return 0;
+	}
 #else
-    const char *val = std::getenv(name);
-    if (val) 
-    {
-        out = val;
-        return 0;
-    }
+	const char *val = std::getenv(name);
+	if (val)
+	{
+		out = val;
+		return 0;
+	}
 #endif
 
-    out.clear();
-    return 2; // Not found
+	out.clear();
+	return 2; // Not found
 }
 #endif
 
@@ -61,32 +61,33 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "using", true);
-	
-	std::unordered_map<std::string, std::function<void(Phasor::VM*)>>  modules {
-		{"stdio", registerIOFunctions},
-		{"stdsys", registerSysFunctions},
-		{"stdmath", registerMathFunctions},
-		{"stdstr", registerStringFunctions},
-		{"stdtype", registerTypeConvFunctions},
+
+	std::unordered_map<std::string, std::function<void(Phasor::VM *)>> modules{
+	    {"stdio", registerIOFunctions},
+	    {"stdsys", registerSysFunctions},
+	    {"stdmath", registerMathFunctions},
+	    {"stdstr", registerStringFunctions},
+	    {"stdtype", registerTypeConvFunctions},
 	    {"stdmeta", registerMetaFunctions},
-		{"stdmem", registerMemoryFunctions},
-		{"stdrand", registerRandomFunctions},
+	    {"stdmem", registerMemoryFunctions},
+	    {"stdrand", registerRandomFunctions},
 #ifndef SANDBOXED
-		{"stdfile", registerFileFunctions},
+	    {"stdfile", registerFileFunctions},
 #endif
-		{"std*", [](Phasor::VM* vm) {
-			registerIOFunctions(vm);
-			registerSysFunctions(vm);
-			registerMathFunctions(vm);
-			registerStringFunctions(vm);
-			registerTypeConvFunctions(vm);
-		    registerMetaFunctions(vm);
-			registerMemoryFunctions(vm);
-			registerRandomFunctions(vm);
+	    {"std*",
+	     [](Phasor::VM *vm) {
+		     registerIOFunctions(vm);
+		     registerSysFunctions(vm);
+		     registerMathFunctions(vm);
+		     registerStringFunctions(vm);
+		     registerTypeConvFunctions(vm);
+		     registerMetaFunctions(vm);
+		     registerMemoryFunctions(vm);
+		     registerRandomFunctions(vm);
 #ifndef SANDBOXED
-			registerFileFunctions(vm);
+		     registerFileFunctions(vm);
 #endif
-		}},
+	     }},
 	};
 
 	for (const auto &arg : args)
@@ -105,16 +106,16 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 }
 
 #ifndef SANDBOXED
-Value StdLib::std_assert(const std::vector<Value>& args, VM* vm)
+Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "assert");
 
 #ifdef TRACING
-	#ifndef NDEBUG
-		vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
-	#else
-		vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
-	#endif
+#ifndef NDEBUG
+	vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
+#else
+	vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
+#endif
 	vm->flush();
 #endif
 

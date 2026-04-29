@@ -24,10 +24,14 @@ int Disassembler::run()
 		return 0;
 	}
 
-	if (decompileBinary()) {
-		if (!m_args.silent) std::println("Success! Output to {}", m_args.outputFile.string());
+	if (decompileBinary())
+	{
+		if (!m_args.silent)
+			std::println("Success! Output to {}", m_args.outputFile.string());
 		return 0;
-	} else {
+	}
+	else
+	{
 		std::println(std::cerr, "Failed to disassemble program!");
 		return 1;
 	}
@@ -86,13 +90,14 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 void Disassembler::showHelp()
 {
 	std::println("Phasor Disassembler v{}\n"
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Usage:\n" 
-	"  {} [options] <input.phsb>\n"
-	"Options:\n"
-    "  -o, --output <file>   Output file\n"
-    "  -h, --help            Show this help message\n"
-    "  -s, --silent          Do not print anything except errors (no stdout)", PHASOR_VERSION_STRING, m_args.program.stem().string());
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage:\n"
+	             "  {} [options] <input.phsb>\n"
+	             "Options:\n"
+	             "  -o, --output <file>   Output file\n"
+	             "  -h, --help            Show this help message\n"
+	             "  -s, --silent          Do not print anything except errors (no stdout)",
+	             PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 bool Disassembler::decompileBinary()

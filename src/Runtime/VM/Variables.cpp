@@ -27,19 +27,19 @@ void VM::freeVariable(const size_t index)
 	}
 }
 
-void VM::freeVariableByName(const std::string& name)
+void VM::freeVariableByName(const std::string &name)
 {
 #ifdef TRACING
-    log(std::format("VM::{}(\"{}\")\n", __func__, name));
-    flush();
+	log(std::format("VM::{}(\"{}\")\n", __func__, name));
+	flush();
 #endif
-    if(!m_bytecode)
-        throw std::runtime_error("Error in freeVariable(): No bytecode loaded");
-    auto it = m_bytecode->variables.find(name);
-    if (it == m_bytecode->variables.end())
-        throw std::runtime_error("Error in freeVariable(): Unknown variable \"" + name + "\"");
+	if (!m_bytecode)
+		throw std::runtime_error("Error in freeVariable(): No bytecode loaded");
+	auto it = m_bytecode->variables.find(name);
+	if (it == m_bytecode->variables.end())
+		throw std::runtime_error("Error in freeVariable(): Unknown variable \"" + name + "\"");
 
-    freeVariable(it->second);
+	freeVariable(it->second);
 }
 
 void VM::setVariable(const size_t index, const Value &value)

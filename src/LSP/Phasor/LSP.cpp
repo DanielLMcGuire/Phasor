@@ -353,7 +353,7 @@ AST::Node *walkStmt(AST::Statement *stmt, size_t line, size_t col)
 
 	return candidate(stmt, line, col);
 }
-}
+} // namespace
 
 AST::Node *LSP::walkForNode(const DocumentState &doc, size_t line, size_t col)
 {

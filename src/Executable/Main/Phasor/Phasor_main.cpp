@@ -37,22 +37,25 @@ void showHelp(const fs::path &program = "phasor")
 {
 	const std::string programName = program.stem().string();
 	std::println("Phasor Programming Language and Toolchain v{}\n"
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
-	"A. PIPE:    <text> | {}\n"
-	"B. JIT/BYTECODE:     {} <file>\n"
-	"C. REPL:             {}\n\n"
-	"Example:", PHASOR_VERSION_STRING, programName, programName, programName, programName);
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
+	             "A. PIPE:    <text> | {}\n"
+	             "B. JIT/BYTECODE:     {} <file>\n"
+	             "C. REPL:             {}\n\n"
+	             "Example:",
+	             PHASOR_VERSION_STRING, programName, programName, programName, programName);
 
 #ifdef _WIN32
 	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^);\" | {}\n"
-	"A. PWSH: echo \"print(`\"Hi\\!\\n`);\" | {}\n"
-	"B.       {} hello.phs\n"
-	"B.       {} hello.phsb", programName, programName, programName, programName);
+	             "A. PWSH: echo \"print(`\"Hi\\!\\n`);\" | {}\n"
+	             "B.       {} hello.phs\n"
+	             "B.       {} hello.phsb",
+	             programName, programName, programName, programName);
 #else
 	std::println("A. echo \"print(\\\"Hi\\!\\n\\\");\" | {}\n"
-	"B. {} hello.phs\n"
-	"B. {} hello.phsb", programName, programName, programName);
+	             "B. {} hello.phs\n"
+	             "B. {} hello.phsb",
+	             programName, programName, programName);
 #endif
 	std::println(R"(
 Options:
@@ -92,17 +95,25 @@ int main(int argc, char *argv[])
 				{
 					showHelp(programPath);
 					return 0;
-				} else if (m_path == "version" || m_path == "v") { 
-					std::println(PHASOR_VERSION_STRING); 
+				}
+				else if (m_path == "version" || m_path == "v")
+				{
+					std::println(PHASOR_VERSION_STRING);
 					return 0;
-				} else if (m_path == "command" || m_path == "c"){
+				}
+				else if (m_path == "command" || m_path == "c")
+				{
 					Phasor::ScriptingRuntime ScriptRT(argc, argv);
-					auto vm = ScriptRT.createVm();
+					auto                     vm = ScriptRT.createVm();
 					return ScriptRT.runSourceString(argv[2], *vm);
-				} else {
+				}
+				else
+				{
 					std::println(std::cerr, "Invalid argument: {}", m_path);
 				}
-			} else {
+			}
+			else
+			{
 				std::println(std::cerr, "File not found: {}", raw);
 			}
 			return 1;

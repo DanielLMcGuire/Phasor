@@ -25,10 +25,14 @@ int Assembler::run()
 		return 0;
 	}
 
-	if (assembleBinary()) {
-		if (!m_args.silent) std::println("Success! Output to {}", m_args.outputFile.string());
+	if (assembleBinary())
+	{
+		if (!m_args.silent)
+			std::println("Success! Output to {}", m_args.outputFile.string());
 		return 0;
-	} else {
+	}
+	else
+	{
 		std::println("Failed to assemble program!");
 		return 1;
 	}
@@ -87,19 +91,20 @@ bool Assembler::parseArguments(int argc, char *argv[])
 void Assembler::showHelp()
 {
 	std::println("Phasor Assembler v{}\n"
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Usage:\n"
-	"  {} [options] <input.phsb>\n\n"
-	"Options:\n"
-	"  -o, --output <file>   Output file\n"
-	"  -h, --help            Show this help message\n"
-	"  -s, --silent          Do not print anything except errors (no stdout)", PHASOR_VERSION_STRING, m_args.program.stem().string());
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage:\n"
+	             "  {} [options] <input.phsb>\n\n"
+	             "Options:\n"
+	             "  -o, --output <file>   Output file\n"
+	             "  -h, --help            Show this help message\n"
+	             "  -s, --silent          Do not print anything except errors (no stdout)",
+	             PHASOR_VERSION_STRING, m_args.program.stem().string());
 }
 
 bool Assembler::assembleBinary()
 {
 	BytecodeSerializer bcSerializer{};
-	PhasorIR             phir;
+	PhasorIR           phir;
 
 	if (m_args.outputFile.empty())
 	{

@@ -93,8 +93,7 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 	if (!sectionPrefixPragma.empty())
 		output << sectionPrefixPragma;
 
-	output << sectionAttr << "volatile const size_t embeddedBytecodeSize = "
-	       << serializedBytecode.size() << ";\n";
+	output << sectionAttr << "volatile const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
 
 	output << sectionAttr << "constexpr unsigned char embeddedBytecode[] = {\n";
 
@@ -103,8 +102,7 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 		if (i % 16 == 0)
 			output << "\t";
 
-		output << "0x" << std::hex << std::setw(2) << std::setfill('0')
-		       << static_cast<int>(serializedBytecode[i]);
+		output << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(serializedBytecode[i]);
 
 		if (i < serializedBytecode.size() - 1)
 			output << ",";

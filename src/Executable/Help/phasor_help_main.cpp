@@ -20,9 +20,9 @@ extern "C" int exec(void *state, const unsigned char embeddedBytecode[], size_t 
 // Main entry point
 int main(int argc, char *argv[])
 {
-    try
+	try
 	{
-        return exec(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
+		return exec(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
 	}
 	catch (const std::exception &e)
 	{

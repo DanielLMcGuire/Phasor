@@ -184,13 +184,14 @@ void Compiler::showHelp(const std::string &programName)
 	std::string filename = std::filesystem::path(programName).filename().string();
 
 	std::println("Phasor Compiler v{}\n"
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Usage:\n"
-	"  {} [options] <file.phs>\n\n"
-	"Options:\n  -o, --output FILE   Specify output file\n"
-	"  -i, --ir            Compile to IR format (.phir) instead of bytecode\n"
-	"  -v, --verbose       Enable verbose output\n"
-	"  -h, --help          Show this help message", PHASOR_VERSION_STRING, filename);
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage:\n"
+	             "  {} [options] <file.phs>\n\n"
+	             "Options:\n  -o, --output FILE   Specify output file\n"
+	             "  -i, --ir            Compile to IR format (.phir) instead of bytecode\n"
+	             "  -v, --verbose       Enable verbose output\n"
+	             "  -h, --help          Show this help message",
+	             PHASOR_VERSION_STRING, filename);
 }
 
 } // namespace Phasor

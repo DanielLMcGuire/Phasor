@@ -32,24 +32,31 @@ int64_t StdLib::str_find(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 2, "find", true);
 	std::string s = args[0].asString();
 	std::string sub = args[1].asString();
-	size_t pos;
-	if (args.size() == 3) {
+	size_t      pos;
+	if (args.size() == 3)
+	{
 		int64_t start = args[2].asInt();
 		pos = s.find(sub, start);
-		if (pos != std::string::npos) {
+		if (pos != std::string::npos)
+		{
 			return static_cast<int64_t>(pos);
 		}
 		return -1;
-	} else if (args.size() == 4) {
+	}
+	else if (args.size() == 4)
+	{
 		int64_t start = args[2].asInt();
 		int64_t end = args[3].asInt();
 		pos = s.find(sub, start);
-		if (pos != std::string::npos && pos < static_cast<size_t>(end)) {
+		if (pos != std::string::npos && pos < static_cast<size_t>(end))
+		{
 			return static_cast<int64_t>(pos);
 		}
 		return -1;
-	} else {
-	pos = s.find(sub);
+	}
+	else
+	{
+		pos = s.find(sub);
 	}
 	return pos != std::string::npos ? static_cast<int64_t>(pos) : false;
 }

@@ -8,19 +8,26 @@ static PhasorValue applescript_run(PhasorVM *vm, int argc, const PhasorValue *ar
 	int64_t status = -1;
 	if (argc < 1 || !phasor_is_string(argv[0]))
 		return phasor_make_int(-1);
-	const char *script = phasor_to_string(argv[0]);
+	const char       *script = phasor_to_string(argv[0]);
 	AppleScriptResult result = executeAppleScript(script);
-	if (result.success) { 
-		if (result.output)  {
+	if (result.success)
+	{
+		if (result.output)
+		{
 			PhasorValue ret = phasor_make_string(result.output);
 			freeAppleScriptResult(&result);
 			return ret;
-		} else {
+		}
+		else
+		{
 			freeAppleScriptResult(&result);
 			return phasor_make_int(0);
 		}
-	} else { 
-		if(result.error) puts(result.error);
+	}
+	else
+	{
+		if (result.error)
+			puts(result.error);
 		PhasorValue ret = phasor_make_int(result.errorCode);
 		freeAppleScriptResult(&result);
 		return ret;

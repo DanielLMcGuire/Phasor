@@ -16,16 +16,17 @@
 
 int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::filesystem::path &path, bool verbose)
 {
-	int status = 0;
-	bool ownVM = false;
+	int           status = 0;
+	bool          ownVM = false;
 	CodeGenerator codegen;
-	Lexer lexer(source);
-	Parser parser(lexer.tokenize());
-	if (!path.empty() && std::filesystem::exists(path)) {
+	Lexer         lexer(source);
+	Parser        parser(lexer.tokenize());
+	if (!path.empty() && std::filesystem::exists(path))
+	{
 		parser.setSourcePath(path);
-	} 
-	
-	auto   program = parser.parse();
+	}
+
+	auto program = parser.parse();
 #ifndef TRACING
 	if (verbose)
 	{
@@ -36,7 +37,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 #ifndef TRACING
 	}
 #endif
-	auto          bytecode = codegen.generate(*program);
+	auto bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
 	{
@@ -68,8 +69,9 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	{
 		status = vm->run(bytecode);
 
-		if (status != 0) {
-			if (!ownVM) 
+		if (status != 0)
+		{
+			if (!ownVM)
 			{
 				vm->resetStatus();
 				vm->reset(true, false, false);
@@ -78,20 +80,22 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	}
 	catch (...)
 	{
-		if (ownVM) delete vm;
+		if (ownVM)
+			delete vm;
 		throw;
 	}
 
-	if (ownVM) delete vm;
+	if (ownVM)
+		delete vm;
 
 	return status;
 }
 
 int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 {
-	int status = 0;
-	bool ownVM = false;
-	CodeGenerator              codegen;
+	int           status = 0;
+	bool          ownVM = false;
+	CodeGenerator codegen;
 
 	if (vm == nullptr)
 	{
@@ -119,21 +123,24 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 		runScript(buffer.str(), vm, path);
 	});
 
-	if (status != 0) {
-		if (ownVM) delete vm;
+	if (status != 0)
+	{
+		if (ownVM)
+			delete vm;
 		std::println(std::cerr, "Failed to create FFI handler!");
 		return status;
 	}
 
 	std::unordered_map<std::string, int> globalVars;
-	int                        nextVarIdx = 0;	
-	std::string line;
-	bool cleanExit = false;
+	int                                  nextVarIdx = 0;
+	std::string                          line;
+	bool                                 cleanExit = false;
 
 	std::println("Phasor REPL (using Phasor VM v{})\n"
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Type 'exit();' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
-	
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Type 'exit();' to quit. Function declarations will not work.",
+	             PHASOR_VERSION_STRING);
+
 	while (true)
 	{
 		try
@@ -141,7 +148,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 			std::print("\n> ");
 			if (!std::getline(std::cin, line))
 				break;
-			
+
 			if (line.starts_with("exit"))
 			{
 				cleanExit = true;
@@ -153,10 +160,10 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 				continue;
 			}
 
-			Lexer lexer(line);
+			Lexer  lexer(line);
 			Parser parser(lexer.tokenize());
-			
-			auto   program = parser.parse();
+
+			auto program = parser.parse();
 #ifndef TRACING
 			if (verbose)
 			{

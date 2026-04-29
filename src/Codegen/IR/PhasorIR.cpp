@@ -601,8 +601,7 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 				while (ss.get(c) && c != '\n')
 					;
 
-				bytecode.instructions.push_back(
-				    Instruction(op, operands[0], operands[1], operands[2]));
+				bytecode.instructions.push_back(Instruction(op, operands[0], operands[1], operands[2]));
 			}
 		}
 	}

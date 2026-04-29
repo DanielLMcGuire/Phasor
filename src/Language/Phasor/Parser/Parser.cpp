@@ -21,11 +21,11 @@ static std::vector<Token> tokenizeFile(const std::filesystem::path &path)
 	return lexer.tokenize();
 }
 
-static std::vector<std::unique_ptr<AST::Statement>>
-resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir);
+static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts,
+                                                                    const std::filesystem::path &baseDir);
 
-static std::vector<std::unique_ptr<AST::Statement>>
-resolveIncludesInternal(std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir)
+static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
+    std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir)
 {
 	std::vector<std::unique_ptr<AST::Statement>> result;
 
@@ -33,10 +33,10 @@ resolveIncludesInternal(std::vector<std::unique_ptr<AST::Statement>> &stmts, con
 	{
 		if (auto includeStmt = dynamic_cast<AST::IncludeStmt *>(stmts[i].get()))
 		{
-			auto includePath = (baseDir / includeStmt->modulePath).lexically_normal();
-			auto tokens = tokenizeFile(includePath);
+			auto   includePath = (baseDir / includeStmt->modulePath).lexically_normal();
+			auto   tokens = tokenizeFile(includePath);
 			Parser parser(tokens, includePath);
-			auto program = parser.parse();
+			auto   program = parser.parse();
 
 			auto resolved = resolveIncludes(program->statements, includePath.parent_path());
 			for (auto &stmt : resolved)
@@ -53,12 +53,11 @@ resolveIncludesInternal(std::vector<std::unique_ptr<AST::Statement>> &stmts, con
 	return result;
 }
 
-static std::vector<std::unique_ptr<AST::Statement>>
-resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir)
+static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts,
+                                                                    const std::filesystem::path &baseDir)
 {
 	return resolveIncludesInternal(stmts, baseDir);
 }
-
 
 using namespace AST;
 
@@ -66,7 +65,8 @@ Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens)
 {
 }
 
-Parser::Parser(const std::vector<Token> &tokens, const std::filesystem::path &sourcePath) : tokens(tokens), sourcePath(sourcePath)
+Parser::Parser(const std::vector<Token> &tokens, const std::filesystem::path &sourcePath)
+    : tokens(tokens), sourcePath(sourcePath)
 {
 }
 

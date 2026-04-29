@@ -1,9 +1,9 @@
 #ifndef CMAKE_PCH
-	#include "VM.hpp" // avoid breaking IDEs
+#include "VM.hpp" // avoid breaking IDEs
 #endif
 
-
-namespace Phasor {
+namespace Phasor
+{
 
 Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3)
 {
@@ -17,7 +17,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	switch (op)
 	{
 
-	#pragma region CONTROL FLOW
+#pragma region CONTROL FLOW
 
 	[[likely]] case OpCode::JUMP: {
 #ifdef TRACING
@@ -43,7 +43,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 	[[likely]] case OpCode::RETURN: {
-		if (isDirectCall) { pc = 0; break; }
+		if (isDirectCall)
+		{
+			pc = 0;
+			break;
+		}
 		if (callStack.empty()) [[unlikely]]
 		{
 			pc = m_bytecode->instructions.size();
@@ -66,7 +70,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (it == nativeFunctions.end())
 			throw std::runtime_error("Unknown native function: " + funcName);
 
-		int argCount = static_cast<int>(pop().asInt());
+		int                argCount = static_cast<int>(pop().asInt());
 		std::vector<Value> args(argCount);
 		for (int i = argCount - 1; i >= 0; --i)
 			args[i] = pop();
@@ -93,7 +97,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		log(std::format("JUMP_IF_FALSE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
 		flush();
 #endif
-		if (!pop().isTruthy()) pc = operand1;
+		if (!pop().isTruthy())
+			pc = operand1;
 		break;
 	}
 
@@ -102,7 +107,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		log(std::format("JUMP_IF_TRUE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
 		flush();
 #endif
-		if (pop().isTruthy()) pc = operand1;
+		if (pop().isTruthy())
+			pc = operand1;
 		break;
 	}
 
@@ -124,15 +130,15 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			throw std::runtime_error("Import handler not set");
 		break;
 	}
-	
+
 	[[unlikely]] case OpCode::HALT: {
 		pc = m_bytecode->instructions.size();
 		throw VM::Halt();
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK CORE
+#pragma endregion
+#pragma region STACK CORE
 
 	[[likely]] case OpCode::PUSH_CONST: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
@@ -175,8 +181,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK ARITHMETIC
+#pragma endregion
+#pragma region STACK ARITHMETIC
 
 	case OpCode::IADD: {
 		Value b = pop();
@@ -291,8 +297,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK LOGICAL
+#pragma endregion
+#pragma region STACK LOGICAL
 
 	case OpCode::NEGATE: {
 		push(asm_flneg(pop().asFloat()));
@@ -416,8 +422,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK I/O
+#pragma endregion
+#pragma region STACK I/O
 
 	case OpCode::PRINT: {
 		Value       v = pop();
@@ -457,22 +463,22 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK SYSTEM
+#pragma endregion
+#pragma region STACK SYSTEM
 
 	case OpCode::SYSTEM: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
 		push(Value());
 #else
-	#ifdef TRACING
-			Value cmd = pop();
-			int ret = c_system(cmd.c_str());
-			log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
-			push(ret);
-	#else
-			push(c_system(pop().c_str()));
-	#endif
+#ifdef TRACING
+		Value cmd = pop();
+		int   ret = c_system(cmd.c_str());
+		log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
+		push(ret);
+#else
+		push(c_system(pop().c_str()));
+#endif
 #endif
 		break;
 	}
@@ -482,14 +488,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		logerr("CANNOT ESCAPE SANDBOX");
 		push(Value());
 #else
-	#ifdef TRACING
-			Value cmd = pop();
-			std::string ret = c_system_out(cmd.c_str());
-			log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
-			push(ret);
-	#else
-			push(c_system_out(pop().c_str()));
-	#endif
+#ifdef TRACING
+		Value       cmd = pop();
+		std::string ret = c_system_out(cmd.c_str());
+		log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
+		push(ret);
+#else
+		push(c_system_out(pop().c_str()));
+#endif
 #endif
 		break;
 	}
@@ -499,20 +505,20 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		logerr("CANNOT ESCAPE SANDBOX");
 		push(Value());
 #else
-	#ifdef TRACING
-			Value cmd = pop();
-			std::string ret = c_system_err(cmd.c_str());
-			log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
-			push(ret);
-	#else
-			push(c_system_err(pop().c_str()));
-	#endif
+#ifdef TRACING
+		Value       cmd = pop();
+		std::string ret = c_system_err(cmd.c_str());
+		log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
+		push(ret);
+#else
+		push(c_system_err(pop().c_str()));
+#endif
 #endif
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK STRING
+#pragma endregion
+#pragma region STACK STRING
 
 	case OpCode::LEN: {
 		Value v = pop();
@@ -583,15 +589,15 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region STACK STRUCT
+#pragma endregion
+#pragma region STACK STRUCT
 
 	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
 
 		const StructInfo &info = m_bytecode->structs[operand1];
-		Value instance = Value::createStruct(info.name);
+		Value             instance = Value::createStruct(info.name);
 		for (int i = 0; i < info.fieldCount; ++i)
 		{
 			int constIndex = info.firstConstIndex + i;
@@ -609,7 +615,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
 		const StructInfo &info = m_bytecode->structs[operand1];
-		int fieldOffset = operand2;
+		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
@@ -622,7 +628,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
 			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
 		const StructInfo &info = m_bytecode->structs[operand1];
-		int fieldOffset = operand2;
+		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
@@ -662,9 +668,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
+#pragma endregion
 
-	#pragma region REGISTER CORE
+#pragma region REGISTER CORE
 
 	[[likely]] case OpCode::MOV: {
 		registers[rA] = registers[rB];
@@ -717,7 +723,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma region REG ARITHMETIC
+#pragma region REG ARITHMETIC
 
 	case OpCode::IADD_R: {
 		registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt()));
@@ -804,8 +810,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region REG LOGICAL
+#pragma endregion
+#pragma region REG LOGICAL
 
 	case OpCode::NEG_R: {
 		registers[rA] = Value(asm_flneg(registers[rB].asFloat()));
@@ -932,8 +938,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region REG I/O
+#pragma endregion
+#pragma region REG I/O
 
 	case OpCode::PRINT_R: {
 		std::string s = registers[rA].toString();
@@ -971,22 +977,22 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
-	#pragma endregion
-	#pragma region REG SYSTEM
+#pragma endregion
+#pragma region REG SYSTEM
 
 	case OpCode::SYSTEM_R: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
 		registers[rA] = Value();
 #else
-	#ifdef TRACING
-			Value cmd = registers[rA];
-			int64_t ret = c_system(cmd.c_str());
-			log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
-			registers[rA] = ret;
-	#else
-			registers[rA] = c_system(registers[rA].c_str());
-	#endif
+#ifdef TRACING
+		Value   cmd = registers[rA];
+		int64_t ret = c_system(cmd.c_str());
+		log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
+		registers[rA] = ret;
+#else
+		registers[rA] = c_system(registers[rA].c_str());
+#endif
 #endif
 		break;
 	}
@@ -996,14 +1002,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		logerr("CANNOT ESCAPE SANDBOX");
 		registers[rA] = Value();
 #else
-	#ifdef TRACING
-			Value cmd = registers[rA];
-			std::string ret = c_system_out(cmd.c_str());
-			log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
-			registers[rA] = ret;
-	#else
-			registers[rA] = c_system_out(registers[rA].c_str());
-	#endif
+#ifdef TRACING
+		Value       cmd = registers[rA];
+		std::string ret = c_system_out(cmd.c_str());
+		log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
+		registers[rA] = ret;
+#else
+		registers[rA] = c_system_out(registers[rA].c_str());
+#endif
 #endif
 		break;
 	}
@@ -1013,19 +1019,19 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		logerr("CANNOT ESCAPE SANDBOX");
 		registers[rA] = Value();
 #else
-	#ifdef TRACING
-			Value cmd = registers[rA];
-			std::string ret = c_system_err(cmd.c_str());
-			log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
-			registers[rA] = ret;
-	#else
-			registers[rA] = c_system_err(registers[rA].c_str());
-	#endif
+#ifdef TRACING
+		Value       cmd = registers[rA];
+		std::string ret = c_system_err(cmd.c_str());
+		log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
+		registers[rA] = ret;
+#else
+		registers[rA] = c_system_err(registers[rA].c_str());
+#endif
 #endif
 		break;
 	}
 
-	#pragma endregion
+#pragma endregion
 
 #pragma endregion
 
@@ -1035,7 +1041,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		return Value();
 	}
 #pragma endregion
-	
 	}
 	return Value(operand1);
 }

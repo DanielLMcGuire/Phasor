@@ -179,22 +179,21 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_pid");
-	#if defined(_WIN32)
+#if defined(_WIN32)
 	return static_cast<int64_t>(GetCurrentProcessId());
-	#else
+#else
 	return static_cast<int64_t>(getpid());
-	#endif
+#endif
 }
 
 Value StdLib::sys_isatty(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "isatty");
-	#ifdef _WIN32
+#ifdef _WIN32
 	return _isatty(_fileno(stdin));
-	#else
+#else
 	return isatty(fileno(stdin));
-	#endif
-
+#endif
 }
 
 #endif
@@ -204,8 +203,10 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 1, "sys_argv");
 	int64_t index = args[0].asInt();
 	if (argv)
-		if (argc > index && index >= 0) return argv[index];
-		else throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
+		if (argc > index && index >= 0)
+			return argv[index];
+		else
+			throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
 	else
 		return Value();
 }

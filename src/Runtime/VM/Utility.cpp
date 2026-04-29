@@ -12,29 +12,44 @@
 #endif
 
 #ifdef _DEBUG
-	#ifdef _WIN32
-	#include <windows.h>
-	inline bool isDebuggerAttached() {
-		return IsDebuggerPresent() == TRUE;
-	}
-	#else 
-	#include <unistd.h>
-	#include <sys/ptrace.h>
-	inline bool isDebuggerAttached() {
-		return ptrace(PTRACE_TRACEME, 0, 1, 0) == -1;
-	}
-	#endif
+#ifdef _WIN32
+#include <windows.h>
+inline bool isDebuggerAttached()
+{
+	return IsDebuggerPresent() == TRUE;
+}
+#else
+#include <unistd.h>
+#include <sys/ptrace.h>
+inline bool isDebuggerAttached()
+{
+	return ptrace(PTRACE_TRACEME, 0, 1, 0) == -1;
+}
+#endif
 #endif
 
 namespace Phasor
 {
 
-std::string VM::getVersion() { return PHASOR_VERSION_STRING; }
-void VM::setStatus(int newStatus) { status = newStatus; }
-void VM::resetStatus() { status = 0; }
-int  VM::getStatus() { return status; }
+std::string VM::getVersion()
+{
+	return PHASOR_VERSION_STRING;
+}
+void VM::setStatus(int newStatus)
+{
+	status = newStatus;
+}
+void VM::resetStatus()
+{
+	status = 0;
+}
+int VM::getStatus()
+{
+	return status;
+}
 
-void VM::initFFI(const std::filesystem::path &path) {
+void VM::initFFI(const std::filesystem::path &path)
+{
 #ifndef SANDBOXED
 	ffi = std::make_unique<FFI>(path, this);
 #endif
@@ -84,13 +99,14 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 			flush();
 #endif
 #ifdef _DEBUG
-			if (isDebuggerAttached()) assert(status == 0);
+			if (isDebuggerAttached())
+				assert(status == 0);
 #endif
 			return status;
 		}
 #if defined(TRACING) || defined(_DEBUG)
 		catch (const std::exception &e)
-#else 
+#else
 		catch (const std::exception &)
 #endif
 		{
@@ -109,7 +125,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	return -1;
 }
 
-Value VM::runFunction(const std::string &name, const Bytecode &bytecode) 
+Value VM::runFunction(const std::string &name, const Bytecode &bytecode)
 {
 	isDirectCall = true;
 	run(bytecode, bytecode.functionEntries.find(name)->second);
@@ -127,13 +143,20 @@ void VM::setImportHandler(const ImportHandler &handler)
 	importHandler = handler;
 }
 
-void VM::cleanup() {
+void VM::cleanup()
+{
 #ifdef TRACING
 	log(std::format("VM::{}()\n", __func__));
 	flush();
 #endif
-	for (auto &i : registers) { i = Value(); }
-	for (auto &i : variables) { i = Value(); }
+	for (auto &i : registers)
+	{
+		i = Value();
+	}
+	for (auto &i : variables)
+	{
+		i = Value();
+	}
 	flush();
 	flusherr();
 	reset(true, true, true);
@@ -165,32 +188,29 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 
 std::string VM::getInformation()
 {
-    int callStackTop = callStack.empty() ? -1 : callStack.back();
-    std::string info;
+	int         callStackTop = callStack.empty() ? -1 : callStack.back();
+	std::string info;
 
-    if (!stack.empty()) {
-        info = std::format("Stack Top: {:T}\n", peek());
+	if (!stack.empty())
+	{
+		info = std::format("Stack Top: {:T}\n", peek());
 	}
-	
+
 	std::string registersStr;
-	int regCount = 0;
+	int         regCount = 0;
 
 	for (const auto &reg : registers)
 	{
-		if (reg.getType() != ValueType::Null) {
+		if (reg.getType() != ValueType::Null)
+		{
 			registersStr += std::format("R{}: {:T}\n", regCount, reg);
 		}
 		regCount++;
 	}
 
-    info += std::format(
-        "VM INFORMATION:\n{}PC: {}\nCS: {}",
-        registersStr,
-        pc,
-        callStackTop
-    );
+	info += std::format("VM INFORMATION:\n{}PC: {}\nCS: {}", registersStr, pc, callStackTop);
 
-    return info;
+	return info;
 }
 
 std::string VM::getBytecodeInformation()
@@ -217,15 +237,14 @@ std::string VM::getBytecodeInformation()
 	for (const auto &instruction : m_bytecode->instructions)
 	{
 		instructions += std::format("{}({}, {}, {})\n", opCodeToString(instruction.op), instruction.operand1,
-									instruction.operand2, instruction.operand3);
+		                            instruction.operand2, instruction.operand3);
 	}
 #endif
 
-	info = std::format("BYTECODE INFORMATION:\n\nConstants: {}\n{}\nVariables: {}\n{}\nFunctions: {}\n{}\nInstructions: {}\n{}",
-	m_bytecode->constants.size(), constants, 
-	m_bytecode->variables.size(), variables, 
-	m_bytecode->functionEntries.size(), functions,
-	m_bytecode->instructions.size(), instructions);
+	info = std::format(
+	    "BYTECODE INFORMATION:\n\nConstants: {}\n{}\nVariables: {}\n{}\nFunctions: {}\n{}\nInstructions: {}\n{}",
+	    m_bytecode->constants.size(), constants, m_bytecode->variables.size(), variables,
+	    m_bytecode->functionEntries.size(), functions, m_bytecode->instructions.size(), instructions);
 	return info;
 }
 
@@ -241,7 +260,7 @@ void VM::logerr(const Value &msg)
 	c_print_stderr(s.c_str(), (int64_t)s.length());
 }
 
-void VM::flush() 
+void VM::flush()
 {
 	fflush(stdout);
 }

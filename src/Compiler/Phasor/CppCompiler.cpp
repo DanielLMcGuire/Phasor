@@ -243,26 +243,27 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 
 bool CppCompiler::showHelp(const std::string &programName)
 {
-	std::println("Phasor C++ Bytecode Embedder v{}\n"	
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Usage:\n"
-	"  {} [options] <input.phs>\n\n"
-	"Options:\n"
-	"  -c, --compiler <name>   Compiler to use (default: g++)\n"
-	"  -l, --linker <name>     Linker to use (default: g++)\n"
-	"  -s, --source <name>     The source file to compile with\n"
-	"  -o, --output <file>   Output file\n"
-	"  -m, --module <name>   Module name for generated code (default: input filename)\n"
-	"  -H, --header-only     Generate header file only\n"
-	"  -g, --generate-only   Generate source file only\n"
-	"  -O, --object-only     Generate and compile to object only\n"
-	"  -v, --verbose         Enable verbose output\n"
-	"  -h, --help            Show this help message\n"
-	"Example:\n"
-	"  {} program.phs -o program.exe -c clang++ -l lld\n"
-	"  {} -O program.phs -o program.obj -c clang++\n"
-	"  {} -H program.phs -o program.hpp\n"
-	"  {} -g program.phs -o program.cpp", PHASOR_VERSION_STRING, programName, programName, programName, programName, programName);
+	std::println("Phasor C++ Bytecode Embedder v{}\n"
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Usage:\n"
+	             "  {} [options] <input.phs>\n\n"
+	             "Options:\n"
+	             "  -c, --compiler <name>   Compiler to use (default: g++)\n"
+	             "  -l, --linker <name>     Linker to use (default: g++)\n"
+	             "  -s, --source <name>     The source file to compile with\n"
+	             "  -o, --output <file>   Output file\n"
+	             "  -m, --module <name>   Module name for generated code (default: input filename)\n"
+	             "  -H, --header-only     Generate header file only\n"
+	             "  -g, --generate-only   Generate source file only\n"
+	             "  -O, --object-only     Generate and compile to object only\n"
+	             "  -v, --verbose         Enable verbose output\n"
+	             "  -h, --help            Show this help message\n"
+	             "Example:\n"
+	             "  {} program.phs -o program.exe -c clang++ -l lld\n"
+	             "  {} -O program.phs -o program.obj -c clang++\n"
+	             "  {} -H program.phs -o program.hpp\n"
+	             "  {} -g program.phs -o program.cpp",
+	             PHASOR_VERSION_STRING, programName, programName, programName, programName, programName);
 	return true;
 }
 
@@ -325,11 +326,12 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 		if (m_args.verbose)
 		{
 			std::println("Bytecode statistics:\n"
-			"  Instructions: {}\n"
-			"  Constants: {}\n"
-			"  Variables: {}\n"
-			"  Functions: {}", bytecode.instructions.size(), bytecode.constants.size(),
-			bytecode.variables.size(), bytecode.functionEntries.size());
+			             "  Instructions: {}\n"
+			             "  Constants: {}\n"
+			             "  Variables: {}\n"
+			             "  Functions: {}",
+			             bytecode.instructions.size(), bytecode.constants.size(), bytecode.variables.size(),
+			             bytecode.functionEntries.size());
 		}
 
 		// Generate C++ code

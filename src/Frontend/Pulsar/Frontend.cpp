@@ -25,14 +25,14 @@ bool startsWith(const std::string &input, const std::string &prefix)
 
 int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 {
-	int status = 0;
-	bool ownVM = false;
+	int           status = 0;
+	bool          ownVM = false;
 	CodeGenerator codegen;
-	Lexer lexer(source);
-	Parser parser(lexer.tokenize());
-	
-	auto   program = parser.parse();
-	auto          bytecode = codegen.generate(*program);
+	Lexer         lexer(source);
+	Parser        parser(lexer.tokenize());
+
+	auto program = parser.parse();
+	auto bytecode = codegen.generate(*program);
 
 	if (vm == nullptr)
 	{
@@ -64,8 +64,9 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	{
 		status = vm->run(bytecode);
 
-		if (status != 0) {
-			if (!ownVM)  
+		if (status != 0)
+		{
+			if (!ownVM)
 			{
 				vm->resetStatus();
 				vm->reset(true, false, false);
@@ -74,20 +75,22 @@ int pulsar::Frontend::runScript(const std::string &source, Phasor::VM *vm)
 	}
 	catch (...)
 	{
-		if (ownVM) delete vm;
+		if (ownVM)
+			delete vm;
 		throw;
 	}
 
-	if (ownVM) delete vm;
+	if (ownVM)
+		delete vm;
 
 	return status;
 }
 
 int pulsar::Frontend::runRepl(Phasor::VM *vm)
 {
-	int status = 0;
-	bool ownVM = false;
-	CodeGenerator              codegen;
+	int           status = 0;
+	bool          ownVM = false;
+	CodeGenerator codegen;
 
 	if (vm == nullptr)
 	{
@@ -115,22 +118,24 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 		runScript(buffer.str());
 	});
 
-	if (status != 0) {
-		if (ownVM) delete vm;
+	if (status != 0)
+	{
+		if (ownVM)
+			delete vm;
 		std::println(std::cerr, "Failed to create FFI handler!");
 		return status;
 	}
 
 	std::unordered_map<std::string, int> globalVars;
-	int                        nextVarIdx = 0;	
-	std::string line;
-	bool cleanExit = false;
+	int                                  nextVarIdx = 0;
+	std::string                          line;
+	bool                                 cleanExit = false;
 
 	std::println("Pulsar REPL (using Phasor VM v{})\n"
-	"(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-	"Type 'exit()' to quit. Function declarations will not work.", PHASOR_VERSION_STRING);
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Type 'exit()' to quit. Function declarations will not work.",
+	             PHASOR_VERSION_STRING);
 
-	
 	while (true)
 	{
 		try
@@ -138,7 +143,7 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 			std::print("\n> ");
 			if (!std::getline(std::cin, line))
 				break;
-			
+
 			if (startsWith(line, "exit"))
 			{
 				cleanExit = true;
@@ -150,10 +155,10 @@ int pulsar::Frontend::runRepl(Phasor::VM *vm)
 				continue;
 			}
 
-			Lexer lexer(line);
+			Lexer  lexer(line);
 			Parser parser(lexer.tokenize());
-			
-			auto   program = parser.parse();
+
+			auto program = parser.parse();
 			auto bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
 
 			globalVars = bytecode.variables;
