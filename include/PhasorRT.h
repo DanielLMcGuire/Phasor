@@ -102,7 +102,7 @@ extern "C"
 	 * @param state      A pointer to an state to execute the script within. If null, new state will be created and managed for you.
 	 * @param script     A string containing the Phasor source to compile and execute.
 	 * @param moduleName The name of the module, used for error reporting. 
-	 * @param modulePath An optional path to the parent folder for the script, used for resolving compile time imports.
+	 * @param modulePath A required path to the parent folder for the script, used for resolving compile time imports.
 	 * @param verbose    Prints AST to stdout.
 	 * @return           The exit code of the program given from script (-1 might be an unhandled exception in VM).
 	 */
@@ -124,7 +124,7 @@ extern "C"
 	 *
 	 * @param[in] script      A string containing the Phasor source to compile.
 	 * @param[in] moduleName  The name of the module, used for error reporting.
-	 * @param[in] modulePath  An optional path to the parent folder for the script, used for resolving compile time imports.
+	 * @param[in] modulePath  An required path to the parent folder for the script, used for resolving compile time imports.
 	 * @param[out] buffer     A pointer to a buffer where the compiled bytecode will be written. If null, the function will 
 	 * only calculate the required buffer size and return it via `outSize`.
 	 * @param[in] bufferSize The size of the provided buffer. This is ignored if `buffer` is null.
@@ -172,10 +172,10 @@ extern "C"
 	const char *script = "using(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
 
 	size_t bytecodeSize = 0;
-	compilePHS(script, "example", NULL, NULL, 0, &bytecodeSize);
+	compilePHS(script, "example", "./", NULL, 0, &bytecodeSize);
 
 	unsigned char *bytecode = (unsigned char *)malloc(bytecodeSize);
-	compilePHS(script, "example", NULL, bytecode, bytecodeSize, &bytecodeSize);
+	compilePHS(script, "example", "./", bytecode, bytecodeSize, &bytecodeSize);
 
 	const char *argv[] = { "program", "script", "arg1", "arg2" };
 	int result = exec(state, bytecode, bytecodeSize, "example", 4, argv);
