@@ -65,14 +65,16 @@ shutdown(code); // from stdsys
 > The existance of a keyword/token type does not imply there is planned support for said feature
 
 - **Structs** with C style static field access ```struct.member = 14;```
-- **Arrays** with C syntax ```var arrayName[arraySize];``` 
+- **Arrays** with C syntax ```var arrayName[arraySize];```
 - **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
-- **stdrand** xorshift+ psuedo-random number generator (already in master!) 
+- **stdrand** xorshift+ psuedo-random number generator (already in master!)
 - **AppleScript bindings** (already in master!)
 
 > [!NOTE]
 >
-> free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VM at shutdown.
+> free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VMs deconstuctor.
+>
+> If using the API, using `resetState()` (in C, `VM::reset()` in  C++ ) must be used to reset the variables, or by `freeState()` (in C, RAII/`delete vm` (`VM::~VM()`) in C++)
 >
 > free() behavior can be done in ANY release of Phasor (or pulsar) via ```value = null```
 >
