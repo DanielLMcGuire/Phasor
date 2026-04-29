@@ -18,4 +18,4 @@ path = "src/rust/ffi/lib.rs"
 
 [[example]]
 name = "test"
-path = "examples/CAPI/rust/bin.rs"
+path = "examples/rust/bin.rs"
