@@ -1,0 +1,363 @@
+.TH PHASORRT\-RS 3 "January 2026" "phasorrt" "Phasor Runtime Library 3.2.0"
+.SH NAME
+phasorrt\-rs \- Rust FFI wrapper for the Phasor Runtime
+.SH SYNOPSIS
+.nf
+.B [dependencies]
+.B phasorrt\-rs = "3.2.0"
+.PP
+.B use phasorrt_rs::{PhasorVM, PhasorError, get_version, compile_phs, compile_pul};
+.PP
+.B PhasorVM::new()
+.B PhasorVM::init_stdlib(&mut self)
+.B PhasorVM::reset(&mut self, reset_functions, reset_variables)
+.B PhasorVM::exec(&mut self, bytecode, module, args)
+.B PhasorVM::exec_func_int(&mut self, bytecode, module, function, args)
+.B PhasorVM::exec_func_string(&mut self, bytecode, module, function, args)
+.B PhasorVM::evaluate_phs(&mut self, script, module, path, verbose)
+.B PhasorVM::evaluate_pul(&mut self, script, module)
+.B get_version()
+.B compile_phs(script, module, path)
+.B compile_pul(script, module)
+.fi
+.SH FUNCTIONS
+.TP
+.BR PhasorVM::new ()
+Load the Phasor runtime library and create a new VM instance. The library path
+is taken from the
+.B PHASOR_DLL_PATH
+environment variable, defaulting to
+.BR phasorrt.dll .
+Panics if the native
+.B createState()
+returns a null pointer.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B Result<PhasorVM, PhasorError>
+.RE
+.PP
+.TP
+.BR PhasorVM::init_stdlib (&mut\ self)
+Register the Phasor standard library with the VM. Should be called once after
+.B PhasorVM::new()
+before running any script that uses built-in functions.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B Result<(), PhasorError>
+.RE
+.PP
+.TP
+.BR PhasorVM::reset (&mut\ self,\ reset_functions,\ reset_variables)
+Reset the VM state.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBreset_functions\fR 20
+Clear all registered functions if true
+.IP \fBreset_variables\fR 20
+Clear all global variables if true
+.RE
+.PP
+.B Returns:
+.B Result<bool, PhasorError>
+\(em true on success
+.RE
+.PP
+.TP
+.BR PhasorVM::exec (&mut\ self,\ bytecode,\ module,\ args)
+Execute pre-compiled bytecode in the VM.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBbytecode\fR 12
+Compiled bytecode slice produced by
+.B compile_phs()
+or
+.B compile_pul()
+.IP \fBmodule\fR 12
+Module name used in error messages
+.IP \fBargs\fR 12
+Argument slice passed to the script
+.RE
+.PP
+.B Returns:
+.B Result<i32, PhasorError>
+\(em integer exit code from the script
+.RE
+.PP
+.TP
+.BR PhasorVM::exec_func_int (&mut\ self,\ bytecode,\ module,\ function,\ args)
+Load bytecode and call a named exported function, expecting an integer return value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBbytecode\fR 12
+Compiled bytecode slice
+.IP \fBmodule\fR 12
+Module name used in error messages
+.IP \fBfunction\fR 12
+Name of the exported function to call
+.IP \fBargs\fR 12
+Argument slice passed to the script
+.RE
+.PP
+.B Returns:
+.B Result<i32, PhasorError>
+\(em integer value returned by the function
+.RE
+.PP
+.TP
+.BR PhasorVM::exec_func_string (&mut\ self,\ bytecode,\ module,\ function,\ args)
+Load bytecode and call a named exported function, expecting a string return value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBbytecode\fR 12
+Compiled bytecode slice
+.IP \fBmodule\fR 12
+Module name used in error messages
+.IP \fBfunction\fR 12
+Name of the exported function to call
+.IP \fBargs\fR 12
+Argument slice passed to the script
+.RE
+.PP
+.B Returns:
+.B Result<String, PhasorError>
+\(em string value returned by the function
+.RE
+.PP
+.TP
+.BR PhasorVM::evaluate_phs (&mut\ self,\ script,\ module,\ path,\ verbose)
+Compile and immediately execute a PHS source string in a single step.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBscript\fR 10
+PHS source text
+.IP \fBmodule\fR 10
+Module name used in error messages
+.IP \fBpath\fR 10
+Optional filesystem path for resolving imports; pass
+.B None
+or
+.B Some("")
+if unused
+.IP \fBverbose\fR 10
+Emit additional runtime diagnostics if true
+.RE
+.PP
+.B Returns:
+.B Result<i32, PhasorError>
+\(em integer exit code from the script
+.RE
+.PP
+.TP
+.BR PhasorVM::evaluate_pul (&mut\ self,\ script,\ module)
+Compile and immediately execute a PUL source string in a single step.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBscript\fR 10
+PUL source text
+.IP \fBmodule\fR 10
+Module name used in error messages
+.RE
+.PP
+.B Returns:
+.B Result<i32, PhasorError>
+\(em integer exit code from the script
+.RE
+.PP
+.TP
+.BR get_version ()
+Load the runtime library independently and query its version string. The library
+is unloaded when the function returns.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B Result<String, PhasorError>
+\(em version string, or
+.B "unknown"
+if the native call returns null
+.RE
+.PP
+.TP
+.BR compile_phs (script,\ module,\ path)
+Compile a PHS source string to bytecode without executing it. Uses a two-pass
+strategy: the first call determines the required buffer size, the second fills it.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBscript\fR 10
+PHS source text
+.IP \fBmodule\fR 10
+Module name embedded in the bytecode
+.IP \fBpath\fR 10
+Optional filesystem path for resolving imports
+.RE
+.PP
+.B Returns:
+.B Result<Vec<u8>, PhasorError>
+\(em bytecode buffer suitable for passing to
+.B PhasorVM::exec()
+.RE
+.PP
+.TP
+.BR compile_pul (script,\ module)
+Compile a PUL source string to bytecode without executing it. Uses the same
+two-pass strategy as
+.BR compile_phs() .
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBscript\fR 10
+PUL source text
+.IP \fBmodule\fR 10
+Module name embedded in the bytecode
+.RE
+.PP
+.B Returns:
+.B Result<Vec<u8>, PhasorError>
+\(em bytecode buffer suitable for passing to
+.B PhasorVM::exec()
+.RE
+.SH ERRORS
+All functions return
+.BR Result<T,\ PhasorError> .
+.TP
+.B PhasorError::StringError
+An input string contained an interior null byte.
+.TP
+.B PhasorError::CompileError
+The Phasor compiler rejected the source text.
+.TP
+.B PhasorError::ExecutionException(i32)
+The runtime raised an exception; the inner value holds the error code.
+.TP
+.B PhasorError::NullReturn
+A function expected to return a string pointer returned null.
+.TP
+.B PhasorError::Utf8Error
+A string returned by the native library was not valid UTF-8.
+.TP
+.B PhasorError::LibraryError
+The native library could not be loaded or a required symbol could not be resolved.
+.SH EXAMPLES
+.B Basic script execution
+.PP
+.nf
+.RS
+use phasorrt_rs::{PhasorVM, PhasorError, get_version};
+
+fn main() -> Result<(), PhasorError> {
+    println!("Version: {}", get_version()?);
+    let mut vm = PhasorVM::new()?;
+    vm.init_stdlib()?;
+    vm.evaluate_phs("print(\"Hello, World!\\n\");", "main", None, false)?;
+    Ok(())
+}
+.RE
+.fi
+.PP
+.B Compile then execute
+.PP
+.nf
+.RS
+use phasorrt_rs::{PhasorVM, PhasorError, compile_phs};
+
+fn main() -> Result<(), PhasorError> {
+    let bytecode = compile_phs("var x = 42; print(x);", "main", None)?;
+    let mut vm = PhasorVM::new()?;
+    vm.init_stdlib()?;
+    vm.exec(&bytecode, "main", &[])?;
+    Ok(())
+}
+.RE
+.fi
+.PP
+.B Calling an exported function
+.PP
+.nf
+.RS
+use phasorrt_rs::{PhasorVM, PhasorError, compile_phs};
+
+fn main() -> Result<(), PhasorError> {
+    let src = "fn greet() { return \"hello from phasor\"; }";
+    let bytecode = compile_phs(src, "greet", None)?;
+    let mut vm = PhasorVM::new()?;
+    vm.init_stdlib()?;
+    let result = vm.exec_func_string(&bytecode, "greet", "greet", &[])?;
+    println!("{}", result);
+    Ok(())
+}
+.RE
+.fi
+.PP
+.B Resetting VM state between runs
+.PP
+.nf
+.RS
+vm.evaluate_phs(script_a, "a", None, false)?;
+vm.reset(false, true)?;
+vm.evaluate_phs(script_b, "b", None, false)?;
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+.BR get_version() ,
+.BR compile_phs() ,
+and
+.B compile_pul()
+each load and unload the dynamic library on every call; prefer caching results
+if calling them in a tight loop
+.IP \(bu 2
+The
+.B PhasorVM
+state is freed automatically via
+.B Drop
+by calling
+.B freeState()
+in the native library
+.IP \(bu 2
+.B PhasorVM
+is not
+.B Send
+or
+.BR Sync ;
+use one instance per thread
+.IP \(bu 2
+On case-sensitive filesystems the path declared in
+.I Cargo.toml
+.RB ( src/rust/ffi/lib.rs )
+does not match the on-disk path
+.RB ( src/Rust/FFI/lib.rs )
+and compilation will fail
+.SH SEE ALSO
+.BR phasorstd_io (3),
+.BR phasorstd_str (3),
+.BR phasorjit (1),
+.BR dlopen (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

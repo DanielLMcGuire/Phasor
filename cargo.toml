@@ -1,0 +1,21 @@
+[package]
+name = "phasorrt-rs"
+version = "3.2.0"
+edition = "2021"
+authors = ["Daniel McGuire"]
+description = "Rust wrapper for the Phasor Runtime"
+
+[dependencies]
+libc = "0.2"
+libloading = "0.8"
+thiserror = "1.0"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[lib]
+path = "src/rust/ffi/lib.rs"
+
+[[example]]
+name = "test"
+path = "examples/CAPI/rust/bin.rs"

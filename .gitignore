@@ -714,3 +714,4 @@ FodyWeavers.xsd
 /scripts/.wix
 scripts/harvest.wxs
 *.wixpdb
+/target
