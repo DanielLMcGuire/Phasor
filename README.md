@@ -227,6 +227,31 @@ This repo contains:
     {stdout: "Hi!\n", stderr: "", exitCode = 0}
     ```
 
+- Bindings:
+  - [phasor-rs Rust Bindings (runtime)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/rust` (Rust)
+
+    ```rust
+    // Create a new VM and load the standard library
+    let mut vm = PhasorVM::new()?;
+    vm.init_stdlib()?;
+
+    // run script
+    vm.evaluate_phs("print(\"Hello, World!\\n\");", "hello", None, false)?;
+
+    // state is kept 
+    vm.evaluate_phs("var x = 42; var y = 53;", "vars", None, false)?;
+    vm.evaluate_phs("print(x + y);", "vars", None, false)?;   // prints 95
+
+    // reset vars
+    vm.reset(false, true)?;
+
+    // compile/run bytecode
+    let bytecode = compile_phs("print(\"hi\\n\");", "hi", None)?;
+    vm.exec(&bytecode, "hi", &[])?;
+
+    // VM is automatically freed when it goes out of scope (Drop)
+    ```
+
 ---
 
 ## Building
