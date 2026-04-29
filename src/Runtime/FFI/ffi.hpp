@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <filesystem>
 
 #ifndef CMAKE_PCH
 #include <Value.hpp>

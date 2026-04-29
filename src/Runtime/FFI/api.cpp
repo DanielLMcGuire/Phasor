@@ -1,6 +1,10 @@
 #include "ffi.hpp"
 #include <PhasorFFI.h>
 
+#ifndef CMAKE_PCH
+#include "../VM/VM.hpp"
+#endif
+
 namespace Phasor
 {
 

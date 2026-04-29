@@ -13,8 +13,9 @@ add_subdirectory(VM)
 add_subdirectory(Stdlib)
 
 add_library(PhasorRuntime STATIC ${VM_SOURCES} ${VM_HEADERS} ${FFI_SOURCES} ${FFI_HEADERS} ${RUNTIME_HEADERS} ${STDLIB_SOURCES} ${STDLIB_HEADERS})
+if(USE_PCH)
 target_precompile_headers(PhasorRuntime PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/VM/VM.hpp>")
-
+endif()
 add_library(phasor_native_runtime_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Shared/NativeRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Shared/NativeRuntime.hpp
