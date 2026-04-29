@@ -228,7 +228,7 @@ This repo contains:
     ```
 
 - Bindings:
-  - [phasor-rs Rust Bindings (runtime)](https://phasor-docs.pages.dev/man?f=phasor-rs.3) `src/Rust` (Rust)
+  - [phasorrt-rs Rust Bindings (runtime)](https://phasor-docs.pages.dev/man?f=phasorrt-rs.3) `src/Rust` (Rust)
 
     ```rust
     // Create a new VM and load the standard library
