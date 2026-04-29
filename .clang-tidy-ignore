@@ -7,3 +7,4 @@ scripts/winapi.h
 *NativeRuntime_static_main.cpp
 *NativeRuntime_dynamic_main.cpp
 out/
+build/
