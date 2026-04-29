@@ -279,6 +279,8 @@ This repo contains:
 
 See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor) wiki.
 
+See the [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor-Extensions) wiki for info on building Extensions/bindings.
+
 ### Plugin locations
 
 (Like win32 api, posix) are available in different locations based on your OS:
@@ -298,11 +300,11 @@ See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building
 - Phasor Shell | [MIT License](https://opensource.org/license/mit)
 - Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-Regarding any age verification laws, I will not entertain rules set in place by people who do not understand the core aspect of OSS.
+Regarding any age verification laws, I will not entertain non international rules that are logically unenforable. Phasor will never be modified to be able to detect the user's age from the OS.
 
-Mentions of 'coreutils', the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
+Mentions of the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
-Phasor Toolchain is licensed for use under the Apache 2.0 License. 
+Phasor Toolchain is licensed for use under the Apache 2.0 License.
 
 Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `PhasorRT.h`, etc) is licensed for use under the Apache 2.0 with LLVM-Exceptions License.
 
