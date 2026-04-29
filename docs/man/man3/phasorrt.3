@@ -1,0 +1,483 @@
+.TH PHASORRT 3 "April 2026" "phasorrt" "Phasor Runtime Library 3.2.0"
+.SH NAME
+phasorrt \- C API for the Phasor Runtime Virtual Machine
+.SH SYNOPSIS
+The
+.B PHASOR C API
+is a universal API for interacting with the Phasor runtime, designed to be universal across compilers, languages, and releases of Phasor.
+.SH DESCRIPTION
+The Phasor Runtime provides a lightweight virtual machine for executing
+Phasor (PHS) and Pulsar (PUL) scripts. This C API is designed to be ABI-stable
+and compiler-independent. An opaque
+.B void *
+state pointer hides the internal VM object, allowing safe usage across different
+compilers and runtime versions.
+.PP
+All execution functions can accept a
+.B NULL
+state pointer; if one is not provided, a temporary state is created internally
+and destroyed when the call returns. This is convenient for one-shot script
+evaluation but less efficient for repeated use. For repeated execution or when
+calling functions that require a persistent state (e.g.,
+.BR initStdLib() ,
+.BR resetState() ),
+the caller should manage the lifecycle explicitly with
+.B createState()
+and
+.BR freeState() .
+.SH FUNCTIONS
+.SS State Management
+.TP
+.BR createState ()
+Allocate and return a new VM state. The state is an opaque pointer; its
+internal structure is not part of the public ABI.
+.RS
+.PP
+.B Returns:
+.B void *
+pointer to the new state, or
+.B NULL
+on failure.
+.RE
+.TP
+.BR initStdLib (void\ *\fIstate\fP)
+Register the Phasor standard library functions with the given state. Must
+be called once after
+.B createState()
+before executing any script that relies on built-in functions.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIstate\fP 10
+A valid state pointer returned by
+.BR createState() .
+.RE
+.PP
+.B Returns:
+None.
+.RE
+.TP
+.BR freeState (void\ *\fIstate\fP)
+Destroy a state previously created with
+.BR createState() .
+Once freed, the state pointer must not be used again.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIstate\fP 10
+A valid state pointer.
+.RE
+.PP
+.B Returns:
+.B bool
+\-
+.B true
+on success,
+.B false
+if the pointer was
+.B NULL
+or appears invalid.
+.RE
+.TP
+.BR resetState (void\ *\fIstate\fP,\ bool\ \fIresetFunctions\fP,\ bool\ \fIresetVariables\fP)
+Reset the VM internals of an existing state. This clears the execution stack,
+resets the program counter, and unloads any loaded bytecode. Optionally, it can
+also remove registered functions and global variables.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIstate\fP 25
+A valid state pointer.
+.IP \fIresetFunctions\fP 25
+If
+.BR true ,
+all user-registered functions are unregistered.
+.IP \fIresetVariables\fP 25
+If
+.BR true ,
+all global variables are cleared.
+.RE
+.PP
+.B Returns:
+.B bool
+\-
+.B true
+on success,
+.B false
+if the state is invalid.
+.RE
+.SS Version
+.TP
+.BR getVersion (void)
+Return the version string of the loaded Phasor Runtime library. The string
+is a static buffer managed by the library and must not be freed by the caller.
+.RS
+.PP
+.B Returns:
+.B const\ char *
+\-
+The version string (e.g.,
+.BR "3.2.0" ),
+never
+.BR NULL .
+.RE
+.SS Compilation
+The compilation functions use a two-pass strategy to avoid dynamic memory
+allocation inside the library: first call with
+.B buffer
+set to
+.B NULL
+to obtain the required bytecode size in
+.BR *outSize ;
+then allocate a buffer of that size and call again to fill it.
+.TP
+.BR compilePHS (\fIscript\fP,\ \fImoduleName\fP,\ \fImodulePath\fP,\ \fIbuffer\fP,\ \fIbufferSize\fP,\ \fIoutSize\fP)
+Compile a Phasor source script to bytecode.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIscript\fP 20
+Null-terminated string containing the Phasor source code.
+.IP \fImoduleName\fP 20
+Module name used in error messages.
+.IP \fImodulePath\fP 20
+Filesystem path to the directory containing the script, used for
+resolving import directives. Pass an empty string
+.B ""
+if not needed.
+.IP \fIbuffer\fP 20
+If
+.BR NULL ,
+the function only computes the required size and writes it to
+.BR *outSize .
+Otherwise, pointer to a pre-allocated buffer where the bytecode will be written.
+.IP \fIbufferSize\fP 20
+Size of the provided
+.IR buffer .
+Ignored if
+.I buffer
+is
+.BR NULL .
+.IP \fIoutSize\fP 20
+Pointer to a
+.B size_t
+that will receive the size of the compiled bytecode. If
+.I buffer
+was
+.BR NULL ,
+this is the required buffer size; if
+.I buffer
+was non-NULL and large enough, this is the actual bytecode size written.
+.RE
+.PP
+.B Returns:
+.B bool
+\-
+.B true
+if compilation succeeded and, when
+.I buffer
+was provided, the buffer was large enough to hold the result.
+.B false
+indicates a compilation error, or that
+.I bufferSize
+was too small (in which case
+.B *outSize
+is still set to the required size). Compiler diagnostics may be printed
+to
+.BR stderr .
+.RE
+.TP
+.BR compilePUL (\fIscript\fP,\ \fImoduleName\fP,\ \fIbuffer\fP,\ \fIbufferSize\fP,\ \fIoutSize\fP)
+Compile a Pulsar (PUL) source script to bytecode. Behaves identically to
+.B compilePHS()
+except that
+.I modulePath
+is not needed.
+.RS
+.PP
+.B Arguments:
+See
+.BR compilePHS() .
+The
+.I modulePath
+parameter is omitted.
+.PP
+.B Returns:
+.B bool
+\-
+same semantics as
+.BR compilePHS() .
+.RE
+.SS Execution
+.TP
+.BR exec (\fIstate\fP,\ \fIbytecode\fP,\ \fIbytecodeSize\fP,\ \fImoduleName\fP,\ \fIargc\fP,\ \fIargv\fP)
+Load bytecode into the VM and execute it.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIstate\fP 20
+A valid state pointer, or
+.B NULL
+to use a temporary state.
+.IP \fIbytecode\fP 20
+Pointer to a buffer containing compiled Phasor bytecode.
+.IP \fIbytecodeSize\fP 20
+Size in bytes of the
+.I bytecode
+buffer.
+.IP \fImoduleName\fP 20
+Module name for error reporting.
+.IP \fIargc\fP 20
+Number of arguments passed to the script.
+.IP \fIargv\fP 20
+Array of
+.IR argc
+null-terminated argument strings. The first element (index 0) is conventionally the program name.
+.RE
+.PP
+.B Returns:
+.B int
+\-
+The exit code returned by the script. A value of
+.B -1
+may indicate an unhandled VM exception. On success, the script determines the
+return value.
+.RE
+.TP
+.BR execFuncInt (\fIstate\fP,\ \fIbytecode\fP,\ \fIbytecodeSize\fP,\ \fImoduleName\fP,\ \fIargc\fP,\ \fIargv\fP,\ \fIfunctionName\fP)
+Load bytecode and call a specific exported function, expecting an integer
+result.
+.RS
+.PP
+.B Arguments:
+As for
+.BR exec() ,
+with the addition of:
+.RS
+.IP \fIfunctionName\fP 20
+Null-terminated name of the function to invoke.
+.RE
+.PP
+.B Returns:
+.B int
+\-
+The integer returned by the function, or
+.B -1
+on error (including unhandled exceptions).
+.RE
+.TP
+.BR execFuncString (\fIstate\fP,\ \fIbytecode\fP,\ \fIbytecodeSize\fP,\ \fImoduleName\fP,\ \fIargc\fP,\ \fIargv\fP,\ \fIfunctionName\fP)
+Load bytecode and call a specific exported function, expecting a string
+result.
+.RS
+.PP
+.B Arguments:
+As for
+.BR execFuncInt() .
+.PP
+.B Returns:
+.B const\ char *
+\-
+The string returned by the function, or
+.B NULL
+on error. The returned pointer points to memory managed by the runtime; it is
+invalidated on the next call to
+.B execFuncString()
+and when the library or state is freed. Copy the string to safe storage if
+it must persist.
+.RE
+.TP
+.BR evaluatePHS (\fIstate\fP,\ \fIscript\fP,\ \fImoduleName\fP,\ \fImodulePath\fP,\ \fIverbose\fP)
+Compile and immediately execute a Phasor source string in one step.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIstate\fP 20
+State pointer, or
+.B NULL
+for a transient state.
+.IP \fIscript\fP 20
+Null-terminated Phasor source code.
+.IP \fImoduleName\fP 20
+Module name for error reporting.
+.IP \fImodulePath\fP 20
+Path to the script’s parent directory for imports. Use
+.B ""
+if unused.
+.IP \fIverbose\fP 20
+If
+.BR true ,
+the abstract syntax tree is printed to standard output.
+.RE
+.PP
+.B Returns:
+.B int
+\-
+Script exit code;
+.B -1
+on unhandled exception.
+.RE
+.TP
+.BR evaluatePUL (\fIstate\fP,\ \fIscript\fP,\ \fImoduleName\fP)
+Compile and immediately execute a Pulsar source string in one step.
+.RS
+.PP
+.B Arguments:
+Similar to
+.BR evaluatePHS()
+without
+.I modulePath
+or
+.IR verbose .
+.PP
+.B Returns:
+.B int
+\-
+Script exit code;
+.B -1
+on unhandled exception.
+.RE
+.SH ERRORS
+The C API does not use a uniform error enumeration. Instead, functions signal
+failure via their return values:
+.TP
+.B Returns -1
+.BR exec() ,
+.BR execFuncInt() ,
+.BR evaluatePHS() ,
+and
+.B evaluatePUL()
+return \-1 when an unhandled VM exception occurs or the runtime encounters an
+internal error. The VM may print diagnostic information to
+.B stderr
+before returning.
+.TP
+.B Returns false
+.BR compilePHS() ,
+.BR compilePUL() ,
+.BR freeState() ,
+and
+.B resetState()
+return
+.B false
+on failure.
+.TP
+.B Returns NULL
+.B execFuncString()
+returns
+.B NULL
+if the function call fails or the VM raises an exception.
+.TP
+.B Compilation diagnostics
+When
+.B compilePHS()
+or
+.B compilePUL()
+fails, error details are typically written to
+.BR stderr .
+The library does not provide a mechanism to retrieve compile errors
+programmatically in this version.
+.SH EXAMPLES
+.SS Compile and run a script (two-pass)
+.nf
+.RS
+#include <phasorrt.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int main(void) {
+    void *state = createState();
+    initStdLib(state);
+
+    const char *src = "print(\"Hello, C API!\\\\n\");";
+    size_t sz = 0;
+
+    /* first pass: get size */
+    compilePHS(src, "example", "", NULL, 0, &sz);
+    unsigned char *bc = malloc(sz);
+    if (!bc) return 1;
+
+    /* second pass: compile */
+    if (!compilePHS(src, "example", "", bc, sz, &sz)) {
+        fprintf(stderr, "Compilation failed\\n");
+        free(bc);
+        freeState(state);
+        return 1;
+    }
+
+    const char *argv[] = {"prog"};
+    int ret = exec(state, bc, sz, "example", 1, argv);
+    printf("Exit code: %d\\n", ret);
+
+    free(bc);
+    freeState(state);
+    return 0;
+}
+.RE
+.fi
+.SS evaluation
+.nf
+.RS
+#include <phasorrt.h>
+
+int main(void) {
+    /* no state needed, pass NULL */
+    return evaluatePHS(NULL, "print(42 * 2);", "math", "", false);
+}
+.RE
+.fi
+.SS Calling an exported function
+.nf
+.RS
+#include <phasorrt.h>
+#include <stdio.h>
+
+int main(void) {
+    void *state = createState();
+    initStdLib(state);
+
+    const char *src = "fn add_one(x) { return x + 1; }";
+    size_t sz = 0;
+    compilePHS(src, "add", "", NULL, 0, &sz);
+    unsigned char *bc = malloc(sz);
+    compilePHS(src, "add", "", bc, sz, &sz);
+
+    const char *argv[] = {"add", "5"};
+    int result = execFuncInt(state, bc, sz, "add", 2, argv, "add_one");
+    printf("Result: %d\\n", result);   /* prints 6 */
+
+    free(bc);
+    freeState(state);
+    return 0;
+}
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+The state pointer (
+.BR void\ * )
+is opaque and must not be dereferenced or manipulated by the caller. It is
+not safe to share a single state across multiple threads without external
+synchronisation. For concurrent use, create one state per thread.
+.IP \(bu 2
+When
+.B NULL
+is passed as the
+.I state
+argument to execution or evaluation functions, a temporary state is created
+internally and destroyed before the function returns. While convenient, this
+incurs allocation overhead on every call.
+.SH SEE ALSO
+.BR PHS (5),
+.BR phasorrt-rs (3),
+.BR dlopen (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
