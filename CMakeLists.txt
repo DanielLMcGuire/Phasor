@@ -60,7 +60,7 @@ if(EMBEDDED)
 endif()
 
 if(PROJECT_IS_TOP_LEVEL)
-    set(USE_PCH OFF)
+    set(USE_PCH ON)
     if(NOT IS_XBOX AND NOT EMBEDDED)
         add_subdirectory(thirdparty)
     endif()
