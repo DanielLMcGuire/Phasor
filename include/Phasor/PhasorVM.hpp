@@ -73,10 +73,6 @@ class VM
 
 	/// @brief Run the virtual machine
 	/// Exits -1 on uncaught exception
-	int run(const Bytecode &bytecode);
-
-	/// @brief Run the virtual machine
-	/// Exits -1 on uncaught exception
 	int run(const Bytecode &bytecode, const size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine

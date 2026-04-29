@@ -27,79 +27,6 @@
 namespace Phasor
 {
 /**
- * @struct Instruction
- * @brief Single instruction in the Phasor VM
- */
-struct Instruction
-{
-	OpCode  op;       ///< Operation code
-	int32_t operand1; ///< First operand
-	int32_t operand2; ///< Second operand
-	int32_t operand3; ///< Third operand
-
-	// Default constructor
-	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0)
-	{
-	}
-
-	// Full constructor
-	Instruction(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
-	    : op(op), operand1(op1), operand2(op2), operand3(op3)
-	{
-	}
-};
-
-/// @brief Struct metadata stored alongside bytecode (struct section)
-struct StructInfo
-{
-	std::string              name;            ///< Struct name
-	int                      firstConstIndex; ///< Index into constants for the first default value
-	int                      fieldCount;      ///< Number of fields in this struct
-	std::vector<std::string> fieldNames;      ///< Field names in declaration order
-};
-
-/// @brief Complete bytecode structure
-struct Bytecode
-{
-	std::vector<Instruction>   instructions;     ///< List of instructions
-	std::vector<Value>         constants;        ///< Constant pool
-	std::map<std::string, int> variables;        ///< Variable name -> index mapping
-	std::map<std::string, int> functionEntries;  ///< Function name -> instruction index mapping
-	std::map<std::string, int> functionParamCounts; ///< Function name -> parameter count
-	int                        nextVarIndex = 0; ///< Next available variable index
-
-	// Struct section (planned usage by future struct codegen)
-	std::vector<StructInfo>    structs;       ///< List of struct descriptors
-	std::map<std::string, int> structEntries; ///< Struct name -> index in structs
-
-	/// @brief Add a constant to the pool and return its index
-	int addConstant(const Value &value)
-	{
-		constants.push_back(value);
-		return static_cast<int>(constants.size()) - 1;
-	}
-
-	/// @brief Get or create a variable index
-	int getOrCreateVar(const std::string &name)
-	{
-		auto it = variables.find(name);
-		if (it != variables.end())
-		{
-			return it->second;
-		}
-		int index = nextVarIndex++;
-		variables[name] = index;
-		return index;
-	}
-
-	/// @brief Emit an instruction with operands
-	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
-	{
-		instructions.push_back(Instruction(op, op1, op2, op3));
-	}
-};
-
-/**
  * @class OpCode
  * @brief Expanded opcode set for Phasor VM
  */
@@ -252,6 +179,79 @@ enum class OpCode : uint8_t
 	SYSTEM_R,     ///< Run an operating system shell command: system(R[rA])
 	SYSTEM_OUT_R, /// Run shell command and get output: system_out(R[rA], R[rB])
 	SYSTEM_ERR_R  /// Run shell command and get error output: system_err(R[rA], R[rB])
+};
+
+/**
+ * @struct Instruction
+ * @brief Single instruction in the Phasor VM
+ */
+struct Instruction
+{
+	OpCode  op;       ///< Operation code
+	int32_t operand1; ///< First operand
+	int32_t operand2; ///< Second operand
+	int32_t operand3; ///< Third operand
+
+	// Default constructor
+	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0)
+	{
+	}
+
+	// Full constructor
+	Instruction(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
+	    : op(op), operand1(op1), operand2(op2), operand3(op3)
+	{
+	}
+};
+
+/// @brief Struct metadata stored alongside bytecode (struct section)
+struct StructInfo
+{
+	std::string              name;            ///< Struct name
+	int                      firstConstIndex; ///< Index into constants for the first default value
+	int                      fieldCount;      ///< Number of fields in this struct
+	std::vector<std::string> fieldNames;      ///< Field names in declaration order
+};
+
+/// @brief Complete bytecode structure
+struct Bytecode
+{
+	std::vector<Instruction>   instructions;     ///< List of instructions
+	std::vector<Value>         constants;        ///< Constant pool
+	std::map<std::string, int> variables;        ///< Variable name -> index mapping
+	std::map<std::string, int> functionEntries;  ///< Function name -> instruction index mapping
+	std::map<std::string, int> functionParamCounts; ///< Function name -> parameter count
+	int                        nextVarIndex = 0; ///< Next available variable index
+
+	// Struct section (planned usage by future struct codegen)
+	std::vector<StructInfo>    structs;       ///< List of struct descriptors
+	std::map<std::string, int> structEntries; ///< Struct name -> index in structs
+
+	/// @brief Add a constant to the pool and return its index
+	int addConstant(const Value &value)
+	{
+		constants.push_back(value);
+		return static_cast<int>(constants.size()) - 1;
+	}
+
+	/// @brief Get or create a variable index
+	int getOrCreateVar(const std::string &name)
+	{
+		auto it = variables.find(name);
+		if (it != variables.end())
+		{
+			return it->second;
+		}
+		int index = nextVarIndex++;
+		variables[name] = index;
+		return index;
+	}
+
+	/// @brief Emit an instruction with operands
+	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
+	{
+		instructions.push_back(Instruction(op, op1, op2, op3));
+	}
 };
 
 } // namespace Phasor
