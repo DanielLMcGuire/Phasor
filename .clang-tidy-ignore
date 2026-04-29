@@ -6,3 +6,4 @@ scripts/winapi.h
 *pmake_main.cpp
 *NativeRuntime_static_main.cpp
 *NativeRuntime_dynamic_main.cpp
+out/
