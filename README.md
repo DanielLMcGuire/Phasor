@@ -35,7 +35,7 @@ $ phasor <options>
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
 - **Plugin/FFI API** [PhasorFFI.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h)
-- **Runtime API** [PhasorRT.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h)
+- **[Runtime API](https://phasor-docs.pages.dev/man?f=phasorrt.3)** [PhasorRT.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h)
 - **Minimal Windows and POSIX API Bindings**
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 
@@ -228,7 +228,7 @@ This repo contains:
     ```
 
 - Bindings:
-  - [phasor-rs Rust Bindings (runtime)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/rust` (Rust)
+  - [phasor-rs Rust Bindings (runtime)](https://phasor-docs.pages.dev/man?f=phasor-rs.3) `src/Rust` (Rust)
 
     ```rust
     // Create a new VM and load the standard library
