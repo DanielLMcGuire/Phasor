@@ -23,7 +23,9 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 ```bash
 $ nix run github:DanielLMcGuire/Phasor -- -- <options>
+...
 $ phasor <options>
+...
 ```
 
 ## Language Features
@@ -44,6 +46,7 @@ print "Hello World!\n"; // Print to console
 using("stdio"); // Import io for puts
 puts("Hello World!"); // Print string with newline
 ```
+
 ```javascript
 using("stdsys", "stdio"); // Import sys, io
 // Variables
@@ -57,7 +60,8 @@ var fmtStr = c_fmt(fmt, code);
 shutdown(code); // from stdsys
 ```
 
-## Upcoming 
+## Upcoming
+
 > [!IMPORTANT]
 >
 > Some may *appear* to work before actual implementation
@@ -127,7 +131,6 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 >
 > Online docs are always up to date with master (as much as I can at least), offline (installed) docs are always up to date with that version.
 
-
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
 - **[VM Internals](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_vm_internals.md&name=VM%20Internals)** - Virtual machine architecture details
 - **[Adding Opcodes](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_adding_opcodes.md&name=Adding%20Opcodes)** - Contributor guide for VM extensions
@@ -168,17 +171,15 @@ This repo contains:
   - [Pulsar Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Pulsar) (C++)
   - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
   - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
- 
 - Backend:
   - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Codegen) (C++)
   - [FFI API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h) (C)
   - [Runtime API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h) (C)
-
 - Extensions:
   - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
-  -  [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
+  - [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
+  - [Python Module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py/phasor`
 
-  - [Python Module ](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py/phasor`
     ```python
     from phasor import Bytecode, Value, OpCode, Runtime
     help(phasor)
@@ -192,6 +193,7 @@ This repo contains:
     ```
 
   - [PowerShell Module (windows only, phasorrt.dll bindings)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell/Phasor`
+  
     ```powershell
     Import-Module .\src\Extensions\powershell\Phasor\Phasor.psd1
     Get-Help Phasor
@@ -219,6 +221,7 @@ This repo contains:
     ```
 
   - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
+
     ```bash
     $ curl -d 'using("stdio"); puts("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
     {stdout: "Hi!\n", stderr: "", exitCode = 0}
@@ -230,8 +233,8 @@ This repo contains:
 
 <sub>Using Arch BTW? Just run `makepkg -si`, or get `phasor-git` on the AUR</sub>
 
-> [!NOTE] 
-> 
+> [!NOTE]
+>
 > If you have forked and do not plan to contribute back, you should modify `cmake/Version.cmake` to match your forks URL!
 
 ### Prerequisites
@@ -251,6 +254,7 @@ This repo contains:
 See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor) wiki.
 
 ### Plugin locations
+
 (Like win32 api, posix) are available in different locations based on your OS:
 
 - Unix - `/usr/lib/phasor/plugins/`
