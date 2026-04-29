@@ -29,60 +29,61 @@ type GetVersionFn = unsafe extern "C" fn() -> *const c_char;
 type ExecFn = unsafe extern "C" fn(
     state: *mut c_void,
     bytecode: *const c_uchar,
-    bytecodeSize: size_t,
-    moduleName: *const c_char,
+    bytecode_size: size_t,
+    module_name: *const c_char,
     argc: c_int,
     argv: *const *const c_char,
 ) -> c_int;
 type ExecFuncIntFn = unsafe extern "C" fn(
     state: *mut c_void,
     bytecode: *const c_uchar,
-    bytecodeSize: size_t,
-    moduleName: *const c_char,
+    bytecode_size: size_t,
+    module_name: *const c_char,
     argc: c_int,
     argv: *const *const c_char,
-    functionName: *const c_char,
+    function_name: *const c_char,
 ) -> c_int;
 type ExecFuncStringFn = unsafe extern "C" fn(
     state: *mut c_void,
     bytecode: *const c_uchar,
-    bytecodeSize: size_t,
-    moduleName: *const c_char,
+    bytecode_size: size_t,
+    module_name: *const c_char,
     argc: c_int,
     argv: *const *const c_char,
-    functionName: *const c_char,
+    function_name: *const c_char,
 ) -> *const c_char;
 type EvaluatePHSFn = unsafe extern "C" fn(
     state: *mut c_void,
     script: *const c_char,
-    moduleName: *const c_char,
-    modulePath: *const c_char,
+    module_name: *const c_char,
+    module_path: *const c_char,
     verbose: bool,
 ) -> c_int;
 type EvaluatePULFn = unsafe extern "C" fn(
     state: *mut c_void,
     script: *const c_char,
-    moduleName: *const c_char,
+    module_name: *const c_char,
 ) -> c_int;
 type CompilePHSFn = unsafe extern "C" fn(
     script: *const c_char,
-    moduleName: *const c_char,
-    modulePath: *const c_char,
+    module_name: *const c_char,
+    module_path: *const c_char,
     buffer: *mut c_uchar,
-    bufferSize: size_t,
-    outSize: *mut size_t,
+    buffer_size: size_t,
+    out_size: *mut size_t,
 ) -> bool;
 type CompilePULFn = unsafe extern "C" fn(
     script: *const c_char,
-    moduleName: *const c_char,
+    module_name: *const c_char,
     buffer: *mut c_uchar,
-    bufferSize: size_t,
-    outSize: *mut size_t,
+    buffer_size: size_t,
+    out_size: *mut size_t,
 ) -> bool;
 type CreateStateFn = unsafe extern "C" fn() -> *mut c_void;
 type InitStdLibFn = unsafe extern "C" fn(state: *mut c_void);
 type FreeStateFn = unsafe extern "C" fn(state: *mut c_void) -> bool;
-type ResetStateFn = unsafe extern "C" fn(state: *mut c_void, resetFunctions: bool, resetVariables: bool) -> bool;
+type ResetStateFn =
+    unsafe extern "C" fn(state: *mut c_void, reset_functions: bool, reset_variables: bool) -> bool;
 
 pub struct PhasorVM {
     state: *mut c_void,
@@ -91,8 +92,8 @@ pub struct PhasorVM {
 
 impl PhasorVM {
     pub fn new() -> Result<Self, PhasorError> {
-        let dll_path = std::env::var("PHASOR_DLL_PATH")
-            .unwrap_or_else(|_| "phasorrt.dll".to_string());
+        let dll_path =
+            std::env::var("PHASOR_DLL_PATH").unwrap_or_else(|_| "phasorrt.dll".to_string());
 
         unsafe {
             let lib = Library::new(&dll_path)?;
@@ -105,31 +106,31 @@ impl PhasorVM {
         }
     }
 
-    unsafe fn get_stdlib_init(&self) -> Symbol<InitStdLibFn> {
+    unsafe fn get_stdlib_init(&self) -> Symbol<'_, InitStdLibFn> {
         self._lib.get(b"initStdLib").unwrap()
     }
 
-    unsafe fn get_reset_state(&self) -> Symbol<ResetStateFn> {
+    unsafe fn get_reset_state(&self) -> Symbol<'_, ResetStateFn> {
         self._lib.get(b"resetState").unwrap()
     }
 
-    unsafe fn get_exec(&self) -> Symbol<ExecFn> {
+    unsafe fn get_exec(&self) -> Symbol<'_, ExecFn> {
         self._lib.get(b"exec").unwrap()
     }
 
-    unsafe fn get_exec_func_int(&self) -> Symbol<ExecFuncIntFn> {
+    unsafe fn get_exec_func_int(&self) -> Symbol<'_, ExecFuncIntFn> {
         self._lib.get(b"execFuncInt").unwrap()
     }
 
-    unsafe fn get_exec_func_string(&self) -> Symbol<ExecFuncStringFn> {
+    unsafe fn get_exec_func_string(&self) -> Symbol<'_, ExecFuncStringFn> {
         self._lib.get(b"execFuncString").unwrap()
     }
 
-    unsafe fn get_evaluate_phs(&self) -> Symbol<EvaluatePHSFn> {
+    unsafe fn get_evaluate_phs(&self) -> Symbol<'_, EvaluatePHSFn> {
         self._lib.get(b"evaluatePHS").unwrap()
     }
 
-    unsafe fn get_evaluate_pul(&self) -> Symbol<EvaluatePULFn> {
+    unsafe fn get_evaluate_pul(&self) -> Symbol<'_, EvaluatePULFn> {
         self._lib.get(b"evaluatePUL").unwrap()
     }
 
@@ -140,11 +141,26 @@ impl PhasorVM {
         Ok(())
     }
 
-    pub fn reset(&mut self, reset_functions: bool, reset_variables: bool) -> Result<bool, PhasorError> {
-        unsafe { Ok(self.get_reset_state()(self.state, reset_functions, reset_variables)) }
+    pub fn reset(
+        &mut self,
+        reset_functions: bool,
+        reset_variables: bool,
+    ) -> Result<bool, PhasorError> {
+        unsafe {
+            Ok(self.get_reset_state()(
+                self.state,
+                reset_functions,
+                reset_variables,
+            ))
+        }
     }
 
-    pub fn exec(&mut self, bytecode: &[u8], module: &str, args: &[&str]) -> Result<i32, PhasorError> {
+    pub fn exec(
+        &mut self,
+        bytecode: &[u8],
+        module: &str,
+        args: &[&str],
+    ) -> Result<i32, PhasorError> {
         let c_module = CString::new(module)?;
         let c_args: Vec<CString> = args.iter().map(|&s| CString::new(s).unwrap()).collect();
         let arg_ptrs: Vec<*const c_char> = c_args.iter().map(|s| s.as_ptr()).collect();
@@ -242,7 +258,13 @@ impl PhasorVM {
         let path_ptr = c_path.as_ptr();
 
         unsafe {
-            let res = self.get_evaluate_phs()(self.state, c_script.as_ptr(), c_module.as_ptr(), path_ptr, verbose);
+            let res = self.get_evaluate_phs()(
+                self.state,
+                c_script.as_ptr(),
+                c_module.as_ptr(),
+                path_ptr,
+                verbose,
+            );
             if res == -1 {
                 Err(PhasorError::ExecutionException(-1))
             } else {
@@ -279,8 +301,7 @@ impl Drop for PhasorVM {
 pub fn get_version() -> Result<String, PhasorError> {
     unsafe {
         let lib = Library::new(
-            std::env::var("PHASOR_DLL_PATH")
-                .unwrap_or_else(|_| "phasorrt.dll".to_string())
+            std::env::var("PHASOR_DLL_PATH").unwrap_or_else(|_| "phasorrt.dll".to_string()),
         )?;
         let get_version: Symbol<GetVersionFn> = lib.get(b"getVersion")?;
         let v = get_version();
@@ -295,8 +316,7 @@ pub fn get_version() -> Result<String, PhasorError> {
 pub fn compile_phs(script: &str, module: &str, path: Option<&str>) -> Result<Vec<u8>, PhasorError> {
     unsafe {
         let lib = Library::new(
-            std::env::var("PHASOR_DLL_PATH")
-                .unwrap_or_else(|_| "phasorrt.dll".to_string())
+            std::env::var("PHASOR_DLL_PATH").unwrap_or_else(|_| "phasorrt.dll".to_string()),
         )?;
         let compile_phs: Symbol<CompilePHSFn> = lib.get(b"compilePHS")?;
 
@@ -306,7 +326,14 @@ pub fn compile_phs(script: &str, module: &str, path: Option<&str>) -> Result<Vec
         let path_ptr = c_path.as_ref().map_or(ptr::null(), |p| p.as_ptr());
 
         let mut out_size: size_t = 0;
-        let success = compile_phs(c_script.as_ptr(), c_module.as_ptr(), path_ptr, ptr::null_mut(), 0, &mut out_size);
+        let success = compile_phs(
+            c_script.as_ptr(),
+            c_module.as_ptr(),
+            path_ptr,
+            ptr::null_mut(),
+            0,
+            &mut out_size,
+        );
         if !success {
             return Err(PhasorError::CompileError);
         }
@@ -331,8 +358,7 @@ pub fn compile_phs(script: &str, module: &str, path: Option<&str>) -> Result<Vec
 pub fn compile_pul(script: &str, module: &str) -> Result<Vec<u8>, PhasorError> {
     unsafe {
         let lib = Library::new(
-            std::env::var("PHASOR_DLL_PATH")
-                .unwrap_or_else(|_| "phasorrt.dll".to_string())
+            std::env::var("PHASOR_DLL_PATH").unwrap_or_else(|_| "phasorrt.dll".to_string()),
         )?;
         let compile_pul: Symbol<CompilePULFn> = lib.get(b"compilePUL")?;
 
@@ -340,7 +366,13 @@ pub fn compile_pul(script: &str, module: &str) -> Result<Vec<u8>, PhasorError> {
         let c_module = CString::new(module)?;
 
         let mut out_size: size_t = 0;
-        let success = compile_pul(c_script.as_ptr(), c_module.as_ptr(), ptr::null_mut(), 0, &mut out_size);
+        let success = compile_pul(
+            c_script.as_ptr(),
+            c_module.as_ptr(),
+            ptr::null_mut(),
+            0,
+            &mut out_size,
+        );
         if !success {
             return Err(PhasorError::CompileError);
         }
