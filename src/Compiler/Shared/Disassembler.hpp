@@ -23,7 +23,7 @@ class Disassembler
 		std::filesystem::path outputFile;
 		std::filesystem::path program;
 		bool                  showHelp = false;
-		bool				  silent = false;
+		bool                  silent = false;
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);

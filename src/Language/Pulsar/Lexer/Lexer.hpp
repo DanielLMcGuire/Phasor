@@ -10,7 +10,7 @@ namespace pulsar
 class Lexer
 {
   public:
-	Lexer(const std::string &source);
+	Lexer(std::string source);
 	std::vector<Phasor::Token> tokenize();
 
   private:

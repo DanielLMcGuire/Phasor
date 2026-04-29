@@ -21,8 +21,8 @@
 #pragma once
 
 #include <cmath>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include <functional>
 #include <map>
@@ -43,7 +43,7 @@ namespace Phasor
 /// @brief Native function signature
 using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
 
-/** 
+/**
  * @class StdLib
  * @brief Phasor Standard library
  *
@@ -52,7 +52,7 @@ using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *v
 class StdLib
 {
   public:
-	inline static void registerFunctions(VM &vm)
+	static void registerFunctions(VM &vm)
 	{
 #ifdef TRACING
 		vm.log(std::format("StdLib::{}(&VM@{:#x})\n", __func__, reinterpret_cast<std::uintptr_t>(&vm)));
@@ -66,9 +66,10 @@ class StdLib
 
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
-	
+
 	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
+
   private:
 	static bool std_import(const std::vector<Value> &args, VM *vm);
 #ifndef SANDBOXED

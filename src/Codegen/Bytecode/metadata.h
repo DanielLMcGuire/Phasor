@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-static inline constexpr uint32_t ascii_to_u32_le(const char s[4])
+static constexpr uint32_t ascii_to_u32_le(const char s[4])
 {
 	return ((uint32_t)(uint8_t)s[0]) | ((uint32_t)(uint8_t)s[1] << 8) | ((uint32_t)(uint8_t)s[2] << 16) |
 	       ((uint32_t)(uint8_t)s[3] << 24);

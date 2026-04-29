@@ -24,7 +24,7 @@ class ScriptingRuntime
 	ScriptingRuntime(int argc, char *argv[]);
 	int run();
 
-	int  runSource();
+	int runSource();
 	int runSourceString(const std::string &source, VM &vm);
 
 	std::unique_ptr<VM> createVm();

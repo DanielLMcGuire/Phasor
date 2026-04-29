@@ -17,7 +17,7 @@
 
 #if defined(_WIN32)
 #include <windows.h>
-#else 
+#else
 #include <dlfcn.h>
 #endif
 
@@ -29,8 +29,9 @@
 #include "PhasorFFI.h"
 #include "Value.hpp"
 
-namespace Phasor {
-    class VM;
+namespace Phasor
+{
+class VM;
 }
 
 using FFIFunction = void (*)(const PhasorAPI *api, PhasorVM *vm);

@@ -31,14 +31,18 @@ template <typename T> struct Table
 template <typename T> inline HandleId store(T handle)
 {
 	if (!handle)
+	{
 		return 0;
+	}
 
 	auto &h2i = Table<T>::handleToId();
 	auto &i2h = Table<T>::idToHandle();
 
 	auto it = h2i.find(handle);
 	if (it != h2i.end())
+	{
 		return it->second;
+	}
 
 	HandleId id = nextId()++;
 	h2i[handle] = id;
@@ -49,12 +53,16 @@ template <typename T> inline HandleId store(T handle)
 template <typename T> inline T resolve(HandleId id)
 {
 	if (id == 0)
+	{
 		return T{};
+	}
 
 	auto &i2h = Table<T>::idToHandle();
 	auto  it = i2h.find(id);
 	if (it == i2h.end())
+	{
 		return T{};
+	}
 
 	return it->second;
 }
@@ -66,7 +74,9 @@ template <typename T> inline void remove(HandleId id)
 
 	auto it = i2h.find(id);
 	if (it == i2h.end())
+	{
 		return;
+	}
 
 	h2i.erase(it->second);
 	i2h.erase(it);

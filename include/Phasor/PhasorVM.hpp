@@ -10,10 +10,10 @@
 // limitations under the License.
 
 // README
-// 
+//
 // Because the VM is such a complex component, this readme only covers
 // basic high-level use cases.
-// For more information, please refer to the below, and the internal header 
+// For more information, please refer to the below, and the internal header
 // at src/Runtime/VM/VM.hpp, as well as the [doxygen](phasor-docs.pages.dev)
 //
 // Usage:
@@ -36,7 +36,7 @@
 #include <stdexcept>
 
 #ifndef SANDBOXED
-	#include "PhasorFFI.hpp"
+#include "PhasorFFI.hpp"
 #endif
 #include "PhasorISA.hpp"
 #include "../Value.hpp"
@@ -65,7 +65,7 @@ class VM
 	class Halt : public std::exception
 	{
 	  public:
-		const char *what() const noexcept override
+		[[nodiscard]] const char *what() const noexcept override
 		{
 			return "";
 		}
@@ -73,7 +73,7 @@ class VM
 
 	/// @brief Run the virtual machine
 	/// Exits -1 on uncaught exception
-	int run(const Bytecode &bytecode, const size_t startPC = 0);
+	int run(const Bytecode &bytecode, size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine
 	Value runFunction(const std::string &name, const Bytecode &bytecode);
@@ -162,13 +162,14 @@ class VM
 		r31
 	};
 
-	#define REGISTER1 VM::Register::r0
-	#define REGISTER2 VM::Register::r1
-	#define REGISTER3 VM::Register::r2
+#define REGISTER1 VM::Register::r0
+#define REGISTER2 VM::Register::r1
+#define REGISTER3 VM::Register::r2
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	                                  const int &operand3 = 0);
 #else
 	/// @brief Execute a single operation
 	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
@@ -205,20 +206,20 @@ class VM
 
 	/// @brief Flush stderr
 	void flusherr();
-	
+
 	/// @brief Set VM exit code
 	void setStatus(int newStatus);
 	void resetStatus();
-	int getStatus();
+	int  getStatus();
 
-	/** 
+	/**
 	 * @brief Run an opcode with arguments pre-loaded into registers
 	 * @tparam Args Argument types
 	 * @param opcode Opcode to run
 	 * @param args Arguments to load into registers
 	 * @return Return value of the operation
-	*/
-	template <typename... Args> inline Value regRun(OpCode opcode, Args &&...args)
+	 */
+	template <typename... Args> Value regRun(OpCode opcode, Args &&...args)
 	{
 		int regIndex = 0;
 		(setRegister(regIndex++, std::forward<Args>(args)), ...);
@@ -233,10 +234,13 @@ class VM
 	 * @param args Arguments to push to the stack
 	 * @return Value returned to stack
 	 */
-	template <typename... Args> inline Value stackRun(OpCode opcode, Args&&... args) {
+	template <typename... Args> Value stackRun(OpCode opcode, Args &&...args)
+	{
 		Value arr[] = {Value(std::forward<Args>(args))...};
-		for (Value& v : arr | std::views::reverse)
+		for (Value &v : arr | std::views::reverse)
+		{
 			push(v);
+		}
 		operation(opcode);
 		return pop();
 	}

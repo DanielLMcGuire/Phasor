@@ -39,12 +39,12 @@ class PhasorIR
 	/// @brief Operand types for instructions
 	enum class OperandType : uint8_t
 	{
-		NONE, ///< No operand
-		INT,  ///< Integer operand
-		REGISTER,  ///< Register operand
+		NONE,         ///< No operand
+		INT,          ///< Integer operand
+		REGISTER,     ///< Register operand
 		CONSTANT_IDX, ///< Index into constant pool
 		VARIABLE_IDX, ///< Index into variable mapping
-		FUNCTION_IDX ///< Index into function entries
+		FUNCTION_IDX  ///< Index into function entries
 	};
 
 	static int         getOperandCount(OpCode op);

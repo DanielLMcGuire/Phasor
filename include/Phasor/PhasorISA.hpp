@@ -216,12 +216,12 @@ struct StructInfo
 /// @brief Complete bytecode structure
 struct Bytecode
 {
-	std::vector<Instruction>   instructions;     ///< List of instructions
-	std::vector<Value>         constants;        ///< Constant pool
-	std::map<std::string, int> variables;        ///< Variable name -> index mapping
-	std::map<std::string, int> functionEntries;  ///< Function name -> instruction index mapping
+	std::vector<Instruction>   instructions;        ///< List of instructions
+	std::vector<Value>         constants;           ///< Constant pool
+	std::map<std::string, int> variables;           ///< Variable name -> index mapping
+	std::map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
 	std::map<std::string, int> functionParamCounts; ///< Function name -> parameter count
-	int                        nextVarIndex = 0; ///< Next available variable index
+	int                        nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
 	std::vector<StructInfo>    structs;       ///< List of struct descriptors
@@ -250,7 +250,7 @@ struct Bytecode
 	/// @brief Emit an instruction with operands
 	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
 	{
-		instructions.push_back(Instruction(op, op1, op2, op3));
+		instructions.emplace_back(op, op1, op2, op3);
 	}
 };
 

@@ -23,7 +23,7 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 
 bool CodeGenerator::isLiteralExpression(const AST::Expression *expr, Value &outValue)
 {
-	if (auto numExpr = dynamic_cast<const AST::NumberExpr *>(expr))
+	if (const auto *numExpr = dynamic_cast<const AST::NumberExpr *>(expr))
 	{
 		try
 		{
@@ -42,17 +42,17 @@ bool CodeGenerator::isLiteralExpression(const AST::Expression *expr, Value &outV
 			return false;
 		}
 	}
-	if (auto strExpr = dynamic_cast<const AST::StringExpr *>(expr))
+	if (const auto *strExpr = dynamic_cast<const AST::StringExpr *>(expr))
 	{
 		outValue = Value(strExpr->value);
 		return true;
 	}
-	if (auto boolExpr = dynamic_cast<const AST::BooleanExpr *>(expr))
+	if (const auto *boolExpr = dynamic_cast<const AST::BooleanExpr *>(expr))
 	{
 		outValue = Value(boolExpr->value);
 		return true;
 	}
-	if (dynamic_cast<const AST::NullExpr *>(expr))
+	if (dynamic_cast<const AST::NullExpr *>(expr) != nullptr)
 	{
 		outValue = Value();
 		return true;
@@ -71,7 +71,7 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 	}
 
 	// If identifier and we've inferred its type previously, return that
-	if (auto ident = dynamic_cast<const AST::IdentifierExpr *>(expr))
+	if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(expr))
 	{
 		auto it = inferredTypes.find(ident->name);
 		if (it != inferredTypes.end())
@@ -88,71 +88,71 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 
 void CodeGenerator::generateStatement(const AST::Statement *stmt)
 {
-	if (auto varDecl = dynamic_cast<const AST::VarDecl *>(stmt))
+	if (const auto *varDecl = dynamic_cast<const AST::VarDecl *>(stmt))
 	{
 		generateVarDecl(varDecl);
 	}
-	else if (auto exprStmt = dynamic_cast<const AST::ExpressionStmt *>(stmt))
+	else if (const auto *exprStmt = dynamic_cast<const AST::ExpressionStmt *>(stmt))
 	{
 		generateExpressionStmt(exprStmt);
 	}
-	else if (auto printStmt = dynamic_cast<const AST::PrintStmt *>(stmt))
+	else if (const auto *printStmt = dynamic_cast<const AST::PrintStmt *>(stmt))
 	{
 		generatePrintStmt(printStmt);
 	}
-	else if (dynamic_cast<const AST::IncludeStmt *>(stmt))
+	else if (dynamic_cast<const AST::IncludeStmt *>(stmt) != nullptr)
 	{
 		// preprocessor include
 	}
-	else if (auto importStmt = dynamic_cast<const AST::ImportStmt *>(stmt))
+	else if (const auto *importStmt = dynamic_cast<const AST::ImportStmt *>(stmt))
 	{
 		generateImportStmt(importStmt);
 	}
-	else if (auto exportStmt = dynamic_cast<const AST::ExportStmt *>(stmt))
+	else if (const auto *exportStmt = dynamic_cast<const AST::ExportStmt *>(stmt))
 	{
 		generateExportStmt(exportStmt);
 	}
-	else if (auto blockStmt = dynamic_cast<const AST::BlockStmt *>(stmt))
+	else if (const auto *blockStmt = dynamic_cast<const AST::BlockStmt *>(stmt))
 	{
 		generateBlockStmt(blockStmt);
 	}
-	else if (auto ifStmt = dynamic_cast<const AST::IfStmt *>(stmt))
+	else if (const auto *ifStmt = dynamic_cast<const AST::IfStmt *>(stmt))
 	{
 		generateIfStmt(ifStmt);
 	}
-	else if (auto whileStmt = dynamic_cast<const AST::WhileStmt *>(stmt))
+	else if (const auto *whileStmt = dynamic_cast<const AST::WhileStmt *>(stmt))
 	{
 		generateWhileStmt(whileStmt);
 	}
-	else if (auto forStmt = dynamic_cast<const AST::ForStmt *>(stmt))
+	else if (const auto *forStmt = dynamic_cast<const AST::ForStmt *>(stmt))
 	{
 		generateForStmt(forStmt);
 	}
-	else if (auto returnStmt = dynamic_cast<const AST::ReturnStmt *>(stmt))
+	else if (const auto *returnStmt = dynamic_cast<const AST::ReturnStmt *>(stmt))
 	{
 		generateReturnStmt(returnStmt);
 	}
-	else if (auto unsafeStmt = dynamic_cast<const AST::UnsafeBlockStmt *>(stmt))
+	else if (const auto *unsafeStmt = dynamic_cast<const AST::UnsafeBlockStmt *>(stmt))
 	{
 		generateUnsafeBlockStmt(unsafeStmt);
 	}
-	else if (auto funcDecl = dynamic_cast<const AST::FunctionDecl *>(stmt))
+	else if (const auto *funcDecl = dynamic_cast<const AST::FunctionDecl *>(stmt))
 	{
 		generateFunctionDecl(funcDecl);
 	}
-	else if (auto structDecl = dynamic_cast<const AST::StructDecl *>(stmt))
+	else if (const auto *structDecl = dynamic_cast<const AST::StructDecl *>(stmt))
 	{
 		generateStructDecl(structDecl);
 	}
-	else if (dynamic_cast<const AST::BreakStmt *>(stmt))
+	else if (dynamic_cast<const AST::BreakStmt *>(stmt) != nullptr)
 	{
 		generateBreakStmt();
 	}
-	else if (dynamic_cast<const AST::ContinueStmt *>(stmt))
+	else if (dynamic_cast<const AST::ContinueStmt *>(stmt) != nullptr)
 	{
 		generateContinueStmt();
 	}
-	else if (auto switchStmt = dynamic_cast<const AST::SwitchStmt *>(stmt))
+	else if (const auto *switchStmt = dynamic_cast<const AST::SwitchStmt *>(stmt))
 	{
 		generateSwitchStmt(switchStmt);
 	}
@@ -164,51 +164,51 @@ void CodeGenerator::generateStatement(const AST::Statement *stmt)
 
 void CodeGenerator::generateExpression(const AST::Expression *expr)
 {
-	if (auto numExpr = dynamic_cast<const AST::NumberExpr *>(expr))
+	if (const auto *numExpr = dynamic_cast<const AST::NumberExpr *>(expr))
 	{
 		generateNumberExpr(numExpr);
 	}
-	else if (auto strExpr = dynamic_cast<const AST::StringExpr *>(expr))
+	else if (const auto *strExpr = dynamic_cast<const AST::StringExpr *>(expr))
 	{
 		generateStringExpr(strExpr);
 	}
-	else if (auto identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr))
+	else if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr))
 	{
 		generateIdentifierExpr(identExpr);
 	}
-	else if (auto unaryExpr = dynamic_cast<const AST::UnaryExpr *>(expr))
+	else if (const auto *unaryExpr = dynamic_cast<const AST::UnaryExpr *>(expr))
 	{
 		generateUnaryExpr(unaryExpr);
 	}
-	else if (auto callExpr = dynamic_cast<const AST::CallExpr *>(expr))
+	else if (const auto *callExpr = dynamic_cast<const AST::CallExpr *>(expr))
 	{
 		generateCallExpr(callExpr);
 	}
-	else if (auto binExpr = dynamic_cast<const AST::BinaryExpr *>(expr))
+	else if (const auto *binExpr = dynamic_cast<const AST::BinaryExpr *>(expr))
 	{
 		generateBinaryExpr(binExpr);
 	}
-	else if (auto boolExpr = dynamic_cast<const AST::BooleanExpr *>(expr))
+	else if (const auto *boolExpr = dynamic_cast<const AST::BooleanExpr *>(expr))
 	{
 		generateBooleanExpr(boolExpr);
 	}
-	else if (auto nullExpr = dynamic_cast<const AST::NullExpr *>(expr))
+	else if (const auto *nullExpr = dynamic_cast<const AST::NullExpr *>(expr))
 	{
 		generateNullExpr(nullExpr);
 	}
-	else if (auto assignExpr = dynamic_cast<const AST::AssignmentExpr *>(expr))
+	else if (const auto *assignExpr = dynamic_cast<const AST::AssignmentExpr *>(expr))
 	{
 		generateAssignmentExpr(assignExpr);
 	}
-	else if (auto structExpr = dynamic_cast<const AST::StructInstanceExpr *>(expr))
+	else if (const auto *structExpr = dynamic_cast<const AST::StructInstanceExpr *>(expr))
 	{
 		generateStructInstanceExpr(structExpr);
 	}
-	else if (auto fieldAccessExpr = dynamic_cast<const AST::FieldAccessExpr *>(expr))
+	else if (const auto *fieldAccessExpr = dynamic_cast<const AST::FieldAccessExpr *>(expr))
 	{
 		generateFieldAccessExpr(fieldAccessExpr);
 	}
-	else if (auto postfixExpr = dynamic_cast<const AST::PostfixExpr *>(expr))
+	else if (const auto *postfixExpr = dynamic_cast<const AST::PostfixExpr *>(expr))
 	{
 		generatePostfixExpr(postfixExpr);
 	}
@@ -230,7 +230,7 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 		{
 			inferredTypes[varDecl->name] = initVal.getType();
 		}
-		else if (auto ident = dynamic_cast<const AST::IdentifierExpr *>(varDecl->initializer.get()))
+		else if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(varDecl->initializer.get()))
 		{
 			// propagate known type from another variable
 			auto it = inferredTypes.find(ident->name);
@@ -350,11 +350,11 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	// Optimizations
 	if (callExpr->callee == "len" && callExpr->arguments.size() == 1)
 	{
-		if (auto strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
+		if (const auto *strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
 		{
 			// Constant fold len("literal")
-			int64_t len = (int64_t)strExpr->value.length();
-			int     constIndex = bytecode.addConstant(Value(len));
+			auto len = (int64_t)strExpr->value.length();
+			int  constIndex = bytecode.addConstant(Value(len));
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 			return;
 		}
@@ -367,7 +367,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	if (callExpr->callee == "substr" && callExpr->arguments.size() == 3)
 	{
 		// Check for substr(s, i, 1) -> char_at(s, i)
-		if (auto numExpr = dynamic_cast<const AST::NumberExpr *>(callExpr->arguments[2].get()))
+		if (const auto *numExpr = dynamic_cast<const AST::NumberExpr *>(callExpr->arguments[2].get()))
 		{
 			if (numExpr->value == "1" || numExpr->value == "1.0")
 			{
@@ -390,12 +390,11 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 
 	if (callExpr->callee == "starts_with" && callExpr->arguments.size() == 2)
 	{
-		auto s = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get());
-		auto p = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[1].get());
-		if (s && p)
+		const auto *s = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get());
+		const auto *p = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[1].get());
+		if ((s != nullptr) && (p != nullptr))
 		{
-			bool result =
-			    s->value.length() >= p->value.length() && s->value.compare(0, p->value.length(), p->value) == 0;
+			bool result = s->value.length() >= p->value.length() && s->value.starts_with(p->value);
 			bytecode.emit(result ? OpCode::TRUE_P : OpCode::FALSE_P);
 			return;
 		}
@@ -403,13 +402,11 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 
 	if (callExpr->callee == "ends_with" && callExpr->arguments.size() == 2)
 	{
-		auto s = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get());
-		auto suffix = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[1].get());
-		if (s && suffix)
+		const auto *s = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get());
+		const auto *suffix = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[1].get());
+		if ((s != nullptr) && (suffix != nullptr))
 		{
-			bool result = s->value.length() >= suffix->value.length() &&
-			              s->value.compare(s->value.length() - suffix->value.length(), suffix->value.length(),
-			                               suffix->value) == 0;
+			bool result = s->value.length() >= suffix->value.length() && s->value.ends_with(suffix->value);
 			bytecode.emit(result ? OpCode::TRUE_P : OpCode::FALSE_P);
 			return;
 		}
@@ -591,9 +588,11 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 	// treat operand as known-int if it's an integer literal or a variable previously inferred as Int.
 	auto exprIsKnownInt = [&](const AST::Expression *e, bool isLiteral, const Value &lit) -> bool {
 		if (isLiteral)
+		{
 			return lit.isInt();
+		}
 		// variable case
-		if (auto ident = dynamic_cast<const AST::IdentifierExpr *>(e))
+		if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(e))
 		{
 			auto it = inferredTypes.find(ident->name);
 			return it != inferredTypes.end() && it->second == ValueType::Int;
@@ -742,8 +741,8 @@ void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
 
 	// Push loop context
 	loopStartStack.push_back(loopStartIndex);
-	breakJumpsStack.push_back(std::vector<int>());
-	continueJumpsStack.push_back(std::vector<int>());
+	breakJumpsStack.emplace_back();
+	continueJumpsStack.emplace_back();
 
 	generateExpression(whileStmt->condition.get());
 
@@ -786,8 +785,8 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 
 	// Push loop context
 	loopStartStack.push_back(loopStartIndex);
-	breakJumpsStack.push_back(std::vector<int>());
-	continueJumpsStack.push_back(std::vector<int>());
+	breakJumpsStack.emplace_back();
+	continueJumpsStack.emplace_back();
 
 	// Generate condition (if present)
 	int jumpToEndIndex = -1;
@@ -931,7 +930,7 @@ void CodeGenerator::generateNullExpr(const AST::NullExpr *)
 void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr)
 {
 	// Support assignments to variables and struct fields.
-	if (auto identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
+	if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
 	{
 		// Variable assignment: a = value
 		// 1. Generate value (pushes value to stack)
@@ -943,11 +942,13 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 		{
 			inferredTypes[identExpr->name] = val.getType();
 		}
-		else if (auto identRhs = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->value.get()))
+		else if (const auto *identRhs = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->value.get()))
 		{
 			auto it = inferredTypes.find(identRhs->name);
 			if (it != inferredTypes.end())
+			{
 				inferredTypes[identExpr->name] = it->second;
+			}
 		}
 
 		// 2. Store in variable (pops value)
@@ -957,7 +958,7 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 		// 3. Load it back (assignment is an expression that returns the value)
 		bytecode.emit(OpCode::LOAD_VAR, varIndex);
 	}
-	else if (auto fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(assignExpr->target.get()))
+	else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(assignExpr->target.get()))
 	{
 		// Generate object (pushes struct)
 		generateExpression(fieldExpr->object.get());
@@ -1021,8 +1022,8 @@ void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
 void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
 {
 	// Only support postfix on identifiers
-	auto identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr->operand.get());
-	if (!identExpr)
+	const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr->operand.get());
+	if (identExpr == nullptr)
 	{
 		throw std::runtime_error("Postfix operators only supported on variables");
 	}
@@ -1089,7 +1090,7 @@ void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 	}
 
 	// If a struct with this name already exists, do not overwrite it.
-	if (bytecode.structEntries.find(decl->name) == bytecode.structEntries.end())
+	if (!bytecode.structEntries.contains(decl->name))
 	{
 		int index = static_cast<int>(bytecode.structs.size());
 		bytecode.structs.push_back(std::move(info));
@@ -1117,7 +1118,9 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 		bytecode.emit(OpCode::JUMP_IF_FALSE, 0); // skip this case if no match
 
 		for (const auto &stmt : caseClause.statements)
+		{
 			generateStatement(stmt.get());
+		}
 
 		int endJump = static_cast<int>(bytecode.instructions.size());
 		bytecode.emit(OpCode::JUMP, 0); // after executing, jump to end
@@ -1128,10 +1131,14 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 	}
 
 	for (const auto &stmt : switchStmt->defaultStmts)
+	{
 		generateStatement(stmt.get());
+	}
 
 	int endIndex = static_cast<int>(bytecode.instructions.size());
 	for (int jumpIdx : endJumps)
+	{
 		bytecode.instructions[jumpIdx].operand1 = endIndex;
+	}
 }
 } // namespace Phasor

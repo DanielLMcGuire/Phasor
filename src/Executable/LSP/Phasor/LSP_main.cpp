@@ -18,21 +18,31 @@ static std::string readMessage()
 	{
 		std::string line;
 		if (!std::getline(std::cin, line))
+		{
 			return "";
+		}
 
 		if (!line.empty() && line.back() == '\r')
+		{
 			line.pop_back();
+		}
 
 		if (line.empty())
+		{
 			break;
+		}
 
 		const std::string prefix = "Content-Length: ";
-		if (line.rfind(prefix, 0) == 0)
+		if (line.starts_with(prefix))
+		{
 			contentLength = std::stoull(line.substr(prefix.size()));
+		}
 	}
 
 	if (contentLength == 0)
+	{
 		return "";
+	}
 
 	std::string body(contentLength, '\0');
 	std::cin.read(body.data(), static_cast<std::streamsize>(contentLength));
@@ -94,7 +104,9 @@ static json handleHover(Phasor::LSP &lsp, const json &params)
 
 	auto text = lsp.getHover(uri, line, col);
 	if (!text.has_value())
+	{
 		return nullptr;
+	}
 
 	return {{"contents", {{"kind", "markdown"}, {"value", "```phasor\n" + *text + "\n```"}}},
 	        {"range", makePointRange(line, col)}};
@@ -108,7 +120,9 @@ static json handleDefinition(Phasor::LSP &lsp, const json &params)
 
 	auto loc = lsp.getDefinition(uri, line, col);
 	if (!loc.has_value())
+	{
 		return nullptr;
+	}
 
 	return {{"uri", loc->uri}, {"range", makePointRange(loc->line, loc->column)}};
 }
@@ -128,7 +142,9 @@ int main()
 	{
 		const std::string raw = readMessage();
 		if (raw.empty())
+		{
 			break;
+		}
 
 		json msg;
 		try

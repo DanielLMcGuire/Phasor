@@ -13,8 +13,8 @@
  */
 PhasorValue hello_from_ffi(PhasorVM *vm, int argc, const PhasorValue *argv)
 {
-	std::cout << "Hello from a C++ FFI plugin!" << std::endl;
-	std::cout << "Received " << argc << " arguments." << std::endl;
+	std::cout << "Hello from a C++ FFI plugin!" << '\n';
+	std::cout << "Received " << argc << " arguments." << '\n';
 
 	for (int i = 0; i < argc; ++i)
 	{
@@ -38,7 +38,7 @@ PhasorValue hello_from_ffi(PhasorVM *vm, int argc, const PhasorValue *argv)
 			break;
 		}
 		}
-		std::cout << std::endl;
+		std::cout << '\n';
 	}
 
 	// Return a string value back to the VM.

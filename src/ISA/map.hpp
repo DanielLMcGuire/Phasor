@@ -3,8 +3,9 @@
 #include <string>
 #include <stdexcept>
 
-namespace Phasor {
-    
+namespace Phasor
+{
+
 std::string opCodeToString(OpCode op);
 
 OpCode stringToOpCode(const std::string &str);

@@ -54,12 +54,12 @@ class CppCodeGenerator
 	void generateMainFunction();
 
 	// Deserialization helper
-	std::vector<unsigned char> parseEmbeddedBytecode(const std::string &input);
+	static std::vector<unsigned char> parseEmbeddedBytecode(const std::string &input);
 
 	// Helper methods
-	std::string escapeString(const std::string &str);
-	std::string getValueTypeString(ValueType type);
-	std::string sanitizeModuleName(const std::string &name);
+	static std::string escapeString(const std::string &str);
+	static std::string getValueTypeString(ValueType type);
+	static std::string sanitizeModuleName(const std::string &name);
 };
 
 } // namespace Phasor

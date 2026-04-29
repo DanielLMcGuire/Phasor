@@ -23,20 +23,20 @@ class NativeRuntime
 	NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv);
 	NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);
 	~NativeRuntime();
-	int  run();
-	int  runFunctionInt(std::string functionName);
+	int                        run();
+	int                        runFunctionInt(std::string functionName);
 	std::optional<std::string> runFunctionString(std::string functionName);
-	void addNativeFunction(const std::string &name, void *function);
+	void                       addNativeFunction(const std::string &name, void *function);
 
 	static int eval(VM *vm, const std::string &script);
 
-  private:	
+  private:
 	std::shared_ptr<Phasor::VM> m_vm;
-	Bytecode             m_bytecode;
-	std::vector<uint8_t> m_bytecodeData;
-	std::string          m_script;
-	int                  m_argc;
-	char               **m_argv;
+	Bytecode                    m_bytecode;
+	std::vector<uint8_t>        m_bytecodeData;
+	std::string                 m_script;
+	int                         m_argc;
+	char                      **m_argv;
 };
 
 } // namespace Phasor

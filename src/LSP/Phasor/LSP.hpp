@@ -13,7 +13,6 @@ namespace Phasor
 class LSP
 {
   public:
-
 	struct Diagnostic
 	{
 		std::string message;
@@ -39,11 +38,11 @@ class LSP
 
 	struct DocumentState
 	{
-		std::string                   uri;
-		std::string                   source;
-		std::vector<size_t>           lineStartOffsets;
-		std::unique_ptr<AST::Program> program;
-		std::vector<Diagnostic>       diagnostics;
+		std::string                                 uri;
+		std::string                                 source;
+		std::vector<size_t>                         lineStartOffsets;
+		std::unique_ptr<AST::Program>               program;
+		std::vector<Diagnostic>                     diagnostics;
 		std::unordered_map<std::string, SymbolInfo> globalSymbols;
 	};
 
@@ -65,10 +64,10 @@ class LSP
   private:
 	std::unordered_map<std::string, DocumentState> documents;
 
-	void compile(DocumentState &doc);
-	void computeLineOffsets(DocumentState &doc);
-	void buildGlobalSymbols(DocumentState &doc);
-	AST::Node *walkForNode(const DocumentState &doc, size_t line, size_t col);
+	void        compile(DocumentState &doc);
+	void        computeLineOffsets(DocumentState &doc);
+	void        buildGlobalSymbols(DocumentState &doc);
+	AST::Node  *walkForNode(const DocumentState &doc, size_t line, size_t col);
 	std::string symbolNameAt(AST::Node *node) const;
 };
 } // namespace Phasor

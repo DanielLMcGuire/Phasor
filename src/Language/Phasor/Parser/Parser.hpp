@@ -13,30 +13,31 @@ class Parser
 {
   public:
 	Parser(const std::vector<Token> &tokens);
-	Parser(const std::vector<Token> &tokens, const std::filesystem::path &sourcePath);
+	Parser(const std::vector<Token> &tokens, std::filesystem::path sourcePath);
 
-	inline void setSourcePath(const std::filesystem::path &path)
+	void setSourcePath(const std::filesystem::path &path)
 	{
 		sourcePath = path;
 	}
 
 	std::unique_ptr<AST::Program> parse();
-	
+
 	struct Error
 	{
 		std::string message;
 		size_t      line;
 		size_t      column;
 	};
-	std::optional<Error> getError() const
+	[[nodiscard]] std::optional<Error> getError() const
 	{
 		return lastError;
 	}
+
   private:
-	std::vector<Token> tokens;
-	int                current = 0;
-	std::string        currentFunction = "";
-	std::optional<Error> lastError;
+	std::vector<Token>    tokens;
+	int                   current = 0;
+	std::string           currentFunction;
+	std::optional<Error>  lastError;
 	std::filesystem::path sourcePath;
 
 	Token peek();
@@ -46,9 +47,9 @@ class Parser
 	bool  check(Phasor::TokenType type);
 	Token peekNext();
 	bool  match(Phasor::TokenType type);
-	bool  match(Phasor::TokenType type, std::string lexeme);
-	Token consume(Phasor::TokenType type, std::string message);
-	Token consume(Phasor::TokenType type, std::string lexeme, std::string message);
+	bool  match(Phasor::TokenType type, const std::string &lexeme);
+	Token consume(Phasor::TokenType type, const std::string &message);
+	Token consume(Phasor::TokenType type, const std::string &lexeme, const std::string &message);
 	Token expect(Phasor::TokenType type, const std::string &message);
 
 	std::unique_ptr<AST::Statement>          declaration();

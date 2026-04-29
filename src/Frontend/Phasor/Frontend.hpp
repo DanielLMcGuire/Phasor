@@ -16,7 +16,7 @@ namespace Frontend
  * @return The result of the script
  */
 int runScript(const std::string &source, VM *vm, const std::filesystem::path &path = "", bool verbose = false);
-    /**
+/**
  * @brief Run an REPL
  * @param vm The virtual machine to run the REPL on
  * @param verbose Prints AST to stdout.

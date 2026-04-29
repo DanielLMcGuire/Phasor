@@ -29,8 +29,8 @@ class Compiler
 		char      **scriptArgv = nullptr;
 	} m_args;
 
-	void parseArguments(int argc, char *argv[]);
-	void showHelp(const std::string &programName);
+	void        parseArguments(int argc, char *argv[]);
+	static void showHelp(const std::string &programName);
 
 	int compileToBytecode();
 	int compileToIR();

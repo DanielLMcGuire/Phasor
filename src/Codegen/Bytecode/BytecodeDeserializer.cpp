@@ -21,7 +21,7 @@ void init_crc32_table_deserializer()
 		uint32_t crc = i;
 		for (int j = 0; j < 8; j++)
 		{
-			if (crc & 1)
+			if ((crc & 1) != 0u)
 			{
 				crc = (crc >> 1) ^ 0xEDB88320;
 			}
@@ -157,30 +157,30 @@ void BytecodeDeserializer::readConstantPool(Bytecode &bytecode)
 		switch (typeTag)
 		{
 		case 0: // Null
-			bytecode.constants.push_back(Value());
+			bytecode.constants.emplace_back();
 			break;
 		case 1: // Bool
 		{
 			uint8_t boolValue = readUInt8();
-			bytecode.constants.push_back(Value(boolValue != 0));
+			bytecode.constants.emplace_back(boolValue != 0);
 			break;
 		}
 		case 2: // Int
 		{
 			int64_t intValue = readInt64();
-			bytecode.constants.push_back(Value(intValue));
+			bytecode.constants.emplace_back(intValue);
 			break;
 		}
 		case 3: // Float
 		{
 			double floatValue = readDouble();
-			bytecode.constants.push_back(Value(floatValue));
+			bytecode.constants.emplace_back(floatValue);
 			break;
 		}
 		case 4: // String
 		{
 			std::string strValue = readString();
-			bytecode.constants.push_back(Value(strValue));
+			bytecode.constants.emplace_back(strValue);
 			break;
 		}
 		default:
@@ -225,7 +225,7 @@ void BytecodeDeserializer::readInstructions(Bytecode &bytecode)
 		int32_t op1 = readInt32();
 		int32_t op2 = readInt32();
 		int32_t op3 = readInt32();
-		bytecode.instructions.push_back(Instruction(static_cast<OpCode>(opcode), op1, op2, op3));
+		bytecode.instructions.emplace_back(static_cast<OpCode>(opcode), op1, op2, op3);
 	}
 }
 

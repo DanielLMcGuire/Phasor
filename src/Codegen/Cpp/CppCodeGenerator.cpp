@@ -91,7 +91,9 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 #endif
 
 	if (!sectionPrefixPragma.empty())
+	{
 		output << sectionPrefixPragma;
+	}
 
 	output << sectionAttr << "volatile const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
 
@@ -100,17 +102,25 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 	for (size_t i = 0; i < serializedBytecode.size(); i++)
 	{
 		if (i % 16 == 0)
+		{
 			output << "\t";
+		}
 
 		output << "0x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(serializedBytecode[i]);
 
 		if (i < serializedBytecode.size() - 1)
+		{
 			output << ",";
+		}
 
 		if (i % 16 == 15)
+		{
 			output << "\n";
+		}
 		else if (i < serializedBytecode.size() - 1)
+		{
 			output << " ";
+		}
 	}
 
 	output << std::dec << "\n};\n";
@@ -161,10 +171,14 @@ std::string CppCodeGenerator::escapeString(const std::string &str)
 			break;
 		default:
 			if (c >= 32 && c <= 126)
+			{
 				escaped << c;
+			}
 			else
+			{
 				escaped << "\\x" << std::hex << std::setw(2) << std::setfill('0')
 				        << static_cast<int>(static_cast<unsigned char>(c));
+			}
 			break;
 		}
 	}
@@ -195,15 +209,21 @@ std::string CppCodeGenerator::sanitizeModuleName(const std::string &name)
 	std::string result;
 	for (char c : name)
 	{
-		if (std::isalnum(c) || c == '_')
+		if ((std::isalnum(c) != 0) || c == '_')
+		{
 			result += c;
+		}
 		else
+		{
 			result += '_';
+		}
 	}
 
 	// Ensure it starts with a letter or underscore
-	if (!result.empty() && std::isdigit(result[0]))
+	if (!result.empty() && (std::isdigit(result[0]) != 0))
+	{
 		result = "_" + result;
+	}
 
 	return result.empty() ? "PhasorModule" : result;
 }

@@ -19,7 +19,7 @@
 #include <platform.h>
 #include <version.h>
 #ifndef SANDBOXED
-	#include "../FFI/ffi.hpp"
+#include "../FFI/ffi.hpp"
 #endif
 
 /// @brief The Phasor Programming Language and Runtime
@@ -72,9 +72,9 @@ class VM
 
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
-    
-    /// @brief Free a variable by name in the VM
-    void freeVariableByName(const std::string& name);
+
+	/// @brief Free a variable by name in the VM
+	void freeVariableByName(const std::string &name);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add
@@ -147,13 +147,14 @@ class VM
 		r31
 	};
 
-	#define REGISTER1 VM::Register::r0
-	#define REGISTER2 VM::Register::r1
-	#define REGISTER3 VM::Register::r2
+#define REGISTER1 VM::Register::r0
+#define REGISTER2 VM::Register::r1
+#define REGISTER3 VM::Register::r2
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	                           const int &operand3 = 0);
 #else
 	/// @brief Execute a single operation
 	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
@@ -190,19 +191,19 @@ class VM
 
 	/// @brief Flush stderr
 	void flusherr();
-	
+
 	/// @brief Set VM exit code
 	void setStatus(int newStatus);
 	void resetStatus();
-	int getStatus();
+	int  getStatus();
 
-	/** 
+	/**
 	 * @brief Run an opcode with arguments pre-loaded into registers
 	 * @tparam Args Argument types
 	 * @param opcode Opcode to run
 	 * @param args Arguments to load into registers
 	 * @return Return value of the operation
-	*/
+	 */
 	template <typename... Args> inline Value regRun(OpCode opcode, Args &&...args)
 	{
 		int regIndex = 0;
@@ -218,9 +219,10 @@ class VM
 	 * @param args Arguments to push to the stack
 	 * @return Value returned to stack
 	 */
-	template <typename... Args> inline Value stackRun(OpCode opcode, Args&&... args) {
+	template <typename... Args> inline Value stackRun(OpCode opcode, Args &&...args)
+	{
 		Value arr[] = {Value(std::forward<Args>(args))...};
-		for (Value& v : arr | std::views::reverse)
+		for (Value &v : arr | std::views::reverse)
 			push(v);
 		operation(opcode);
 		return pop();
@@ -233,9 +235,9 @@ class VM
 	/// @brief FFI
 	std::unique_ptr<FFI> ffi;
 #endif
-    /// @brief Exit code
+	/// @brief Exit code
 	int status = 0;
-	
+
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;
 

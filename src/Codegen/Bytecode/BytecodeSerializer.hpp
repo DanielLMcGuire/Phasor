@@ -44,6 +44,6 @@ class BytecodeSerializer
 	    const std::unordered_map<std::string, int> &functionEntries); ///< Helper method to write Function Table
 
 	/// @brief Calculate CRC32 checksum
-	uint32_t calculateCRC32(const std::vector<uint8_t> &data);
+	static uint32_t calculateCRC32(const std::vector<uint8_t> &data);
 };
 } // namespace Phasor

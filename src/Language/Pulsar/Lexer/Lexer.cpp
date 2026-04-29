@@ -2,11 +2,12 @@
 #include <cctype>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 namespace pulsar
 {
 
-Lexer::Lexer(const std::string &source) : source(source)
+Lexer::Lexer(std::string source) : source(std::move(source))
 {
 }
 
@@ -29,7 +30,9 @@ std::vector<Phasor::Token> Lexer::tokenize()
 	{
 		skipWhitespace();
 		if (isAtEnd())
+		{
 			break;
+		}
 		tokens.push_back(scanToken());
 	}
 	tokens.push_back({Phasor::TokenType::EndOfFile, "", line, column});
@@ -39,7 +42,9 @@ std::vector<Phasor::Token> Lexer::tokenize()
 char Lexer::peek()
 {
 	if (isAtEnd())
+	{
 		return '\0';
+	}
 	return source[position];
 }
 
@@ -65,7 +70,7 @@ void Lexer::skipWhitespace()
 	while (!isAtEnd())
 	{
 		char c = peek();
-		if (std::isspace(static_cast<unsigned char>(c)))
+		if (std::isspace(static_cast<unsigned char>(c)) != 0)
 		{
 			advance();
 		}
@@ -87,14 +92,22 @@ void Lexer::skipWhitespace()
 Phasor::Token Lexer::scanToken()
 {
 	char c = peek();
-	if (std::isalpha(static_cast<unsigned char>(c)))
+	if (std::isalpha(static_cast<unsigned char>(c)) != 0)
+	{
 		return identifier();
-	if (std::isdigit(static_cast<unsigned char>(c)))
+	}
+	if (std::isdigit(static_cast<unsigned char>(c)) != 0)
+	{
 		return number();
+	}
 	if (c == '"')
+	{
 		return string();
+	}
 	if (c == '`')
+	{
 		return complexString();
+	}
 
 	// Multi-character operators
 	if (c == '+' && position + 1 < source.length() && source[position + 1] == '+')
@@ -166,8 +179,10 @@ Phasor::Token Lexer::scanToken()
 Phasor::Token Lexer::identifier()
 {
 	size_t start = position;
-	while (std::isalnum(static_cast<unsigned char>(peek())) || peek() == '_')
+	while ((std::isalnum(static_cast<unsigned char>(peek())) != 0) || peek() == '_')
+	{
 		advance();
+	}
 	std::string text = source.substr(start, position - start);
 
 	static const std::vector<std::string> keywords = {"let", "func", "print", "if", "else", "while"};
@@ -186,14 +201,18 @@ Phasor::Token Lexer::identifier()
 Phasor::Token Lexer::number()
 {
 	size_t start = position;
-	while (std::isdigit(static_cast<unsigned char>(peek())))
-		advance();
-	if (peek() == '.' && position + 1 < source.length() &&
-	    std::isdigit(static_cast<unsigned char>(source[position + 1])))
+	while (std::isdigit(static_cast<unsigned char>(peek())) != 0)
 	{
 		advance();
-		while (std::isdigit(static_cast<unsigned char>(peek())))
+	}
+	if (peek() == '.' && position + 1 < source.length() &&
+	    (std::isdigit(static_cast<unsigned char>(source[position + 1])) != 0))
+	{
+		advance();
+		while (std::isdigit(static_cast<unsigned char>(peek())) != 0)
+		{
 			advance();
+		}
 	}
 	return {Phasor::TokenType::Number, source.substr(start, position - start), line, column};
 }
@@ -201,11 +220,17 @@ Phasor::Token Lexer::number()
 static int hexValue(char c)
 {
 	if (c >= '0' && c <= '9')
+	{
 		return c - '0';
+	}
 	if (c >= 'a' && c <= 'f')
+	{
 		return 10 + (c - 'a');
+	}
 	if (c >= 'A' && c <= 'F')
+	{
 		return 10 + (c - 'A');
+	}
 	return -1;
 }
 
@@ -270,14 +295,21 @@ Phasor::Token Lexer::string()
 			case 'x': {
 				// Hex escape sequence: \xHH
 				if (isAtEnd())
+				{
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				}
 				char h1 = advance();
 				if (isAtEnd())
+				{
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				}
 				char h2 = advance();
-				int  v1 = hexValue(h1), v2 = hexValue(h2);
+				int  v1 = hexValue(h1);
+				int  v2 = hexValue(h2);
 				if (v1 < 0 || v2 < 0)
+				{
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				}
 				char value = static_cast<char>((v1 << 4) | v2);
 				out << value;
 				break;
@@ -321,10 +353,8 @@ Phasor::Token Lexer::complexString()
 			// Closing backtick
 			return {Phasor::TokenType::String, out.str(), tokenLine, tokenColumn};
 		}
-		else
-		{
-			out << c;
-		}
+
+		out << c;
 	}
 
 	// If we get here, string was unterminated

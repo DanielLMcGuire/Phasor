@@ -10,7 +10,7 @@
 // limitations under the License.
 
 // README
-// 
+//
 // Provides types for the Phasor (and Pulsar) Programming Language.
 // Wraps a std::variant over null, bool, int64_t, double, string, struct, and array,
 // with structs and arrays heap-allocated via std::shared_ptr. Provides arithmetic,
@@ -109,112 +109,136 @@ class Value
 	}
 
 	/// @brief Get the type of the value
-	ValueType getType() const noexcept
+	[[nodiscard]] ValueType getType() const noexcept
 	{
 		if (std::holds_alternative<std::monostate>(data))
+		{
 			return ValueType::Null;
+		}
 		if (std::holds_alternative<bool>(data))
+		{
 			return ValueType::Bool;
+		}
 		if (std::holds_alternative<int64_t>(data))
+		{
 			return ValueType::Int;
+		}
 		if (std::holds_alternative<double>(data))
+		{
 			return ValueType::Float;
+		}
 		if (std::holds_alternative<std::string>(data))
+		{
 			return ValueType::String;
+		}
 		if (std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+		{
 			return ValueType::Struct;
+		}
 		if (std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
+		{
 			return ValueType::Array;
+		}
 		return ValueType::Null; // Should not be reached if default constructed
 	}
 
-	inline static Value typeToString(const ValueType &type)
+	static Value typeToString(const ValueType &type)
 	{
 		switch (type)
 		{
 		case ValueType::Null:
-			return Value("null");
+			return {"null"};
 		case ValueType::Bool:
-			return Value("bool");
+			return {"bool"};
 		case ValueType::Int:
-			return Value("int");
+			return {"int"};
 		case ValueType::Float:
-			return Value("float");
+			return {"float"};
 		case ValueType::String:
-			return Value("string");
+			return {"string"};
 		case ValueType::Struct:
-			return Value("struct");
+			return {"struct"};
 		case ValueType::Array:
-			return Value("array");
+			return {"array"};
 		default:
-			return Value("unknown");
+			return {"unknown"};
 		}
 	}
 
 	/// @brief Check if the value is null
-	bool isNull() const noexcept
+	[[nodiscard]] bool isNull() const noexcept
 	{
 		return getType() == ValueType::Null;
 	}
 	/// @brief Check if the value is a boolean
-	bool isBool() const noexcept
+	[[nodiscard]] bool isBool() const noexcept
 	{
 		return getType() == ValueType::Bool;
 	}
 	/// @brief Check if the value is an integer
-	bool isInt() const noexcept
+	[[nodiscard]] bool isInt() const noexcept
 	{
 		return getType() == ValueType::Int;
 	}
 	/// @brief Check if the value is a double
-	bool isFloat() const noexcept
+	[[nodiscard]] bool isFloat() const noexcept
 	{
 		return getType() == ValueType::Float;
 	}
 	/// @brief Check if the value is a string
-	bool isString() const noexcept
+	[[nodiscard]] bool isString() const noexcept
 	{
 		return getType() == ValueType::String;
 	}
 	/// @brief Check if the value is a number
-	bool isNumber() const noexcept
+	[[nodiscard]] bool isNumber() const noexcept
 	{
 		return isInt() || isFloat();
 	}
 	/// @brief Check if the value is an array
-	bool isArray() const noexcept
+	[[nodiscard]] bool isArray() const noexcept
 	{
 		return std::holds_alternative<std::shared_ptr<ArrayInstance>>(data);
 	}
 
 	/// @brief Get the value as a boolean
-	bool asBool() const noexcept
+	[[nodiscard]] bool asBool() const noexcept
 	{
 		return std::get<bool>(data);
 	}
 	/// @brief Get the value as an integer
-	int64_t asInt() const noexcept
+	[[nodiscard]] int64_t asInt() const noexcept
 	{
 		if (isInt())
+		{
 			return std::get<int64_t>(data);
+		}
 		if (isFloat())
+		{
 			return static_cast<int64_t>(std::get<double>(data));
+		}
 		return 0;
 	}
 	/// @brief Get the value as a double
-	double asFloat() const noexcept
+	[[nodiscard]] double asFloat() const noexcept
 	{
 		if (isFloat())
+		{
 			return std::get<double>(data);
+		}
 		if (isInt())
+		{
 			return static_cast<double>(std::get<int64_t>(data));
+		}
 		return 0.0;
 	}
 	/// @brief Get the value as a string
-	std::string asString() const noexcept
+	[[nodiscard]] std::string asString() const noexcept
 	{
 		if (isString())
+		{
 			return std::get<std::string>(data);
+		}
 		return toString();
 	}
 	/// @brief Get the value as an array
@@ -224,7 +248,7 @@ class Value
 	}
 
 	/// @brief Get the value as an array (const)
-	const std::shared_ptr<const ArrayInstance> asArray() const noexcept
+	[[nodiscard]] std::shared_ptr<const ArrayInstance> asArray() const noexcept
 	{
 		return std::get<std::shared_ptr<ArrayInstance>>(data);
 	}
@@ -233,11 +257,17 @@ class Value
 	Value operator+(const Value &other) const
 	{
 		if (isInt() && other.isInt())
-			return Value(asInt() + other.asInt());
+		{
+			return {asInt() + other.asInt()};
+		}
 		if (isNumber() && other.isNumber())
-			return Value(asFloat() + other.asFloat());
+		{
+			return {asFloat() + other.asFloat()};
+		}
 		if (isString() && other.isString())
+		{
 			return Value(asString() + other.asString());
+		}
 		throw std::runtime_error("Cannot add these value types");
 	}
 
@@ -245,23 +275,43 @@ class Value
 	Value operator-(const Value &other) const
 	{
 		if (isInt() && other.isInt())
-			return Value(asInt() - other.asInt());
+		{
+			return {asInt() - other.asInt()};
+		}
 		if (isNumber() && other.isNumber())
-			return Value(asFloat() - other.asFloat());
+		{
+			return {asFloat() - other.asFloat()};
+		}
 		throw std::runtime_error("Cannot subtract these value types");
 	}
 
-	Value& operator--()
+	Value &operator--()
 	{
-		if (isInt())   { data = asInt()   - 1;   return *this; }
-		if (isFloat()) { data = asFloat() - 1.0; return *this; }
+		if (isInt())
+		{
+			data = asInt() - 1;
+			return *this;
+		}
+		if (isFloat())
+		{
+			data = asFloat() - 1.0;
+			return *this;
+		}
 		throw std::runtime_error("Cannot decrement this value type");
 	}
 
-	Value& operator++()
+	Value &operator++()
 	{
-		if (isInt())   { data = asInt()   + 1;   return *this; }
-		if (isFloat()) { data = asFloat() + 1.0; return *this; }
+		if (isInt())
+		{
+			data = asInt() + 1;
+			return *this;
+		}
+		if (isFloat())
+		{
+			data = asFloat() + 1.0;
+			return *this;
+		}
 		throw std::runtime_error("Cannot increment this value type");
 	}
 
@@ -269,9 +319,13 @@ class Value
 	Value operator*(const Value &other) const
 	{
 		if (isInt() && other.isInt())
-			return Value(asInt() * other.asInt());
+		{
+			return {asInt() * other.asInt()};
+		}
 		if (isNumber() && other.isNumber())
-			return Value(asFloat() * other.asFloat());
+		{
+			return {asFloat() * other.asFloat()};
+		}
 		throw std::runtime_error("Cannot multiply these value types");
 	}
 
@@ -281,14 +335,18 @@ class Value
 		if (isInt() && other.isInt())
 		{
 			if (other.asInt() == 0)
+			{
 				throw std::runtime_error("Division by zero");
-			return Value(asInt() / other.asInt());
+			}
+			return {asInt() / other.asInt()};
 		}
 		if (isNumber() && other.isNumber())
 		{
 			if (other.asFloat() == 0.0)
+			{
 				throw std::runtime_error("Division by zero");
-			return Value(asFloat() / other.asFloat());
+			}
+			return {asFloat() / other.asFloat()};
 		}
 		throw std::runtime_error("Cannot divide these value types");
 	}
@@ -299,8 +357,10 @@ class Value
 		if (isInt() && other.isInt())
 		{
 			if (other.asInt() == 0)
+			{
 				throw std::runtime_error("Modulo by zero");
-			return Value(asInt() % other.asInt());
+			}
+			return {asInt() % other.asInt()};
 		}
 		throw std::runtime_error("Modulo requires integer operands");
 	}
@@ -308,34 +368,44 @@ class Value
 	/// @brief Logical negation
 	Value operator!() const noexcept
 	{
-		return Value(!isTruthy());
+		return {!isTruthy()};
 	}
 
 	/// @brief Logical AND
-	Value logicalAnd(const Value &other) const noexcept
+	[[nodiscard]] Value logicalAnd(const Value &other) const noexcept
 	{
-		return Value(isTruthy() && other.isTruthy());
+		return {isTruthy() && other.isTruthy()};
 	}
 
 	/// @brief Logical OR
-	Value logicalOr(const Value &other) const noexcept
+	[[nodiscard]] Value logicalOr(const Value &other) const noexcept
 	{
-		return Value(isTruthy() || other.isTruthy());
+		return {isTruthy() || other.isTruthy()};
 	}
 
 	/// @brief Helper to determine truthiness
-	bool isTruthy() const noexcept
+	[[nodiscard]] bool isTruthy() const noexcept
 	{
 		if (isNull())
+		{
 			return false;
+		}
 		if (isBool())
+		{
 			return asBool();
+		}
 		if (isInt())
+		{
 			return asInt() != 0;
+		}
 		if (isFloat())
+		{
 			return asFloat() != 0.0;
+		}
 		if (isString())
-    		return !asString().empty();
+		{
+			return !asString().empty();
+		}
 		return false;
 	}
 
@@ -343,21 +413,35 @@ class Value
 	bool operator==(const Value &other) const noexcept
 	{
 		if (getType() != other.getType())
+		{
 			return false;
+		}
 		if (isNull())
+		{
 			return true;
+		}
 		if (isBool())
+		{
 			return asBool() == other.asBool();
+		}
 		if (isInt())
+		{
 			return asInt() == other.asInt();
+		}
 		if (isFloat())
+		{
 			return asFloat() == other.asFloat();
+		}
 		if (isString())
+		{
 			return asString() == other.asString();
+		}
 		if (isArray())
 		{
 			if (!other.isArray())
+			{
 				return false;
+			}
 			const auto &self_arr = *asArray();
 			const auto &other_arr = *other.asArray();
 			return self_arr == other_arr;
@@ -375,11 +459,17 @@ class Value
 	bool operator<(const Value &other) const
 	{
 		if (isInt() && other.isInt())
+		{
 			return asInt() < other.asInt();
+		}
 		if (isNumber() && other.isNumber())
+		{
 			return asFloat() < other.asFloat();
+		}
 		if (isString() && other.isString())
+		{
 			return asString() < other.asString();
+		}
 		throw std::runtime_error("Cannot compare these value types ");
 	}
 
@@ -387,11 +477,17 @@ class Value
 	bool operator>(const Value &other) const
 	{
 		if (isInt() && other.isInt())
+		{
 			return asInt() > other.asInt();
+		}
 		if (isNumber() && other.isNumber())
+		{
 			return asFloat() > other.asFloat();
+		}
 		if (isString() && other.isString())
+		{
 			return asString() > other.asString();
+		}
 		throw std::runtime_error("Cannot compare these value types ");
 	}
 
@@ -407,19 +503,27 @@ class Value
 	}
 
 	/// @brief Convert to string for printing
-	std::string toString() const noexcept
+	[[nodiscard]] std::string toString() const noexcept
 	{
 		if (isNull())
+		{
 			return "null";
+		}
 		if (isBool())
+		{
 			return asBool() ? "true" : "false";
+		}
 		if (isInt())
+		{
 			return std::to_string(asInt());
+		}
 		if (isFloat())
+		{
 			return std::to_string(asFloat());
-		if (isString()) {
-			[[likely]]
-			return asString();
+		}
+		if (isString())
+		{
+			[[likely]] return asString();
 		}
 		if (isArray())
 		{
@@ -440,12 +544,11 @@ class Value
 	}
 
 	/// @brief Convert to C Style String
-	const char *c_str() const
+	[[nodiscard]] const char *c_str() const
 	{
 		if (!isString())
 		{
-			[[unlikely]]
-			throw std::runtime_error("c_str() can only be called on string values");
+			[[unlikely]] throw std::runtime_error("c_str() can only be called on string values");
 		}
 		return std::get<std::string>(data).c_str();
 	}
@@ -457,7 +560,7 @@ class Value
 		return os;
 	}
 
-	bool isStruct() const
+	[[nodiscard]] bool isStruct() const
 	{
 		return std::holds_alternative<std::shared_ptr<StructInstance>>(data);
 	}
@@ -467,7 +570,7 @@ class Value
 		return std::get<std::shared_ptr<StructInstance>>(data);
 	}
 
-	const std::shared_ptr<const StructInstance> asStruct() const noexcept
+	[[nodiscard]] std::shared_ptr<const StructInstance> asStruct() const noexcept
 	{
 		return std::get<std::shared_ptr<StructInstance>>(data);
 	}
@@ -479,20 +582,21 @@ class Value
 
 	static Value createArray(std::vector<Value> elements = {})
 	{
-		return Value(std::make_shared<ArrayInstance>(std::move(elements)));
+		return {std::make_shared<ArrayInstance>(std::move(elements))};
 	}
 
-	Value getField(const std::string &name) const
+	[[nodiscard]] Value getField(const std::string &name) const
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
-			{
-				[[unlikely]]
-				throw std::runtime_error("getField() called on non-struct value");
-			}
+		{
+			[[unlikely]] throw std::runtime_error("getField() called on non-struct value");
+		}
 		auto s = std::get<std::shared_ptr<StructInstance>>(data);
 		auto it = s->fields.find(name);
 		if (it == s->fields.end())
-			return Value();
+		{
+			return {};
+		}
 		return it->second;
 	}
 
@@ -500,37 +604,47 @@ class Value
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
-			[[unlikely]]
-			throw std::runtime_error("setField() called on non-struct value");
+			[[unlikely]] throw std::runtime_error("setField() called on non-struct value");
 		}
 		auto s = std::get<std::shared_ptr<StructInstance>>(data);
 		s->fields[name] = std::move(value);
 	}
 
-	bool hasField(const std::string &name) const noexcept
+	[[nodiscard]] bool hasField(const std::string &name) const noexcept
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+		{
 			return false;
+		}
 		auto s = std::get<std::shared_ptr<StructInstance>>(data);
-		return s->fields.find(name) != s->fields.end();
+		return s->fields.contains(name);
 	}
 };
 } // namespace Phasor
 
-template <>
-struct std::formatter<Phasor::Value>
+template <> struct std::formatter<Phasor::Value>
 {
-    enum class Style { Value, TypeOnly, TypeValue, Debug, Quoted };
-    Style style = Style::Value;
-    std::string_view passthrough;
-
-    constexpr auto parse(std::format_parse_context &ctx)
+	enum class Style
 	{
-		auto it  = ctx.begin();
+		Value,
+		TypeOnly,
+		TypeValue,
+		Debug,
+		Quoted
+	};
+	Style            style = Style::Value;
+	std::string_view passthrough;
+
+	constexpr auto parse(std::format_parse_context &ctx)
+	{
+		auto it = ctx.begin();
 		auto end = ctx.end();
 
 		auto close = it;
-		while (close != end && *close != '}') ++close;
+		while (close != end && *close != '}')
+		{
+			++close;
+		}
 
 		std::string_view full(&*it, static_cast<size_t>(close - it));
 		std::string_view inner = full;
@@ -539,11 +653,24 @@ struct std::formatter<Phasor::Value>
 		{
 			switch (full.back())
 			{
-			case 't': style = Style::TypeOnly;  inner = full.substr(0, full.size() - 1); break;
-			case 'T': style = Style::TypeValue; inner = full.substr(0, full.size() - 1); break;
-			case '?': style = Style::Debug;     inner = full.substr(0, full.size() - 1); break;
-			case 'q': style = Style::Quoted;    inner = full.substr(0, full.size() - 1); break;
-			default:  break;
+			case 't':
+				style = Style::TypeOnly;
+				inner = full.substr(0, full.size() - 1);
+				break;
+			case 'T':
+				style = Style::TypeValue;
+				inner = full.substr(0, full.size() - 1);
+				break;
+			case '?':
+				style = Style::Debug;
+				inner = full.substr(0, full.size() - 1);
+				break;
+			case 'q':
+				style = Style::Quoted;
+				inner = full.substr(0, full.size() - 1);
+				break;
+			default:
+				break;
 			}
 		}
 
@@ -551,118 +678,159 @@ struct std::formatter<Phasor::Value>
 		return close;
 	}
 
-    template <typename FormatContext>
-    auto format(const Phasor::Value &v, FormatContext &ctx) const
-    {
-        std::string fmtstr;
-        fmtstr.reserve(passthrough.size() + 3);
-        fmtstr += "{:";
-        fmtstr += passthrough;
-        fmtstr += '}';
+	template <typename FormatContext> auto format(const Phasor::Value &v, FormatContext &ctx) const
+	{
+		std::string fmtstr;
+		fmtstr.reserve(passthrough.size() + 3);
+		fmtstr += "{:";
+		fmtstr += passthrough;
+		fmtstr += '}';
 
-        auto fwd = [&]<typename T>(const T &val) {
-            return std::vformat_to(ctx.out(), fmtstr, std::make_format_args(val));
-        };
+		auto fwd = [&]<typename T>(const T &val) {
+			return std::vformat_to(ctx.out(), fmtstr, std::make_format_args(val));
+		};
 
-        using namespace Phasor;
+		using namespace Phasor;
 
-        switch (style)
-        {
-        case Style::TypeOnly:
-            return fwd(Value::typeToString(v.getType()).asString());
+		switch (style)
+		{
+		case Style::TypeOnly:
+			return fwd(Value::typeToString(v.getType()).asString());
 
-        case Style::TypeValue:
-            return fwd(Value::typeToString(v.getType()).asString()
-                       + "(" + escapeString(v.toString()) + ")");
+		case Style::TypeValue:
+			return fwd(Value::typeToString(v.getType()).asString() + "(" + escapeString(v.toString()) + ")");
 
-        case Style::Debug:
-            return fwd(debug_repr(v));
+		case Style::Debug:
+			return fwd(debug_repr(v));
 
-        case Style::Quoted:
-            if (v.isString())
-                return fwd("\"" + escapeString(v.asString()) + "\"");
-            [[fallthrough]];
+		case Style::Quoted:
+			if (v.isString())
+			{
+				return fwd("\"" + escapeString(v.asString()) + "\"");
+			}
+			[[fallthrough]];
 
-        case Style::Value:
-        default:
-            switch (v.getType())
-            {
-            case ValueType::Null:   return std::format_to(ctx.out(), "null");
-            case ValueType::Bool:   return fwd(v.asBool());
-            case ValueType::Int:    return fwd(v.asInt());
-            case ValueType::Float:  return fwd(v.asFloat());
-            case ValueType::String: return fwd(debug_repr(escapeString(v.asString())));
-            case ValueType::Array:  return fwd(v.toString());
-            case ValueType::Struct: return fwd(v.toString());
-            }
-        }
-        return ctx.out();
-    }
+		case Style::Value:
+		default:
+			switch (v.getType())
+			{
+			case ValueType::Null:
+				return std::format_to(ctx.out(), "null");
+			case ValueType::Bool:
+				return fwd(v.asBool());
+			case ValueType::Int:
+				return fwd(v.asInt());
+			case ValueType::Float:
+				return fwd(v.asFloat());
+			case ValueType::String:
+				return fwd(debug_repr(escapeString(v.asString())));
+			case ValueType::Array:
+				return fwd(v.toString());
+			case ValueType::Struct:
+				return fwd(v.toString());
+			}
+		}
+		return ctx.out();
+	}
 
   private:
-    static std::string escapeString(const std::string& input)
-    {
-        std::string output;
-        output.reserve(input.size());
-        for (char c : input) {
-            switch (c) {
-                case '\n': output += "\\n";  break;
-                case '\t': output += "\\t";  break;
-                case '\r': output += "\\r";  break;
-                case '\0': output += "\\0";  break;
-                case '\\': output += "\\\\"; break;
-                case '\"': output += "\\\""; break;
-                case '\'': output += "\\'";  break;
-                case '\a': output += "\\a";  break;
-                case '\b': output += "\\b";  break;
-                case '\f': output += "\\f";  break;
-                case '\v': output += "\\v";  break;
-                default:
-                    if (c < 0x20 || c == 0x7F) {
-                        char buf[5];
-                        snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
-                        output += buf;
-                    } else {
-                        output += c;
-                    }
-                    break;
-            }
-        }
-        return output;
-    }
+	static std::string escapeString(const std::string &input)
+	{
+		std::string output;
+		output.reserve(input.size());
+		for (char c : input)
+		{
+			switch (c)
+			{
+			case '\n':
+				output += "\\n";
+				break;
+			case '\t':
+				output += "\\t";
+				break;
+			case '\r':
+				output += "\\r";
+				break;
+			case '\0':
+				output += "\\0";
+				break;
+			case '\\':
+				output += "\\\\";
+				break;
+			case '\"':
+				output += "\\\"";
+				break;
+			case '\'':
+				output += "\\'";
+				break;
+			case '\a':
+				output += "\\a";
+				break;
+			case '\b':
+				output += "\\b";
+				break;
+			case '\f':
+				output += "\\f";
+				break;
+			case '\v':
+				output += "\\v";
+				break;
+			default:
+				if (c < 0x20 || c == 0x7F)
+				{
+					char buf[5];
+					snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
+					output += buf;
+				}
+				else
+				{
+					output += c;
+				}
+				break;
+			}
+		}
+		return output;
+	}
 
-    static std::string debug_repr(const Phasor::Value &v)
-    {
-        using Phasor::ValueType;
-        switch (v.getType())
-        {
-        case ValueType::Null:   return "null";
-        case ValueType::String: return "\"" + escapeString(v.asString()) + "\"";
-        case ValueType::Array:
-        {
-            const auto &arr = *v.asArray();
-            std::string out = "[";
-            for (std::size_t i = 0; i < arr.size(); ++i)
-            {
-                out += debug_repr(arr[i]);
-                if (i + 1 < arr.size()) out += ", ";
-            }
-            return out + "]";
-        }
-        case ValueType::Struct:
-        {
-            const auto &s = *v.asStruct();
-            std::string out = s.structName + " { ";
-            bool first = true;
-            for (const auto &[k, val] : s.fields)
-            {
-                if (!first) out += ", ";
-                out += k + ": " + debug_repr(val);
-                first = false;
-            }
-            return out + " }";
-        }
-        default: return v.toString();
-        }
-    }
+	static std::string debug_repr(const Phasor::Value &v)
+	{
+		using Phasor::ValueType;
+		switch (v.getType())
+		{
+		case ValueType::Null:
+			return "null";
+		case ValueType::String:
+			return "\"" + escapeString(v.asString()) + "\"";
+		case ValueType::Array: {
+			const auto &arr = *v.asArray();
+			std::string out = "[";
+			for (std::size_t i = 0; i < arr.size(); ++i)
+			{
+				out += debug_repr(arr[i]);
+				if (i + 1 < arr.size())
+				{
+					out += ", ";
+				}
+			}
+			return out + "]";
+		}
+		case ValueType::Struct: {
+			const auto &s = *v.asStruct();
+			std::string out = s.structName + " { ";
+			bool        first = true;
+			for (const auto &[k, val] : s.fields)
+			{
+				if (!first)
+				{
+					out += ", ";
+				}
+				out += k + ": " + debug_repr(val);
+				first = false;
+			}
+			return out + " }";
+		}
+		default:
+			return v.toString();
+		}
+	}
 };

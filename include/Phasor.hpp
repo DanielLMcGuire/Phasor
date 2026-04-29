@@ -19,12 +19,12 @@
 // #include <Phasor.hpp>
 // ```
 //
-// This header includes all Phasor headers required for using the runtime 
+// This header includes all Phasor headers required for using the runtime
 // in C++ code. If you define NEED_PHASOR_C_ABI before including
 // this header, it will also include the C ABI header.
 //
 // It is recommended to read the documentation via phasor-help CLI or at phasor-docs.pages.dev/man?f<TITLE>.<SECTION>
-// 
+//
 // Also read the below README docs in these headers:
 
 #pragma once
@@ -34,6 +34,6 @@
 #include "Phasor/PhasorVM.hpp"
 #include "Phasor/PhasorISA.hpp"
 #include "Value.hpp"
-#ifdef NEED_PHASOR_C_ABI 
+#ifdef NEED_PHASOR_C_ABI
 #include "PhasorRT.h"
 #endif // PHASOR_C_ABI

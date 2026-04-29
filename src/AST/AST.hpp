@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <filesystem>
 #include <format>
@@ -79,7 +80,7 @@ struct TypeNode : public Node
 	std::vector<int> arrayDimensions;
 
 	TypeNode(std::string n, bool ptr = false, std::vector<int> dims = {})
-	    : name(n), isPointer(ptr), arrayDimensions(std::move(dims))
+	    : name(std::move(n)), isPointer(ptr), arrayDimensions(std::move(dims))
 	{
 	}
 	void print(int indent = 0) const override
@@ -96,7 +97,7 @@ struct TypeNode : public Node
 struct NumberExpr : public Expression
 {
 	std::string value;
-	NumberExpr(std::string v) : value(v)
+	NumberExpr(std::string v) : value(std::move(v))
 	{
 	}
 	void print(int indent = 0) const override
@@ -109,12 +110,12 @@ struct NumberExpr : public Expression
 struct StringExpr : public Expression
 {
 	std::string value;
-	StringExpr(std::string v) : value(v)
+	StringExpr(std::string v) : value(std::move(v))
 	{
 	}
 	void print(int indent = 0) const override
 	{
-		
+
 		std::cout << std::format("{:>{}}String: {}\n", "", indent, value);
 	}
 };
@@ -123,7 +124,7 @@ struct StringExpr : public Expression
 struct IdentifierExpr : public Expression
 {
 	std::string name;
-	IdentifierExpr(std::string n) : name(n)
+	IdentifierExpr(std::string n) : name(std::move(n))
 	{
 	}
 	void print(int indent = 0) const override
@@ -339,7 +340,9 @@ struct ArrayLiteralExpr : public Expression
 	{
 		std::cout << std::string(indent, ' ') << "ArrayLiteral:\n";
 		for (const auto &elem : elements)
+		{
 			elem->print(indent + 2);
+		}
 	}
 };
 
@@ -349,7 +352,7 @@ struct MemberAccessExpr : public Expression
 	std::unique_ptr<Expression> object;
 	std::string                 member;
 
-	MemberAccessExpr(std::unique_ptr<Expression> obj, std::string mem) : object(std::move(obj)), member(mem)
+	MemberAccessExpr(std::unique_ptr<Expression> obj, std::string mem) : object(std::move(obj)), member(std::move(mem))
 	{
 	}
 
@@ -366,7 +369,8 @@ struct CallExpr : public Expression
 	std::string                              callee;
 	std::vector<std::unique_ptr<Expression>> arguments;
 
-	CallExpr(std::string name, std::vector<std::unique_ptr<Expression>> args) : callee(name), arguments(std::move(args))
+	CallExpr(std::string name, std::vector<std::unique_ptr<Expression>> args)
+	    : callee(std::move(name)), arguments(std::move(args))
 	{
 	}
 
@@ -406,14 +410,16 @@ struct VarDecl : public Statement
 {
 	std::string                 name;
 	std::unique_ptr<Expression> initializer;
-	VarDecl(std::string n, std::unique_ptr<Expression> init) : name(n), initializer(std::move(init))
+	VarDecl(std::string n, std::unique_ptr<Expression> init) : name(std::move(n)), initializer(std::move(init))
 	{
 	}
 	void print(int indent = 0) const override
 	{
 		std::cout << std::string(indent, ' ') << "VarDecl: " << name << "\n";
 		if (initializer)
+		{
 			initializer->print(indent + 2);
+		}
 	}
 };
 
@@ -448,7 +454,7 @@ struct PrintStmt : public Statement
 struct IncludeStmt : public Statement
 {
 	std::filesystem::path modulePath;
-	IncludeStmt(std::filesystem::path path) : modulePath(path)
+	IncludeStmt(std::filesystem::path path) : modulePath(std::move(path))
 	{
 	}
 	void print(int indent = 0) const override
@@ -461,7 +467,7 @@ struct IncludeStmt : public Statement
 struct ImportStmt : public Statement
 {
 	std::string modulePath;
-	ImportStmt(std::string path) : modulePath(path)
+	ImportStmt(std::string path) : modulePath(std::move(path))
 	{
 	}
 	void print(int indent = 0) const override
@@ -512,7 +518,9 @@ struct ReturnStmt : public Statement
 	{
 		std::cout << std::string(indent, ' ') << "ReturnStmt:\n";
 		if (value)
+		{
 			value->print(indent + 2);
+		}
 	}
 };
 
@@ -596,11 +604,17 @@ struct ForStmt : public Statement
 	{
 		std::cout << std::string(indent, ' ') << "ForStmt:\n";
 		if (initializer)
+		{
 			initializer->print(indent + 2);
+		}
 		if (condition)
+		{
 			condition->print(indent + 2);
+		}
 		if (increment)
+		{
 			increment->print(indent + 2);
+		}
 		body->print(indent + 2);
 	}
 };
@@ -633,7 +647,7 @@ struct FunctionDecl : public Statement
 	std::unique_ptr<BlockStmt> body;
 
 	FunctionDecl(std::string n, std::vector<Param> p, std::unique_ptr<TypeNode> rt, std::unique_ptr<BlockStmt> b)
-	    : name(n), params(std::move(p)), returnType(std::move(rt)), body(std::move(b))
+	    : name(std::move(n)), params(std::move(p)), returnType(std::move(rt)), body(std::move(b))
 	{
 	}
 
@@ -647,11 +661,17 @@ struct FunctionDecl : public Statement
 		}
 		std::cout << std::string(indent + 2, ' ') << "Return Type: ";
 		if (returnType)
+		{
 			returnType->print(0);
+		}
 		else
+		{
 			std::cout << "void\n";
+		}
 		if (body)
+		{
 			body->print(indent + 2);
+		}
 	}
 };
 

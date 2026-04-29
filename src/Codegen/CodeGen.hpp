@@ -71,7 +71,9 @@ struct Bytecode
 	{
 		auto it = stringConstantCache.find(s);
 		if (it != stringConstantCache.end())
+		{
 			return it->second;
+		}
 		int idx = addConstant(Value(s));
 		stringConstantCache[s] = idx;
 		return idx;
@@ -95,7 +97,7 @@ struct Bytecode
 	/// @brief Emit an instruction with operands
 	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
 	{
-		instructions.push_back(Instruction(op, op1, op2, op3));
+		instructions.emplace_back(op, op1, op2, op3);
 	}
 };
 
@@ -162,7 +164,7 @@ class CodeGenerator
 	}
 
 	/// @brief Check if expression is a compile-time literal
-	bool isLiteralExpression(const AST::Expression *expr, Value &outValue);
+	static bool isLiteralExpression(const AST::Expression *expr, Value &outValue);
 
 	/// @brief Simple expression type inference (conservative)
 	/// @param expr expression to inspect

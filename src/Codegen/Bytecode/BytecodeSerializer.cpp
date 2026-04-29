@@ -22,7 +22,7 @@ void init_crc32_table()
 		uint32_t crc = i;
 		for (int j = 0; j < 8; j++)
 		{
-			if (crc & 1)
+			if ((crc & 1) != 0u)
 			{
 				crc = (crc >> 1) ^ 0xEDB88320;
 			}

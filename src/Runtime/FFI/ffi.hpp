@@ -9,17 +9,17 @@
 #include <vector>
 #include <string>
 
-
 #if defined(_WIN32)
 #include <windows.h>
-#else 
+#else
 #include <dlfcn.h>
 #endif
 
 #include <PhasorFFI.h>
 
-namespace Phasor {
-    class VM;
+namespace Phasor
+{
+class VM;
 }
 
 using FFIFunction = void (*)(const PhasorAPI *api, PhasorVM *vm);
@@ -94,7 +94,6 @@ class FFI
 	 */
 	bool native_add_plugin(const std::vector<Value> &args, VM *vm);
 
-  private:
 	/**
 	 * @brief Loads a single plugin from a library file.
 	 * @param library Path to the shared library file.

@@ -42,6 +42,6 @@ class BytecodeDeserializer
 	void readFunctionEntries(Bytecode &bytecode); ///< Helper method to read Function Entries
 
 	/// @brief Calculate CRC32 checksum
-	uint32_t calculateCRC32(const uint8_t *data, size_t size);
+	static uint32_t calculateCRC32(const uint8_t *data, size_t size);
 };
 } // namespace Phasor

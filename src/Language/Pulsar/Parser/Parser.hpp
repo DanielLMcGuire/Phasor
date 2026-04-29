@@ -19,7 +19,7 @@ class Parser
   private:
 	std::vector<Token> tokens;
 	int                current = 0;
-	std::string        currentFunction = "";
+	std::string        currentFunction;
 
 	Token peek();
 	Token previous();
@@ -28,9 +28,9 @@ class Parser
 	bool  check(Phasor::TokenType type);
 	Token peekNext();
 	bool  match(Phasor::TokenType type);
-	bool  match(Phasor::TokenType type, std::string lexeme);
-	Token consume(Phasor::TokenType type, std::string message);
-	Token consume(Phasor::TokenType type, std::string lexeme, std::string message);
+	bool  match(Phasor::TokenType type, const std::string &lexeme);
+	Token consume(Phasor::TokenType type, const std::string &message);
+	Token consume(Phasor::TokenType type, const std::string &lexeme, const std::string &message);
 	Token expect(Phasor::TokenType type, const std::string &message);
 
 	std::unique_ptr<Statement>  declaration();

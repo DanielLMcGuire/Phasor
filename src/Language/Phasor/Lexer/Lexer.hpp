@@ -12,8 +12,7 @@ namespace Phasor
 class Lexer
 {
   public:
-	
-	Lexer(const std::string &source);
+	Lexer(std::string source);
 	std::vector<Token> tokenize();
 
 	struct Error
@@ -22,10 +21,11 @@ class Lexer
 		size_t      line;
 		size_t      column;
 	};
-	std::optional<Error> getError() const
+	[[nodiscard]] std::optional<Error> getError() const
 	{
 		return lastError;
 	}
+
   private:
 	std::string source;
 	size_t      position = 0;

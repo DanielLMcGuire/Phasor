@@ -28,7 +28,9 @@ int Compiler::run()
 	}
 
 	if (m_args.irMode)
+	{
 		return compileToIR();
+	}
 
 	return compileToBytecode();
 }

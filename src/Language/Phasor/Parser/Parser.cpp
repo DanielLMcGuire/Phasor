@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <utility>
 
 namespace Phasor
 {
@@ -29,9 +30,9 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 {
 	std::vector<std::unique_ptr<AST::Statement>> result;
 
-	for (size_t i = 0; i < stmts.size(); ++i)
+	for (auto &i : stmts)
 	{
-		if (auto includeStmt = dynamic_cast<AST::IncludeStmt *>(stmts[i].get()))
+		if (auto *includeStmt = dynamic_cast<AST::IncludeStmt *>(i.get()))
 		{
 			auto   includePath = (baseDir / includeStmt->modulePath).lexically_normal();
 			auto   tokens = tokenizeFile(includePath);
@@ -46,7 +47,7 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 		}
 		else
 		{
-			result.push_back(std::move(stmts[i]));
+			result.push_back(std::move(i));
 		}
 	}
 
@@ -65,8 +66,8 @@ Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens)
 {
 }
 
-Parser::Parser(const std::vector<Token> &tokens, const std::filesystem::path &sourcePath)
-    : tokens(tokens), sourcePath(sourcePath)
+Parser::Parser(const std::vector<Token> &tokens, std::filesystem::path sourcePath)
+    : tokens(tokens), sourcePath(std::move(sourcePath))
 {
 }
 
@@ -601,13 +602,21 @@ std::unique_ptr<Expression> Parser::comparison()
 		auto     right = term();
 		BinaryOp binOp;
 		if (op.lexeme == "<")
+		{
 			binOp = BinaryOp::LessThan;
+		}
 		else if (op.lexeme == ">")
+		{
 			binOp = BinaryOp::GreaterThan;
+		}
 		else if (op.lexeme == "<=")
+		{
 			binOp = BinaryOp::LessEqual;
+		}
 		else
+		{
 			binOp = BinaryOp::GreaterEqual;
+		}
 
 		auto node = std::make_unique<BinaryExpr>(std::move(expr), binOp, std::move(right));
 		node->line = op.line;
@@ -646,11 +655,17 @@ std::unique_ptr<Expression> Parser::factor()
 		auto     right = unary();
 		BinaryOp binOp;
 		if (op.lexeme == "*")
+		{
 			binOp = BinaryOp::Multiply;
+		}
 		else if (op.lexeme == "/")
+		{
 			binOp = BinaryOp::Divide;
+		}
 		else
+		{
 			binOp = BinaryOp::Modulo;
+		}
 
 		auto node = std::make_unique<BinaryExpr>(std::move(expr), binOp, std::move(right));
 		node->line = op.line;
@@ -763,14 +778,14 @@ std::unique_ptr<Expression> Parser::finishCall(std::unique_ptr<Expression> calle
 
 	// For now, we only support direct function calls by name, or calls on field access which are
 	// rewritten to pass the object as the first argument.
-	if (auto ident = dynamic_cast<IdentifierExpr *>(callee.get()))
+	if (auto *ident = dynamic_cast<IdentifierExpr *>(callee.get()))
 	{
 		auto node = std::make_unique<CallExpr>(ident->name, std::move(arguments));
 		node->line = ident->line;
 		node->column = ident->column;
 		return node;
 	}
-	else if (auto field = dynamic_cast<FieldAccessExpr *>(callee.get()))
+	if (auto field = dynamic_cast<FieldAccessExpr *>(callee.get()))
 	{
 		// Transform obj.method(args) -> method(obj, args)
 		std::string methodName = field->fieldName;
@@ -973,7 +988,9 @@ Token Parser::previous()
 Token Parser::advance()
 {
 	if (!isAtEnd())
+	{
 		current++;
+	}
 	return previous();
 }
 
@@ -985,7 +1002,9 @@ bool Parser::isAtEnd()
 bool Parser::check(TokenType type)
 {
 	if (isAtEnd())
+	{
 		return false;
+	}
 	return peek().type == type;
 }
 
@@ -999,21 +1018,25 @@ bool Parser::match(TokenType type)
 	return false;
 }
 
-Token Parser::consume(TokenType type, std::string message)
+Token Parser::consume(TokenType type, const std::string &message)
 {
 	if (check(type))
+	{
 		return advance();
+	}
 
 	std::cerr << "Error: " << message << " at '" << peek().lexeme << "'";
 	std::cerr << " (line " << peek().line << ", column " << peek().column << ")";
 	if (!currentFunction.empty())
+	{
 		std::cerr << " [in function '" << currentFunction << "']";
+	}
 	std::cerr << "\n";
 	lastError = {message, peek().line, peek().column};
 	throw std::runtime_error(message);
 }
 
-bool Parser::match(TokenType type, std::string lexeme)
+bool Parser::match(TokenType type, const std::string &lexeme)
 {
 	if (check(type) && peek().lexeme == lexeme)
 	{
@@ -1023,7 +1046,7 @@ bool Parser::match(TokenType type, std::string lexeme)
 	return false;
 }
 
-Token Parser::consume(TokenType type, std::string lexeme, std::string message)
+Token Parser::consume(TokenType type, const std::string &lexeme, const std::string &message)
 {
 	if (check(type) && peek().lexeme == lexeme)
 	{
@@ -1033,7 +1056,9 @@ Token Parser::consume(TokenType type, std::string lexeme, std::string message)
 	std::cerr << "Error: " << message << " at '" << peek().lexeme << "'";
 	std::cerr << " (line " << peek().line << ", column " << peek().column << ")";
 	if (!currentFunction.empty())
+	{
 		std::cerr << " [in function '" << currentFunction << "']";
+	}
 	std::cerr << "\n";
 
 	lastError = {message, peek().line, peek().column};
