@@ -16,8 +16,6 @@
 
 #ifdef _WIN32
 #define PHASOR_API __declspec(dllexport)
-#elif defined(__GNUC__) || defined(__clang__)
-#define PHASOR_API __attribute__((visibility("default")))
 
 #define setupConsole() \
     AttachConsole(ATTACH_PARENT_PROCESS); \
@@ -29,6 +27,8 @@ std::string getCommandLine(LPSTR &lpszCmdLine) {
 	std::string cmdline = lpszCmdLine;
 	return (cmdline.size() >= 2 && cmdline.starts_with('"') && cmdline.ends_with('"')) ? cmdline.substr(1, cmdline.size() - 2) : cmdline;
 }
+#elif defined(__GNUC__) || defined(__clang__)
+#define PHASOR_API __attribute__((visibility("default")))
 #endif
 
 #define msg error
