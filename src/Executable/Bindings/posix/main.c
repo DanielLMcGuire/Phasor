@@ -79,7 +79,7 @@ static PhasorValue phasor_rmdir(PhasorVM *, int argc, const PhasorValue *argv)
 	return phasor_make_int(rmdir(phasor_to_string(argv[0])));
 }
 
-static PhasorValue phasor_fork(PhasorVM *, int argc, const PhasorValue *argv)
+static PhasorValue phasor_fork(PhasorVM *, int, const PhasorValue *)
 {
 	pid_t pid = fork();
 	return phasor_make_int((int64_t)pid);
@@ -156,7 +156,7 @@ static PhasorValue phasor_clock_gettime(PhasorVM *, int argc, const PhasorValue 
 	if (argc < 1 || !phasor_is_int(argv[0]))
 		return phasor_make_int(-1);
 	struct timespec ts;
-	int             r = clock_gettime((clockid_t)phasor_to_int(argv[0]), &ts);
+	clock_gettime((clockid_t)phasor_to_int(argv[0]), &ts);
 	PhasorValue     vals[2] = {phasor_make_int(ts.tv_sec), phasor_make_int(ts.tv_nsec)};
 	return phasor_make_array(vals, 2);
 }

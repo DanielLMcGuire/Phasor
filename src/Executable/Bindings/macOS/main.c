@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "../../../Bindings/macOS/AppleScript.h"
 
-static PhasorValue applescript_run(PhasorVM *vm, int argc, const PhasorValue *argv)
+static PhasorValue applescript_run(PhasorVM *, int argc, const PhasorValue *argv)
 {
 	int64_t status = -1;
 	if (argc < 1 || !phasor_is_string(argv[0]))

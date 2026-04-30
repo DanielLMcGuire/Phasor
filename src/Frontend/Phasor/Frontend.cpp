@@ -30,6 +30,8 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 #ifndef TRACING
 	if (verbose)
 	{
+#else
+	(void)verbose;
 #endif
 		std::println("AST:");
 		program->print();
