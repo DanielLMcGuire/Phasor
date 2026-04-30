@@ -295,8 +295,21 @@ public:
 #pragma clang diagnostic ignored "-Wdll-attribute-on-redeclaration"
 #endif
 
+#if defined(_MSC_VER) && !defined(__clang__)
+    #if defined(_M_IX86)
+        #pragma comment(linker, "/EXPORT:DllGetClassObject=_DllGetClassObject@12,PRIVATE")
+        #pragma comment(linker, "/EXPORT:DllCanUnloadNow=_DllCanUnloadNow@0,PRIVATE")
+    #else
+        #pragma comment(linker, "/EXPORT:DllGetClassObject,PRIVATE")
+        #pragma comment(linker, "/EXPORT:DllCanUnloadNow,PRIVATE")
+    #endif
+    #define PHASOR_COM_EXPORT
+#else
+    #define PHASOR_COM_EXPORT __declspec(dllexport)
+#endif
+
 extern "C"
-__declspec(dllexport)
+PHASOR_COM_EXPORT
 HRESULT __stdcall DllGetClassObject(
 	REFCLSID rclsid,
 	REFIID riid,
@@ -317,7 +330,7 @@ HRESULT __stdcall DllGetClassObject(
 }
 
 extern "C"
-__declspec(dllexport)
+PHASOR_COM_EXPORT
 HRESULT __stdcall DllCanUnloadNow()
 {
 	return S_OK;
