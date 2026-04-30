@@ -1021,42 +1021,27 @@ void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
 
 void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
 {
-	// Only support postfix on identifiers
-	const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr->operand.get());
-	if (identExpr == nullptr)
-	{
-		throw std::runtime_error("Postfix operators only supported on variables");
-	}
+    const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr->operand.get());
+    if (identExpr == nullptr)
+        throw std::runtime_error("Postfix operators only supported on variables");
 
-	int varIndex = bytecode.getOrCreateVar(identExpr->name);
+    int varIndex = bytecode.getOrCreateVar(identExpr->name);
 
-	// Load current value
-	bytecode.emit(OpCode::LOAD_VAR, varIndex);
+    bytecode.emit(OpCode::LOAD_VAR, varIndex);
 
-	// Duplicate for return value (postfix returns old value)
-	bytecode.emit(OpCode::LOAD_VAR, varIndex);
+    bytecode.emit(OpCode::LOAD_VAR, varIndex);
 
-	// Push 1
-	int oneIndex = bytecode.addConstant(Value(static_cast<int64_t>(1)));
-	bytecode.emit(OpCode::PUSH_CONST, oneIndex);
+    int oneIndex = bytecode.addConstant(Value(static_cast<int64_t>(1)));
+    bytecode.emit(OpCode::PUSH_CONST, oneIndex);
 
-	// Add or subtract
-	// Prefer integer ops if we have inferred this variable is int
-	auto it = inferredTypes.find(identExpr->name);
-	bool varIsInt = (it != inferredTypes.end() && it->second == ValueType::Int);
-	if (expr->op == AST::PostfixOp::Increment)
-	{
-		bytecode.emit(varIsInt ? OpCode::IADD : OpCode::FLADD);
-	}
-	else
-	{
-		bytecode.emit(varIsInt ? OpCode::ISUBTRACT : OpCode::FLSUBTRACT);
-	}
+    auto it = inferredTypes.find(identExpr->name);
+    bool varIsInt = (it != inferredTypes.end() && it->second == ValueType::Int);
+    if (expr->op == AST::PostfixOp::Increment)
+        bytecode.emit(varIsInt ? OpCode::IADD : OpCode::FLADD);
+    else
+        bytecode.emit(varIsInt ? OpCode::ISUBTRACT : OpCode::FLSUBTRACT);
 
-	// Store new value
-	bytecode.emit(OpCode::STORE_VAR, varIndex);
-	bytecode.emit(OpCode::POP); // Pop the stored value
-	                            // Old value is still on stack as return value
+    bytecode.emit(OpCode::STORE_VAR, varIndex);
 }
 
 void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
