@@ -23,6 +23,12 @@ NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int
 	m_vm = std::make_unique<VM>();
 }
 
+NativeRuntime::NativeRuntime(const Phasor::Bytecode &bytecode, const int argc, const char **argv)
+    : m_bytecode(bytecode), m_argc(argc), m_argv(const_cast<char **>(argv))
+{
+	m_vm = std::make_unique<VM>();
+}
+
 NativeRuntime::NativeRuntime(const std::string &script, const int argc, const char **argv)
     : m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
 {

@@ -8,6 +8,7 @@
 #include "../../../Language/Pulsar/Parser/Parser.hpp"
 #include "../../../Codegen/CodeGen.hpp"
 #include "../../../Codegen/Bytecode/BytecodeSerializer.hpp"
+#include "../../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 #include <version.h>
 #include <nativeerror.h>
 
@@ -17,6 +18,17 @@
 #define PHASOR_API __declspec(dllexport)
 #elif defined(__GNUC__) || defined(__clang__)
 #define PHASOR_API __attribute__((visibility("default")))
+
+#define setupConsole() \
+    AttachConsole(ATTACH_PARENT_PROCESS); \
+    { FILE* _f; freopen_s(&_f, "CONOUT$", "w", stdout); } \
+    { FILE* _f; freopen_s(&_f, "CONOUT$", "w", stderr); } \
+    puts("")
+
+std::string getCommandLine(LPSTR &lpszCmdLine) {
+	std::string cmdline = lpszCmdLine;
+	return (cmdline.size() >= 2 && cmdline.starts_with('"') && cmdline.ends_with('"')) ? cmdline.substr(1, cmdline.size() - 2) : cmdline;
+}
 #endif
 
 #define msg error
@@ -214,4 +226,126 @@ extern "C"
 		vm->reset(true, resetFunctions, resetVariables);
 		return true;
 	}
+
+#ifdef _WIN32
+	__declspec(dllexport) void CALLBACK PhasorSourceStringEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	{
+		setupConsole();
+		int exitCode = evaluatePHS(NULL, getCommandLine(lpszCmdLine).c_str(), __func__, "", false);
+		if (exitCode != 0)
+		{
+			std::string message = std::format("\nFailed with code {}\n", exitCode);
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+		}
+	}
+
+	__declspec(dllexport) void CALLBACK PhasorSourceFileEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	{
+		setupConsole();
+		std::filesystem::path file = getCommandLine(lpszCmdLine);
+		std::string scriptText;
+
+		if (!std::filesystem::exists(file))
+		{
+			std::string message = std::format("File \"{}\" does not exist\n", file.filename().string());
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+			return;
+		}
+		
+		std::ifstream fileStream(file);
+		if (!fileStream)
+		{
+			std::string message = std::format("File \"{}\" could not be opened\n", file.filename().string());
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+			return;
+		}
+
+		fileStream.seekg(0, std::ios::end);
+		scriptText.resize(static_cast<size_t>(fileStream.tellg()));
+		fileStream.seekg(0, std::ios::beg);
+
+		fileStream.read(scriptText.data(), scriptText.size());
+
+		int exitCode = evaluatePHS(NULL, scriptText.c_str(), __func__, file.parent_path().string().c_str(), false);
+		if (exitCode != 0)
+		{
+			std::string message = std::format("\nFailed with code {}\n", exitCode);
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+		}
+	}
+
+	__declspec(dllexport) void CALLBACK PulsarSourceStringEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	{
+		setupConsole();
+		int exitCode = evaluatePUL(NULL, getCommandLine(lpszCmdLine).c_str(), __func__);
+		if (exitCode != 0)
+		{
+			std::string message = std::format("\nFailed with code {}\n", exitCode);
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+		}
+	}
+
+	__declspec(dllexport) void CALLBACK PulsarSourceFileEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	{
+		setupConsole();
+		std::filesystem::path file = getCommandLine(lpszCmdLine);
+		std::string scriptText;
+
+		if (!std::filesystem::exists(file))
+		{
+			std::string message = std::format("File \"{}\" does not exist\n", file.filename().string());
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+			return;
+		}
+		
+		std::ifstream fileStream(file);
+		if (!fileStream)
+		{
+			std::string message = std::format("File \"{}\" could not be opened\n", file.filename().string());
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+			return;
+		}
+
+		fileStream.seekg(0, std::ios::end);
+		scriptText.resize(static_cast<size_t>(fileStream.tellg()));
+		fileStream.seekg(0, std::ios::beg);
+
+		fileStream.read(scriptText.data(), scriptText.size());
+
+		int exitCode = evaluatePUL(NULL, scriptText.c_str(), __func__);
+		if (exitCode != 0)
+		{
+			std::string message = std::format("\nFailed with code {}\n", exitCode);
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+		}
+	}
+
+	__declspec(dllexport) void CALLBACK PhasorBytecodeFileExecute(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	{
+		setupConsole();
+		std::filesystem::path file = getCommandLine(lpszCmdLine);
+		if (!std::filesystem::exists(file))
+		{
+			std::string message = std::format("File \"{}\" does not exist\n", file.filename().string());
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+			return;
+		}
+		if (file.extension().string() != ".phsb") 
+		{
+			std::string message = std::format("File \"{}\" is not a .phsb file\n", file.filename().string());
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+			return;
+		}
+		Phasor::BytecodeDeserializer deserializer;
+		auto bytecode = deserializer.loadFromFile(file);
+		std::array<const char *, 2> args = {"phasorrt.dll", __func__};
+		Phasor::NativeRuntime NativeRT(bytecode, args.size(), args.data());
+		int exitCode = NativeRT.run();
+		if (exitCode != 0)
+		{
+			std::string message = std::format("\nFailed with code {}\n", exitCode);
+			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
+		}
+	}
+#endif // ifdef _WIN32
 }

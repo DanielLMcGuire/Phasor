@@ -1,7 +1,18 @@
-add_library(phasor_native_runtime SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntimeDll.rc
+set(NATIVE_RUNTIME_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntimeDll.rc
+)
+
+if (WIN32)
+    list(APPEND NATIVE_RUNTIME_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_com.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_com.hpp
+    )
+endif()
+
+add_library(phasor_native_runtime SHARED
+    ${NATIVE_RUNTIME_SOURCES}
 )
 target_link_libraries(phasor_native_runtime phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
 target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)

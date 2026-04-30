@@ -57,6 +57,7 @@
       <ComponentRef Id="Capabilities_phasorvm" />
       <ComponentRef Id="Capabilities_pulsar" />
       <ComponentRef Id="Capabilities_pulsarcompiler" />
+      <ComponentRef Id="PhasorActiveScriptEngine" />
     </Feature>
 
     <DirectoryRef Id="INSTALLFOLDER">
@@ -415,6 +416,23 @@
           Name="PulsarCompiler" Type="string" Value="Software\Phasor\pulsarcompiler\Capabilities" />
       </Component>
 
+      <Component Id="PhasorActiveScriptEngine" Guid="*" Bitness="always64">
+        <RegistryValue Root="HKCR" Key="Phasor" Type="string" Value="Phasor Script Engine" KeyPath="yes" />
+        <RegistryValue Root="HKCR" Key="Phasor\CLSID" Type="string" Value="{c5318f33-2d87-4e95-95b7-2928cd57a5d7}" />
+
+        <RegistryKey Root="HKCR" Key="Phasor\OLEScript">
+          <RegistryValue Type="string" Value="" />
+        </RegistryKey>
+
+        <RegistryValue Root="HKCR" Key="CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}" Type="string" Value="Phasor Script Engine" />
+        <RegistryValue Root="HKCR" Key="CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\InprocServer32" Type="string" Value="[INSTALLFOLDER]bin\phasorrt.dll" />
+        <RegistryValue Root="HKCR" Key="CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\InprocServer32" Name="ThreadingModel" Type="string" Value="Apartment" />
+        <RegistryValue Root="HKCR" Key="CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\ProgID" Type="string" Value="Phasor" />
+
+        <RegistryKey Root="HKCR" Key="CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\OLEScript">
+          <RegistryValue Type="string" Value="" />
+        </RegistryKey>
+      </Component>
     </DirectoryRef>
   </Package>
 </Wix>

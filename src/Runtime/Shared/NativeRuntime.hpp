@@ -19,6 +19,7 @@ class NativeRuntime
 {
   public:
 	NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);
+	NativeRuntime(const Phasor::Bytecode &bytecode, const int argc, const char **argv);
 	NativeRuntime(const std::string &script, const int argc, const char **argv);
 	NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv);
 	NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);

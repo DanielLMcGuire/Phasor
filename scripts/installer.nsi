@@ -281,6 +281,16 @@ WriteRegStr HKLM "Software\Phasor\pulsarcompiler\Capabilities" "ApplicationDescr
 WriteRegStr HKLM "Software\Phasor\pulsarcompiler\Capabilities\FileAssociations" ".pul" "PulsarCompiler.PUL"
 WriteRegStr HKLM "Software\RegisteredApplications" "PulsarCompiler" "Software\Phasor\pulsarcompiler\Capabilities"
 
+WriteRegStr HKCR "Phasor" "" "Phasor Script Engine"
+WriteRegStr HKCR "Phasor\CLSID" "" "{c5318f33-2d87-4e95-95b7-2928cd57a5d7}"
+WriteRegStr HKCR "Phasor\OLEScript" "" ""
+
+WriteRegStr HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}" "" "Phasor Script Engine"
+WriteRegStr HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\InprocServer32" "" "$INSTDIR\bin\phasorrt.dll"
+WriteRegStr HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\InprocServer32" "ThreadingModel" "Apartment"
+WriteRegStr HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\ProgID" "" "Phasor"
+WriteRegStr HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}\OLEScript" "" ""
+
 SetRegView 32
 
 EnVar::SetHKLM
@@ -333,6 +343,8 @@ DeleteRegKey HKCU "Software\Classes\Pulsar.PUL"
 DeleteRegKey HKCU "Software\Classes\PulsarCompiler.PUL"
 
 SetRegView 64
+DeleteRegKey HKCR "Phasor"
+DeleteRegKey HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}"
 DeleteRegKey  HKLM "Software\Phasor"
 DeleteRegValue HKLM "Software\RegisteredApplications" "Phasor"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorASM"
