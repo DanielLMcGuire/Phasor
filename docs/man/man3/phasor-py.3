@@ -17,9 +17,9 @@ A
 file consists of a 16-byte header (magic number, version, flags, and a
 CRC-32 checksum) followed by four sections: constants, variables,
 functions, and instructions.
-Each instruction occupies exactly 21 bytes on disk: one
+Each instruction occupies exactly 13 bytes on disk: one
 .B uint8
-opcode and five
+opcode and three
 .B int32
 operands.
 .PP
@@ -107,7 +107,7 @@ package.
 .PP
 \fBInstance methods:\fR
 .TP
-.BI "emit(" op ", " op1 ", " op2 ", " op3 ", " op4 ", " op5 )
+.BI "emit(" op ", " op1 ", " op2 ", " op3 )
 Append a new
 .B Instruction
 to the program and return its zero-based index.
@@ -192,7 +192,7 @@ Parent directories are created automatically if they do not exist.
 A single Phasor VM instruction.
 Holds an
 .B OpCode
-and up to five
+and up to three
 .B int32
 operands (unused operands default to
 .BR 0 ).
@@ -290,116 +290,7 @@ if the type does not match)
 .TP
 .B as_string()
 .SS OpCode
-.B IntEnum
-of all Phasor VM opcodes.
-Selected members are listed below; consult the package source for the full list.
 .PP
-\fBStack / control:\fR
-.TS
-l l.
-PUSH_CONST (0)	Push constants[operand1] onto the stack
-POP (1)	Discard top of stack
-LOAD_VAR (42)	Push variable slot operand1 onto the stack
-STORE_VAR (41)	Pop TOS into variable slot operand1
-HALT (47)	Terminate execution
-JUMP (37)	Unconditional jump to operand1
-JUMP_IF_FALSE (38)	Branch to operand1 if TOS is falsy; pop TOS
-JUMP_IF_TRUE (39)	Branch to operand1 if TOS is truthy; pop TOS
-JUMP_BACK (40)	Backward unconditional jump
-CALL (49)	Call function named by constants[operand1]
-CALL_NATIVE (48)	Call a native (host) function
-RETURN (53)	Return from the current function
-IMPORT (46)	Import a module
-.TE
-.PP
-\fBInteger arithmetic:\fR
-.TS
-l l.
-IADD (2)	Integer add
-ISUBTRACT (3)	Integer subtract
-IMULTIPLY (4)	Integer multiply
-IDIVIDE (5)	Integer divide
-IMODULO (6)	Integer modulo
-.TE
-.PP
-\fBFloat arithmetic:\fR
-.TS
-l l.
-FLADD (7)	Float add
-FLSUBTRACT (8)	Float subtract
-FLMULTIPLY (9)	Float multiply
-FLDIVIDE (10)	Float divide
-FLMODULO (11)	Float modulo
-.TE
-.PP
-\fBMath functions:\fR
-.TS
-l l.
-SQRT (12)	Square root
-POW (13)	Power
-LOG (14)	Natural logarithm
-EXP (15)	Exponential (e^x)
-SIN (16)	Sine
-COS (17)	Cosine
-TAN (18)	Tangent
-NEGATE (19)	Arithmetic negation
-NOT (20)	Logical NOT
-.TE
-.PP
-\fBComparison (integer / float):\fR
-.TS
-l l.
-IEQUAL (25) / FLEQUAL (31)	Equal
-INOT_EQUAL (26) / FLNOT_EQUAL (32)	Not equal
-ILESS_THAN (27) / FLLESS_THAN (33)	Less than
-IGREATER_THAN (28) / FLGREATER_THAN (34)	Greater than
-ILESS_EQUAL (29) / FLLESS_EQUAL (35)	Less than or equal
-IGREATER_EQUAL (30) / FLGREATER_EQUAL (36)	Greater than or equal
-.TE
-.PP
-\fBLogical:\fR
-.TS
-l l.
-IAND (21) / FLAND (23)	Logical AND
-IOR (22) / FLOR (24)	Logical OR
-.TE
-.PP
-\fBStrings / I/O:\fR
-.TS
-l l.
-LEN (57)	String or collection length
-CHAR_AT (58)	Character at index
-SUBSTR (59)	Substring
-PRINT (43)	Print to stdout (stack variant)
-PRINTERROR (44)	Print to stderr (stack variant)
-READLINE (45)	Read a line from stdin
-SYSTEM (50)	Execute system command
-SYSTEM_OUT (51)	Capture stdout of system command
-SYSTEM_ERR (52)	Capture stderr of system command
-.TE
-.PP
-\fBStruct / object:\fR
-.TS
-l l.
-NEW_STRUCT (60)	Create a new struct instance
-NEW_STRUCT_INSTANCE_STATIC (63)	Create a statically-typed struct instance
-GET_FIELD (61)	Load a struct field (dynamic)
-SET_FIELD (62)	Store a struct field (dynamic)
-GET_FIELD_STATIC (64)	Load a struct field (static)
-SET_FIELD_STATIC (65)	Store a struct field (static)
-.TE
-.PP
-\fBMiscellaneous:\fR
-.TS
-l l.
-TRUE_P (54)	Push boolean true
-FALSE_P (55)	Push boolean false
-NULL_VAL (56)	Push null
-MOV (66)	Register move
-.TE
-.PP
-Register-based variants of most opcodes exist with an \fB_R\fR
-suffix (e.g.\& \fBIADD_R\fR, \fBFLADD_R\fR, \fBPUSH_R\fR, \fBPOP_R\fR).
 .SS ValueType
 .B IntEnum
 encoding the type of a constant-pool
@@ -778,6 +669,7 @@ and
 .SH SEE ALSO
 .BR python3 (1)
 .BR PHSB (5)
+.BR phasor-isa (7)
 .SH AUTHORS
 See the
 .B phasor
