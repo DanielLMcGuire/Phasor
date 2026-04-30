@@ -1,19 +1,3 @@
-if(PROJECT_IS_TOP_LEVEL)
-
-add_executable(phasor_main 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
-)
-target_link_libraries(phasor_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
-set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
-
-add_executable(pulsar_main 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime_main.cpp
-)
-target_link_libraries(pulsar_main pulsar_scripting_runtime_lib PulsarFrontend)
-set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
-
 add_library(phasor_native_runtime SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntimeDll.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
@@ -29,6 +13,22 @@ add_library(phasor_native_runtime_static STATIC
 )
 target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
+
+if(PROJECT_IS_TOP_LEVEL)
+
+add_executable(phasor_main 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
+)
+target_link_libraries(phasor_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
+set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
+
+add_executable(pulsar_main 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime_main.cpp
+)
+target_link_libraries(pulsar_main pulsar_scripting_runtime_lib PulsarFrontend)
+set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
 
 if(NOT IS_XBOX AND NOT EMBEDDED)
 
