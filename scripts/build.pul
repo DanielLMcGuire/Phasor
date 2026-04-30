@@ -19,7 +19,7 @@ Example Config File:
     in.phs
     out.phsb
     phasorcompiler
-    --no-logo -o %%s %%s`, 
+    -o %%s %%s`, 
 	sys_argv(0))
 
 	if (fexists(conf)) {
