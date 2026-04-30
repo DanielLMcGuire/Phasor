@@ -162,7 +162,7 @@ void CodeGenerator::generateStatement(const AST::Statement *stmt)
 	}
 }
 
-void CodeGenerator::generateExpression(const AST::Expression *expr)
+void CodeGenerator::generateExpression(const AST::Expression *expr, bool resultNeeded)
 {
 	if (const auto *numExpr = dynamic_cast<const AST::NumberExpr *>(expr))
 	{
@@ -210,7 +210,7 @@ void CodeGenerator::generateExpression(const AST::Expression *expr)
 	}
 	else if (const auto *postfixExpr = dynamic_cast<const AST::PostfixExpr *>(expr))
 	{
-		generatePostfixExpr(postfixExpr);
+		generatePostfixExpr(postfixExpr, resultNeeded);
 	}
 	else
 	{
@@ -255,14 +255,24 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 void CodeGenerator::generateExpressionStmt(const AST::ExpressionStmt *exprStmt)
 {
-	generateExpression(exprStmt->expression.get());
 	if (isRepl)
 	{
+		generateExpression(exprStmt->expression.get(), true);
 		bytecode.emit(OpCode::PRINT);
+		return;
+	}
+
+	// In statement context the result is always discarded.
+	// For postfix specifically: resultNeeded=false skips saving the old value,
+	// and STORE_VAR already pops the result — stack is clean, no POP needed.
+	if (const auto *postfix = dynamic_cast<const AST::PostfixExpr *>(exprStmt->expression.get()))
+	{
+		generatePostfixExpr(postfix, false);
 	}
 	else
 	{
-		bytecode.emit(OpCode::POP); // Expression statements discard result
+		generateExpression(exprStmt->expression.get());
+		bytecode.emit(OpCode::POP);
 	}
 }
 
@@ -810,8 +820,17 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 	// Generate increment
 	if (forStmt->increment)
 	{
-		generateExpression(forStmt->increment.get());
-		bytecode.emit(OpCode::POP); // Discard increment result
+		if (const auto *postfix = dynamic_cast<const AST::PostfixExpr *>(forStmt->increment.get()))
+		{
+			// resultNeeded=false: skips the old-value LOAD_VAR, and STORE_VAR
+			// already pops the result — stack is clean, no POP needed.
+			generatePostfixExpr(postfix, false);
+		}
+		else
+		{
+			generateExpression(forStmt->increment.get());
+			bytecode.emit(OpCode::POP); // discard result
+		}
 	}
 
 	// Jump back to condition check
@@ -1019,7 +1038,7 @@ void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
 	bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
 }
 
-void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
+void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr, bool resultNeeded)
 {
     const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(expr->operand.get());
     if (identExpr == nullptr)
@@ -1027,7 +1046,8 @@ void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr)
 
     int varIndex = bytecode.getOrCreateVar(identExpr->name);
 
-    bytecode.emit(OpCode::LOAD_VAR, varIndex);
+    if (resultNeeded)
+        bytecode.emit(OpCode::LOAD_VAR, varIndex);
 
     bytecode.emit(OpCode::LOAD_VAR, varIndex);
 

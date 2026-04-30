@@ -172,8 +172,8 @@ class CodeGenerator
 	/// @return inferred ValueType (valid only when known == true)
 	ValueType inferExpressionType(const AST::Expression *expr, bool &known);
 
-	void generateStatement(const AST::Statement *stmt);                ///< Generate bytecode from Statement
-	void generateExpression(const AST::Expression *expr);              ///< Generate bytecode from Expression
+	void generateStatement(const AST::Statement *stmt);                          ///< Generate bytecode from Statement
+	void generateExpression(const AST::Expression *expr, bool resultNeeded = true); ///< Generate bytecode from Expression
 	void generateVarDecl(const AST::VarDecl *varDecl);                 ///< Generate bytecode from Variable Declaration
 	void generateExpressionStmt(const AST::ExpressionStmt *exprStmt);  ///< Generate bytecode from Expression Statement
 	void generatePrintStmt(const AST::PrintStmt *printStmt);           ///< Generate bytecode from Print Statement
@@ -200,7 +200,7 @@ class CodeGenerator
 	void generateStructDecl(const AST::StructDecl *decl);
 	void generateStructInstanceExpr(const AST::StructInstanceExpr *expr);
 	void generateFieldAccessExpr(const AST::FieldAccessExpr *expr);
-	void generatePostfixExpr(const AST::PostfixExpr *expr);
+	void generatePostfixExpr(const AST::PostfixExpr *expr, bool resultNeeded = true);
 	void generateBreakStmt();
 	void generateContinueStmt();
 	void generateSwitchStmt(const AST::SwitchStmt *switchStmt);
