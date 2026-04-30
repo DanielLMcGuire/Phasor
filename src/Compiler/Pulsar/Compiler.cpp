@@ -20,8 +20,6 @@ Compiler::Compiler(int argc, char *argv[])
 
 int Compiler::run()
 {
-	if (m_args.showLogo)
-		std::println("Pulsar Compiler\n(C) 2026 Daniel McGuire\n");
 	if (m_args.inputFile.empty())
 	{
 		std::println(std::cerr, "Error: No input file provided");
@@ -76,8 +74,8 @@ int Compiler::compileToBytecode()
 			return 1;
 		}
 
-		if (m_args.showLogo)
-			std::println("Compiled successfully: {} -> {}", m_args.inputFile, m_args.outputFile);
+
+		std::println("Compiled successfully: {} -> {}", m_args.inputFile, m_args.outputFile);
 		return 0;
 	}
 	catch (const std::exception &e)
@@ -148,10 +146,6 @@ void Compiler::parseArguments(int argc, char *argv[])
 		if (arg == "-v" || arg == "--verbose")
 		{
 			m_args.verbose = true;
-		}
-		else if (arg == "--no-logo")
-		{
-			m_args.showLogo = false;
 		}
 		else if (arg == "-o" || arg == "--output")
 		{
