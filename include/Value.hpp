@@ -109,37 +109,8 @@ class Value
 	}
 
 	/// @brief Get the type of the value
-	[[nodiscard]] ValueType getType() const noexcept
-	{
-		if (std::holds_alternative<std::monostate>(data))
-		{
-			return ValueType::Null;
-		}
-		if (std::holds_alternative<bool>(data))
-		{
-			return ValueType::Bool;
-		}
-		if (std::holds_alternative<int64_t>(data))
-		{
-			return ValueType::Int;
-		}
-		if (std::holds_alternative<double>(data))
-		{
-			return ValueType::Float;
-		}
-		if (std::holds_alternative<std::string>(data))
-		{
-			return ValueType::String;
-		}
-		if (std::holds_alternative<std::shared_ptr<StructInstance>>(data))
-		{
-			return ValueType::Struct;
-		}
-		if (std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
-		{
-			return ValueType::Array;
-		}
-		return ValueType::Null; // Should not be reached if default constructed
+	[[nodiscard]] ValueType getType() const noexcept {
+		return static_cast<ValueType>(data.index());
 	}
 
 	static Value typeToString(const ValueType &type)
@@ -166,35 +137,12 @@ class Value
 	}
 
 	/// @brief Check if the value is null
-	[[nodiscard]] bool isNull() const noexcept
-	{
-		return getType() == ValueType::Null;
-	}
-	/// @brief Check if the value is a boolean
-	[[nodiscard]] bool isBool() const noexcept
-	{
-		return getType() == ValueType::Bool;
-	}
-	/// @brief Check if the value is an integer
-	[[nodiscard]] bool isInt() const noexcept
-	{
-		return getType() == ValueType::Int;
-	}
-	/// @brief Check if the value is a double
-	[[nodiscard]] bool isFloat() const noexcept
-	{
-		return getType() == ValueType::Float;
-	}
-	/// @brief Check if the value is a string
-	[[nodiscard]] bool isString() const noexcept
-	{
-		return getType() == ValueType::String;
-	}
-	/// @brief Check if the value is a number
-	[[nodiscard]] bool isNumber() const noexcept
-	{
-		return isInt() || isFloat();
-	}
+	[[nodiscard]] bool isNull()   const noexcept { return data.index() == 0; }
+	[[nodiscard]] bool isBool()   const noexcept { return data.index() == 1; }
+	[[nodiscard]] bool isInt()    const noexcept { return data.index() == 2; }
+	[[nodiscard]] bool isFloat()  const noexcept { return data.index() == 3; }
+	[[nodiscard]] bool isString() const noexcept { return data.index() == 4; }
+	[[nodiscard]] bool isNumber() const noexcept { return data.index() == 2 || data.index() == 3; }
 	/// @brief Check if the value is an array
 	[[nodiscard]] bool isArray() const noexcept
 	{
