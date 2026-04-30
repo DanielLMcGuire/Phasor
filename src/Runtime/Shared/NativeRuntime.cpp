@@ -116,7 +116,7 @@ int NativeRuntime::run()
 
 		return status;
 	}
-	catch (const std::exception &e)
+	catch (const std::exception &)
 	{
 		throw;
 	}
@@ -145,7 +145,7 @@ int NativeRuntime::runFunctionInt(std::string functionName)
 
 		return ret.asInt();
 	}
-	catch (const std::exception &e)
+	catch (const std::exception &)
 	{
 		throw;
 	}
@@ -174,7 +174,7 @@ std::optional<std::string> NativeRuntime::runFunctionString(std::string function
 
 		return ret.asString();
 	}
-	catch (const std::exception &e)
+	catch (const std::exception &)
 	{
 		throw;
 	}
