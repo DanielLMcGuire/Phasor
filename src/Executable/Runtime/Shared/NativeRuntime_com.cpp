@@ -26,7 +26,7 @@ namespace
 	}
 }
 
-HRESULT PhasorScriptEngine::QueryInterface(REFIID riid, void** ppv)
+HRESULT __stdcall PhasorScriptEngine::QueryInterface(REFIID riid, void** ppv)
 {
 	if (!ppv)
 		return E_POINTER;
@@ -50,12 +50,12 @@ HRESULT PhasorScriptEngine::QueryInterface(REFIID riid, void** ppv)
 	return S_OK;
 }
 
-ULONG PhasorScriptEngine::AddRef()
+ULONG __stdcall PhasorScriptEngine::AddRef()
 {
 	return ++refCount;
 }
 
-ULONG PhasorScriptEngine::Release()
+ULONG __stdcall PhasorScriptEngine::Release()
 {
 	long r = --refCount;
 	if (r == 0)
@@ -63,7 +63,7 @@ ULONG PhasorScriptEngine::Release()
 	return r;
 }
 
-HRESULT PhasorScriptEngine::SetScriptSite(IActiveScriptSite* pSite)
+HRESULT __stdcall PhasorScriptEngine::SetScriptSite(IActiveScriptSite* pSite)
 {
 	if (pSite)
 		pSite->AddRef();
@@ -75,7 +75,7 @@ HRESULT PhasorScriptEngine::SetScriptSite(IActiveScriptSite* pSite)
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::GetScriptSite(REFIID riid, void** ppvObject)
+HRESULT __stdcall PhasorScriptEngine::GetScriptSite(REFIID riid, void** ppvObject)
 {
 	if (!ppvObject)
 		return E_POINTER;
@@ -88,13 +88,13 @@ HRESULT PhasorScriptEngine::GetScriptSite(REFIID riid, void** ppvObject)
 	return site->QueryInterface(riid, ppvObject);
 }
 
-HRESULT PhasorScriptEngine::SetScriptState(SCRIPTSTATE st)
+HRESULT __stdcall PhasorScriptEngine::SetScriptState(SCRIPTSTATE st)
 {
 	state = st;
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::GetScriptState(SCRIPTSTATE* pss)
+HRESULT __stdcall PhasorScriptEngine::GetScriptState(SCRIPTSTATE* pss)
 {
 	if (!pss)
 		return E_POINTER;
@@ -103,7 +103,7 @@ HRESULT PhasorScriptEngine::GetScriptState(SCRIPTSTATE* pss)
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::Close()
+HRESULT __stdcall PhasorScriptEngine::Close()
 {
 	if (site)
 	{
@@ -116,17 +116,17 @@ HRESULT PhasorScriptEngine::Close()
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::AddNamedItem(LPCOLESTR, DWORD)
+HRESULT __stdcall PhasorScriptEngine::AddNamedItem(LPCOLESTR, DWORD)
 {
     return E_NOTIMPL;
 }
 
-HRESULT PhasorScriptEngine::AddTypeLib(REFGUID, DWORD, DWORD, DWORD)
+HRESULT __stdcall PhasorScriptEngine::AddTypeLib(REFGUID, DWORD, DWORD, DWORD)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT PhasorScriptEngine::GetScriptDispatch(LPCOLESTR, IDispatch** ppdisp)
+HRESULT __stdcall PhasorScriptEngine::GetScriptDispatch(LPCOLESTR, IDispatch** ppdisp)
 {
 	if (!ppdisp)
 		return E_POINTER;
@@ -135,7 +135,7 @@ HRESULT PhasorScriptEngine::GetScriptDispatch(LPCOLESTR, IDispatch** ppdisp)
 	return E_NOTIMPL;
 }
 
-HRESULT PhasorScriptEngine::GetCurrentScriptThreadID(SCRIPTTHREADID* pstidThread)
+HRESULT __stdcall PhasorScriptEngine::GetCurrentScriptThreadID(SCRIPTTHREADID* pstidThread)
 {
 	if (!pstidThread)
 		return E_POINTER;
@@ -144,7 +144,7 @@ HRESULT PhasorScriptEngine::GetCurrentScriptThreadID(SCRIPTTHREADID* pstidThread
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::GetScriptThreadID(DWORD, SCRIPTTHREADID* pstidThread)
+HRESULT __stdcall PhasorScriptEngine::GetScriptThreadID(DWORD, SCRIPTTHREADID* pstidThread)
 {
 	if (!pstidThread)
 		return E_POINTER;
@@ -153,7 +153,7 @@ HRESULT PhasorScriptEngine::GetScriptThreadID(DWORD, SCRIPTTHREADID* pstidThread
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::GetScriptThreadState(SCRIPTTHREADID, SCRIPTTHREADSTATE* pstsState)
+HRESULT __stdcall PhasorScriptEngine::GetScriptThreadState(SCRIPTTHREADID, SCRIPTTHREADSTATE* pstsState)
 {
 	if (!pstsState)
 		return E_POINTER;
@@ -162,19 +162,19 @@ HRESULT PhasorScriptEngine::GetScriptThreadState(SCRIPTTHREADID, SCRIPTTHREADSTA
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::InterruptScriptThread(SCRIPTTHREADID, const EXCEPINFO*, DWORD)
+HRESULT __stdcall PhasorScriptEngine::InterruptScriptThread(SCRIPTTHREADID, const EXCEPINFO*, DWORD)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT PhasorScriptEngine::Clone(IActiveScript** ppscript)
+HRESULT __stdcall PhasorScriptEngine::Clone(IActiveScript** ppscript)
 {
 	if (ppscript)
 		*ppscript = nullptr;
 	return E_NOTIMPL;
 }
 
-HRESULT PhasorScriptEngine::InitNew()
+HRESULT __stdcall PhasorScriptEngine::InitNew()
 {
 	vm.reset(true, true, true);
 	Phasor::StdLib::registerFunctions(vm);
@@ -182,14 +182,18 @@ HRESULT PhasorScriptEngine::InitNew()
 	return S_OK;
 }
 
-HRESULT PhasorScriptEngine::AddScriptlet(
+HRESULT __stdcall PhasorScriptEngine::AddScriptlet(
 	LPCOLESTR,
 	LPCOLESTR,
 	LPCOLESTR,
 	LPCOLESTR,
 	LPCOLESTR,
 	LPCOLESTR,
-	DWORD_PTR,
+#if defined(_WIN64)
+	DWORDLONG,
+#else
+	DWORD,
+#endif
 	ULONG,
 	DWORD,
 	BSTR* pbstrName,
@@ -201,12 +205,16 @@ HRESULT PhasorScriptEngine::AddScriptlet(
 	return E_NOTIMPL;
 }
 
-HRESULT PhasorScriptEngine::ParseScriptText(
+HRESULT __stdcall PhasorScriptEngine::ParseScriptText(
 	LPCOLESTR code,
 	LPCOLESTR,
 	IUnknown*,
 	LPCOLESTR,
-	DWORD_PTR,
+#if defined(_WIN64)
+	DWORDLONG,
+#else
+	DWORD,
+#endif
 	ULONG,
 	DWORD,
 	VARIANT* result,
@@ -238,7 +246,7 @@ class ClassFactory final : public IClassFactory
 	long refCount = 1;
 
 public:
-	HRESULT QueryInterface(REFIID riid, void** ppv) override
+	HRESULT __stdcall QueryInterface(REFIID riid, void** ppv) override
 	{
 		if (!ppv)
 			return E_POINTER;
@@ -255,12 +263,12 @@ public:
 		return E_NOINTERFACE;
 	}
 
-	ULONG AddRef() override
+	ULONG __stdcall AddRef() override
 	{
 		return ++refCount;
 	}
 
-	ULONG Release() override
+	ULONG __stdcall Release() override
 	{
 		long r = --refCount;
 		if (r == 0)
@@ -268,7 +276,7 @@ public:
 		return r;
 	}
 
-	HRESULT CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppv) override
+	HRESULT __stdcall CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppv) override
 	{
 		if (!ppv)
 			return E_POINTER;
@@ -284,7 +292,7 @@ public:
 		return hr;
 	}
 
-	HRESULT LockServer(BOOL) override
+	HRESULT __stdcall LockServer(BOOL) override
 	{
 		return S_OK;
 	}

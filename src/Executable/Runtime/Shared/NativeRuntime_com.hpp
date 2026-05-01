@@ -26,34 +26,43 @@ class PhasorScriptEngine final :
 public:
     virtual ~PhasorScriptEngine() = default;
 
-    HRESULT QueryInterface(REFIID riid, void** ppv) override;
-    ULONG AddRef() override;
-    ULONG Release() override;
+    HRESULT __stdcall QueryInterface(REFIID riid, void** ppv) override;
+    ULONG __stdcall AddRef() override;
+    ULONG __stdcall Release() override;
 
-    HRESULT SetScriptSite(IActiveScriptSite* pSite) override;
-    HRESULT GetScriptSite(REFIID riid, void** ppvObject) override;
-    HRESULT SetScriptState(SCRIPTSTATE state) override;
-    HRESULT GetScriptState(SCRIPTSTATE* pss) override;
-    HRESULT Close() override;
-    HRESULT AddNamedItem(LPCOLESTR name, DWORD flags) override;
-    HRESULT AddTypeLib(REFGUID rguidTypeLib, DWORD dwMajor, DWORD dwMinor, DWORD dwFlags) override;
-    HRESULT GetScriptDispatch(LPCOLESTR name, IDispatch** ppdisp) override;
-    HRESULT GetCurrentScriptThreadID(SCRIPTTHREADID* pstidThread) override;
-    HRESULT GetScriptThreadID(DWORD dwWin32ThreadId, SCRIPTTHREADID* pstidThread) override;
-    HRESULT GetScriptThreadState(SCRIPTTHREADID stidThread, SCRIPTTHREADSTATE* pstsState) override;
-    HRESULT InterruptScriptThread(SCRIPTTHREADID stidThread, const EXCEPINFO* pexcepinfo, DWORD dwFlags) override;
-    HRESULT Clone(IActiveScript** ppscript) override;
+    HRESULT __stdcall SetScriptSite(IActiveScriptSite* pSite) override;
+    HRESULT __stdcall GetScriptSite(REFIID riid, void** ppvObject) override;
+    HRESULT __stdcall SetScriptState(SCRIPTSTATE state) override;
+    HRESULT __stdcall GetScriptState(SCRIPTSTATE* pss) override;
+    HRESULT __stdcall Close() override;
+    HRESULT __stdcall AddNamedItem(LPCOLESTR name, DWORD flags) override;
+    HRESULT __stdcall AddTypeLib(REFGUID rguidTypeLib, DWORD dwMajor, DWORD dwMinor, DWORD dwFlags) override;
+    HRESULT __stdcall GetScriptDispatch(LPCOLESTR name, IDispatch** ppdisp) override;
+    HRESULT __stdcall GetCurrentScriptThreadID(SCRIPTTHREADID* pstidThread) override;
+    HRESULT __stdcall GetScriptThreadID(DWORD dwWin32ThreadId, SCRIPTTHREADID* pstidThread) override;
+    HRESULT __stdcall GetScriptThreadState(SCRIPTTHREADID stidThread, SCRIPTTHREADSTATE* pstsState) override;
+    HRESULT __stdcall InterruptScriptThread(SCRIPTTHREADID stidThread, const EXCEPINFO* pexcepinfo, DWORD dwFlags) override;
+    HRESULT __stdcall Clone(IActiveScript** ppscript) override;
 
-    HRESULT InitNew() override;
-    HRESULT AddScriptlet(LPCOLESTR defaultName, LPCOLESTR code, LPCOLESTR itemName, LPCOLESTR subItemName,
-                         LPCOLESTR eventName, LPCOLESTR delimiter, DWORDLONG sourceContextCookie,
+    HRESULT __stdcall InitNew() override;
+    HRESULT __stdcall AddScriptlet(LPCOLESTR defaultName, LPCOLESTR code, LPCOLESTR itemName, LPCOLESTR subItemName,
+                         LPCOLESTR eventName, LPCOLESTR delimiter, 
+#if defined(_WIN64)
+                         DWORDLONG sourceContextCookie,
+#else
+                         DWORD sourceContextCookie,
+#endif
                          ULONG startingLine, DWORD flags, BSTR* pbstrName, EXCEPINFO* pexcepinfo) override;
-    HRESULT ParseScriptText(
+    HRESULT __stdcall ParseScriptText(
         LPCOLESTR code,
         LPCOLESTR itemName,
         IUnknown* context,
         LPCOLESTR delimiter,
+#if defined(_WIN64)
         DWORDLONG sourceContextCookie,
+#else
+        DWORD sourceContextCookie,
+#endif
         ULONG startingLine,
         DWORD flags,
         VARIANT* result,
