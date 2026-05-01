@@ -30,7 +30,6 @@ phasorstd_file \- Phasor file system functions
 .B frmdir(path, recurse)
 .B freaddir(path)
 .B fsize(path)
-.B fstat(path)
 .fi
 .SH PATH UTILITIES
 .TP
@@ -227,6 +226,12 @@ Runtime error if file cannot be opened
 Check if a file or directory exists.
 .RS
 .PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file or directory
+.RE
+.PP
 .B Returns:
 Boolean true if path exists, false otherwise
 .RE
@@ -251,6 +256,12 @@ Boolean true if the path exists and is a directory, false otherwise
 Create a new empty file.
 .RS
 .PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file to create
+.RE
+.PP
 .B Returns:
 Boolean true on success
 .PP
@@ -262,6 +273,12 @@ Runtime error if file cannot be created
 .BR frm (path)
 Remove (delete) a file.
 .RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file to delete
+.RE
 .PP
 .B Returns:
 Boolean true if file was deleted, false if file didn't exist
@@ -340,6 +357,12 @@ Current working directory path. If path argument provided, changes to that direc
 Create a new directory.
 .RS
 .PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path of the directory to create
+.RE
+.PP
 .B Returns:
 Boolean true if created, false if directory already exists
 .RE
@@ -366,6 +389,12 @@ Boolean true on success
 .BR freaddir (path)
 List contents of a directory.
 .RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the directory to list
+.RE
 .PP
 .B Returns:
 String with filenames separated by newlines, or error message on failure
@@ -423,26 +452,6 @@ Property character ('a'=access, 'm'=modify)
 .PP
 .B Returns:
 Property value
-.RE
-.PP
-.TP
-.BR fstat (path)
-Get detailed file statistics.
-.RS
-.PP
-.B Returns:
-Struct containing:
-.RS
-.IP \fBmode\fR 12
-File mode and permissions
-.IP \fBnlink\fR 12
-Number of hard links
-.IP \fBuid\fR 12
-User ID of owner
-.IP \fBgid\fR 12
-Group ID of owner
-.IP \fBsize\fR 12
-File size in bytes
 .RE
 .PP
 Returns null on error
