@@ -15,8 +15,6 @@
 #include <cstring>
 
 #ifdef _WIN32
-#define PHASOR_API __declspec(dllexport)
-
 #define setupConsole() \
     AttachConsole(ATTACH_PARENT_PROCESS); \
     { FILE* _f; freopen_s(&_f, "CONOUT$", "w", stdout); } \
@@ -27,6 +25,12 @@ std::string getCommandLine(LPSTR &lpszCmdLine) {
 	std::string cmdline = lpszCmdLine;
 	return (cmdline.size() >= 2 && cmdline.starts_with('"') && cmdline.ends_with('"')) ? cmdline.substr(1, cmdline.size() - 2) : cmdline;
 }
+#endif
+
+#ifndef _SHARED
+#define PHASOR_API
+#elif _WIN32
+#define PHASOR_API __declspec(dllexport)
 #elif defined(__GNUC__) || defined(__clang__)
 #define PHASOR_API __attribute__((visibility("default")))
 #endif
@@ -226,9 +230,8 @@ extern "C"
 		vm->reset(true, resetFunctions, resetVariables);
 		return true;
 	}
-
-#ifdef _WIN32
-	__declspec(dllexport) void CALLBACK PhasorSourceStringEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+#if defined(_SHARED) && defined(_WIN32)
+	PHASOR_API void CALLBACK PhasorSourceStringEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 		setupConsole();
 		int exitCode = evaluatePHS(NULL, getCommandLine(lpszCmdLine).c_str(), __func__, "", false);
@@ -239,7 +242,7 @@ extern "C"
 		}
 	}
 
-	__declspec(dllexport) void CALLBACK PhasorSourceFileEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	PHASOR_API void CALLBACK PhasorSourceFileEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 		setupConsole();
 		std::filesystem::path file = getCommandLine(lpszCmdLine);
@@ -274,7 +277,7 @@ extern "C"
 		}
 	}
 
-	__declspec(dllexport) void CALLBACK PulsarSourceStringEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	PHASOR_API void CALLBACK PulsarSourceStringEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 		setupConsole();
 		int exitCode = evaluatePUL(NULL, getCommandLine(lpszCmdLine).c_str(), __func__);
@@ -285,7 +288,7 @@ extern "C"
 		}
 	}
 
-	__declspec(dllexport) void CALLBACK PulsarSourceFileEvaluate(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	PHASOR_API void CALLBACK PulsarSourceFileEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 		setupConsole();
 		std::filesystem::path file = getCommandLine(lpszCmdLine);
@@ -320,7 +323,7 @@ extern "C"
 		}
 	}
 
-	__declspec(dllexport) void CALLBACK PhasorBytecodeFileExecute(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
+	PHASOR_API void CALLBACK PhasorBytecodeFileExecuteA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 		setupConsole();
 		std::filesystem::path file = getCommandLine(lpszCmdLine);
@@ -347,5 +350,5 @@ extern "C"
 			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
 		}
 	}
-#endif // ifdef _WIN32
+#endif // if _SHARED && _WIN32
 }
