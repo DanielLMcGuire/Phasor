@@ -73,6 +73,7 @@ shutdown(code); // from stdsys
 - **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
 - **stdrand** xorshift+ psuedo-random number generator (already in master!)
 - **AppleScript bindings** (already in master!)
+- **ActiveX Scripting Engine (COM)** (partial implementation already in master!)
 
 > [!NOTE]
 >
