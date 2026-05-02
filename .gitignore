@@ -28,6 +28,7 @@ phasor.key
 *pkg.tar.zst
 src/utils/Shell.phir
 !build.phs
+!build.zig
 dist_linux.pul
 /src/Extensions/py/phasor/phasor.egg-info
 *.tracelog
@@ -715,3 +716,4 @@ FodyWeavers.xsd
 scripts/harvest.wxs
 *.wixpdb
 /target
+/.zig-cache
