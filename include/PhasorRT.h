@@ -13,7 +13,8 @@
 //
 // This is the main header file for the Phasor Runtime C ABI.
 // The goal is to keep this ABI as stable as possible, see the details below, or at
-// https://phasor-docs.pages.dev/_phasor_r_t_8h
+// https://phasor-docs.pages.dev/man?f=phasorrt.3
+// man phasorrt
 
 #ifndef PHASOR_RT_H
 #define PHASOR_RT_H
