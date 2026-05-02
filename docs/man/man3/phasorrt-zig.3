@@ -1,0 +1,593 @@
+.TH PHASORRT\-ZIG 3 "May 2026" "phasorrt" "Phasor Runtime Library 3.2.0"
+.SH NAME
+phasorrt\-zig \- Zig wrapper for the Phasor Runtime
+.SH SYNOPSIS
+.nf
+.B const phasorrt = @import("phasorrt");
+.PP
+.B pub const PhasorError = error{ ... };
+.PP
+.B phasorrt.getVersion()
+.B phasorrt.compilePHS(allocator, script, module_name, module_path)
+.B phasorrt.compilePUL(allocator, script, module_name)
+.PP
+.B State.create()
+.B State.deinit(self)
+.B State.reset(self, reset_functions, reset_variables)
+.B State.exec(self, bytecode, module_name, args)
+.B State.execFuncInt(self, bytecode, module_name, args, function_name)
+.B State.execFuncString(self, bytecode, module_name, args, function_name)
+.B State.evaluatePHS(self, script, module_name, module_path, verbose)
+.B State.evaluatePUL(self, script, module_name)
+.fi
+.SH DESCRIPTION
+The Zig wrapper provides idiomatic Zig bindings for the Phasor Runtime dynamic
+library. The native library is loaded once on first use via
+.B std.once
+and is kept open for the lifetime of the process. All public functions return
+.B PhasorError
+as the error set of an error union, eliminating the need to inspect raw
+.B \-1
+or
+.B NULL
+sentinel values.
+.PP
+VM state is encapsulated in the
+.B State
+struct.
+.B State.create()
+both allocates the native state and registers the standard library in a
+single call, so
+.B initStdLib
+need not be invoked separately.
+.B State.deinit()
+releases the native state and should be paired with every successful call
+to
+.B State.create()
+(a
+.B defer
+is idiomatic).
+.PP
+The compilation functions,
+.B compilePHS()
+and
+.BR compilePUL() ,
+are free functions that accept an
+.B std.mem.Allocator
+and return a caller-owned
+.B []u8
+slice. The caller is responsible for freeing the slice with the same
+allocator.
+.SH TYPES
+.TP
+.B PhasorError
+The error set shared by all public functions:
+.RS
+.IP \fBLibraryNotFound\fR 22
+The native library could not be opened.
+.IP \fBSymbolNotFound\fR 22
+One or more required symbols were absent from the library.
+.IP \fBStateCreationFailed\fR 22
+The native
+.B createState()
+call returned a null pointer.
+.IP \fBVmException\fR 22
+The VM raised an unhandled exception (native return code
+.BR \-1 ).
+.IP \fBNullStringReturn\fR 22
+A function expected to return a string pointer returned null.
+.IP \fBCompilationFailed\fR 22
+The Phasor compiler rejected the source text.
+.IP \fBStateFailed\fR 22
+A state-management operation (e.g.\&
+.BR reset )
+returned false from the native library.
+.IP \fBOutOfMemory\fR 22
+The allocator could not satisfy an allocation request.
+.RE
+.TP
+.B State
+An opaque handle to a Phasor VM instance. Contains a single field,
+.BR ptr ,
+which holds the native state pointer. Do not access
+.B ptr
+directly.
+.SH FUNCTIONS
+.SS Free Functions
+.TP
+.BR getVersion ()
+Return the version string of the loaded Phasor Runtime library.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B PhasorError![]const u8
+\(em a slice pointing into a static buffer managed by the runtime.
+The caller must not free or mutate this slice.
+.RE
+.TP
+.BR compilePHS (allocator,\ script,\ module_name,\ module_path)
+Compile a Phasor (PHS) source string to bytecode. Uses a two-pass strategy:
+the first pass determines the required buffer size; the second fills it.
+The returned slice is caller-owned.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBallocator\fR 16
+.B std.mem.Allocator
+used for the bytecode buffer. The caller must free
+the returned slice with the same allocator when done.
+.IP \fBscript\fR 16
+Null-terminated PHS source text
+.RB ( [:0]const\ u8 ).
+.IP \fBmodule_name\fR 16
+Null-terminated module name used in error messages
+.RB ( [:0]const\ u8 ).
+.IP \fBmodule_path\fR 16
+Null-terminated filesystem path to the script's parent directory for
+resolving imports
+.RB ( [:0]const\ u8 ).
+Pass
+.B ""
+if imports are not needed.
+.RE
+.PP
+.B Returns:
+.B PhasorError![]u8
+\(em caller-owned bytecode buffer suitable for passing to
+.BR State.exec() .
+Returns
+.B PhasorError.CompilationFailed
+if the compiler rejects the source, or
+.B PhasorError.OutOfMemory
+if allocation fails.
+.RE
+.TP
+.BR compilePUL (allocator,\ script,\ module_name)
+Compile a Pulsar (PUL) source string to bytecode. Behaves identically to
+.B compilePHS()
+except that no
+.I module_path
+is required.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBallocator\fR 16
+See
+.BR compilePHS() .
+.IP \fBscript\fR 16
+Null-terminated PUL source text
+.RB ( [:0]const\ u8 ).
+.IP \fBmodule_name\fR 16
+Null-terminated module name used in error messages
+.RB ( [:0]const\ u8 ).
+.RE
+.PP
+.B Returns:
+.B PhasorError![]u8
+\(em same semantics as
+.BR compilePHS() .
+.RE
+.SS State Methods
+.TP
+.BR State.create ()
+Allocate a new VM state and register the Phasor standard library. This
+combines the native
+.B createState()
+and
+.B initStdLib()
+calls into one operation.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B PhasorError!State
+\(em a fully initialised
+.B State
+value, or
+.B PhasorError.StateCreationFailed
+if the native allocation fails.
+.RE
+.TP
+.BR State.deinit (self)
+Release the native VM state. After
+.B deinit()
+returns the
+.B State
+value must not be used again. Errors from the underlying
+.B freeState()
+call are silently discarded.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBself\fR 8
+A valid
+.B State
+value previously returned by
+.BR State.create() .
+.RE
+.PP
+.B Returns:
+.B void
+.RE
+.TP
+.BR State.reset (self,\ reset_functions,\ reset_variables)
+Reset VM internals: clear the execution stack, reset the program counter,
+and unload any loaded bytecode. Registered functions and global variables
+are cleared only when the corresponding flag is set.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBself\fR 20
+A valid
+.B State
+value.
+.IP \fBreset_functions\fR 20
+If
+.BR true ,
+all user-registered functions are unregistered.
+.IP \fBreset_variables\fR 20
+If
+.BR true ,
+all global variables are cleared.
+.RE
+.PP
+.B Returns:
+.B PhasorError!void
+\(em returns
+.B PhasorError.StateFailed
+if the native call indicates failure.
+.RE
+.TP
+.BR State.exec (self,\ bytecode,\ module_name,\ args)
+Load bytecode into the VM and execute it.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBself\fR 16
+A valid
+.B State
+value.
+.IP \fBbytecode\fR 16
+Compiled bytecode slice
+.RB ( []const\ u8 )
+produced by
+.B compilePHS()
+or
+.BR compilePUL() .
+.IP \fBmodule_name\fR 16
+Null-terminated module name for error reporting
+.RB ( [:0]const\ u8 ).
+.IP \fBargs\fR 16
+Slice of null-terminated argument strings
+.RB ( []const\ [*:0]const\ u8 ).
+The first element (index 0) is conventionally the program name. Pass
+.B &.{}
+for an empty argument list.
+.RE
+.PP
+.B Returns:
+.B PhasorError!i32
+\(em the integer exit code returned by the script. Returns
+.B PhasorError.VmException
+if the VM raises an unhandled exception.
+.RE
+.TP
+.BR State.execFuncInt (self,\ bytecode,\ module_name,\ args,\ function_name)
+Load bytecode and call a specific exported function, expecting an integer
+return value.
+.RS
+.PP
+.B Arguments:
+As for
+.BR State.exec() ,
+with the addition of:
+.RS
+.IP \fBfunction_name\fR 16
+Null-terminated name of the exported function to invoke
+.RB ( [:0]const\ u8 ).
+.RE
+.PP
+.B Returns:
+.B PhasorError!i32
+\(em the integer value returned by the function, or
+.B PhasorError.VmException
+on error.
+.RE
+.TP
+.BR State.execFuncString (self,\ bytecode,\ module_name,\ args,\ function_name)
+Load bytecode and call a specific exported function, expecting a string
+return value.
+.RS
+.PP
+.B Arguments:
+As for
+.BR State.execFuncInt() .
+.PP
+.B Returns:
+.B PhasorError![:0]const\\ u8
+\(em a null-terminated slice pointing into memory owned by the Phasor runtime.
+This slice is invalidated on the next call to
+.B execFuncString()
+and when
+.B deinit()
+is called. Copy the contents to safe storage if the string must outlive
+either of those events.
+Returns
+.B PhasorError.NullStringReturn
+if the function returns a null pointer, or
+.B PhasorError.VmException
+on an unhandled exception.
+.RE
+.TP
+.BR State.evaluatePHS (self,\ script,\ module_name,\ module_path,\ verbose)
+Compile and immediately execute a Phasor (PHS) source string in one step.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBself\fR 16
+A valid
+.B State
+value.
+.IP \fBscript\fR 16
+Null-terminated PHS source text
+.RB ( [:0]const\ u8 ).
+.IP \fBmodule_name\fR 16
+Null-terminated module name for error reporting
+.RB ( [:0]const\ u8 ).
+.IP \fBmodule_path\fR 16
+Null-terminated path to the script's parent directory for resolving imports
+.RB ( [:0]const\ u8 ).
+Pass
+.B ""
+if unused.
+.IP \fBverbose\fR 16
+If
+.BR true ,
+the abstract syntax tree is printed to standard output.
+.RE
+.PP
+.B Returns:
+.B PhasorError!i32
+\(em script exit code, or
+.B PhasorError.VmException
+on an unhandled exception.
+.RE
+.TP
+.BR State.evaluatePUL (self,\ script,\ module_name)
+Compile and immediately execute a Pulsar (PUL) source string in one step.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBself\fR 16
+A valid
+.B State
+value.
+.IP \fBscript\fR 16
+Null-terminated PUL source text
+.RB ( [:0]const\ u8 ).
+.IP \fBmodule_name\fR 16
+Null-terminated module name for error reporting
+.RB ( [:0]const\ u8 ).
+.RE
+.PP
+.B Returns:
+.B PhasorError!i32
+\(em script exit code, or
+.B PhasorError.VmException
+on an unhandled exception.
+.RE
+.SH ERRORS
+All public functions return
+.B PhasorError
+as their error set. The error values and the functions that produce them
+are:
+.TP
+.B PhasorError.LibraryNotFound
+Returned by any function on first use if
+.B std.DynLib.open()
+fails to locate the native library. The library name is platform-specific:
+.B phasorrt.dll
+on Windows,
+.B libphasorrt.dylib
+on macOS, and
+.B libphasorrt.so
+elsewhere.
+.TP
+.B PhasorError.SymbolNotFound
+The native library was found but one or more required symbols were absent.
+Indicates a version mismatch between the wrapper and the installed runtime.
+.TP
+.B PhasorError.StateCreationFailed
+Returned by
+.B State.create()
+when the native
+.B createState()
+returns a null pointer.
+.TP
+.B PhasorError.CompilationFailed
+Returned by
+.BR compilePHS() ,
+.BR compilePUL() ,
+and the
+.B evaluate
+family when the Phasor compiler rejects the source. Diagnostic output may
+be written to
+.B stderr
+by the runtime.
+.TP
+.B PhasorError.VmException
+Returned by
+.BR State.exec() ,
+.BR State.execFuncInt() ,
+.BR State.execFuncString() ,
+.BR State.evaluatePHS() ,
+and
+.B State.evaluatePUL()
+when the VM raises an unhandled exception (native return code
+.BR \-1 ).
+.TP
+.B PhasorError.NullStringReturn
+Returned by
+.B State.execFuncString()
+when the invoked function returns a null string pointer.
+.TP
+.B PhasorError.StateFailed
+Returned by
+.B State.reset()
+when the native
+.B resetState()
+call returns false.
+.TP
+.B PhasorError.OutOfMemory
+Returned by
+.B compilePHS()
+and
+.B compilePUL()
+when the provided allocator cannot satisfy a buffer allocation.
+.SH EXAMPLES
+.SS Basic script evaluation
+.nf
+.RS
+const phasorrt = @import("phasorrt");
+const std = @import("std");
+
+pub fn main() !void {
+    const version = try phasorrt.getVersion();
+    std.debug.print("Runtime version: {s}\\n", .{version});
+
+    const vm = try phasorrt.State.create();
+    defer vm.deinit();
+
+    _ = try vm.evaluatePHS(
+        "print(\\"Hello from Zig!\\\\n\\");",
+        "main",
+        "",
+        false,
+    );
+}
+.RE
+.fi
+.SS Compile then execute
+.nf
+.RS
+const phasorrt = @import("phasorrt");
+const std = @import("std");
+
+pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const alloc = gpa.allocator();
+
+    const bytecode = try phasorrt.compilePHS(
+        alloc,
+        "var x = 42; print(x);",
+        "main",
+        "",
+    );
+    defer alloc.free(bytecode);
+
+    const vm = try phasorrt.State.create();
+    defer vm.deinit();
+
+    const code = try vm.exec(bytecode, "main", &.{});
+    std.debug.print("Exit code: {}\\n", .{code});
+}
+.RE
+.fi
+.SS Calling an exported function
+.nf
+.RS
+const phasorrt = @import("phasorrt");
+const std = @import("std");
+
+pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const alloc = gpa.allocator();
+
+    const src = "fn greet() { return \\"hello from phasor\\"; }";
+    const bytecode = try phasorrt.compilePHS(alloc, src, "greet", "");
+    defer alloc.free(bytecode);
+
+    const vm = try phasorrt.State.create();
+    defer vm.deinit();
+
+    /* returned slice is runtime-owned; copy before the next call */
+    const result = try vm.execFuncString(bytecode, "greet", &.{}, "greet");
+    const owned = try alloc.dupe(u8, result);
+    defer alloc.free(owned);
+
+    std.debug.print("{s}\\n", .{owned});
+}
+.RE
+.fi
+.SS Resetting VM state between runs
+.nf
+.RS
+try vm.evaluatePHS(script_a, "a", "", false);
+try vm.reset(false, true);   /* clear variables, keep functions */
+try vm.evaluatePHS(script_b, "b", "", false);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+The native library is loaded once, on the first call to any public function,
+using
+.BR std.once .
+All subsequent calls reuse the already-resolved symbol table. If the initial
+load fails,
+.B PhasorError.LibraryNotFound
+or
+.B PhasorError.SymbolNotFound
+is returned on every subsequent call without retrying.
+.IP \(bu 2
+.B State
+is not thread-safe. Do not share a single
+.B State
+value across threads without external synchronisation. Create one
+.B State
+per thread for concurrent use.
+.IP \(bu 2
+The slice returned by
+.B State.execFuncString()
+is owned by the Phasor runtime and is overwritten on the next call to
+that function. Always copy the contents before calling
+.B execFuncString()
+again or before calling
+.BR deinit() .
+.IP \(bu 2
+.B compilePHS()
+and
+.B compilePUL()
+return a caller-owned
+.B []u8
+slice that must be freed with the same allocator that was passed in.
+Failure to free the slice is a memory leak.
+.IP \(bu 2
+.B State.create()
+registers the standard library automatically. Calling
+.B initStdLib
+manually through the native C API on the same state is not needed and
+may produce unexpected behaviour.
+.SH SEE ALSO
+.BR phasorrt (3),
+.BR phasorrt\-rs (3),
+.BR PHS (5),
+.BR PHSB (5),
+.BR dlopen (3)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
