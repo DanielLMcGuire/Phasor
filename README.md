@@ -253,7 +253,7 @@ This repo contains:
     // VM is automatically freed when it goes out of scope (Drop)
     ```
 
-  - [phasorrt-zig Zig bindings (runtime)] `src/Zig` (Zig)
+  - [phasorrt-zig Zig bindings (runtime)](https://phasor-docs.pages.dev/man?f=phasorrt-zig.3) `src/Zig` (Zig)
 
     ```zig
     const phasor = @import("phasor.zig");
