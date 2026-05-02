@@ -1,7 +1,6 @@
 [attr]phasor text eol=lf whitespace=tab-in-indent,trailing-space,tabwidth=4
 
 *.phs phasor
-*.zig linguist-detectable=false
 *.1 eol=lf
 *.3 eol=lf
 *.5 eol=lf
