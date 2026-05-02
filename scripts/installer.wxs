@@ -33,6 +33,7 @@
       <ComponentRef Id="AppPaths_phasorcompiler" />
       <ComponentRef Id="AppPaths_phasordecomp" />
       <ComponentRef Id="AppPaths_phasorvm" />
+      <ComponentRef Id="AppPaths_phasor_help" />
       <ComponentRef Id="AppPaths_phasor_lsp" />
       <ComponentRef Id="AppPaths_pulsar" />
       <ComponentRef Id="AppPaths_pulsarcompiler" />
@@ -115,6 +116,15 @@
           Type="string" Value="[INSTALLFOLDER]bin\phasorvm.exe" KeyPath="yes" />
         <RegistryValue Root="HKLM"
           Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"
+          Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
+      </Component>
+
+      <Component Id="AppPaths_phasor_help" Guid="*" Bitness="always64">
+        <RegistryValue Root="HKLM"
+          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-help.exe"
+          Type="string" Value="[INSTALLFOLDER]bin\phasor-help.exe" KeyPath="yes" />
+        <RegistryValue Root="HKLM"
+          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-help.exe"
           Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
       </Component>
 
