@@ -253,6 +253,33 @@ This repo contains:
     // VM is automatically freed when it goes out of scope (Drop)
     ```
 
+  - [phasorrt-zig Zig bindings (runtime)] `src/Zig` (Zig)
+
+    ```zig
+    const phasor = @import("phasor.zig");
+    
+    // create vm (auto inits stdlib)
+    const vm = try phasor.State.create();
+    defer vm.deinit();
+    
+    // run a script
+    _ = try vm.evaluatePHS("print(\"Hello, World!\\n\");", "hello", ".", false);
+    
+    // state is kept between calls
+    _ = try vm.evaluatePHS("var x = 42; var y = 53;", "vars", ".", false);
+    _ = try vm.evaluatePHS("print(x + y);", "vars", ".", false); // prints 95
+    
+    // Reset vars only, keep function definitions
+    try vm.reset(false, true);
+    
+    // compile to bytecode, then execute
+    const bytecode = try phasor.compilePHS(allocator, "print(\"hi\\n\");", "hi", ".");
+    defer allocator.free(bytecode);
+    _ = try vm.exec(bytecode, "hi", &.{});
+    
+    // VM is freed when deinit() is called (or via defer)
+    ```
+
 ---
 
 ## Building
