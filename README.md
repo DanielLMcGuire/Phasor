@@ -128,17 +128,15 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 
 > [!NOTE]
 >
-> Documentation may be partially wrong, stdlib might have added functions or changed features.
+> Online docs are always up to date with master (as much as I can at least), offline (installed) docs are always usually up to date with that version.
 >
-> This will change once I have more time for this project
->
-> Online docs are always up to date with master (as much as I can at least), offline (installed) docs are always up to date with that version.
+> Feel free to make an issue if something is not right.
 
 - **[Language Guide](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_phasor_language.md&name=Language%20Guide)** - Complete syntax and language features
 - **[VM Internals](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_vm_internals.md&name=VM%20Internals)** - Virtual machine architecture details
 - **[Adding Opcodes](https://phasor.pages.dev/document?file=https%3A%2F%2Fphasor-docs.pages.dev%2Fcontent%2Fguide_adding_opcodes.md&name=Adding%20Opcodes)** - Contributor guide for VM extensions
 - **[Doxygen](https://phasor-docs.pages.dev)** - Documentation and call graphs generated from source code
-- **Manuals/Man Pages:** `https://phasor-docs.pages.dev/man?f=[filename]`, e.g. `/man?f=Phasor.3`, `/man?f=phasorvm.1`, `/man?f=PHIR.5`, etc.
+- **Manuals/Man Pages:** `https://phasor-docs.pages.dev/man?f=[filename]`, e.g. `/man?f=phasor.1` See [here](docs/man/) for all man pages.
 
 ## Contributing
 
@@ -295,28 +293,31 @@ This repo contains:
 ### Prerequisites
 
 - Required:
-  - [CMake 3.21+](https://cmake.org/download/)
-  - Supported CC (23) compiler and CXX (23) compiler ([MSVC latest](https://visualstudio.microsoft.com/downloads/?q=build+tools), [GCC 14](https://gcc.gnu.org/install/), [Clang (LLVM Latest)](https://releases.llvm.org/) )
   - [Ninja](https://github.com/ninja-build/ninja/releases)
+  - [CMake 3.21+](https://cmake.org/download/)
+  - CC (C 23 Compliant) compiler and CXX (C++ 23 Compliant) compiler supporting GCC/Clang extensions or Windows specific extensions
+    - [MSVC VS22 17.2 or later](https://visualstudio.microsoft.com/downloads/?q=build+tools)
+    - [GCC 14 or later](https://gcc.gnu.org/install/)
+    - [Clang 17 or later](https://releases.llvm.org/)
 - Optional:
-  - [Rust Toolchain](https://rust-lang.org/tools/install/) for the `phasorrt-rs` lib
-  - [CPython](https://www.python.org/downloads/) (or another interpreter) for the Python API
-  - [PowerShell](https://github.com/PowerShell/PowerShell/releases/) for the PowerShell module
-  - [Node.js](https://nodejs.org/en/download) for the web server, and building the Visual Studio Code extension
-  - [Docker](https://docs.docker.com/get-started/get-docker/) for the man page conversions (required only for phasor-help on win32)
+  - [Rust Toolchain (latest stable)](https://rust-lang.org/tools/install/) for the `phasorrt-rs` lib
+  - [CPython 3.9 or later](https://www.python.org/downloads/) (or another Python compliant interpreter) for the Python API
+  - [PowerShell latest](https://github.com/PowerShell/PowerShell/releases/) for the PowerShell module
+  - [Node.js 24 or later](https://nodejs.org/en/download) for the web server, and for building the Visual Studio Code extension
+  - [Docker](https://docs.docker.com/get-started/get-docker/) for the man page to pdf conversions (required only for phasor-help on win32)
 
 ### Build Steps
 
-See the [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor) wiki.
+See [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor).
 
-See the [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor-Extensions) wiki for info on building Extensions/bindings.
+See [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor-Extensions) for info on building Extensions/bindings.
 
-### Plugin locations
+### FFI Plugin locations
 
-(Like win32 api, posix) are available in different locations based on your OS:
+Available in different locations based on your OS:
 
 - Unix - `/usr/lib/phasor/plugins/`
-- macOS - `/library/Application Support/org.Phasor.Phasor/plugins/`
+- macOS - `/Library/Application Support/org.Phasor.Phasor/plugins/`
 - Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`
 
 ---
@@ -326,16 +327,10 @@ See the [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wi
 [GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
 [Codeberg Mirror](https://codeberg.org/DanielLMcGuire/Phasor)
 
-- Phasor Language / ISA / VM / Toolchain / Standard Library | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
-- Phasor Shell | [MIT License](https://opensource.org/license/mit)
-- Phasor coreutils implementation | [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
-
-Regarding any age verification laws, I will not entertain non international rules that are logically unenforable. Phasor will never be modified to be able to detect the user's age from the OS.
-
 Mentions of the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
 Phasor Toolchain is licensed for use under the Apache 2.0 License.
 
-Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `PhasorRT.h`, etc) is licensed for use under the Apache 2.0 with LLVM-Exceptions License.
+Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `out/lib/**/*`, `out/include/**/*`, etc) is licensed for use under the Apache 2.0 with LLVM-Exceptions License.
 
 Phasor and the "sinewave Phasor" logo are trademarks of Daniel McGuire.
