@@ -229,6 +229,9 @@ class VM
 	}
 
   private:
+	void setup(const Bytecode &bc, const size_t initialPC);
+	int evalLoop();
+
 	bool isDirectCall = false; ///< is a direct call to a function
 
 #ifndef SANDBOXED

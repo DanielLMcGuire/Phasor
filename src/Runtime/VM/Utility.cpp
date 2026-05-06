@@ -55,10 +55,9 @@ void VM::initFFI(const std::filesystem::path &path)
 #endif
 }
 
-int VM::run(const Bytecode &bc, const size_t startPC)
-{
+void VM::setup(const Bytecode &bc, const size_t initialPC) {
 	m_bytecode = &bc;
-	pc = startPC;
+	pc = initialPC;
 	stack.clear();
 	callStack.clear();
 
@@ -69,60 +68,78 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 
 	registers.fill(Value());
 	variables.resize(m_bytecode->nextVarIndex);
+}
+
+int VM::evalLoop()
+{
+	while (pc < m_bytecode->instructions.size())
+	{
+		const Instruction &instr = m_bytecode->instructions[pc++];
+
+#ifdef TRACING
+		log(std::format("\nVM::{}(): RUN (pc={})\n", __func__, pc - 1));
+		flush();
+#endif
+
+		operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
+	}
+
+	return -1;
+}
+
+int VM::run(const Bytecode &bc, const size_t startPC)
+{
+	setup(bc, startPC);
+
+#ifdef TRACING
+	log(std::format("\nVM::{}():\n\n", __func__));
+	flush();
+#endif
 
 #ifdef TIMING
 	using clock = std::chrono::high_resolution_clock;
 	auto start = clock::now();
 #endif
 
-	while (pc < m_bytecode->instructions.size())
+	try
 	{
-		const Instruction &instr = m_bytecode->instructions[pc++];
-#ifdef TRACING
-		log(std::format("\nVM::{}(): RUN (pc={})\n", __func__, pc - 1));
+		return evalLoop();
+	}
+	catch (const VM::Halt &)
+	{
+#ifdef TIMING
+		auto end = clock::now();
+		auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+		log(std::format("VM::{}(): Duration of bytecode execution: {}us\n\n", __func__, us));
 		flush();
 #endif
-		try
-		{
-			operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
-		}
-		catch (const VM::Halt &)
-		{
-#ifdef TIMING
-			auto end = clock::now();
-			auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-			log(std::format("VM::{}(): Duration of bytecode execution: {}us\n\n", __func__, us));
-			flush();
-#endif
 #ifdef TRACING
-			log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n", __func__, status, getInformation()));
-			flush();
+		log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n", __func__, status, getInformation()));
+		flush();
 #endif
 #ifdef _DEBUG
-			if (isDebuggerAttached())
-				assert(status == 0);
+		if (isDebuggerAttached())
+			assert(status == 0);
 #endif
-			return status;
-		}
-#if defined(TRACING) || defined(_DEBUG)
-		catch (const std::exception &e)
-#else
-		catch (const std::exception &)
-#endif
-		{
-#ifdef TRACING
-			logerr(std::format("\nVM::{}(): UNCAUGHT EXCEPTION!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
-			flusherr();
-#endif
-			status = 1;
-#ifdef _DEBUG
-			logerr(std::format("{}\n", e.what()));
-			assert(false);
-#endif
-			throw;
-		}
+		return status;
 	}
-	return -1;
+#if defined(TRACING) || defined(_DEBUG)
+	catch (const std::exception &e)
+#else
+	catch (const std::exception &)
+#endif
+	{
+#ifdef TRACING
+		logerr(std::format("\nVM::{}(): UNCAUGHT EXCEPTION!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
+		flusherr();
+#endif
+		status = 1;
+#ifdef _DEBUG
+		logerr(std::format("{}\n", e.what()));
+		assert(false);
+#endif
+		throw;
+	}
 }
 
 Value VM::runFunction(const std::string &name, const Bytecode &bytecode)
@@ -130,7 +147,7 @@ Value VM::runFunction(const std::string &name, const Bytecode &bytecode)
 	isDirectCall = true;
 	run(bytecode, bytecode.functionEntries.find(name)->second);
 	Value ret = pop();
-	reset(true, false, false);
+	reset(true, false, true);
 	return ret;
 }
 
