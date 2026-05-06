@@ -114,7 +114,7 @@ def run(cmd, silent=False):
         else:
             subprocess.check_call(cmd, shell=True)
     except subprocess.CalledProcessError:
-        WinProgress.done()
+        WinProgress.error()
         print(f"\nCommand failed: {cmd}")
         sys.exit(1)
 
@@ -161,6 +161,7 @@ if OS_NAME == "windows" and "VSCMD_VER" not in os.environ:
         shell=True,
     ).decode().strip()
     if not vs_path:
+        WinProgress.error()
         print("\nNo Visual Studio installation with required C++ tools found")
         sys.exit(1)
     WinProgress.set(5)
