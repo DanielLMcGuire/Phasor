@@ -22,10 +22,8 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
-            #c_compiler: gcc-15
-            c_compiler: gcc-14
-            #cpp_compiler: g++-15
-            cpp_compiler: g++-14
+            c_compiler: gcc-16
+            cpp_compiler: g++-16
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
@@ -40,14 +38,12 @@ jobs:
       with:
         arch: x64
 
-    # - name: Install GCC 15 (Linux)  
-    - name: Install GCC 14 (Linux)
+    - name: Install GCC 16 (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        # sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt-get update
-        # sudo apt-get install -y gcc-15 g++-15
-        sudo apt-get install -y gcc-14 g++-14
+        sudo apt-get install -y gcc-16 g++-16
     
     - name: Configure (macOS)
       if: matrix.os == 'macos-latest'
