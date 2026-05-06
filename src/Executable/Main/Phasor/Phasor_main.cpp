@@ -46,8 +46,8 @@ void showHelp(const fs::path &program = "phasor")
 	             PHASOR_VERSION_STRING, programName, programName, programName, programName);
 
 #ifdef _WIN32
-	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^);\" | {}\n"
-	             "A. PWSH: echo \"print(`\"Hi\\!\\n`);\" | {}\n"
+	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^\");\" | {}\n"
+	             "A. PWSH: echo \"print(`\"Hi\\!\\n`\");\" | {}\n"
 	             "B.       {} hello.phs\n"
 	             "B.       {} hello.phsb",
 	             programName, programName, programName, programName);
