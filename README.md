@@ -322,8 +322,6 @@ Available in different locations based on your OS:
 
 ---
 
-**Phasor** - Fast, flexible programming/scripting with *near* native VM performance.
-
 [GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
 [Codeberg Mirror](https://codeberg.org/DanielLMcGuire/Phasor)
 
