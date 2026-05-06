@@ -325,6 +325,8 @@ Available in different locations based on your OS:
 [GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
 [Codeberg Mirror](https://codeberg.org/DanielLMcGuire/Phasor)
 
+Phasor will be moving to Codeberg in the coming months, CI will stay on github, but PRs and issues will eventually be disabled.
+
 Mentions of the Free Software Foundation, Inc., 'Java™', Oracle® Corporation, '.NET™', Microsoft® Corporation, Google® LLC, or other third-party companies, products, or trademarks do not imply any affiliation, endorsement, or sponsorship by those third parties, or thier affiliates, unless explicitly stated otherwise.
 
 Phasor Toolchain is licensed for use under the Apache 2.0 License.
