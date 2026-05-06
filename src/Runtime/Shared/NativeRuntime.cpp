@@ -149,7 +149,7 @@ int NativeRuntime::runFunctionInt(std::string functionName)
 
 		Value ret = m_vm->runFunction(functionName, m_bytecode);
 
-		return ret.asInt();
+		return static_cast<int>(ret.asInt());
 	}
 	catch (const std::exception &)
 	{

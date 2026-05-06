@@ -342,7 +342,7 @@ extern "C"
 		Phasor::BytecodeDeserializer deserializer;
 		auto bytecode = deserializer.loadFromFile(file);
 		std::array<const char *, 2> args = {"phasorrt.dll", __func__};
-		Phasor::NativeRuntime NativeRT(bytecode, args.size(), args.data());
+		Phasor::NativeRuntime NativeRT(bytecode, static_cast<int>(args.size()), args.data());
 		int exitCode = NativeRT.run();
 		if (exitCode != 0)
 		{
