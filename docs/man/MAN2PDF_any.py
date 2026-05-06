@@ -11,5 +11,5 @@ subprocess.run([
     "docker", "run", "--rm",
     "-v", f"{os.getcwd()}:/data",
     "ubuntu", "bash", "-c",
-    "apt-get update -qq && apt-get install -y -qq groff ghostscript && bash /data/MAN2PDF_linux.sh"
+    "apt-get update -qq && apt-get install -y -qq groff ghostscript && cd /data && bash /data/MAN2PDF_linux.sh"
 ])

@@ -8,7 +8,9 @@ for cmd in groff ghostscript; do
     fi
 done
 
-find /data -type f -regex '.*\.[0-9]' | while read -r f; do
+find ./ -type f -regex '.*\.[0-9]' | while read -r f; do
     echo "MAN2PDF: Converting: $f"
     groff -t -man -Tpdf "$f" > "${f}.pdf"
 done
+
+echo "Done."
