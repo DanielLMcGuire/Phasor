@@ -34,8 +34,8 @@ phasor <options>
 - **Type annotations** (only in function declarations) ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
-- **Plugin/FFI API** [PhasorFFI.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h)
-- **[Runtime API](https://phasor-docs.pages.dev/man?f=phasorrt.3)** [PhasorRT.h](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h)
+- **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)
+- **[Runtime API](https://phasor-docs.pages.dev/man?f=phasorrt.3)** [PhasorRT.h](include/PhasorRT.h)
 - **Minimal Windows and POSIX API Bindings**
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 
@@ -70,12 +70,12 @@ shutdown(code); // from stdsys
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];```
-- **stdmem** stdlib module with free() (already in master!) ```using("stdmem"); free("variableName");```
-- **stdrand** xorshift+ psuedo-random number generator (already in master!)
-- **AppleScript bindings** (already in master!)
-- **Rust rt bindings** (already in master!)
-- **Zig rt bindings** (already in master!)
-- **ActiveX Scripting Engine (COM)** (partial implementation already in master!)
+- **stdmem** stdlib module with free() ([already in master](src/Runtime/Stdlib/memory.cpp)!) ```using("stdmem"); free("variableName");```
+- **stdrand** xorshift+ psuedo-random number generator ([already in master](src/Runtime/Stdlib/random.cpp)!)
+- **AppleScript bindings** for phasor ([already in master](src/Executable/Bindings/macOS/main.c)!)
+- **[Rust runtime bindings](#overview)** (capi wrapper) (already in master!)
+- **[Zig runtime bindings](#overview)** (capi wrapper) (already in master!)
+- **ActiveX Scripting Engine (COM)** (partial implementation [already in master](src/Executable/Runtime/Shared/NativeRuntime_com.cpp)!)
 
 > [!NOTE]
 >
@@ -168,17 +168,17 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 This repo contains:
 
 - Frontend:
-  - [Phasor Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Phasor) ([Specifications](https://phasor-docs.pages.dev/man?f=PHS.5), C++)
-  - [Pulsar Language](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Language/Pulsar) (C++)
-  - [Phasor Runtime](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime) / [VM](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
-  - [Phasor Standard Library](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Runtime/Stdlib) ([Specifications](https://github.com/DanielLMcGuire/Phasor/tree/master/docs/man/man3), C/C++)
+  - [Phasor Language](src/Language/Phasor) ([Specifications](https://phasor-docs.pages.dev/man?f=PHS.5), C++)
+  - [Pulsar Language](src/Language/Pulsar) (C++)
+  - [Phasor Runtime](src/Runtime) / [VM](src/Runtime/VM) ([ISA Specs](https://phasor-docs.pages.dev/man?f=phasor-isa.7), C/C++/Assembly)
+  - [Phasor Standard Library](src/Runtime/Stdlib) ([Man pages](docs/man/man3), C/C++)
 - Backend:
-  - [Phasor Compiler Infrastructure](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Codegen) (C++)
-  - [FFI API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorFFI.h) (C)
-  - [Runtime API](https://github.com/DanielLMcGuire/Phasor/blob/master/include/PhasorRT.h) (C)
+  - [Phasor Compiler Infrastructure](src/Codegen) (C++)
+  - [FFI API](include/PhasorFFI.h) (C)
+  - [Runtime API](include/PhasorRT.h) (C)
 - Extensions:
-  - [Phasor](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/Phasor.tmLanguage) & [Phasor IR](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
-  - [Phasor Visual Studio Code Extension](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/vscode) (Typescript)
+  - [Phasor](src/Extensions/Phasor.tmLanguage) & [Phasor IR](src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
+  - [Phasor Visual Studio Code Extension](src/Extensions/vscode) (Typescript)
   - [Python Module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py/phasor`
 
     ```python
@@ -193,7 +193,7 @@ This repo contains:
     Runtime.run(bc) # wraps phasorrt lib
     ```
 
-  - [PowerShell Module (windows only, phasorrt.dll bindings)](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/powershell) `src/Extensions/powershell/Phasor`
+  - [PowerShell Module (windows only, phasorrt.dll bindings)](src/Extensions/powershell) `src/Extensions/powershell/Phasor`
   
     ```powershell
     Import-Module .\src\Extensions\powershell\Phasor\Phasor.psd1
@@ -221,7 +221,7 @@ This repo contains:
     Invoke-PhasorBytecode -Bytecode $bytecode
     ```
 
-  - [phasor-web REST API](https://github.com/DanielLMcGuire/Phasor/tree/master/src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
+  - [phasor-web REST API](src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
 
     ```bash
     $ curl -d 'using("stdio"); puts("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
@@ -322,6 +322,7 @@ Available in different locations based on your OS:
 
 ---
 
+[GitHub](https://github.com/DanielLMcGuire/Phasor)
 [GitLab Mirror](https://gitlab.com/DanielLMcGuire/Phasor)
 [Codeberg Mirror](https://codeberg.org/DanielLMcGuire/Phasor)
 
