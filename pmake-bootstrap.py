@@ -31,6 +31,19 @@ else:
     print(f"Unsupported architecture: {ARCH_MACHINE}")
     sys.exit(1)
 
+_force = any(arg in ("-f", "--force") for arg in sys.argv[1:])
+if not _force:
+    _pmake_names = ["pmake", "pmake.phsb"]
+    if OS_NAME == "windows":
+        _pmake_names.append("pmake.exe")
+
+    _pmake_candidates = [os.path.join(SCRIPT_DIR, name) for name in _pmake_names]
+    _existing_build = next((p for p in _pmake_candidates if os.path.exists(p)), None)
+
+    if _existing_build:
+        print(f"Found existing build: {os.path.basename(_existing_build)} — skipping build.")
+        sys.exit(0)
+
 if ARCH == "32":
     CMAKE_PRESET = f"{OS_NAME}-32-rel"
     VSBUILD_ARCH = "x86" if OS_NAME == "windows" else None
