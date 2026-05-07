@@ -52,7 +52,7 @@ void showHelp(const fs::path &program = "phasor")
 	             "B.       {} hello.phsb",
 	             programName, programName, programName, programName);
 #else
-	std::println("A. echo \"print(\\\"Hi\\!\\n\\\");\" | {}\n"
+	std::println("A. echo \"print(\\\"Hi\\!\\\\\\\n\\\");\" | {}\n"
 	             "B. {} hello.phs\n"
 	             "B. {} hello.phsb",
 	             programName, programName, programName);
