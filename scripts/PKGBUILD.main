@@ -14,7 +14,7 @@ options=(strip !debug)
 install=phasor.install
 depends=()
 source=("https://github.com/DanielLMcGuire/Phasor/archive/refs/tags/3.3.0.tar.gz")
-sha256sums=('')
+sha256sums=('DE5FD9783FB00E85F7F9392D9672BC2B6692E90ECEDB11148F5D1C65925B7884')
 
 build() {
     cd "$srcdir/Phasor-3.3.0"
