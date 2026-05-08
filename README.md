@@ -36,8 +36,12 @@ phasor <options>
 - **Standard library** ```using(featureName: string)```
 - **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)
 - **[Runtime API](https://phasor-docs.pages.dev/man?f=phasorrt.3)** [PhasorRT.h](include/PhasorRT.h)
+- **[Rust runtime bindings](#overview)** (capi wrapper) (already in master!)
+- **[Zig runtime bindings](#overview)** (capi wrapper) (already in master!)
 - **Minimal Windows and POSIX API Bindings**
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
+- **stdmem** stdlib module with free() ```using("stdmem"); free("variableName");``` (same as `something = null;`)
+- **AppleScript bindings** for phasor
 
 ```javascript
 // Print (keyword)
@@ -70,22 +74,7 @@ shutdown(code); // from stdsys
 
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];```
-- **stdmem** stdlib module with free() ([already in master](src/Runtime/Stdlib/memory.cpp)!) ```using("stdmem"); free("variableName");```
-- **stdrand** xorshift+ psuedo-random number generator ([already in master](src/Runtime/Stdlib/random.cpp)!)
-- **AppleScript bindings** for phasor ([already in master](src/Executable/Bindings/macOS/main.c)!)
-- **[Rust runtime bindings](#overview)** (capi wrapper) (already in master!)
-- **[Zig runtime bindings](#overview)** (capi wrapper) (already in master!)
-- **ActiveX Scripting Engine (COM)** (partial implementation [already in master](src/Executable/Runtime/Shared/NativeRuntime_com.cpp)!)
-
-> [!NOTE]
->
-> free() is not *required* to be called (you should consider it in heavy scripts/programs), the C++ resources are freed internally by the VMs deconstuctor.
->
-> If using the API, using `resetState()` (in C, `VM::reset()` in  C++ ) must be used to reset the variables, or by `freeState()` (in C, RAII/`delete vm` (`VM::~VM()`) in C++)
->
-> free() behavior can be done in ANY release of Phasor (or pulsar) via ```value = null```
->
-> You cannot get a [use after free](https://cwe.mitre.org/data/definitions/416.html), as in the runtime its more like a use-after-reset.
+- **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
 
 ---
 

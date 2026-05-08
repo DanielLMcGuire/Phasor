@@ -3,13 +3,15 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="Phasor Programming Language"
            Manufacturer="Phasor"
-           Version="3.2.0.0"
+           Version="3.3.0.0"
            UpgradeCode="21b71c69-201d-480c-9366-b01ea4e16cb9"
            Scope="perMachine">
 
     <Launch Condition="VersionNT64" Message="This program requires a 64-bit processor." />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
 
     <WixVariable Id="WixUILicenseRtf" Value="..\assets\LICENSE.rtf" />
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />

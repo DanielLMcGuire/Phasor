@@ -1,6 +1,6 @@
 [package]
 name = "phasorrt-rs"
-version = "3.2.0"
+version = "3.3.0"
 edition = "2021"
 authors = ["Daniel McGuire"]
 description = "Rust wrapper for the Phasor Runtime"
