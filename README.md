@@ -36,8 +36,8 @@ phasor <options>
 - **Standard library** ```using(featureName: string)```
 - **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)
 - **[Runtime API](https://phasor-docs.pages.dev/man?f=phasorrt.3)** [PhasorRT.h](include/PhasorRT.h)
-- **[Rust runtime bindings](#overview)** (capi wrapper) (already in master!)
-- **[Zig runtime bindings](#overview)** (capi wrapper) (already in master!)
+- **[Rust runtime bindings](#overview)** (capi wrapper)
+- **[Zig runtime bindings](#overview)** (capi wrapper)
 - **Minimal Windows and POSIX API Bindings**
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
 - **stdmem** stdlib module with free() ```using("stdmem"); free("variableName");``` (same as `something = null;`)
