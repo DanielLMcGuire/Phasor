@@ -12,12 +12,11 @@ namespace Phasor
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 
-#ifndef SANDBOXED
-int StdLib::dupenv(std::string &out, const char *name)
+StdLib::dupenv_ret StdLib::dupenv(std::string &out, const char *name)
 {
 	if (!name || name[0] == '\0')
 	{
-		return 1;
+		return dupenv_ret::InvalidInput;
 	}
 
 #ifdef _WIN32
@@ -27,7 +26,7 @@ int StdLib::dupenv(std::string &out, const char *name)
 	{
 		out = buffer;
 		free(buffer);
-		return 0;
+		return dupenv_ret::Success;
 	}
 #else
 	const char *val = std::getenv(name);
@@ -39,9 +38,8 @@ int StdLib::dupenv(std::string &out, const char *name)
 #endif
 
 	out.clear();
-	return 2; // Not found
+	return dupenv_ret::NotFound;
 }
-#endif
 
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)

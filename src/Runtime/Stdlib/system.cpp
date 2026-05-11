@@ -2,14 +2,10 @@
 #include <atomic>
 #include <chrono>
 #include <thread>
+#include <print>
+#include <userconsent.h>
 #if defined(_MSC_VER)
 #include <vcruntime_startup.h>
-#endif
-
-#ifdef _WIN32
-#include <io.h>
-#else
-#include <unistd.h>
 #endif
 
 #include "core/system.h"
@@ -23,11 +19,15 @@
 namespace Phasor
 {
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
+
 void StdLib::registerSysFunctions(VM *vm)
 {
 #ifndef SANDBOXED
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
-	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_get_memory", StdLib::sys_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
@@ -37,14 +37,36 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 	vm->registerNativeFunction("isatty", StdLib::sys_isatty);
-#endif
+	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
+#else
+	auto stub = [](const std::vector<Value> &, VM *) { return Value(); };
+	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
+	vm->registerNativeFunction("sys_get_memory", stub);
+	vm->registerNativeFunction("sys_pid", stub);
+	vm->registerNativeFunction("isatty", stub);
+	if (!std::getenv("PHASOR_NO_ENV")) {
+		if (prompt_consent("Standard library", EConsentVolition::Might, "use", "system environment variables")) {
+			vm->registerNativeFunction("sys_env", StdLib::sys_env);
+			vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
+			vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
+		} else {
+			vm->registerNativeFunction("sys_env", stub);
+			vm->registerNativeFunction("sys_argv", stub);
+			vm->registerNativeFunction("sys_argc", stub);
+		}
+	}
+#endif
 	vm->registerNativeFunction("time", StdLib::sys_time);
 	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
 	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 double StdLib::sys_time(const std::vector<Value> &args, VM *)
 {
@@ -87,6 +109,44 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 	return Value(" ");
 }
 
+Value StdLib::sys_env(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "sys_env");
+	std::string key = args[0].asString();
+	std::string value;
+	dupenv_ret result = dupenv(value, key.c_str());
+	if (result == dupenv_ret::NotFound) return false;
+	else if (result == dupenv_ret::Success) return value;
+	else return Value();
+}
+
+Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "sys_argv");
+	int64_t index = args[0].asInt();
+	if (argv)
+		if (argc > index && index >= 0)
+			return argv[index];
+		else
+			throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
+	else
+		return Value();
+}
+
+int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "sys_argc");
+	return static_cast<int64_t>(argc);
+}
+
+Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "shutdown");
+	int ret = static_cast<int>(args[0].asInt());
+	vm->setStatus(ret);
+	throw VM::Halt();
+}
+
 #ifndef SANDBOXED
 
 std::string StdLib::sys_os(const std::vector<Value> &args, VM *)
@@ -105,15 +165,6 @@ std::string StdLib::sys_os(const std::vector<Value> &args, VM *)
 #else
 	return "Unknown";
 #endif
-}
-
-std::string StdLib::sys_env(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 1, "sys_env");
-	std::string key = args[0].asString();
-	std::string value;
-	dupenv(value, key.c_str());
-	return value;
 }
 
 int64_t StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *)
@@ -197,32 +248,4 @@ Value StdLib::sys_isatty(const std::vector<Value> &args, VM *)
 }
 
 #endif
-
-Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 1, "sys_argv");
-	int64_t index = args[0].asInt();
-	if (argv)
-		if (argc > index && index >= 0)
-			return argv[index];
-		else
-			throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
-	else
-		return Value();
-}
-
-int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 0, "sys_argc");
-	return static_cast<int64_t>(argc);
-}
-
-Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "shutdown");
-	int ret = static_cast<int>(args[0].asInt());
-	vm->setStatus(ret);
-	throw VM::Halt();
-}
-
 } // namespace Phasor

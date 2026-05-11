@@ -6,6 +6,7 @@ import type { AddressInfo } from 'node:net';
 
 const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
 const exePath = resolve(process.cwd(), 'phasor', 'bin', exeName);
+process.env["PHASOR_NO_ENV"] = '1';
 
 if (!process.env.API_KEY) {
     console.error("API_KEY is missing!");

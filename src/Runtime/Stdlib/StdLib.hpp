@@ -56,10 +56,13 @@ class StdLib
 	static Value std_assert(const std::vector<Value> &args, VM *vm);
 #endif
 
-#ifndef __EMSCRIPTEN__
-#ifndef SANDBOXED
-	static int dupenv(std::string &out, const char *name);
-#endif
+	enum class dupenv_ret {
+		Success = 0,
+		InvalidInput = 1,
+		NotFound = 2
+	};
+
+	static dupenv_ret dupenv(std::string &out, const char *name);
 
 	static void registerMetaFunctions(VM *vm);
 	static void registerMemoryFunctions(VM *vm);
@@ -132,7 +135,6 @@ class StdLib
 #pragma endregion
 
 #pragma region stdsys
-	static std::string sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables
 	static int64_t     sys_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
 	static Value       sys_wait_for_input(const std::vector<Value> &args, VM *vm);  ///< Wait for input
 	static Value       sys_shell(const std::vector<Value> &args, VM *vm);           ///< Run a shell command
@@ -144,9 +146,9 @@ class StdLib
 	static std::string sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
 	static Value sys_isatty(const std::vector<Value> &args, VM *vm); ///< Check if the current output is a terminal
 #endif
+	static Value sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables
 	static Value   sys_argv(const std::vector<Value> &args, VM *vm); ///< Get the current command line arguments
-	static int64_t sys_argc(const std::vector<Value> &args,
-	                        VM                       *vm); ///< Get the current number of command line arguments
+	static int64_t sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
 	static double  sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
 	static Value   sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
 	static Value   sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
@@ -203,7 +205,6 @@ class StdLib
 	                                 VM *vm); ///< Print formatted string with newline to error output
 	static std::string io_puts_error(const std::vector<Value> &args,
 	                                 VM                       *vm); ///< Print string with newline to error output
-#endif
 #pragma endregion
 };
 
