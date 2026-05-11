@@ -1,5 +1,5 @@
 if(MSVC)
-    set(MSVC_COMMON_RELEASE "/O2 /Oi /Ot /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
+    set(MSVC_COMMON_RELEASE "/Oxyit /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
     set(MSVC_COMMON_DEBUG   "/Od /Zi /fp:strict")
 
     set(MSVC_CXX_EXTRA "/EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN")
