@@ -33,7 +33,7 @@ StdLib::dupenv_ret StdLib::dupenv(std::string &out, const char *name)
 	if (val)
 	{
 		out = val;
-		return 0;
+		return dupenv_ret::Success;
 	}
 #endif
 
