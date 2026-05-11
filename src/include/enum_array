@@ -1,0 +1,24 @@
+// enum_array
+// (C) 2026 Daniel McGuire
+// Licensed under the MIT license
+
+#pragma once
+#include <array>
+#include <cstddef>
+
+/*
+ * @brief Enumerated array - an array indexed by an enum
+ *
+ * @tparam Enum The enum type to index with
+ * @tparam T The value type
+ * @tparam N The size of the array
+ */
+template<typename Enum, typename T, std::size_t N>
+struct enum_array : std::array<T, N> {
+    constexpr const T& operator[](Enum e) const {
+        return std::array<T, N>::operator[](static_cast<std::size_t>(e));
+    }
+    constexpr T& operator[](Enum e) {
+        return std::array<T, N>::operator[](static_cast<std::size_t>(e));
+    }
+};
