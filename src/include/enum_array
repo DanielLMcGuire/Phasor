@@ -31,10 +31,12 @@ struct enum_array : std::array<T, std::meta::enumerators_of(^^Enum).size()> {
 private:
     static constexpr std::size_t to_index(Enum e) {
         constexpr bool is_contiguous = [] {
-            for (std::size_t i = 0; i < N; ++i) {
-                if (static_cast<std::size_t>(std::meta::extract<Enum>(_info[i])) != i) {
-                    return false;
-                }
+            auto vals = _info | std::views::transform([](auto e) {
+                return static_cast<std::ptrdiff_t>(std::meta::extract<Enum>(e));
+            });
+            std::ptrdiff_t expected = static_cast<std::ptrdiff_t>(std::meta::extract<Enum>(_info[0]));
+            for (auto v : vals) {
+                if (v != expected++) return false;
             }
             return true;
         }();
