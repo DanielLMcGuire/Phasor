@@ -32,7 +32,7 @@ enum class EConsentVolition {
 };
 
 /// @brief Array for the `EConsentVolition` enum
-static constexpr enum_array<EConsentVolition, std::string_view, 6> AConsentViolition = {{
+static constexpr enum_array<EConsentVolition, std::string_view, 6> AConsentVolition = {{
     "might", 
 	"would like to", 
 	"wants to",
@@ -56,7 +56,7 @@ template<size_t N1, size_t N2, size_t N3>
 inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volition, const char (&verb)[N2], const char (&noun)[N3], bool default_val = false) 
 {
 	bool res = false;
-	std::string prompt = std::format("Phasor {} {} {} the {}. Is this okay?", subsystem, AConsentViolition[volition], verb, noun);
+	std::string prompt = std::format("Phasor {} {} {} the {}. Is this okay?", subsystem, AConsentVolition[volition], verb, noun);
 #ifdef _WIN32
 	bool tty = _isatty(_fileno(stdin));
 #else
