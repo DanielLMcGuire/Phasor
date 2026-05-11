@@ -109,6 +109,7 @@ inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volitio
 			if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0)
 				return true;
 		}
+		return false;
 #endif
 	}
 	std::println("");
