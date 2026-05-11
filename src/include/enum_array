@@ -2,23 +2,52 @@
 // (C) 2026 Daniel McGuire
 // Licensed under the MIT license
 
-#pragma once
 #include <array>
 #include <cstddef>
+#include <meta> // C++26 Static reflection
+#include <ranges>
+#include <stdexcept>
 
-/*
- * @brief Enumerated array - an array indexed by an enum
- *
- * @tparam Enum The enum type to index with
- * @tparam T The value type
- * @tparam N The size of the array
+/**
+ * @brief Enumerated array
+ * @tparam Enum Enumerated type
+ * @tparam T Array element type
  */
-template<typename Enum, typename T, std::size_t N>
-struct enum_array : std::array<T, N> {
+template<typename Enum, typename T>
+struct enum_array : std::array<T, std::meta::enumerators_of(^^Enum).size()> {
+    static constexpr auto _info = std::meta::enumerators_of(^^Enum);
+    static constexpr std::size_t N = _info.size();
+
+    using Base = std::array<T, N>;
+
     constexpr const T& operator[](Enum e) const {
-        return std::array<T, N>::operator[](static_cast<std::size_t>(e));
+        return Base::operator[](to_index(e));
     }
+
     constexpr T& operator[](Enum e) {
-        return std::array<T, N>::operator[](static_cast<std::size_t>(e));
+        return Base::operator[](to_index(e));
+    }
+
+private:
+    static constexpr std::size_t to_index(Enum e) {
+        constexpr bool is_contiguous = [] {
+            for (std::size_t i = 0; i < N; ++i) {
+                if (static_cast<std::size_t>(std::meta::extract<Enum>(_info[i])) != i) {
+                    return false;
+                }
+            }
+            return true;
+        }();
+
+        if constexpr (is_contiguous) {
+            return static_cast<std::size_t>(e);
+        } else {
+            template for (constexpr auto i : std::views::iota(std::size_t{0}, N)) {
+                if (e == std::meta::extract<Enum>(_info[i])) {
+                    return i;
+                }
+            }
+            throw std::out_of_range("enum_array: invalid enum value");
+        }
     }
 };

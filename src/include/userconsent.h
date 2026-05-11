@@ -32,7 +32,7 @@ enum class EConsentVolition {
 };
 
 /// @brief Array for the `EConsentVolition` enum
-static constexpr enum_array<EConsentVolition, std::string_view, 6> AConsentVolition = {{
+static constexpr enum_array<EConsentVolition, std::string_view> AConsentVolition = {{
     "might", 
 	"would like to", 
 	"wants to",
