@@ -12,6 +12,10 @@
 #include <version.h>
 #include <nativeerror.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <cstring>
 
 #ifdef _WIN32
