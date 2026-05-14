@@ -15,7 +15,7 @@
  */
 template<typename Enum, typename T>
 struct enum_array : std::array<T, std::meta::enumerators_of(^^Enum).size()> {
-    static constexpr auto _info = std::meta::enumerators_of(^^Enum);
+    static constexpr auto _info = std::define_static_array(std::meta::enumerators_of(^^Enum));
     static constexpr std::size_t N = _info.size();
 
     using Base = std::array<T, N>;
