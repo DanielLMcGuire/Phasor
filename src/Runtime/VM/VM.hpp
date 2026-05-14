@@ -12,6 +12,7 @@
 #include "core/core.h"
 #include <iostream>
 #include <stdexcept>
+#include <memory_resource>
 #ifdef TRACING
 #include <format>
 #include "../../ISA/map.hpp"
@@ -246,14 +247,15 @@ class VM
 
 	/// @brief Virtual registers for register-based operations (v2.0)
 	std::array<Value, MAX_REGISTERS> registers;
-
-	/// @brief Stack for function calls
-	std::vector<Value> stack;
+	
+	/// @brief Stack
+	std::pmr::monotonic_buffer_resource stack_pool;
+	std::pmr::vector<Value> stack;
 
 	/// @brief Call stack for function calls
 	std::vector<int> callStack;
 
-	/// @brief Variable storage indexed by variable index
+	/// @brief Variable storage indexed by variable index, or simply: the managed heap
 	std::vector<Value> variables;
 
 	/// @brief Bytecode to execute

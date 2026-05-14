@@ -187,8 +187,9 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 #endif
 	if (resetStack)
 	{
-		stack.clear();
 		callStack.clear();
+		stack_pool.release();
+		stack = std::pmr::vector<Value>(&stack_pool);
 	}
 	if (resetFunctions)
 	{
