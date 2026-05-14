@@ -2,8 +2,12 @@
 
 [![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor.svg)](https://phasor.pages.dev/downloads?version=latest)
 [![AUR Version](https://img.shields.io/aur/version/phasor.svg)](https://aur.archlinux.org/packages/phasor)
-![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/cpp26.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/DanielLMcGuire/Phasor.svg?label=commits)
+
+> [!WARNING]
+>
+> This is a in-development branch, stability is NOT a priority.
 
 A dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
 
@@ -284,10 +288,10 @@ This repo contains:
 - Required:
   - [Ninja](https://github.com/ninja-build/ninja/releases)
   - [CMake 3.21+](https://cmake.org/download/)
-  - CC (C 23 Compliant) compiler and CXX (C++ 23 Compliant) compiler supporting GCC/Clang extensions or Windows specific extensions
-    - [MSVC VS22 17.2 or later](https://visualstudio.microsoft.com/downloads/?q=build+tools)
-    - [GCC 14 or later](https://gcc.gnu.org/install/)
-    - [Clang 17 or later](https://releases.llvm.org/)
+  - CC (C 23 Compliant) compiler and CXX (C++ 26 Compliant) compiler supporting GCC/Clang extensions or Windows specific extensions
+    - ~~[MSVC VS22 17.2 or later](https://visualstudio.microsoft.com/downloads/?q=build+tools)~~
+    - [GCC 16 latest trunk](https://gcc.gnu.org/install/)
+    - ~~[Clang 17 or later](https://releases.llvm.org/)~~
 - Optional:
   - [Rust Toolchain (latest stable)](https://rust-lang.org/tools/install/) for the `phasorrt-rs` lib
   - [CPython 3.9 or later](https://www.python.org/downloads/) (or another Python compliant interpreter) for the Python API
