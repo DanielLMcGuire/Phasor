@@ -249,8 +249,8 @@ class VM
 	std::array<Value, MAX_REGISTERS> registers;
 	
 	/// @brief Stack
-	std::pmr::vector<Value> stack;
 	std::pmr::monotonic_buffer_resource stack_pool;
+	std::pmr::vector<Value> stack;
 
 	/// @brief Call stack for function calls
 	std::vector<int> callStack;
