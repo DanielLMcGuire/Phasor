@@ -75,6 +75,7 @@ shutdown(code); // from stdsys
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];```
 - **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
+- LLVM Jit for hot loops / functions
 
 ---
 
