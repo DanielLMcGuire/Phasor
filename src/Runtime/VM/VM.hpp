@@ -231,7 +231,7 @@ class VM
 
   private:
 	void setup(const Bytecode &bc, const size_t initialPC);
-	int evalLoop();
+	void evalLoop();
 
 	bool isDirectCall = false; ///< is a direct call to a function
 
