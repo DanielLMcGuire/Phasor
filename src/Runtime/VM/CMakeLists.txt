@@ -8,6 +8,7 @@ set(VM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/VM.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/portable/IO.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../ISA/map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/JIT/PhasorJIT.cpp
 )
 
 if(ASSEMBLY)
@@ -25,6 +26,8 @@ set(VM_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/core/native/arithmetic.h
     ${CMAKE_CURRENT_SOURCE_DIR}/core/native/logical.h
     ${CMAKE_CURRENT_SOURCE_DIR}/core/portable/IO.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/JIT/PhasorJIT.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/JIT/shims.hpp
 )
 
 set(VM_SOURCES ${VM_SOURCES} PARENT_SCOPE)

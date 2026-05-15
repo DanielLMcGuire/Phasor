@@ -22,10 +22,12 @@
 #ifndef SANDBOXED
 #include "../FFI/ffi.hpp"
 #endif
-
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
+
+class PhasorJIT;
+using JitFn = void(*)();
 
 /// @class VM
 /// @brief Virtual Machine
@@ -230,6 +232,14 @@ class VM
 	}
 
   private:
+	std::unique_ptr<PhasorJIT> jit;
+
+	std::unordered_map<size_t, JitFn> jitCache;
+
+	std::unordered_map<size_t, uint32_t> backEdgeCounter;
+
+	static constexpr uint32_t JIT_THRESHOLD = 1000;
+
 	void setup(const Bytecode &bc, const size_t initialPC);
 	void evalLoop();
 

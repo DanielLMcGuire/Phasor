@@ -7,6 +7,8 @@
 #include <cassert>
 #include "core/core.h"
 
+#include "JIT/PhasorJIT.hpp"
+
 #ifdef TIMING
 #include <chrono>
 #endif
@@ -72,17 +74,41 @@ void VM::setup(const Bytecode &bc, const size_t initialPC) {
 
 void VM::evalLoop()
 {
-	while (pc < m_bytecode->instructions.size())
-	{
-		const Instruction &instr = m_bytecode->instructions[pc++];
+    while (pc < m_bytecode->instructions.size())
+    {
+        const Instruction& instr = m_bytecode->instructions[pc++];
 
+        if (auto it = jitCache.find(pc - 1); it != jitCache.end()) {
+            it->second();
+            continue;
+        }
+
+        if (instr.op == OpCode::JUMP_BACK) {
+            size_t edgePC = pc - 1;
+            if (++backEdgeCounter[edgePC] == JIT_THRESHOLD) {
+                size_t loopStart = instr.operand1;
+                size_t loopEnd   = pc;
+
+                try {
+                    JitFn fn = jit->compile(
+                        *m_bytecode,
+                        loopStart,
+                        loopEnd,
+                        registers.data(),
+                        variables.data(),
+                        m_bytecode->constants.data()
+                    );
+                    jitCache[loopStart] = fn;
+                } catch (const std::exception& e) {
 #ifdef TRACING
-		log(std::format("\nVM::{}(): RUN (pc={})\n", __func__, pc - 1));
-		flush();
+                    logerr(std::format("JIT compile failed at pc {}: {}\n", edgePC, e.what()));
 #endif
+                }
+            }
+        }
 
-		operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
-	}
+        operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
+    }
 }
 
 int VM::run(const Bytecode &bc, const size_t startPC)
@@ -201,6 +227,8 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 	pc = 0;
 	status = 0;
 	m_bytecode = nullptr;
+	jitCache.clear();
+    backEdgeCounter.clear();
 	isDirectCall = false;
 }
 

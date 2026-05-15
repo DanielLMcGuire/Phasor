@@ -717,3 +717,4 @@ scripts/harvest.wxs
 *.wixpdb
 /target
 /.zig-cache
+/llvm-20.1.8-windows-amd64-msvc17-msvcrt

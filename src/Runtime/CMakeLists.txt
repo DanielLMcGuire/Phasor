@@ -21,6 +21,20 @@ add_library(phasor_native_runtime_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Shared/NativeRuntime.hpp
 )
 
+find_package(LLVM REQUIRED CONFIG)
+
+target_include_directories(PhasorRuntime PRIVATE ${LLVM_INCLUDE_DIRS})
+target_compile_definitions(PhasorRuntime PRIVATE ${LLVM_DEFINITIONS})
+
+llvm_map_components_to_libnames(LLVM_LIBS
+    core
+    orcjit
+    native
+)
+
+target_link_libraries(PhasorRuntime PRIVATE ${LLVM_LIBS})
+target_include_directories(PhasorRuntime PUBLIC ${LLVM_INCLUDE_DIRS})
+
 target_link_libraries(phasor_native_runtime_lib PUBLIC PhasorRuntime PhasorCodegen phasor_language)
 
 add_library(phasor_scripting_runtime_lib STATIC
