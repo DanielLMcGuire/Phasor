@@ -23,6 +23,9 @@
 #include "../FFI/ffi.hpp"
 #endif
 
+#define DIRECT_CALL_STATUS -47
+#define BAD_STATUS -1
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -59,7 +62,7 @@ class VM
 	int run(const Bytecode &bytecode, const size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine
-	Value runFunction(const std::string &name, const Bytecode &bytecode);
+	Value runFunction(const std::string &name, const Bytecode &bytecode, const bool &argsInit = false);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
