@@ -154,7 +154,7 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 
 std::string StdLib::str_concat(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 2, "concat");
+	checkArgCount(args, 2, "concat", true);
 	std::string result = "";
 	for (const auto &arg : args)
 	{
