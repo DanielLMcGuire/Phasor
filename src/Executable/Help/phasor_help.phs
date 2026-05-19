@@ -1,9 +1,18 @@
-using("stdio", "stdsys", "stdstr", "stdtype", "stdfile", "stdmeta");
+using("stdio", "stdsys", "stdstr", "stdtype", "stdfile", "stdmeta", "stdmem");
 
 fn getDocCmd(part: string, type: int) -> string {
     var sb = sb_new();
     var os = sys_os();
     if (os == "win32") {
+        if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
+            sb_append(sb, "https://phasor-docs.pages.dev/man?f=");
+            sb_append(sb, part);
+            sb_append(sb, ".");
+            sb_append(sb, type);
+            var path = sb_to_string(sb);
+            sb_free(sb);
+            return concat("\"start ", path, "\"");
+        }
         sb_append(sb, "C:/Program%20Files/Phasor%20Programming%20Language/man/man");
         sb_append(sb, type);
         sb_append(sb, "/");
@@ -14,7 +23,7 @@ fn getDocCmd(part: string, type: int) -> string {
         sb_append(sb, "pdf");
         var path = sb_to_string(sb);
         sb_free(sb);
-        return concat("\"start file:///", concat(path, "\""));
+        return concat("\"start file:///", path, "\"");
     } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX" || os == "Darwin") {
         sb_append(sb, type);
         sb_append(sb, " ");
@@ -29,7 +38,7 @@ fn getDocCmd(part: string, type: int) -> string {
     }
 }
 
-fn showHelp(programName: string, exitCode: int) -> void {
+fn showHelp(programName: string, error: bool) -> void {
     var winStr = "C:\\Program Files\\Phasor Programming Language\\man\\man<section>\n    \\<page>.<section>.pdf";
     var unixStr = "/usr/share/man/man<section>/<page>.<section>(.gz)";
     var osxStr = "/usr/local/share/man/man<section>/<page>.<section>(.gz)";
@@ -44,6 +53,10 @@ fn showHelp(programName: string, exitCode: int) -> void {
     } else {
         osStr = "https://phasor-docs.pages.dev/man?f=<page>.<section>";
     }
+
+    free("winStr");
+    free("unixStr");
+    free("osxStr");
 
     var helpStr = c_fmt(`
 
@@ -66,8 +79,11 @@ ARGUMENTS
     standard manual sections.  
 
 EXAMPLES
-    %s phasor 1
+    %s phasor
     Open the section 1 manual page for "phasor".
+
+    %s phasorvm 1
+    Open the section 1 manual page for "phasorvm".
 
     %s phsb 5  
     Open the section 5 manual page for "phsb".  
@@ -82,21 +98,23 @@ SEE ALSO
     MAN(1)
 
                               - 1 -
-`, phs_version(), programName, programName, programName, programName, programName, programName, programName, osStr);
-    if (exitCode == 0) puts(helpStr);
-    else puts_error(helpStr);
-    shutdown(exitCode);
+`, phs_version(), programName, programName, programName, programName, programName, programName, programName, programName, osStr);
+    if (error) puts_error(helpStr);
+    else puts(helpStr);
 }
 
 fn main() -> int {
     if (sys_argc() == 3) {
         var page = to_string(sys_argv(1));
         var section = to_int(sys_argv(2));
-        sys_shell(getDocCmd(page, section));
+        return sys_shell(getDocCmd(page, section));
+    } else if (sys_argc() == 2) {
+        var page = to_string(sys_argv(1));
+        return sys_shell(getDocCmd(page, 1));
     } else {
-        showHelp(fstem(sys_argv(0)), 1);
+        showHelp(fstem(sys_argv(0)), sys_argc() > 1);
+        return 1;
     }
-    return 0;
 }
 
 shutdown(main());
