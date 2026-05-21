@@ -15,6 +15,9 @@ pub enum PhasorError {
     #[error("Execution exception (Code: {0})")]
     ExecutionException(i32),
 
+    #[error("Direct call failed unexpectedly")]
+    DirectCallFailed,
+
     #[error("Function returned null pointer")]
     NullReturn,
 
@@ -176,6 +179,8 @@ impl PhasorVM {
             );
             if res == -1 {
                 Err(PhasorError::ExecutionException(-1))
+            } else if res == -47 {
+                Err(PhasorError::DirectCallFailed)
             } else {
                 Ok(res)
             }
@@ -206,6 +211,8 @@ impl PhasorVM {
             );
             if res == -1 {
                 Err(PhasorError::ExecutionException(-1))
+            } else if res == -47 {
+                Err(PhasorError::DirectCallFailed)
             } else {
                 Ok(res)
             }
@@ -267,6 +274,8 @@ impl PhasorVM {
             );
             if res == -1 {
                 Err(PhasorError::ExecutionException(-1))
+            } else if res == -47 {
+                Err(PhasorError::DirectCallFailed)
             } else {
                 Ok(res)
             }
@@ -281,6 +290,8 @@ impl PhasorVM {
             let res = self.get_evaluate_pul()(self.state, c_script.as_ptr(), c_module.as_ptr());
             if res == -1 {
                 Err(PhasorError::ExecutionException(-1))
+            } else if res == -47 {
+                Err(PhasorError::DirectCallFailed)
             } else {
                 Ok(res)
             }
