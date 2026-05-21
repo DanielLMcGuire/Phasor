@@ -17,6 +17,16 @@
 #endif
 
 #include <cstring>
+#include <stdio.h>
+
+void set_terminal_title(const char *title) {
+#ifdef _WIN32
+    SetConsoleTitleA(title);
+#else
+    printf("\033]0;%s\007", title);
+    fflush(stdout);
+#endif
+}
 
 #ifdef _WIN32
 #define setupConsole() \
@@ -51,6 +61,7 @@ extern "C"
 	PHASOR_API int exec(void *vmPtr, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
 	                    int argc, const char **argv)
 	{
+		set_terminal_title(moduleName);
 		try
 		{
 			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
@@ -68,6 +79,7 @@ extern "C"
 	PHASOR_API int execFuncInt(void *vmPtr, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
 	                           int argc, const char **argv, const char *functionName)
 	{
+		set_terminal_title(moduleName);
 		try
 		{
 			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
@@ -85,6 +97,7 @@ extern "C"
 	PHASOR_API const char *execFuncString(void *vmPtr, const unsigned char *bytecode, size_t bytecodeSize,
 	                                      const char *moduleName, int argc, const char **argv, const char *functionName)
 	{
+		set_terminal_title(moduleName);
 		static std::string ret;
 		try
 		{
@@ -108,6 +121,7 @@ extern "C"
 	PHASOR_API int evaluatePHS(void *vmPtr, const char *script, const char *moduleName, const char *modulePath,
 	                           bool verbose)
 	{
+		set_terminal_title(moduleName);
 		try
 		{
 			return Phasor::Frontend::runScript(script, static_cast<Phasor::VM *>(vmPtr), modulePath, verbose);
@@ -121,6 +135,7 @@ extern "C"
 
 	PHASOR_API int evaluatePUL(void *vmPtr, const char *script, const char *moduleName)
 	{
+		set_terminal_title(moduleName);
 		try
 		{
 			return pulsar::Frontend::runScript(script, static_cast<Phasor::VM *>(vmPtr));
@@ -135,6 +150,7 @@ extern "C"
 	PHASOR_API bool compilePHS(const char *script, const char *moduleName, const char *modulePath,
 	                           unsigned char *buffer, size_t bufferSize, size_t *outSize)
 	{
+		set_terminal_title((std::string("Compiling ") + moduleName).c_str());
 		try
 		{
 			Phasor::CodeGenerator      codegen;
@@ -174,6 +190,7 @@ extern "C"
 	PHASOR_API bool compilePUL(const char *script, const char *moduleName, unsigned char *buffer, size_t bufferSize,
 	                           size_t *outSize)
 	{
+		set_terminal_title((std::string("Compiling ") + moduleName).c_str());
 		try
 		{
 			Phasor::CodeGenerator      codegen;
