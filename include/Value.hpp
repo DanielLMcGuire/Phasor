@@ -38,7 +38,7 @@ namespace Phasor
 /**
  * @brief Runtime value types for the VM
  */
-enum class ValueType
+enum class ValueType : uint8_t
 {
 	Null,
 	Bool,
