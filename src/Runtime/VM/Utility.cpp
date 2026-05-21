@@ -70,7 +70,7 @@ void VM::setup(const Bytecode &bc, const size_t initialPC) {
 	variables.resize(m_bytecode->nextVarIndex);
 }
 
-int VM::evalLoop()
+void VM::evalLoop()
 {
 	while (pc < m_bytecode->instructions.size())
 	{
@@ -83,8 +83,6 @@ int VM::evalLoop()
 
 		operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
 	}
-
-	return -1;
 }
 
 int VM::run(const Bytecode &bc, const size_t startPC)
@@ -103,7 +101,8 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 
 	try
 	{
-		return evalLoop();
+		evalLoop();
+		return status;
 	}
 	catch (const VM::Halt &)
 	{
@@ -133,7 +132,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 		logerr(std::format("\nVM::{}(): UNCAUGHT EXCEPTION!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
 		flusherr();
 #endif
-		status = 1;
+		status = BAD_STATUS;
 #ifdef _DEBUG
 		logerr(std::format("{}\n", e.what()));
 		assert(false);
@@ -142,13 +141,28 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	}
 }
 
-Value VM::runFunction(const std::string &name, const Bytecode &bytecode)
+Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const bool &argsInit)
 {
-	isDirectCall = true;
-	run(bytecode, bytecode.functionEntries.find(name)->second);
-	Value ret = pop();
-	reset(true, false, true);
-	return ret;
+    isDirectCall = true;
+    setup(bytecode, bytecode.functionEntries.find(name)->second);
+
+	if (!argsInit) push(0);
+
+    try {
+        evalLoop();
+    }
+    catch (const VM::Halt &) {
+		if (status == DIRECT_CALL_STATUS) {
+			Value ret = pop();
+			reset(true, false, true);
+			return ret;
+		} else {
+			throw std::runtime_error("Function was not properly handled!");
+		}
+	}
+	throw std::runtime_error("Function did not return properly!");
+	status = BAD_STATUS;
+	return Value();
 }
 
 void VM::setImportHandler(const ImportHandler &handler)
@@ -200,6 +214,7 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 		variables.clear();
 	}
 	pc = 0;
+	status = 0;
 	m_bytecode = nullptr;
 	isDirectCall = false;
 }

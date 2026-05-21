@@ -10,7 +10,7 @@ phasorstd_mem \- Phasor memory management functions
 .SH FUNCTIONS
 .TP
 .BR stdmem (name)
-Free a named variable from the VM's memory, releasing any resources associated with it.
+Free a named variable from the VM's memory, releasing any heap resources associated with it.
 .RS
 .PP
 .B Arguments:
@@ -56,16 +56,13 @@ if (done) {
 .IP \(bu 2
 The argument to
 .B stdmem()
-must be the variable name as a string literal, not the variable itself
+must be the variable name as a string literal, not the variable itself!
 .IP \(bu 2
 Freeing a variable that does not exist has no effect
 .IP \(bu 2
 After calling
 .BR stdmem() ,
-any further access to the freed variable is undefined behaviour
-.SH SEE ALSO
-.BR phasorstd_file (3),
-.BR Phasor_StdLib (3)
+any further access to the freed variable will do nothing, as the entry will be NULL, not removed. You can reuse freed variables later.
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

@@ -106,7 +106,21 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 #ifndef SANDBOXED
 Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "assert");
+	checkArgCount(args, 1, "assert", true);
+
+	if (args.size() > 2)
+	{ [[unlikely]]
+		throw std::runtime_error("Assert expects 1 or 2 arguments, but got " + std::to_string(args.size()));
+	}
+
+	bool haveMessage = false;
+	const char* message = nullptr;
+
+	if (args.size() == 2)
+	{
+		message = args[1].c_str();
+		haveMessage = true;
+	}
 
 #ifdef TRACING
 #ifndef NDEBUG
@@ -119,11 +133,13 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 
 #ifndef NDEBUG
 	if (!args[0].isTruthy())
-	{
+	{ [[unlikely]]
 		vm->logerr(std::format("StdLib::{}({:T}): Assertion failed!\n", __func__, args[0]));
+		if (haveMessage) vm->logerr(std::format("{}\n", message));
 		vm->flusherr();
 	}
-	assert(args[0].isTruthy());
+	if (haveMessage) assert(args[0].isTruthy() && message);
+	else assert(args[0].isTruthy());
 #endif
 	return Value();
 }

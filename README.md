@@ -11,7 +11,9 @@
 
 A dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
 
-Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides C++ RAII support to the runtime, stdlib, but user memory management is manual for now.
+Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of a unified type system, which provides C++ RAII support to the runtime, stdlib, and FFI interfaces.
+
+Memory management is deterministic, you set variables to null or do nothing and let the runtime clear them at shutdown.
 
 See [Language Features](#language-features) for more info on memory management.
 
@@ -79,6 +81,7 @@ shutdown(code); // from stdsys
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];```
 - **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
+- LLVM Jit for hot loops / functions
 
 ---
 

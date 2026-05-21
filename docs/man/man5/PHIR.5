@@ -1,10 +1,10 @@
 .TH PHIR 5 "January 2026" "Phasor 3.3.0" "Phasor File Formats"
 .SH NAME
-phir \- Phasor Intermediate Representation format
+phir \- Phasor Intermediate Representation / Assembly format
 .SH DESCRIPTION
 The
 .B .phir
-file format is a human-readable text-based intermediate representation of compiled Phasor bytecode. It serves as a middle ground between source code and binary bytecode, allowing developers to inspect, analyze, and manually modify compiled programs.
+file format is a human-readable text-based intermediate representation of compiled Phasor bytecode that both looks and is used similar to Assembly. It serves as a middle ground between source code and binary bytecode, allowing developers to inspect, analyze, and manually modify compiled programs.
 .PP
 PHIR files are structured text documents containing serialized bytecode instructions, constant pools, variable mappings, function entries, and struct definitions. The format uses a versioned header and section-based organization.
 .SH FILE STRUCTURE
@@ -209,8 +209,8 @@ The current PHIR format version is 3.0.0.
 .SH SEE ALSO
 .BR phasorcompiler (1),
 .BR phasornative (1),
-.BR phsb (5),
-.BR phs (5)
+.BR PHSB (5),
+.BR PHS (5)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

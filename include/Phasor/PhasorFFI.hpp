@@ -99,6 +99,36 @@ class FFI
 	 * @return True if the plugin was added successfully, false otherwise.
 	 */
 	bool addPlugin(const std::filesystem::path &pluginPath);
+
+  private:
+	/**
+	 * @brief Native function to load a plugin at runtime.
+	 */
+	bool native_add_plugin(const std::vector<Value> &args, VM *vm);
+
+	/**
+	 * @brief Loads a single plugin from a library file.
+	 * @param library Path to the shared library file.
+	 * @param vm Pointer to the VM to register plugin functions with.
+	 * @return True if the plugin loaded successfully, false otherwise.
+	 */
+	bool loadPlugin(const std::filesystem::path &library, VM *vm);
+
+	/**
+	 * @brief Scans a folder for plugin libraries.
+	 * @param folder Path to the folder to scan.
+	 * @return A vector of plugin file paths.
+	 */
+	std::vector<std::string> scanPlugins(const std::filesystem::path &folder);
+
+	/**
+	 * @brief Unloads all currently loaded plugins and clears internal state.
+	 */
+	void unloadAll();
+
+	std::vector<Plugin>   plugins_;      ///< Loaded plugins
+	std::filesystem::path pluginFolder_; ///< Plugin search folder
+	VM                   *vm_;           ///< Pointer to the Phasor VM
 };
 
 } // namespace Phasor

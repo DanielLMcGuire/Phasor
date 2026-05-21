@@ -13,7 +13,7 @@
 //
 // Provides types for the Phasor (and Pulsar) Programming Language.
 // Wraps a std::variant over null, bool, int64_t, double, string, struct, and array,
-// with structs and arrays heap-allocated via std::shared_ptr. Provides arithmetic,
+// with structs, arrays, and strings heap-allocated via std::shared_ptr. Provides arithmetic,
 // comparison, and logical operators, and isTruthy() and toString().
 //
 // Also includes a std::formatter<Phasor::Value> implementation for use with std::format (or std::print).
@@ -38,7 +38,7 @@ namespace Phasor
 /**
  * @brief Runtime value types for the VM
  */
-enum class ValueType
+enum class ValueType : uint8_t
 {
 	Null,
 	Bool,
@@ -65,7 +65,8 @@ class Value
 	using ArrayInstance = std::vector<Value>;
 
   private:
-	using DataType = std::variant<std::monostate, bool, int64_t, double, std::string, std::shared_ptr<StructInstance>,
+	using DataType = std::variant<std::monostate, bool, int64_t, double, std::shared_ptr<std::string>,
+	                              std::shared_ptr<StructInstance>,
 	                              std::shared_ptr<ArrayInstance>>;
 
 	DataType data;
@@ -92,11 +93,11 @@ class Value
 	{
 	}
 	/// @brief String constructor
-	Value(const std::string &s) : data(s)
+	Value(const std::string &s) : data(std::make_shared<std::string>(s))
 	{
 	}
 	/// @brief String constructor
-	Value(const char *s) : data(std::string(s))
+	Value(const char *s) : data(std::make_shared<std::string>(s))
 	{
 	}
 	/// @brief Struct constructor
@@ -185,7 +186,7 @@ class Value
 	{
 		if (isString())
 		{
-			return std::get<std::string>(data);
+			return *std::get<std::shared_ptr<std::string>>(data);
 		}
 		return toString();
 	}
@@ -498,7 +499,7 @@ class Value
 		{
 			[[unlikely]] throw std::runtime_error("c_str() can only be called on string values");
 		}
-		return std::get<std::string>(data).c_str();
+		return std::get<std::shared_ptr<std::string>>(data)->c_str();
 	}
 
 	/// @brief Print to output stream
