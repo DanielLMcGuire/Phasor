@@ -13,10 +13,10 @@ fn main() -> Result<(), PhasorError> {
                             return 0;
                         }
                         shutdown(main());";
-    let bc: Vec<u8> = compile_phs(script, "rusttest", Some(""))?;
+    let bc: Vec<u8> = compile_phs(script, "Hello World Script", Some(""))?;
 
     // args are command line, i might add function args in a future C API version
-    match vm.exec_func_int(&bc, "exec_func_int", "main", &[]) {
+    match vm.exec_func_int(&bc, "exec_func_int Test", "main", &[]) {
         Ok(code) => {
             if code == 0 {
                 println!("exec_func_int executed successfully");
@@ -30,7 +30,7 @@ fn main() -> Result<(), PhasorError> {
         }
     }
 
-    match vm.evaluate_phs(script, "evaluate_phs", None, false) {
+    match vm.evaluate_phs(script, "evaluate_phs Test", None, false) {
         Ok(code) => {
             if code == 0 {
                 println!("evaluate_phs executed successfully");
