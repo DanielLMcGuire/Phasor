@@ -16,6 +16,9 @@
 #include <unistd.h>
 #endif
 
+bool consentAskedCLI{false};
+bool consentGrantedCLI{false};
+
 namespace Phasor
 {
 
@@ -41,21 +44,39 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 #else
-	auto stub = [](const std::vector<Value> &, VM *) { return Value(); };
+	auto stub = [](const std::vector<Value> &, VM *) -> Value { return Value(); };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
 	vm->registerNativeFunction("isatty", stub);
 	if (!std::getenv("PHASOR_NO_ENV")) {
-		if (prompt_consent("Standard library", EConsentVolition::Might, "use", "system environment variables")) {
-			vm->registerNativeFunction("sys_env", StdLib::sys_env);
-			vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
-			vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
-		} else {
-			vm->registerNativeFunction("sys_env", stub);
-			vm->registerNativeFunction("sys_argv", stub);
-			vm->registerNativeFunction("sys_argc", stub);
-		}
+		vm->registerNativeFunction("sys_env", [] (const std::vector<Value> &v, VM *vm) -> Value {
+			if (prompt_consent("Standard library", EConsentVolition::Needs, "use", "system environment variables")) {
+				return sys_env(v, vm);
+			} else return Value();
+		});
+		vm->registerNativeFunction("sys_argv", [] (const std::vector<Value> &v, VM *vm) {
+			if (consentGrantedCLI) {
+				return sys_argc(v, vm);
+			}
+			if (!consentAskedCLI) {
+				[[unlikely]]
+				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
+				consentAskedCLI = true;
+			}
+			return Value();
+		});
+		vm->registerNativeFunction("sys_argc", [] (const std::vector<Value> &v, VM *vm) -> Value {
+			if (consentGrantedCLI) {
+				return sys_argc(v, vm);
+			}
+			if (!consentAskedCLI) {
+				[[unlikely]]
+				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
+				consentAskedCLI = true;
+			}
+			return Value();
+		});
 	}
 #endif
 	vm->registerNativeFunction("time", StdLib::sys_time);
@@ -125,12 +146,9 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 1, "sys_argv");
 	int64_t index = args[0].asInt();
 	if (argv)
-		if (argc > index && index >= 0)
-			return argv[index];
-		else
-			throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
-	else
-		return Value();
+		if (argc > index && index >= 0) return argv[index];
+		else throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
+	else return Value();
 }
 
 int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *)
