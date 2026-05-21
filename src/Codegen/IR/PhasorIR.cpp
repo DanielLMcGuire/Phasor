@@ -230,27 +230,31 @@ PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
 std::string PhasorIR::escapeString(const std::string &str)
 {
 	std::stringstream ss;
-	for (char c : str)
+	for (unsigned char c : str)
 	{
 		switch (c)
 		{
-		case '\n':
-			ss << "\\n";
-			break;
-		case '\r':
-			ss << "\\r";
-			break;
-		case '\t':
-			ss << "\\t";
-			break;
-		case '\\':
-			ss << "\\\\";
-			break;
-		case '"':
-			ss << "\\\"";
-			break;
+		case '\a':  ss << "\\a";  break;
+		case '\b':  ss << "\\b";  break;
+		case '\f':  ss << "\\f";  break;
+		case '\n':  ss << "\\n";  break;
+		case '\r':  ss << "\\r";  break;
+		case '\t':  ss << "\\t";  break;
+		case '\v':  ss << "\\v";  break;
+		case '\x1b': ss << "\\e"; break;
+		case '\\':  ss << "\\\\"; break;
+		case '"':   ss << "\\\""; break;
 		default:
-			ss << c;
+			if (c < 0x20 || c == 0x7F)
+			{
+				ss << "\\x"
+				   << "0123456789abcdef"[c >> 4]
+				   << "0123456789abcdef"[c & 0xF];
+			}
+			else
+			{
+				ss << static_cast<char>(c);
+			}
 			break;
 		}
 	}
@@ -260,37 +264,96 @@ std::string PhasorIR::escapeString(const std::string &str)
 std::string PhasorIR::unescapeString(const std::string &str)
 {
 	std::string result;
-	for (size_t i = 0; i < str.length(); ++i)
+	size_t      len = str.length();
+
+	auto hexVal = [](char c) -> int {
+		if (c >= '0' && c <= '9') return c - '0';
+		if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+		if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+		return -1;
+	};
+
+	for (size_t i = 0; i < len; ++i)
 	{
-		if (str[i] == '\\' && i + 1 < str.length())
-		{
-			switch (str[i + 1])
-			{
-			case 'n':
-				result += '\n';
-				break;
-			case 'r':
-				result += '\r';
-				break;
-			case 't':
-				result += '\t';
-				break;
-			case '\\':
-				result += '\\';
-				break;
-			case '"':
-				result += '"';
-				break;
-			default:
-				result += str[i];
-				result += str[i + 1];
-				break;
-			}
-			i++;
-		}
-		else
+		if (str[i] != '\\' || i + 1 >= len)
 		{
 			result += str[i];
+			continue;
+		}
+
+		char esc = str[++i];
+		switch (esc)
+		{
+		case 'a':  result += '\a'; break;
+		case 'b':  result += '\b'; break;
+		case 'f':  result += '\f'; break;
+		case 'n':  result += '\n'; break;
+		case 'r':  result += '\r'; break;
+		case 't':  result += '\t'; break;
+		case 'v':  result += '\v'; break;
+		case '\\': result += '\\'; break;
+		case '\'': result += '\''; break;
+		case '"':  result += '"';  break;
+		case 'e':
+		case 'E':  result += '\x1b'; break;
+
+		case '0': case '1': case '2': case '3':
+		case '4': case '5': case '6': case '7':
+		{
+			uint32_t val = static_cast<uint32_t>(esc - '0');
+			for (int k = 1; k < 3 && i + 1 < len; ++k)
+			{
+				char d = str[i + 1];
+				if (d < '0' || d > '7') break;
+				val = val * 8 + static_cast<uint32_t>(d - '0');
+				++i;
+			}
+			result += static_cast<char>(val & 0xFF);
+			break;
+		}
+
+		case 'x':
+		{
+			if (i + 1 >= len || hexVal(str[i + 1]) < 0) { result += esc; break; }
+			int val = hexVal(str[++i]);
+			if (i + 1 < len && hexVal(str[i + 1]) >= 0)
+				val = (val << 4) | hexVal(str[++i]);
+			result += static_cast<char>(val);
+			break;
+		}
+
+		case 'u':
+		case 'U':
+		{
+			int      ndigits = (esc == 'u') ? 4 : 8;
+			uint32_t cp      = 0;
+			bool     ok      = true;
+			for (int k = 0; k < ndigits; ++k)
+			{
+				if (i + 1 >= len || hexVal(str[i + 1]) < 0) { ok = false; break; }
+				cp = (cp << 4) | static_cast<uint32_t>(hexVal(str[++i]));
+			}
+			if (!ok || cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+			{
+				result += esc; break;
+			}
+			if      (cp <= 0x7F)   { result += static_cast<char>(cp); }
+			else if (cp <= 0x7FF)  { result += static_cast<char>(0xC0 | (cp >> 6));
+			                         result += static_cast<char>(0x80 | (cp & 0x3F)); }
+			else if (cp <= 0xFFFF) { result += static_cast<char>(0xE0 | (cp >> 12));
+			                         result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+			                         result += static_cast<char>(0x80 | (cp & 0x3F)); }
+			else                   { result += static_cast<char>(0xF0 | (cp >> 18));
+			                         result += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+			                         result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+			                         result += static_cast<char>(0x80 | (cp & 0x3F)); }
+			break;
+		}
+
+		default:
+			result += '\\';
+			result += esc;
+			break;
 		}
 	}
 	return result;
