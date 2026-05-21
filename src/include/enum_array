@@ -15,8 +15,20 @@
  */
 template<typename Enum, typename T>
 struct enum_array : std::array<T, std::meta::enumerators_of(^^Enum).size()> {
+    using Base::operator[];
     static constexpr auto _info = std::define_static_array(std::meta::enumerators_of(^^Enum));
     static constexpr std::size_t N = _info.size();
+
+    static_assert([] {
+        auto vals = _info | std::views::transform([](auto e) {
+            return static_cast<std::ptrdiff_t>(std::meta::extract<Enum>(e));
+        });
+
+        for (std::size_t i = 0; i < N; ++i)
+            for (std::size_t j = i + 1; j < N; ++j)
+                if (vals[i] == vals[j]) return false;
+        return true;
+    }(), "enum_array: enum contains duplicate values");
 
     using Base = std::array<T, N>;
 
@@ -42,14 +54,21 @@ private:
         }();
 
         if constexpr (is_contiguous) {
-            return static_cast<std::size_t>(e);
+            constexpr auto base = static_cast<std::ptrdiff_t>(
+                std::meta::extract<Enum>(_info[0])
+            );
+            return static_cast<std::size_t>(static_cast<std::ptrdiff_t>(e) - base);
         } else {
             template for (constexpr auto i : std::views::iota(std::size_t{0}, N)) {
                 if (e == std::meta::extract<Enum>(_info[i])) {
                     return i;
                 }
             }
-            throw std::out_of_range("enum_array: invalid enum value");
+            #ifdef NDEBUG
+                std::unreachable();
+            #else
+                throw std::out_of_range("enum_array: invalid enum value");
+            #endif
         }
     }
 };
