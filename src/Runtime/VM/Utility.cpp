@@ -6,6 +6,7 @@
 #include <format>
 #include <cassert>
 #include "core/core.h"
+#include <phsint.hpp>
 
 #ifdef TIMING
 #include <chrono>
@@ -284,13 +285,13 @@ std::string VM::getBytecodeInformation()
 void VM::log(const Value &msg)
 {
 	std::string s = msg.toString();
-	c_print_stdout(s.c_str(), (int64_t)s.length());
+	c_print_stdout(s.c_str(), (i64)s.length());
 }
 
 void VM::logerr(const Value &msg)
 {
 	std::string s = msg.toString();
-	c_print_stderr(s.c_str(), (int64_t)s.length());
+	c_print_stderr(s.c_str(), (i64)s.length());
 }
 
 void VM::flush()

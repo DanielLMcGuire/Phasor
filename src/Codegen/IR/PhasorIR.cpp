@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -300,12 +301,12 @@ std::string PhasorIR::unescapeString(const std::string &str)
 		case '0': case '1': case '2': case '3':
 		case '4': case '5': case '6': case '7':
 		{
-			uint32_t val = static_cast<uint32_t>(esc - '0');
+			u32 val = static_cast<u32>(esc - '0');
 			for (int k = 1; k < 3 && i + 1 < len; ++k)
 			{
 				char d = str[i + 1];
 				if (d < '0' || d > '7') break;
-				val = val * 8 + static_cast<uint32_t>(d - '0');
+				val = val * 8 + static_cast<u32>(d - '0');
 				++i;
 			}
 			result += static_cast<char>(val & 0xFF);
@@ -326,12 +327,12 @@ std::string PhasorIR::unescapeString(const std::string &str)
 		case 'U':
 		{
 			int      ndigits = (esc == 'u') ? 4 : 8;
-			uint32_t cp      = 0;
+			u32 cp      = 0;
 			bool     ok      = true;
 			for (int k = 0; k < ndigits; ++k)
 			{
 				if (i + 1 >= len || hexVal(str[i + 1]) < 0) { ok = false; break; }
-				cp = (cp << 4) | static_cast<uint32_t>(hexVal(str[++i]));
+				cp = (cp << 4) | static_cast<u32>(hexVal(str[++i]));
 			}
 			if (!ok || cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
 			{
@@ -359,7 +360,7 @@ std::string PhasorIR::unescapeString(const std::string &str)
 	return result;
 }
 
-std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
+std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
 {
 	std::stringstream ss;
 
@@ -444,7 +445,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 		instrLine << opCodeToString(instr.op);
 
 		int     operandCount = getOperandCount(instr.op);
-		int32_t operands[3] = {instr.operand1, instr.operand2, instr.operand3};
+		i32 operands[3] = {instr.operand1, instr.operand2, instr.operand3};
 
 		std::string comment;
 
@@ -526,7 +527,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 	}
 
 	std::string          textData = ss.str();
-	std::vector<uint8_t> buffer;
+	std::vector<u8> buffer;
 
 	// Append text data
 	buffer.insert(buffer.end(), textData.begin(), textData.end());
@@ -534,7 +535,7 @@ std::vector<uint8_t> PhasorIR::serialize(const Bytecode &bytecode)
 	return buffer;
 }
 
-Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
+Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
 {
 	if (data.size() < 8)
 	{
@@ -580,13 +581,13 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 				}
 				else if (type == "INT")
 				{
-					int64_t val;
+					i64 val;
 					ss >> val;
 					bytecode.constants.emplace_back(val);
 				}
 				else if (type == "FLOAT")
 				{
-					double val;
+					f64 val;
 					ss >> val;
 					bytecode.constants.emplace_back(val);
 				}
@@ -660,7 +661,7 @@ Bytecode PhasorIR::deserialize(const std::vector<uint8_t> &data)
 
 				OpCode  op = stringToOpCode(opStr);
 				int     operandCount = getOperandCount(op);
-				int32_t operands[3] = {0, 0, 0};
+				i32 operands[3] = {0, 0, 0};
 
 				for (int j = 0; j < operandCount; ++j)
 				{
@@ -711,8 +712,8 @@ bool PhasorIR::saveToFile(const Bytecode &bytecode, const std::filesystem::path 
 {
 	try
 	{
-		std::vector<uint8_t> data = serialize(bytecode);
-		std::ofstream        file(filename, std::ios::binary);
+		std::vector<u8> data = serialize(bytecode);
+		std::ofstream   file(filename, std::ios::binary);
 		if (!file.is_open())
 		{
 			return false;
@@ -735,7 +736,7 @@ Bytecode PhasorIR::loadFromFile(const std::filesystem::path &filename)
 	}
 	std::streamsize size = file.tellg();
 	file.seekg(0, std::ios::beg);
-	std::vector<uint8_t> buffer(size);
+	std::vector<u8> buffer(size);
 	if (!file.read(reinterpret_cast<char *>(buffer.data()), size))
 	{
 		throw std::runtime_error("Cannot read file");

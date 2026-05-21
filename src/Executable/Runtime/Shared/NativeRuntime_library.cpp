@@ -11,6 +11,7 @@
 #include "../../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 #include <version.h>
 #include <nativeerror.h>
+#include <phsint.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -64,7 +65,7 @@ extern "C"
 		set_terminal_title(moduleName);
 		try
 		{
-			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
+			std::vector<u8>  bytecodeData(bytecode, bytecode + bytecodeSize);
 			Phasor::NativeRuntime NativeRT(static_cast<Phasor::VM *>(vmPtr), bytecodeData, argc, argv);
 
 			return NativeRT.run();
@@ -82,7 +83,7 @@ extern "C"
 		set_terminal_title(moduleName);
 		try
 		{
-			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
+			std::vector<u8>  bytecodeData(bytecode, bytecode + bytecodeSize);
 			Phasor::NativeRuntime NativeRT(static_cast<Phasor::VM *>(vmPtr), bytecodeData, argc, argv);
 
 			return NativeRT.runFunctionInt(functionName);
@@ -101,7 +102,7 @@ extern "C"
 		static std::string ret;
 		try
 		{
-			std::vector<uint8_t>  bytecodeData(bytecode, bytecode + bytecodeSize);
+			std::vector<u8>  bytecodeData(bytecode, bytecode + bytecodeSize);
 			Phasor::NativeRuntime NativeRT(static_cast<Phasor::VM *>(vmPtr), bytecodeData, argc, argv);
 
 			auto result = NativeRT.runFunctionString(functionName);
@@ -165,7 +166,7 @@ extern "C"
 
 			auto                 ast = parser.parse();
 			auto                 bc = codegen.generate(*ast);
-			std::vector<uint8_t> data = serializer.serialize(bc);
+			std::vector<u8> data = serializer.serialize(bc);
 
 			if (outSize)
 				*outSize = data.size();
@@ -200,7 +201,7 @@ extern "C"
 
 			auto                 ast = parser.parse();
 			auto                 bc = codegen.generate(*ast);
-			std::vector<uint8_t> data = serializer.serialize(bc);
+			std::vector<u8> data = serializer.serialize(bc);
 
 			if (outSize)
 				*outSize = data.size();

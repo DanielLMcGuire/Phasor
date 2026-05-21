@@ -1,6 +1,7 @@
 #include "CodeGen.hpp"
 #include <iostream>
 #include <unordered_map>
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -33,7 +34,7 @@ bool CodeGenerator::isLiteralExpression(const AST::Expression *expr, Value &outV
 			}
 			else
 			{
-				outValue = Value(static_cast<int64_t>(std::stoll(numExpr->value)));
+				outValue = Value(static_cast<i64>(std::stoll(numExpr->value)));
 			}
 			return true;
 		}
@@ -302,13 +303,13 @@ void CodeGenerator::generateNumberExpr(const AST::NumberExpr *numExpr)
 		// Check if it has a decimal point
 		if (numExpr->value.find('.') != std::string::npos)
 		{
-			double d = std::stod(numExpr->value);
-			int    constIndex = bytecode.addConstant(Value(d));
+			f64 d = std::stod(numExpr->value);
+			int constIndex = bytecode.addConstant(Value(d));
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 		}
 		else
 		{
-			int64_t i = std::stoll(numExpr->value);
+			i64 i = std::stoll(numExpr->value);
 			int     constIndex = bytecode.addConstant(Value(i));
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 		}
@@ -363,7 +364,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 		if (const auto *strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
 		{
 			// Constant fold len("literal")
-			auto len = (int64_t)strExpr->value.length();
+			auto len = (i64)strExpr->value.length();
 			int  constIndex = bytecode.addConstant(Value(len));
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 			return;
@@ -428,7 +429,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	}
 
 	// Push argument count
-	int constIndex = bytecode.addConstant(Value(static_cast<int64_t>(callExpr->arguments.size())));
+	int constIndex = bytecode.addConstant(Value(static_cast<i64>(callExpr->arguments.size())));
 	bytecode.emit(OpCode::PUSH_CONST, constIndex);
 
 	// Check if it's a user function
@@ -563,9 +564,9 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 		return;
 	}
 
-	uint8_t rLeft = allocateRegister();
-	uint8_t rRight = allocateRegister();
-	uint8_t rResult = allocateRegister();
+	u8 rLeft = allocateRegister();
+	u8 rRight = allocateRegister();
+	u8 rResult = allocateRegister();
 
 	// Reuse literal detection done here to choose appropriate register opcodes.
 	Value leftLiteral;
@@ -1051,7 +1052,7 @@ void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr, bool resul
 
     bytecode.emit(OpCode::LOAD_VAR, varIndex);
 
-    int oneIndex = bytecode.addConstant(Value(static_cast<int64_t>(1)));
+    int oneIndex = bytecode.addConstant(Value(static_cast<i64>(1)));
     bytecode.emit(OpCode::PUSH_CONST, oneIndex);
 
     auto it = inferredTypes.find(identExpr->name);

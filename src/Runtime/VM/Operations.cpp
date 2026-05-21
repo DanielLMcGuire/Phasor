@@ -1,15 +1,16 @@
 #ifndef CMAKE_PCH
 #include "VM.hpp" // avoid breaking IDEs
 #endif
+#include <phsint.hpp>
 
 namespace Phasor
 {
 
 Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, const int &operand3)
 {
-	uint8_t rA = static_cast<uint8_t>(operand1);
-	uint8_t rB = static_cast<uint8_t>(operand2);
-	uint8_t rC = static_cast<uint8_t>(operand3);
+	u8 rA = static_cast<u8>(operand1);
+	u8 rB = static_cast<u8>(operand2);
+	u8 rC = static_cast<u8>(operand3);
 #ifdef TRACING
 	log(std::format("VM::{}({}, {}, {}, {})\n", __func__, opCodeToString(op), operand1, operand2, operand3));
 	flush();
@@ -433,7 +434,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef TRACING
 		log(std::format("PRINT: (stdout) {:T}\n", v));
 #else
-		c_print_stdout(s.c_str(), (int64_t)s.length());
+		c_print_stdout(s.c_str(), (i64)s.length());
 #endif
 		flush();
 		break;
@@ -445,7 +446,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef TRACING
 		log(std::format("PRINTERROR: (stderr) {:T}\n", v));
 #else
-		c_print_stderr(s.c_str(), (int64_t)s.length());
+		c_print_stderr(s.c_str(), (i64)s.length());
 #endif
 		flusherr();
 		break;
@@ -524,7 +525,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::LEN: {
 		Value v = pop();
-		push(Value(static_cast<int64_t>(v.asString().length())));
+		push(Value(static_cast<i64>(v.asString().length())));
 		break;
 	}
 
@@ -538,11 +539,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		else
 			s = strVal.toString();
 
-		int64_t idx = 0;
+		i64 idx = 0;
 		if (idxVal.isInt())
 			idx = idxVal.asInt();
 		else if (idxVal.isFloat())
-			idx = static_cast<int64_t>(idxVal.asFloat());
+			idx = static_cast<i64>(idxVal.asFloat());
 		else if (idxVal.isString())
 		{
 			try
@@ -557,7 +558,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		else
 			throw std::runtime_error("char_at() expects string and integer");
 
-		if (idx < 0 || idx >= static_cast<int64_t>(s.length()))
+		if (idx < 0 || idx >= static_cast<i64>(s.length()))
 			push(Value(""));
 		else
 			push(Value(std::string(1, s[static_cast<size_t>(idx)])));
@@ -572,10 +573,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (strVal.isString() && startVal.isInt() && lenVal.isInt())
 		{
 			const std::string &s = strVal.asString();
-			int64_t            start = startVal.asInt();
-			int64_t            len = lenVal.asInt();
+			i64            start = startVal.asInt();
+			i64            len = lenVal.asInt();
 
-			if (start < 0 || start >= static_cast<int64_t>(s.length()))
+			if (start < 0 || start >= static_cast<i64>(s.length()))
 			{
 				push(Value(""));
 			}
@@ -948,7 +949,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef TRACING
 		log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
 #else
-		c_print_stdout(s.c_str(), (int64_t)s.length());
+		c_print_stdout(s.c_str(), (i64)s.length());
 #endif
 		flush();
 		break;
@@ -959,7 +960,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #ifdef TRACING
 		log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
 #else
-		c_print_stderr(s.c_str(), (int64_t)s.length());
+		c_print_stderr(s.c_str(), (i64)s.length());
 #endif
 		flusherr();
 		break;
@@ -989,7 +990,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 #ifdef TRACING
 		Value   cmd = registers[rA];
-		int64_t ret = c_system(cmd.c_str());
+		i64 ret = c_system(cmd.c_str());
 		log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
 		registers[rA] = ret;
 #else

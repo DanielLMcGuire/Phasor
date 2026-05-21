@@ -35,6 +35,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <memory_resource>
+#include "../phsint.hpp"
 
 #ifndef SANDBOXED
 #include "PhasorFFI.hpp"
@@ -120,23 +121,23 @@ class VM
 	/// @brief Set a register value
 	/// @param index Register index
 	/// @param value Value to set
-	void setRegister(uint8_t index, const Value &value);
+	void setRegister(u8 index, const Value &value);
 
 	/// @brief Free a register (reset to null)
 	/// @param index Register index to free
-	void freeRegister(uint8_t index);
+	void freeRegister(u8index);
 
 	/// @brief Get a register value
 	/// @param index Register index
 	/// @return Value in the register
-	Value getRegister(uint8_t index);
+	Value getRegister(u8 index);
 
 	/// @brief Get the total number of registers
 	/// @return Number of registers
 	size_t getRegisterCount();
 
 	/// @brief Enum for registers
-	enum Register : uint8_t
+	enum Register : u8
 	{
 		r0,
 		r1,
