@@ -30,11 +30,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
     - name: Set up MSVC
       if: matrix.os == 'windows-2025-vs2026'
-      uses: egor-tensin/vs-shell@v2
+      uses: egor-tensin/vs-shell@54e4148eac794e4580591c2e0b7750f14b7891fc # v2
       with:
         arch: x64
 
@@ -69,7 +69,7 @@ jobs:
 
     - name: Attest build provenance
       id: attest
-      uses: actions/attest-build-provenance@v4
+      uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4
       with:
         subject-path: |
           install/**/bin/*
@@ -106,7 +106,7 @@ jobs:
       run: ./build/src/Executable/phasor --version >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: build-${{ matrix.os }}
         path: ${{ github.workspace }}/install
