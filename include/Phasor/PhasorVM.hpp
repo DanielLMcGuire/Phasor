@@ -125,7 +125,7 @@ class VM
 
 	/// @brief Free a register (reset to null)
 	/// @param index Register index to free
-	void freeRegister(u8index);
+	void freeRegister(u8 index);
 
 	/// @brief Get a register value
 	/// @param index Register index
