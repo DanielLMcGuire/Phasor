@@ -24,7 +24,6 @@
 #include "../FFI/ffi.hpp"
 #endif
 
-#define DIRECT_CALL_STATUS -47
 #define BAD_STATUS -1
 
 /// @brief The Phasor Programming Language and Runtime
@@ -201,6 +200,7 @@ class VM
 	void setStatus(int newStatus);
 	void resetStatus();
 	int  getStatus();
+	bool isErrorStatus();
 
 	/**
 	 * @brief Run an opcode with arguments pre-loaded into registers
@@ -245,6 +245,9 @@ class VM
 #endif
 	/// @brief Exit code
 	int status = 0;
+
+	/// @brief Is status an error code
+	bool isError = false;
 
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;

@@ -1,4 +1,4 @@
-use phasorrt_rs::{get_version, PhasorError, PhasorVM, compile_phs};
+use phasorrt_rs::{get_version, compile_phs, PhasorError, PhasorVM};
 
 fn main() -> Result<(), PhasorError> {
     println!("Phasor Version: {}", get_version()?);
@@ -6,14 +6,27 @@ fn main() -> Result<(), PhasorError> {
     let mut vm = PhasorVM::new()?;
     vm.init_stdlib()?;
 
-    let script = "using(\"stdsys\");
-                        fn main() -> int {
-                            using(\"stdio\");
-                            puts(\"Hello, World!\");
-                            return 0;
-                        }
-                        shutdown(main());";
-    let bc: Vec<u8> = compile_phs(script, "Hello World Script", Some(""))?;
+    let script = "
+using(\"stdsys\");
+fn main() -> int {
+    using(\"stdio\");
+    puts(\"Hello, World!\");
+    return 0;
+}
+shutdown(main());";
+
+    println!("script = \"{}\"", script);
+
+    let bc = match compile_phs(script, "compile_phs Test", None) {
+        Ok(bytecode) => {
+            println!("Script compiled successfully, bytecode size: {}", bytecode.len());
+            bytecode
+        }
+        Err(err) => {
+            eprintln!("Compilation failed: {:?}", err);
+            return Err(err);
+        }
+    };
 
     // args are command line, i might add function args in a future C API version
     match vm.exec_func_int(&bc, "exec_func_int Test", "main", &[]) {

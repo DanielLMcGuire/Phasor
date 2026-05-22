@@ -48,6 +48,10 @@ int VM::getStatus()
 {
 	return status;
 }
+bool VM::isErrorStatus()
+{
+	return isError;
+}
 
 void VM::initFFI(const std::filesystem::path &path)
 {
@@ -153,16 +157,19 @@ Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const b
         evalLoop();
     }
     catch (const VM::Halt &) {
-		if (status == DIRECT_CALL_STATUS) {
+		if (isDirectCall) {
 			Value ret = pop();
+			if (ret.isInt()) status = ret.asInt();
+			else status = 0;
 			reset(true, false, true);
 			return ret;
 		} else {
-			throw std::runtime_error("Function was not properly handled!");
+			throw std::runtime_error("Function call was not properly handled!");
 		}
 	}
 	throw std::runtime_error("Function did not return properly!");
 	status = BAD_STATUS;
+	isError = true;
 	return Value();
 }
 

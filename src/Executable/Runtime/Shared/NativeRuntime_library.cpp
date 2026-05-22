@@ -252,6 +252,16 @@ extern "C"
 		vm->reset(true, resetFunctions, resetVariables);
 		return true;
 	}
+
+	PHASOR_API bool isErrorStatus(void *vmPtr)
+	{
+		if (!vmPtr)
+			return false;
+
+		Phasor::VM *vm = static_cast<Phasor::VM *>(vmPtr);
+		return vm->isErrorStatus();
+	}
+
 #if defined(_SHARED) && defined(_WIN32)
 	PHASOR_API void CALLBACK PhasorSourceStringEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{

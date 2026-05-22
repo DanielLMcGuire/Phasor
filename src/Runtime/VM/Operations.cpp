@@ -47,7 +47,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (isDirectCall)
 		{
 			pc = 0;
-			status = DIRECT_CALL_STATUS;
 			throw VM::Halt();
 			break;
 		}
