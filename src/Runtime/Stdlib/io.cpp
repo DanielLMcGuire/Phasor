@@ -1,11 +1,5 @@
 #include "StdLib.hpp"
-
-static std::string toHex(int value)
-{
-	std::stringstream ss;
-	ss << std::showbase << std::hex << value;
-	return ss.str();
-}
+#include <vformat.hpp>
 
 namespace Phasor
 {
@@ -42,47 +36,12 @@ std::string StdLib::io_c_format(const std::vector<Value> &args, VM *)
 	}
 
 	const std::string &fmt = args[0].asString();
-	std::string        out;
-	size_t             argIndex = 1; // Start from 1 because args[0] is the format string
 
-	for (size_t i = 0; i < fmt.size(); ++i)
-	{
-		if (fmt[i] == '%' && i + 1 < fmt.size())
-		{
-			char spec = fmt[++i]; // Move to the format specifier
-			if (argIndex < args.size())
-			{
-				const Value &v = args[argIndex++];
-				switch (spec)
-				{
-				case 's':
-				case 'c':
-					out += v.asString();
-					break;
-				case 'd':
-					out += std::to_string(v.asInt());
-					break;
-				case 'f':
-					out += std::to_string(v.asFloat());
-					break;
-				case '%':
-					out += '%';
-					break;
-				case 'x':
-					out += "0x" + toHex((int)v.asInt());
-					break;
-				default:
-					// Unknown specifier, include it literally
-					out += '%';
-					out += spec;
-					break;
-				}
-				continue;
-			}
-		}
-		out += fmt[i];
-	}
-	return out;
+	// Make vector of format args
+	std::vector<Value> formatArgs(args.begin() + 1, args.end());
+
+	return vformat::str_format_v(fmt.c_str(), formatArgs);
+	
 }
 
 std::string StdLib::io_prints(const std::vector<Value> &args, VM *vm)

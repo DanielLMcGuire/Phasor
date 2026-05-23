@@ -18,13 +18,13 @@
 #endif
 
 #include <cstring>
-#include <stdio.h>
+#include <vformat.hpp>
 
 void set_terminal_title(const char *title) {
 #ifdef _WIN32
     SetConsoleTitleA(title);
 #else
-    printf("\033]0;%s\007", title);
+    vformat::printf("\033]0;%s\007", title);
     fflush(stdout);
 #endif
 }
