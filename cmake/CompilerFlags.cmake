@@ -54,7 +54,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     endif()
 
     if (WIN32)
-        set(COMMON_OPT  "-O2 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -DNOMINMAX -DWIN32_LEAN_AND_MEAN")
+        set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -DNOMINMAX -DWIN32_LEAN_AND_MEAN")
     else()
         set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers")
     endif()
