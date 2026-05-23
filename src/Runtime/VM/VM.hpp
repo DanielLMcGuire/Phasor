@@ -11,6 +11,7 @@
 #include <ranges>
 #include "core/core.h"
 #include <iostream>
+#include <phsint.hpp>
 #include <stdexcept>
 #include <memory_resource>
 #ifdef TRACING
@@ -23,7 +24,6 @@
 #include "../FFI/ffi.hpp"
 #endif
 
-#define DIRECT_CALL_STATUS -47
 #define BAD_STATUS -1
 
 /// @brief The Phasor Programming Language and Runtime
@@ -99,23 +99,23 @@ class VM
 	/// @brief Set a register value
 	/// @param index Register index
 	/// @param value Value to set
-	void setRegister(uint8_t index, const Value &value);
+	void setRegister(u8 index, const Value &value);
 
 	/// @brief Free a register (reset to null)
 	/// @param index Register index to free
-	void freeRegister(uint8_t index);
+	void freeRegister(u8 index);
 
 	/// @brief Get a register value
 	/// @param index Register index
 	/// @return Value in the register
-	Value getRegister(uint8_t index);
+	Value getRegister(u8 index);
 
 	/// @brief Get the total number of registers
 	/// @return Number of registers
 	size_t getRegisterCount();
 
 	/// @brief Enum for registers
-	enum Register : uint8_t
+	enum Register : u8
 	{
 		r0,
 		r1,
@@ -200,6 +200,7 @@ class VM
 	void setStatus(int newStatus);
 	void resetStatus();
 	int  getStatus();
+	bool isErrorStatus();
 
 	/**
 	 * @brief Run an opcode with arguments pre-loaded into registers
@@ -244,6 +245,9 @@ class VM
 #endif
 	/// @brief Exit code
 	int status = 0;
+
+	/// @brief Is status an error code
+	bool isError = false;
 
 	/// @brief Import handler for loading modules
 	ImportHandler importHandler;

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <sstream>
 #include <string>
+#include <phsint.hpp>
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -43,7 +44,7 @@ class CppCodeGenerator
 	std::ostringstream   output; ///< Output stream for generated code
 	const Bytecode      *bytecode = nullptr;
 	std::string          moduleName;
-	std::vector<uint8_t> serializedBytecode; ///< Serialized bytecode in .phsb format
+	std::vector<u8> serializedBytecode; ///< Serialized bytecode in .phsb format
 
 	// Code generation methods
 	void generateFileHeader();

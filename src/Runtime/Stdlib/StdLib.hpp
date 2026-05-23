@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
+#include <phsint.hpp>
 
 #include "../VM/VM.hpp"
 #ifndef CMAKE_PCH
@@ -78,7 +79,7 @@ class StdLib
 
 #pragma region stdmeta
 #ifndef SANDBOXED
-	static int64_t meta_operation(const std::vector<Value> &args, VM *vm);
+	static i64 meta_operation(const std::vector<Value> &args, VM *vm);
 	static Value   meta_stack_run(const std::vector<Value> &args, VM *vm);
 #endif
 	static std::string meta_get_version(const std::vector<Value> &args, VM *vm);
@@ -90,19 +91,19 @@ class StdLib
 #pragma endregion
 
 #pragma region stdmath
-	static double math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
-	static double math_pow(const std::vector<Value> &args, VM *vm);   ///< Power
+	static f64 math_sqrt(const std::vector<Value> &args, VM *vm);  ///< Square root
+	static f64 math_pow(const std::vector<Value> &args, VM *vm);   ///< Power
 	static Value  math_abs(const std::vector<Value> &args, VM *vm);   ///< Absolute value
-	static double math_floor(const std::vector<Value> &args, VM *vm); ///< Floor
-	static double math_ceil(const std::vector<Value> &args, VM *vm);  ///< Ceiling
-	static double math_round(const std::vector<Value> &args, VM *vm); ///< Round
+	static f64 math_floor(const std::vector<Value> &args, VM *vm); ///< Floor
+	static f64 math_ceil(const std::vector<Value> &args, VM *vm);  ///< Ceiling
+	static f64 math_round(const std::vector<Value> &args, VM *vm); ///< Round
 	static Value  math_min(const std::vector<Value> &args, VM *vm);   ///< Minimum
 	static Value  math_max(const std::vector<Value> &args, VM *vm);   ///< Maximum
-	static double math_log(const std::vector<Value> &args, VM *vm);   ///< Natural logarithm
-	static double math_exp(const std::vector<Value> &args, VM *vm);   ///< Exponential
-	static double math_sin(const std::vector<Value> &args, VM *vm);   ///< Sine
-	static double math_cos(const std::vector<Value> &args, VM *vm);   ///< Cosine
-	static double math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
+	static f64 math_log(const std::vector<Value> &args, VM *vm);   ///< Natural logarithm
+	static f64 math_exp(const std::vector<Value> &args, VM *vm);   ///< Exponential
+	static f64 math_sin(const std::vector<Value> &args, VM *vm);   ///< Sine
+	static f64 math_cos(const std::vector<Value> &args, VM *vm);   ///< Cosine
+	static f64 math_tan(const std::vector<Value> &args, VM *vm);   ///< Tangent
 #pragma endregion
 
 #pragma region stdfile
@@ -120,7 +121,7 @@ class StdLib
 	static bool        file_copy(const std::vector<Value> &args, VM *vm);              ///< Copy file
 	static bool        file_move(const std::vector<Value> &args, VM *vm);              ///< Move file
 	static bool        file_property_edit(const std::vector<Value> &args, VM *vm);
-	static int64_t     file_property_get(const std::vector<Value> &args, VM *vm);
+	static i64     file_property_get(const std::vector<Value> &args, VM *vm);
 	static bool        file_create(const std::vector<Value> &args, VM *vm);
 	static Value       file_read_directory(const std::vector<Value> &args, VM *vm);
 	static bool        file_create_directory(const std::vector<Value> &args, VM *vm);
@@ -131,33 +132,33 @@ class StdLib
 	static std::string file_extension(const std::vector<Value> &args, VM *vm);    ///< Get the extension of a path
 	static bool        file_is_directory(const std::vector<Value> &args, VM *vm); ///< Check if path is directory
 	static std::string file_parent(const std::vector<Value> &args, VM *vm);       ///< Get the parent of a path
-	static int64_t     file_get_size(const std::vector<Value> &args, VM *vm);
+	static i64     file_get_size(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 #pragma region stdsys
-	static int64_t     sys_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
+	static i64     sys_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
 	static Value       sys_wait_for_input(const std::vector<Value> &args, VM *vm);  ///< Wait for input
 	static Value       sys_shell(const std::vector<Value> &args, VM *vm);           ///< Run a shell command
-	static int64_t     sys_fork(const std::vector<Value> &args, VM *vm);            ///< Run a native program
-	static int64_t     sys_fork_detached(const std::vector<Value> &args, VM *vm);   ///< Run a native program detached
+	static i64     sys_fork(const std::vector<Value> &args, VM *vm);            ///< Run a native program
+	static i64     sys_fork_detached(const std::vector<Value> &args, VM *vm);   ///< Run a native program detached
 	static Value       sys_crash(const std::vector<Value> &args, VM *vm);           ///< Crash the VM / Program
 	static Value       sys_reset(const std::vector<Value> &args, VM *vm);           ///< Reset the VM
-	static int64_t     sys_pid(const std::vector<Value> &args, VM *vm);             ///< Get the current process ID
+	static i64     sys_pid(const std::vector<Value> &args, VM *vm);             ///< Get the current process ID
 	static std::string sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
 	static Value sys_isatty(const std::vector<Value> &args, VM *vm); ///< Check if the current output is a terminal
 #endif
 	static Value sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables
 	static Value   sys_argv(const std::vector<Value> &args, VM *vm); ///< Get the current command line arguments
-	static int64_t sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
-	static double  sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
+	static i64 sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
+	static f64  sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
 	static Value   sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
 	static Value   sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
 	static Value   sys_shutdown(const std::vector<Value> &args, VM *vm);       ///< Shutdown the VM
 #pragma endregion
 
 #pragma region stdtype
-	static int64_t     to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
-	static double      to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
+	static i64     to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
+	static f64      to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
 	static std::string to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static bool        to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
 #pragma endregion
@@ -165,15 +166,15 @@ class StdLib
 #pragma region stdrand
 
 	static Value   rand_seed(const std::vector<Value> &args, VM *vm);       ///< Seed the random number generator
-	static int64_t rand_next_range(const std::vector<Value> &args, VM *vm); ///< Get a random number in range
-	static double  rand_next_float(const std::vector<Value> &args,
-	                               VM *vm); ///< Get a random float (technically a double at a low level)
+	static i64 rand_next_range(const std::vector<Value> &args, VM *vm); ///< Get a random number in range
+	static f64  rand_next_float(const std::vector<Value> &args,
+	                               VM *vm); ///< Get a random float (technically a f64 at a low level)
 
 #pragma endregion
 
 #pragma region stdstr
-	static int64_t     str_find(const std::vector<Value> &args, VM *vm);        ///< Find string in string
-	static int64_t     str_len(const std::vector<Value> &args, VM *vm);         ///< Get string length
+	static i64     str_find(const std::vector<Value> &args, VM *vm);        ///< Find string in string
+	static i64     str_len(const std::vector<Value> &args, VM *vm);         ///< Get string length
 	static Value       str_char_at(const std::vector<Value> &args, VM *vm);     ///< Get character at index
 	static Value       str_substr(const std::vector<Value> &args, VM *vm);      ///< Get substring
 	static std::string str_concat(const std::vector<Value> &args, VM *vm);      ///< Concatenate strings
@@ -182,7 +183,7 @@ class StdLib
 	static Value       str_starts_with(const std::vector<Value> &args, VM *vm); ///< Check if string starts with
 	static Value       str_ends_with(const std::vector<Value> &args, VM *vm);   ///< Check if string ends with
 	// StringBuilder functions
-	static int64_t     sb_new(const std::vector<Value> &args, VM *vm);       ///< Create new string builder
+	static i64     sb_new(const std::vector<Value> &args, VM *vm);       ///< Create new string builder
 	static Value       sb_append(const std::vector<Value> &args, VM *vm);    ///< Append to string builder
 	static std::string sb_to_string(const std::vector<Value> &args, VM *vm); ///< Convert string builder to string
 	static Value       sb_clear(const std::vector<Value> &args, VM *vm);     ///< Clear string builder

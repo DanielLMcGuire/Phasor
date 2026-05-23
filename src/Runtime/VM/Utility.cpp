@@ -6,6 +6,7 @@
 #include <format>
 #include <cassert>
 #include "core/core.h"
+#include <phsint.hpp>
 
 #ifdef TIMING
 #include <chrono>
@@ -46,6 +47,10 @@ void VM::resetStatus()
 int VM::getStatus()
 {
 	return status;
+}
+bool VM::isErrorStatus()
+{
+	return isError;
 }
 
 void VM::initFFI(const std::filesystem::path &path)
@@ -152,16 +157,19 @@ Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const b
         evalLoop();
     }
     catch (const VM::Halt &) {
-		if (status == DIRECT_CALL_STATUS) {
+		if (isDirectCall) {
 			Value ret = pop();
+			if (ret.isInt()) status = ret.asInt();
+			else status = 0;
 			reset(true, false, true);
 			return ret;
 		} else {
-			throw std::runtime_error("Function was not properly handled!");
+			throw std::runtime_error("Function call was not properly handled!");
 		}
 	}
 	throw std::runtime_error("Function did not return properly!");
 	status = BAD_STATUS;
+	isError = true;
 	return Value();
 }
 
@@ -284,13 +292,13 @@ std::string VM::getBytecodeInformation()
 void VM::log(const Value &msg)
 {
 	std::string s = msg.toString();
-	c_print_stdout(s.c_str(), (int64_t)s.length());
+	c_print_stdout(s.c_str(), (i64)s.length());
 }
 
 void VM::logerr(const Value &msg)
 {
 	std::string s = msg.toString();
-	c_print_stderr(s.c_str(), (int64_t)s.length());
+	c_print_stderr(s.c_str(), (i64)s.length());
 }
 
 void VM::flush()

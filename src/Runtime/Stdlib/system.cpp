@@ -7,6 +7,7 @@
 #if defined(_MSC_VER)
 #include <vcruntime_startup.h>
 #endif
+#include <phsint.hpp>
 
 #include "core/system.h"
 
@@ -89,12 +90,12 @@ void StdLib::registerSysFunctions(VM *vm)
 #pragma warning(pop)
 #endif
 
-double StdLib::sys_time(const std::vector<Value> &args, VM *)
+f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "time");
 	auto   now = std::chrono::steady_clock::now();
 	auto   duration = now.time_since_epoch();
-	double millis = std::chrono::duration<double, std::milli>(duration).count();
+	f64 millis = std::chrono::duration<f64, std::milli>(duration).count();
 	return millis;
 }
 
@@ -125,7 +126,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
-	int64_t ms = args[0].asInt();
+	i64 ms = args[0].asInt();
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 	return Value(" ");
 }
@@ -144,17 +145,17 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
-	int64_t index = args[0].asInt();
+	i64 index = args[0].asInt();
 	if (argv)
 		if (argc > index && index >= 0) return argv[index];
 		else throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
 	else return Value();
 }
 
-int64_t StdLib::sys_argc(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_argc");
-	return static_cast<int64_t>(argc);
+	return static_cast<i64>(argc);
 }
 
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
@@ -185,10 +186,10 @@ std::string StdLib::sys_os(const std::vector<Value> &args, VM *)
 #endif
 }
 
-int64_t StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_get_memory");
-	return static_cast<int64_t>(PHASORstd_sys_getAvailableMemory());
+	return static_cast<i64>(PHASORstd_sys_getAvailableMemory());
 }
 
 Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
@@ -204,7 +205,7 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-int64_t StdLib::sys_fork(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork", true);
 	const char         *executable = args[0].c_str();
@@ -214,10 +215,10 @@ int64_t StdLib::sys_fork(const std::vector<Value> &args, VM *)
 	{
 		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
 	}
-	return static_cast<int64_t>(PHASORstd_sys_run(executable, argc, v_argv.data()));
+	return static_cast<i64>(PHASORstd_sys_run(executable, argc, v_argv.data()));
 }
 
-int64_t StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork_detached", true);
 	const char         *executable = args[0].c_str();
@@ -227,7 +228,7 @@ int64_t StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 	{
 		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
 	}
-	return static_cast<int64_t>(PHASORstd_sys_run_detached(executable, argc, v_argv.data()));
+	return static_cast<i64>(PHASORstd_sys_run_detached(executable, argc, v_argv.data()));
 }
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
@@ -245,13 +246,13 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 	return Value();
 }
 
-int64_t StdLib::sys_pid(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_pid(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_pid");
 #if defined(_WIN32)
-	return static_cast<int64_t>(GetCurrentProcessId());
+	return static_cast<i64>(GetCurrentProcessId());
 #else
-	return static_cast<int64_t>(getpid());
+	return static_cast<i64>(getpid());
 #endif
 }
 

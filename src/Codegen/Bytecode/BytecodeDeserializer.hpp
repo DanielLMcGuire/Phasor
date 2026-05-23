@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <phsint.hpp>
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -17,31 +19,31 @@ class BytecodeDeserializer
 {
   public:
 	/// @brief Deserialize bytecode from binary buffer
-	Bytecode deserialize(const std::vector<uint8_t> &data);
+	Bytecode deserialize(const std::vector<u8> &data);
 
 	/// @brief Load bytecode from .phsb file
 	Bytecode loadFromFile(const std::filesystem::path &filename);
 
   private:
-	const uint8_t *_data;
+	const u8 *_data;
 	size_t         position;
 	size_t         dataSize;
 
-	uint8_t     readUInt8();  ///< Helper method to read UInt8
-	uint16_t    readUInt16(); ///< Helper method to read UInt16
-	uint32_t    readUInt32(); ///< Helper method to read UInt32
-	int32_t     readInt32();  ///< Helper method to read Int32
-	int64_t     readInt64();  //< Helper method to read Int64
-	double      readDouble(); //< Helper method to read Double
+	u8          readUInt8();  ///< Helper method to read UInt8
+	u16         readUInt16(); ///< Helper method to read UInt16
+	u32         readUInt32(); ///< Helper method to read UInt32
+	i32         readInt32();  ///< Helper method to read Int32
+	i64         readInt64();  //< Helper method to read Int64
+	f64         readDouble(); //< Helper method to read Double
 	std::string readString(); //< Helper method to read String
 
-	void readHeader(uint32_t &checksum);          ///< Helper method to read Header
+	void readHeader(u32 &checksum);          ///< Helper method to read Header
 	void readConstantPool(Bytecode &bytecode);    ///< Helper method to read Constants Table
 	void readVariableMapping(Bytecode &bytecode); ///< Helper method to read Variable Table
 	void readInstructions(Bytecode &bytecode);    ///< Helper method to read Instuctions Table
 	void readFunctionEntries(Bytecode &bytecode); ///< Helper method to read Function Entries
 
 	/// @brief Calculate CRC32 checksum
-	static uint32_t calculateCRC32(const uint8_t *data, size_t size);
+	static u32 calculateCRC32(const u8 *data, size_t size);
 };
 } // namespace Phasor

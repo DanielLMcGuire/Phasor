@@ -1,5 +1,6 @@
 #include "StdLib.hpp"
 #include <string>
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -27,7 +28,7 @@ void StdLib::registerStringFunctions(VM *vm)
 static std::vector<std::string> sbPool;
 static std::vector<size_t>      sbFreeIndices;
 
-int64_t StdLib::str_find(const std::vector<Value> &args, VM *)
+i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "find", true);
 	std::string s = args[0].asString();
@@ -35,22 +36,22 @@ int64_t StdLib::str_find(const std::vector<Value> &args, VM *)
 	size_t      pos;
 	if (args.size() == 3)
 	{
-		int64_t start = args[2].asInt();
+		i64 start = args[2].asInt();
 		pos = s.find(sub, start);
 		if (pos != std::string::npos)
 		{
-			return static_cast<int64_t>(pos);
+			return static_cast<i64>(pos);
 		}
 		return -1;
 	}
 	else if (args.size() == 4)
 	{
-		int64_t start = args[2].asInt();
-		int64_t end = args[3].asInt();
+		i64 start = args[2].asInt();
+		i64 end = args[3].asInt();
 		pos = s.find(sub, start);
 		if (pos != std::string::npos && pos < static_cast<size_t>(end))
 		{
-			return static_cast<int64_t>(pos);
+			return static_cast<i64>(pos);
 		}
 		return -1;
 	}
@@ -58,10 +59,10 @@ int64_t StdLib::str_find(const std::vector<Value> &args, VM *)
 	{
 		pos = s.find(sub);
 	}
-	return pos != std::string::npos ? static_cast<int64_t>(pos) : false;
+	return pos != std::string::npos ? static_cast<i64>(pos) : false;
 }
 
-int64_t StdLib::sb_new(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 0, "sb_new");
 	size_t idx;
@@ -76,14 +77,14 @@ int64_t StdLib::sb_new(const std::vector<Value> &args, VM *)
 		idx = sbPool.size();
 		sbPool.push_back("");
 	}
-	return static_cast<int64_t>(idx);
+	return static_cast<i64>(idx);
 }
 
 Value StdLib::sb_append(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 2, "sb_append");
-	int64_t idx = args[0].asInt();
-	if (idx < 0 || idx >= static_cast<int64_t>(sbPool.size()))
+	i64 idx = args[0].asInt();
+	if (idx < 0 || idx >= static_cast<i64>(sbPool.size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
 
 	sbPool[idx] += args[1].toString();
@@ -93,8 +94,8 @@ Value StdLib::sb_append(const std::vector<Value> &args, VM *)
 std::string StdLib::sb_to_string(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_to_string");
-	int64_t idx = args[0].asInt();
-	if (idx < 0 || idx >= static_cast<int64_t>(sbPool.size()))
+	i64 idx = args[0].asInt();
+	if (idx < 0 || idx >= static_cast<i64>(sbPool.size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
 
 	return sbPool[idx];
@@ -125,8 +126,8 @@ Value StdLib::str_char_at(const std::vector<Value> &args, VM *)
 	if (args[0].isString())
 	{
 		const std::string &s = args[0].asString();
-		int64_t            idx = args[1].asInt();
-		if (idx < 0 || idx >= static_cast<int64_t>(s.length()))
+		i64            idx = args[1].asInt();
+		if (idx < 0 || idx >= static_cast<i64>(s.length()))
 			return Value("");
 		return Value(std::string(1, s[idx]));
 	}
@@ -141,10 +142,10 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 		throw std::runtime_error("substr() expects 2 or 3 arguments");
 	}
 	std::string s = args[0].asString();
-	int64_t     start = args[1].asInt();
-	int64_t     len = (int64_t)args.size() == 3 ? args[2].asInt() : (int64_t)s.length() - start;
+	i64     start = args[1].asInt();
+	i64     len = (i64)args.size() == 3 ? args[2].asInt() : (i64)s.length() - start;
 
-	if (start < 0 || start >= static_cast<int64_t>(s.length()))
+	if (start < 0 || start >= static_cast<i64>(s.length()))
 	{
 		return Value("");
 	}
@@ -163,11 +164,11 @@ std::string StdLib::str_concat(const std::vector<Value> &args, VM *)
 	return result;
 }
 
-int64_t StdLib::str_len(const std::vector<Value> &args, VM *)
+i64 StdLib::str_len(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "len");
 	std::string s = args[0].toString();
-	return static_cast<int64_t>(s.length());
+	return static_cast<i64>(s.length());
 }
 
 std::string StdLib::str_upper(const std::vector<Value> &args, VM *)

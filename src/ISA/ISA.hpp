@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -8,7 +8,7 @@ namespace Phasor
  * @class OpCode
  * @brief Expanded opcode set for Phasor VM
  */
-enum class OpCode : uint8_t
+enum class OpCode : u8
 {
 	// Stack operations
 	PUSH_CONST, ///< Push constant from constant pool

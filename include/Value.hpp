@@ -29,7 +29,7 @@
 #include <memory>
 #include <vector>
 #include <format>
-#include <string>
+#include "phsint.hpp"
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -38,7 +38,7 @@ namespace Phasor
 /**
  * @brief Runtime value types for the VM
  */
-enum class ValueType : uint8_t
+enum class ValueType : u8
 {
 	Null,
 	Bool,
@@ -65,7 +65,7 @@ class Value
 	using ArrayInstance = std::vector<Value>;
 
   private:
-	using DataType = std::variant<std::monostate, bool, int64_t, double, std::shared_ptr<std::string>,
+	using DataType = std::variant<std::monostate, bool, i64, f64, std::shared_ptr<std::string>,
 	                              std::shared_ptr<StructInstance>,
 	                              std::shared_ptr<ArrayInstance>>;
 
@@ -81,15 +81,15 @@ class Value
 	{
 	}
 	/// @brief Integer constructor
-	Value(int64_t i) : data(i)
+	Value(i64 i) : data(i)
 	{
 	}
 	/// @brief Integer constructor
-	Value(int i) : data(static_cast<int64_t>(i))
+	Value(int i) : data(static_cast<i64>(i))
 	{
 	}
 	/// @brief Double constructor
-	Value(double d) : data(d)
+	Value(f64 d) : data(d)
 	{
 	}
 	/// @brief String constructor
@@ -156,28 +156,28 @@ class Value
 		return std::get<bool>(data);
 	}
 	/// @brief Get the value as an integer
-	[[nodiscard]] int64_t asInt() const noexcept
+	[[nodiscard]] i64 asInt() const noexcept
 	{
 		if (isInt())
 		{
-			return std::get<int64_t>(data);
+			return std::get<i64>(data);
 		}
 		if (isFloat())
 		{
-			return static_cast<int64_t>(std::get<double>(data));
+			return static_cast<i64>(std::get<f64>(data));
 		}
 		return 0;
 	}
-	/// @brief Get the value as a double
-	[[nodiscard]] double asFloat() const noexcept
+	/// @brief Get the value as a f64
+	[[nodiscard]] f64 asFloat() const noexcept
 	{
 		if (isFloat())
 		{
-			return std::get<double>(data);
+			return std::get<f64>(data);
 		}
 		if (isInt())
 		{
-			return static_cast<double>(std::get<int64_t>(data));
+			return static_cast<f64>(std::get<i64>(data));
 		}
 		return 0.0;
 	}

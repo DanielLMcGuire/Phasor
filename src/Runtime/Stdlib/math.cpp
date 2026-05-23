@@ -1,4 +1,5 @@
 #include "StdLib.hpp"
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -20,17 +21,17 @@ void StdLib::registerMathFunctions(VM *vm)
 	vm->registerNativeFunction("math_tan", StdLib::math_tan);
 }
 
-double StdLib::math_sqrt(const std::vector<Value> &args, VM *)
+f64 StdLib::math_sqrt(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_sqrt");
 	return asm_sqrt(args[0].asFloat());
 }
 
-double StdLib::math_pow(const std::vector<Value> &args, VM *)
+f64 StdLib::math_pow(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "math_pow");
-	double base = args[0].asFloat();
-	double expv = args[1].asFloat();
+	f64 base = args[0].asFloat();
+	f64 expv = args[1].asFloat();
 	return asm_pow(base, expv);
 }
 
@@ -43,21 +44,21 @@ Value StdLib::math_abs(const std::vector<Value> &args, VM *)
 	return std::abs(args[0].asFloat());
 }
 
-double StdLib::math_floor(const std::vector<Value> &args, VM *)
+f64 StdLib::math_floor(const std::vector<Value> &args, VM *)
 {
 	/// @todo Implement floor natively
 	checkArgCount(args, 1, "math_floor");
 	return std::floor(args[0].asFloat());
 }
 
-double StdLib::math_ceil(const std::vector<Value> &args, VM *)
+f64 StdLib::math_ceil(const std::vector<Value> &args, VM *)
 {
 	/// @todo Implement ceil natively
 	checkArgCount(args, 1, "math_ceil");
 	return std::ceil(args[0].asFloat());
 }
 
-double StdLib::math_round(const std::vector<Value> &args, VM *)
+f64 StdLib::math_round(const std::vector<Value> &args, VM *)
 {
 	/// @todo Implement round natively
 	checkArgCount(args, 1, "math_round");
@@ -71,14 +72,14 @@ Value StdLib::math_min(const std::vector<Value> &args, VM *)
 	const Value &b = args[1];
 	if (a.isInt() && b.isInt())
 	{
-		int64_t ai = a.asInt();
-		int64_t bi = b.asInt();
+		i64 ai = a.asInt();
+		i64 bi = b.asInt();
 		return Value(asm_iless_than(ai, bi) ? ai : bi);
 	}
 	if (a.isNumber() && b.isNumber())
 	{
-		double af = a.asFloat();
-		double bf = b.asFloat();
+		f64 af = a.asFloat();
+		f64 bf = b.asFloat();
 		return Value(asm_flless_than(af, bf) ? af : bf);
 	}
 	return a < b ? a : b;
@@ -91,44 +92,44 @@ Value StdLib::math_max(const std::vector<Value> &args, VM *)
 	const Value &b = args[1];
 	if (a.isInt() && b.isInt())
 	{
-		int64_t ai = a.asInt();
-		int64_t bi = b.asInt();
+		i64 ai = a.asInt();
+		i64 bi = b.asInt();
 		return Value(ai > bi ? ai : bi);
 	}
 	if (a.isNumber() && b.isNumber())
 	{
-		double af = a.asFloat();
-		double bf = b.asFloat();
+		f64 af = a.asFloat();
+		f64 bf = b.asFloat();
 		return Value(af > bf ? af : bf);
 	}
 	return a > b ? a : b;
 }
 
-double StdLib::math_log(const std::vector<Value> &args, VM *)
+f64 StdLib::math_log(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_log");
 	return asm_log(args[0].asFloat());
 }
 
-double StdLib::math_exp(const std::vector<Value> &args, VM *)
+f64 StdLib::math_exp(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_exp");
 	return asm_exp(args[0].asFloat());
 }
 
-double StdLib::math_sin(const std::vector<Value> &args, VM *)
+f64 StdLib::math_sin(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_sin");
 	return asm_sin(args[0].asFloat());
 }
 
-double StdLib::math_cos(const std::vector<Value> &args, VM *)
+f64 StdLib::math_cos(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_cos");
 	return asm_cos(args[0].asFloat());
 }
 
-double StdLib::math_tan(const std::vector<Value> &args, VM *)
+f64 StdLib::math_tan(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "math_tan");
 	return asm_tan(args[0].asFloat());

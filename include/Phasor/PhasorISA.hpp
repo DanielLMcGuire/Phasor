@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <phsint.hpp>
 
 #include <string>
 #include <vector>
@@ -30,7 +30,7 @@ namespace Phasor
  * @class OpCode
  * @brief Expanded opcode set for Phasor VM
  */
-enum class OpCode : uint8_t
+enum class OpCode : u8
 {
 	// Stack operations
 	PUSH_CONST, ///< Push constant from constant pool
@@ -188,9 +188,9 @@ enum class OpCode : uint8_t
 struct Instruction
 {
 	OpCode  op;       ///< Operation code
-	int32_t operand1; ///< First operand
-	int32_t operand2; ///< Second operand
-	int32_t operand3; ///< Third operand
+	i32 operand1; ///< First operand
+	i32 operand2; ///< Second operand
+	i32 operand3; ///< Third operand
 
 	// Default constructor
 	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0)
@@ -198,7 +198,7 @@ struct Instruction
 	}
 
 	// Full constructor
-	Instruction(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
+	Instruction(OpCode op, i32 op1 = 0, i32 op2 = 0, i32 op3 = 0)
 	    : op(op), operand1(op1), operand2(op2), operand3(op3)
 	{
 	}
@@ -248,7 +248,7 @@ struct Bytecode
 	}
 
 	/// @brief Emit an instruction with operands
-	void emit(OpCode op, int32_t op1 = 0, int32_t op2 = 0, int32_t op3 = 0)
+	void emit(OpCode op, i32 op1 = 0, i32 op2 = 0, i32 op3 = 0)
 	{
 		instructions.emplace_back(op, op1, op2, op3);
 	}

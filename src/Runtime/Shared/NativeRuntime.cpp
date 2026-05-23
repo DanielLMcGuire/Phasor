@@ -11,11 +11,12 @@
 #include <filesystem>
 #include <iostream>
 #include <nativeerror.h>
+#include <phsint.hpp>
 
 namespace Phasor
 {
 
-NativeRuntime::NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv)
+NativeRuntime::NativeRuntime(const std::vector<u8> &bytecodeData, const int argc, const char **argv)
     : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
 	BytecodeDeserializer deserializer;
@@ -52,7 +53,7 @@ NativeRuntime::NativeRuntime(const Phasor::VM &vm, const std::string &script, co
 	m_bytecode = codegen.generate(*parser.parse());
 }
 
-NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc,
+NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<u8> &bytecodeData, const int argc,
                              const char **argv)
     : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
