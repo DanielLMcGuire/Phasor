@@ -5,9 +5,13 @@ edition = "2021"
 authors = ["Daniel McGuire"]
 description = "Rust wrapper for the Phasor Runtime"
 
+[features]
+default = ["dynamic"]
+dynamic = ["dep:libloading"]
+
 [dependencies]
+libloading = { version = "0.8", optional = true }
 libc = "0.2"
-libloading = "0.8"
 thiserror = "1.0"
 
 [build-dependencies]

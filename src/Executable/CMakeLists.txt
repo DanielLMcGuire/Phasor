@@ -25,6 +25,57 @@ add_library(phasor_native_runtime_static STATIC
 target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
+if(MSVC)
+    add_custom_command(TARGET phasor_native_runtime_static POST_BUILD
+        COMMAND "${CMAKE_AR}" /NOLOGO /OUT:$<TARGET_FILE:phasor_native_runtime_static>
+            $<TARGET_FILE:phasor_native_runtime_static>
+            $<TARGET_FILE:phasor_native_runtime_lib>
+            $<TARGET_FILE:PhasorFrontend>
+            $<TARGET_FILE:PulsarFrontend>
+            $<TARGET_FILE:phasor_language>
+            $<TARGET_FILE:pulsar_language>
+            $<TARGET_FILE:PhasorRuntime>
+            $<TARGET_FILE:PhasorCodegen>
+        COMMENT "Merging dependencies into phasorstaticrt.lib (MSVC)..."
+    )
+elseif(APPLE)
+    add_custom_command(TARGET phasor_native_runtime_static POST_BUILD
+        COMMAND libtool -static -o $<TARGET_FILE:phasor_native_runtime_static>
+            $<TARGET_FILE:phasor_native_runtime_static>
+            $<TARGET_FILE:phasor_native_runtime_lib>
+            $<TARGET_FILE:PhasorFrontend>
+            $<TARGET_FILE:PulsarFrontend>
+            $<TARGET_FILE:phasor_language>
+            $<TARGET_FILE:pulsar_language>
+            $<TARGET_FILE:PhasorRuntime>
+            $<TARGET_FILE:PhasorCodegen>
+        COMMENT "Merging dependencies into libphasorstaticrt.a (macOS)..."
+    )
+else()
+    set(mri_file "${CMAKE_CURRENT_BINARY_DIR}/phasorstaticrt.mri")
+    
+    set(mri_content "create $<TARGET_FILE:phasor_native_runtime_static>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:phasor_native_runtime_static>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:phasor_native_runtime_lib>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:PhasorFrontend>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:PulsarFrontend>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:phasor_language>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:pulsar_language>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:PhasorRuntime>\n")
+    set(mri_content "${mri_content}addlib $<TARGET_FILE:PhasorCodegen>\n")
+    set(mri_content "${mri_content}save\nend\n")
+
+    file(GENERATE 
+        OUTPUT "${mri_file}" 
+        CONTENT "${mri_content}"
+    )
+
+    add_custom_command(TARGET phasor_native_runtime_static POST_BUILD
+        COMMAND "${CMAKE_AR}" -M < "${mri_file}"
+        COMMENT "Merging dependencies into libphasorstaticrt.a (GNU/LLVM)..."
+    )
+endif()
+
 if(PROJECT_IS_TOP_LEVEL)
 
 add_executable(phasor_main 

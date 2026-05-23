@@ -18,6 +18,7 @@ pub enum PhasorError {
     #[error("UTF-8 encoding error")]
     Utf8Error(#[from] std::str::Utf8Error),
 
+    #[cfg(feature = "dynamic")]
     #[error("Failed to load or query Phasor DLL: {0}")]
     LibraryError(#[from] libloading::Error),
 }

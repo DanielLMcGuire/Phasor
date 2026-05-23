@@ -243,6 +243,10 @@ This repo contains:
     vm.exec(&bytecode, "hi", &[])?;
 
     // VM is automatically freed when it goes out of scope (Drop)
+
+    // For static linking, ensure you use clang on macos, msvc on windows and gcc on linux
+    // First build the cmake project under the correct config
+    // Next, use cargo with --no-default-features
     ```
 
   - [phasorrt-zig Zig bindings (runtime)](https://phasor-docs.pages.dev/man?f=phasorrt-zig.3) `src/Zig` (Zig)
