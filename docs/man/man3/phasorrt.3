@@ -109,6 +109,31 @@ on success,
 .B false
 if the state is invalid.
 .RE
+.TP
+.BR isErrorStatus (void\ *\fIstate\fP)
+Query whether the given state is currently in an error status.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fIstate\fP 10
+A valid state pointer.
+.RE
+.PP
+.B Returns:
+.B bool
+\-
+.B true
+if the state is in an error status,
+.B false
+otherwise. Also returns
+.B false
+if
+.I state
+is
+.B NULL
+or appears invalid.
+.RE
 .SS Version
 .TP
 .BR getVersion (void)
@@ -307,7 +332,7 @@ Null-terminated Phasor source code.
 .IP \fImoduleName\fP 20
 Module name for error reporting.
 .IP \fImodulePath\fP 20
-Path to the script’s parent directory for imports. Use
+Path to the script's parent directory for imports. Use
 .B ""
 if unused.
 .IP \fIverbose\fP 20
@@ -383,6 +408,17 @@ fails, error details are typically written to
 .BR stderr .
 The library does not provide a mechanism to retrieve compile errors
 programmatically in this version.
+.TP
+.B Error status query
+.BR isErrorStatus ()
+returns
+.B false
+when passed a
+.B NULL
+or invalid pointer; callers cannot distinguish this from a non-error state using
+the return value alone. Always ensure the pointer was obtained from a successful
+.BR createState ()
+call before querying error status.
 .SH EXAMPLES
 .SS Compile and run a script (two-pass)
 .nf
@@ -474,9 +510,7 @@ argument to execution or evaluation functions, a temporary state is created
 internally and destroyed before the function returns. While convenient, this
 incurs allocation overhead on every call.
 .SH SEE ALSO
-.BR PHS (5),
-.BR phasorrt-rs (3),
-.BR dlopen (3)
+.BR PHS (5)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <vector>
+#include <phsint.hpp>
 
 #include "StdLib.hpp"
 #include "core/file_properties.h"
@@ -80,7 +81,7 @@ std::string StdLib::file_join_path(const std::vector<Value> &args, VM *)
 	return (path1 / path2).string();
 }
 
-int64_t StdLib::file_get_size(const std::vector<Value> &args, VM *)
+i64 StdLib::file_get_size(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fsize");
 	return std::filesystem::file_size(args[0].asString());
@@ -104,7 +105,7 @@ std::string StdLib::file_read_line(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "freadln");
 	std::filesystem::path path = args[0].asString();
-	int64_t               lineNum = args[1].asInt();
+	i64               lineNum = args[1].asInt();
 	std::ifstream         file(path);
 	if (!file.is_open())
 	{
@@ -123,7 +124,7 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 3, "fwriteln");
 	std::filesystem::path path = args[0].asString();
-	int64_t               lineNum = args[1].asInt();
+	i64               lineNum = args[1].asInt();
 	std::string           content = args[2].asString();
 
 	// Read all lines first
@@ -327,11 +328,11 @@ bool StdLib::file_property_edit(const std::vector<Value> &args, VM *)
 	}
 	std::filesystem::path path = args[0].asString();
 	char                  param = args[1].asString()[0];
-	int64_t               epoch = args[2].asInt();
+	i64               epoch = args[2].asInt();
 	return PHASORstd_file_setProperties(const_cast<char *>(path.string().c_str()), param, epoch);
 }
 
-int64_t StdLib::file_property_get(const std::vector<Value> &args, VM *)
+i64 StdLib::file_property_get(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fpropget");
 	std::filesystem::path path = args[0].asString();

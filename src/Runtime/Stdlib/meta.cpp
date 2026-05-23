@@ -1,5 +1,6 @@
 #include "StdLib.hpp"
 #include <version.h>
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -14,7 +15,7 @@ void StdLib::registerMetaFunctions(VM *vm)
 }
 
 #ifndef SANDBOXED
-int64_t StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
+i64 StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "phs_op");
 	if (args.size() > 4)

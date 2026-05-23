@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <phsint.hpp>
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -18,10 +19,10 @@ class PhasorIR
 {
   public:
 	/// @brief Serialize bytecode to Phasor IR format
-	static std::vector<uint8_t> serialize(const Bytecode &bytecode);
+	static std::vector<u8> serialize(const Bytecode &bytecode);
 
 	/// @brief Deserialize Phasor IR format to bytecode
-	static Bytecode deserialize(const std::vector<uint8_t> &data);
+	static Bytecode deserialize(const std::vector<u8> &data);
 
 	/// @brief Save bytecode to .phir file
 	static bool saveToFile(const Bytecode &bytecode, const std::filesystem::path &filename);
@@ -37,7 +38,7 @@ class PhasorIR
 
   private:
 	/// @brief Operand types for instructions
-	enum class OperandType : uint8_t
+	enum class OperandType : u8
 	{
 		NONE,         ///< No operand
 		INT,          ///< Integer operand

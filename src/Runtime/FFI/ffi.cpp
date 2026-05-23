@@ -13,6 +13,7 @@
 #elif defined(__linux__)
 #include <unistd.h>
 #endif
+#include <phsint.hpp>
 
 /// Keeps FFI reference intact
 /// @param fn Local member to register
@@ -111,8 +112,8 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 		GetModuleFileNameA(nullptr, path, MAX_PATH);
 		exeDir = std::filesystem::path(path).parent_path();
 #elif defined(__APPLE__)
-		char     path[1024];
-		uint32_t size = sizeof(path);
+		char path[1024];
+		u32  size = sizeof(path);
 		if (_NSGetExecutablePath(path, &size) == 0)
 			exeDir = std::filesystem::path(path).parent_path();
 		else

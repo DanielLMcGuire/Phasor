@@ -1,20 +1,21 @@
 #include "random.hpp"
+#include <phsint.hpp>
 
 // my tiny xorshift+ implementation
 // (C) Daniel McGuire -- MIT License
 
-static uint64_t s[2];
+static u64 s[2];
 
-void PHASORstd_rand_seed(uint64_t s0, uint64_t s1)
+void PHASORstd_rand_seed(u64 s0, u64 s1)
 {
 	s[0] = s0;
 	s[1] = s1;
 }
 
-uint64_t PHASORstd_rand_next()
+u64 PHASORstd_rand_next()
 {
-	uint64_t s1 = s[0];
-	uint64_t s0 = s[1];
+	u64 s1 = s[0];
+	u64 s0 = s[1];
 
 	s[0] = s0;
 	s1 ^= s1 << 23;
@@ -23,12 +24,12 @@ uint64_t PHASORstd_rand_next()
 	return s[1] + s0;
 }
 
-double PHASORstd_rand_next_double()
+f64 PHASORstd_rand_next_double()
 {
 	return (PHASORstd_rand_next() >> 11) * (1.0 / (UINT64_C(1) << 53));
 }
 
-int64_t PHASORstd_rand_next_range(int64_t min, int64_t max)
+i64 PHASORstd_rand_next_range(i64 min, i64 max)
 {
-	return min + (int64_t)(PHASORstd_rand_next() % (uint64_t)(max - min + 1));
+	return min + (i64)(PHASORstd_rand_next() % (u64)(max - min + 1));
 }

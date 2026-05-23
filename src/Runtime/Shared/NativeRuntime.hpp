@@ -5,6 +5,8 @@
 #include <string>
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../Runtime/VM/VM.hpp"
+#include <phsint.hpp>
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -18,11 +20,11 @@ namespace Phasor
 class NativeRuntime
 {
   public:
-	NativeRuntime(const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);
+	NativeRuntime(const std::vector<u8> &bytecodeData, const int argc, const char **argv);
 	NativeRuntime(const Phasor::Bytecode &bytecode, const int argc, const char **argv);
 	NativeRuntime(const std::string &script, const int argc, const char **argv);
 	NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv);
-	NativeRuntime(Phasor::VM *vm, const std::vector<uint8_t> &bytecodeData, const int argc, const char **argv);
+	NativeRuntime(Phasor::VM *vm, const std::vector<u8> &bytecodeData, const int argc, const char **argv);
 	~NativeRuntime();
 	int                        run();
 	int                        runFunctionInt(std::string functionName);
@@ -34,7 +36,7 @@ class NativeRuntime
   private:
 	std::shared_ptr<Phasor::VM> m_vm;
 	Bytecode                    m_bytecode;
-	std::vector<uint8_t>        m_bytecodeData;
+	std::vector<u8>        m_bytecodeData;
 	std::string                 m_script;
 	int                         m_argc;
 	char                      **m_argv;

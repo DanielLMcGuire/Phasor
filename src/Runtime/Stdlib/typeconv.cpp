@@ -1,4 +1,5 @@
 #include "StdLib.hpp"
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -11,18 +12,18 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
 }
 
-int64_t StdLib::to_int(const std::vector<Value> &args, VM *)
+i64 StdLib::to_int(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_int");
 	if (args[0].isInt())
 		return args[0].asInt();
 	if (args[0].isFloat())
-		return static_cast<int64_t>(args[0].asFloat());
+		return static_cast<i64>(args[0].asFloat());
 	if (args[0].isString())
 	{
 		try
 		{
-			return static_cast<int64_t>(std::stoll(args[0].asString()));
+			return static_cast<i64>(std::stoll(args[0].asString()));
 		}
 		catch (...)
 		{
@@ -34,7 +35,7 @@ int64_t StdLib::to_int(const std::vector<Value> &args, VM *)
 	return 0;
 }
 
-double StdLib::to_float(const std::vector<Value> &args, VM *)
+f64 StdLib::to_float(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_float");
 	return args[0].asFloat();

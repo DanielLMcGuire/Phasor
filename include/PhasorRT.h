@@ -229,6 +229,16 @@ extern "C"
 	 */
 	PHASOR_API bool resetState(void *state, bool resetFunctions, bool resetVariables);
 
+	/**
+	 * @brief Checks if the state is in an error status.
+	 *
+	 * @param state Pointer to the state to check.
+	 * @return true if the state is in an error status, false otherwise.
+	 * 
+	 * Returns false if the pointer	is invalid or null.
+	 */
+	PHASOR_API bool isErrorStatus(void *state);
+
 #ifdef __cplusplus
 }
 #endif

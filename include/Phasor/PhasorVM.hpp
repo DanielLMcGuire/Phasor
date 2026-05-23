@@ -34,12 +34,18 @@
 #include <ranges>
 #include <iostream>
 #include <stdexcept>
+#include <memory_resource>
+#include "../phsint.hpp"
 
 #ifndef SANDBOXED
 #include "PhasorFFI.hpp"
 #endif
 #include "PhasorISA.hpp"
 #include "../Value.hpp"
+#include <platform.h>
+
+#define BAD_STATUS -1
+
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -55,7 +61,8 @@ class VM
 	VM(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 	~VM();
 
-	inline void initFFI(const std::filesystem::path &path);
+	/// @brief Initialize the FFI plugins
+	void initFFI(const std::filesystem::path &path);
 
 	/// @brief Get Phasor VM version
 	std::string getVersion();
@@ -65,7 +72,7 @@ class VM
 	class Halt : public std::exception
 	{
 	  public:
-		[[nodiscard]] const char *what() const noexcept override
+		const char *what() const noexcept override
 		{
 			return "";
 		}
@@ -73,10 +80,10 @@ class VM
 
 	/// @brief Run the virtual machine
 	/// Exits -1 on uncaught exception
-	int run(const Bytecode &bytecode, size_t startPC = 0);
+	int run(const Bytecode &bytecode, const size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine
-	Value runFunction(const std::string &name, const Bytecode &bytecode);
+	Value runFunction(const std::string &name, const Bytecode &bytecode, const bool &argsInit = false);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
@@ -90,6 +97,9 @@ class VM
 
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
+
+	/// @brief Free a variable by name in the VM
+	void freeVariableByName(const std::string &name);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add
@@ -110,23 +120,23 @@ class VM
 	/// @brief Set a register value
 	/// @param index Register index
 	/// @param value Value to set
-	void setRegister(uint8_t index, const Value &value);
+	void setRegister(u8 index, const Value &value);
 
 	/// @brief Free a register (reset to null)
 	/// @param index Register index to free
-	void freeRegister(uint8_t index);
+	void freeRegister(u8 index);
 
 	/// @brief Get a register value
 	/// @param index Register index
 	/// @return Value in the register
-	Value getRegister(uint8_t index);
+	Value getRegister(u8 index);
 
 	/// @brief Get the total number of registers
 	/// @return Number of registers
 	size_t getRegisterCount();
 
 	/// @brief Enum for registers
-	enum Register : uint8_t
+	enum Register : u8
 	{
 		r0,
 		r1,
@@ -168,11 +178,11 @@ class VM
 
 #ifdef _WIN32
 	/// @brief Execute a single operation
-	inline Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
-	                                  const int &operand3 = 0);
+	Value __fastcall operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0,
+	                           const int &operand3 = 0);
 #else
 	/// @brief Execute a single operation
-	inline Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
+	Value operation(const OpCode &op, const int &operand1 = 0, const int &operand2 = 0, const int &operand3 = 0);
 #endif
 	/// @brief Push a value onto the stack
 	void push(const Value &value);
@@ -211,6 +221,7 @@ class VM
 	void setStatus(int newStatus);
 	void resetStatus();
 	int  getStatus();
+	bool isErrorStatus();
 
 	/**
 	 * @brief Run an opcode with arguments pre-loaded into registers
@@ -219,7 +230,7 @@ class VM
 	 * @param args Arguments to load into registers
 	 * @return Return value of the operation
 	 */
-	template <typename... Args> Value regRun(OpCode opcode, Args &&...args)
+	template <typename... Args> inline Value regRun(OpCode opcode, Args &&...args)
 	{
 		int regIndex = 0;
 		(setRegister(regIndex++, std::forward<Args>(args)), ...);
@@ -234,15 +245,54 @@ class VM
 	 * @param args Arguments to push to the stack
 	 * @return Value returned to stack
 	 */
-	template <typename... Args> Value stackRun(OpCode opcode, Args &&...args)
+	template <typename... Args> inline Value stackRun(OpCode opcode, Args &&...args)
 	{
 		Value arr[] = {Value(std::forward<Args>(args))...};
 		for (Value &v : arr | std::views::reverse)
-		{
 			push(v);
-		}
 		operation(opcode);
 		return pop();
 	}
+
+  private:
+	void setup(const Bytecode &bc, const size_t initialPC);
+	void evalLoop();
+
+	bool isDirectCall = false; ///< is a direct call to a function
+
+#ifndef SANDBOXED
+	/// @brief FFI
+	std::unique_ptr<FFI> ffi;
+#endif
+	/// @brief Exit code
+	int status = 0;
+
+	/// @brief Is status an error code
+	bool isError = false;
+
+	/// @brief Import handler for loading modules
+	ImportHandler importHandler;
+
+	/// @brief Virtual registers for register-based operations (v2.0)
+	std::array<Value, MAX_REGISTERS> registers;
+	
+	/// @brief Stack
+	std::pmr::monotonic_buffer_resource stack_pool;
+	std::pmr::vector<Value> stack;
+
+	/// @brief Call stack for function calls
+	std::vector<int> callStack;
+
+	/// @brief Variable storage indexed by variable index, or simply: the managed heap
+	std::vector<Value> variables;
+
+	/// @brief Bytecode to execute
+	const Bytecode *m_bytecode{};
+
+	/// @brief Program counter
+	size_t pc = 0;
+
+	/// @brief Native function registry
+	std::map<std::string, NativeFunction> nativeFunctions;
 };
 } // namespace Phasor

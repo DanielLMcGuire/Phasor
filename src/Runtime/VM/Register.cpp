@@ -1,11 +1,12 @@
 #ifndef CMAKE_PCH
 #include "VM.hpp"
 #endif
+#include <phsint.hpp>
 
 namespace Phasor
 {
 
-void VM::setRegister(const uint8_t index, const Value &value)
+void VM::setRegister(const u8 index, const Value &value)
 {
 #ifdef TRACING
 	log(std::format("VM::{}(r{}, {:T})\n", __func__, index, value));
@@ -14,7 +15,7 @@ void VM::setRegister(const uint8_t index, const Value &value)
 	registers[index] = value;
 }
 
-void VM::freeRegister(const uint8_t index)
+void VM::freeRegister(const u8 index)
 {
 #ifdef TRACING
 	log(std::format("VM::{}(r{})\n", __func__, index));
@@ -23,7 +24,7 @@ void VM::freeRegister(const uint8_t index)
 	registers[index] = Value();
 }
 
-Value VM::getRegister(const uint8_t index)
+Value VM::getRegister(const u8 index)
 {
 #ifdef TRACING
 	log(std::format("VM::{}(r{}) -> {:T}\n", __func__, index, registers[index]));

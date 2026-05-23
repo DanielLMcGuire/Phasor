@@ -1,13 +1,17 @@
 [package]
 name = "phasorrt-rs"
 version = "3.3.0"
-edition = "2021"
+edition = "2024"
 authors = ["Daniel McGuire"]
 description = "Rust wrapper for the Phasor Runtime"
 
+[features]
+default = ["dynamic"]
+dynamic = ["dep:libloading"]
+
 [dependencies]
+libloading = { version = "0.8", optional = true }
 libc = "0.2"
-libloading = "0.8"
 thiserror = "1.0"
 
 [build-dependencies]

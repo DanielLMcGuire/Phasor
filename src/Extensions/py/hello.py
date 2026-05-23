@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from phasor import Bytecode, Value, OpCode, run
 
 bc = Bytecode()

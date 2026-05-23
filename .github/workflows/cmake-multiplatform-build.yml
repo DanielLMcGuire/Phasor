@@ -27,11 +27,13 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      with:
+        persist-credentials: false
 
     - name: Set up MSVC (Windows)
       if: matrix.os == 'windows-2025-vs2026'
-      uses: egor-tensin/vs-shell@v2
+      uses: egor-tensin/vs-shell@54e4148eac794e4580591c2e0b7750f14b7891fc # v2
       with:
         arch: x64
 

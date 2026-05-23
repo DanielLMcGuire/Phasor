@@ -20,9 +20,8 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
 
     var board_sb = sb_new();
     var i = 0;
-    while (i < width - 1) {
+    for (var i = 0; i < width - 1; i++) {
         sb_append(board_sb, " ");
-        i = i + 1;
     }
     sb_append(board_sb, "#");
 
@@ -40,7 +39,7 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
     var average = 0.0;
     var avg_remaining = 0.0;
 
-    while (g <= generations) {
+    for (var g = 0; g <= generations; g++) {
         if (stdout) { 
             puts(board);
         } 
@@ -108,7 +107,6 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
 
         board = sb_to_string(next_board);
         sb_free(next_board);
-        g = g + 1;
     }
 
     var final_chunk = sb_to_string(file_buffer);

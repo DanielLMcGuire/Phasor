@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <phsint.hpp>
 
 namespace pulsar
 {
@@ -245,84 +246,94 @@ Phasor::Token Lexer::string()
 	{
 		char c = advance();
 
-		// Raw newline inside a string is treated as unterminated/error.
 		if (c == '\n')
-		{
-			// Unterminated string literal
 			return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
-		}
 
 		if (c == '\\')
 		{
 			if (isAtEnd())
-			{
-				// Unterminated escape at end of file
 				return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
-			}
+
 			char esc = advance();
 			switch (esc)
 			{
-			case 'n':
-				out << '\n';
+			case 'a':  out << '\a'; break;
+			case 'b':  out << '\b'; break;
+			case 'f':  out << '\f'; break;
+			case 'n':  out << '\n'; break;
+			case 'r':  out << '\r'; break;
+			case 't':  out << '\t'; break;
+			case 'v':  out << '\v'; break;
+			case '\\': out << '\\'; break;
+			case '\'': out << '\''; break;
+			case '"':  out << '"';  break;
+
+			case 'e':
+			case 'E':
+				out << '\x1b';
 				break;
-			case 't':
-				out << '\t';
-				break;
-			case 'r':
-				out << '\r';
-				break;
-			case '\\':
-				out << '\\';
-				break;
-			case '"':
-				out << '"';
-				break;
-			case '\'':
-				out << '\'';
-				break;
-			case '0':
-				out << '\0';
-				break;
-			case 'b':
-				out << '\b';
-				break;
-			case 'f':
-				out << '\f';
-				break;
-			case 'v':
-				out << '\v';
-				break;
-			case 'x': {
-				// Hex escape sequence: \xHH
-				if (isAtEnd())
+
+			case '0': case '1': case '2': case '3':
+			case '4': case '5': case '6': case '7':
+			{
+				u32 val = static_cast<u32>(esc - '0');
+				for (int i = 1; i < 3 && !isAtEnd(); ++i)
 				{
-					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					char d = peek();
+					if (d < '0' || d > '7') break;
+					advance();
+					val = val * 8 + static_cast<u32>(d - '0');
 				}
-				char h1 = advance();
-				if (isAtEnd())
-				{
+				if (val > 0xFF)
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
-				}
-				char h2 = advance();
-				int  v1 = hexValue(h1);
-				int  v2 = hexValue(h2);
-				if (v1 < 0 || v2 < 0)
-				{
-					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
-				}
-				char value = static_cast<char>((v1 << 4) | v2);
-				out << value;
+				out << static_cast<char>(val);
 				break;
 			}
+
+			case 'x':
+			{
+				if (isAtEnd() || hexValue(peek()) < 0)
+					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				int val = hexValue(advance());
+				if (!isAtEnd() && hexValue(peek()) >= 0)
+					val = (val << 4) | hexValue(advance());
+				out << static_cast<char>(val);
+				break;
+			}
+
+			case 'u':
+			case 'U':
+			{
+				int      ndigits = (esc == 'u') ? 4 : 8;
+				u32 cp      = 0;
+				for (int i = 0; i < ndigits; ++i)
+				{
+					if (isAtEnd() || hexValue(peek()) < 0)
+						return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					cp = (cp << 4) | static_cast<u32>(hexValue(advance()));
+				}
+				if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				if      (cp <= 0x7F)   { out << static_cast<char>(cp); }
+				else if (cp <= 0x7FF)  { out << static_cast<char>(0xC0 | (cp >> 6))
+				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
+				else if (cp <= 0xFFFF) { out << static_cast<char>(0xE0 | (cp >> 12))
+				                            << static_cast<char>(0x80 | ((cp >> 6) & 0x3F))
+				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
+				else                   { out << static_cast<char>(0xF0 | (cp >> 18))
+				                            << static_cast<char>(0x80 | ((cp >> 12) & 0x3F))
+				                            << static_cast<char>(0x80 | ((cp >> 6) & 0x3F))
+				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
+				break;
+			}
+
 			default:
-				// Unknown escape: be permissive and append the escaped character as-is.
 				out << esc;
 				break;
 			}
 		}
 		else if (c == '"')
 		{
-			// Closing quote
 			return {Phasor::TokenType::String, out.str(), tokenLine, tokenColumn};
 		}
 		else
@@ -331,7 +342,6 @@ Phasor::Token Lexer::string()
 		}
 	}
 
-	// If we get here, string was unterminated
 	return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 }
 

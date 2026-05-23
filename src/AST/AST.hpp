@@ -6,12 +6,13 @@
 #include <vector>
 #include <filesystem>
 #include <format>
+#include <phsint.hpp>
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
 /// @brief Token types for the lexer
-enum class TokenType : uint8_t
+enum class TokenType : u8
 {
 	Identifier,
 	Number,
@@ -156,7 +157,7 @@ struct NullExpr : public Expression
 };
 
 /// @brief Unary operator types
-enum class UnaryOp : uint8_t
+enum class UnaryOp : u8
 {
 	Negate,     // -x
 	Not,        // !x
@@ -165,7 +166,7 @@ enum class UnaryOp : uint8_t
 };
 
 /// @brief Binary operator types
-enum class BinaryOp : uint8_t
+enum class BinaryOp : u8
 {
 	Add,
 	Subtract,
@@ -183,7 +184,7 @@ enum class BinaryOp : uint8_t
 };
 
 /// @brief Postfix operator types
-enum class PostfixOp : uint8_t
+enum class PostfixOp : u8
 {
 	Increment, // x++
 	Decrement  // x--

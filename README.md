@@ -1,4 +1,4 @@
-# Phasor <kbd><img src="https://phasor.pages.dev/assets/logo.svg" width="250" height="130"></kbd> Language
+# Phasor <kbd><img src="https://phasor.pages.dev/assets/logo.svg" width="250" height="130" alt="Phasor Logo"></kbd> Language
 
 [![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor.svg)](https://phasor.pages.dev/downloads?version=latest)
 [![AUR Version](https://img.shields.io/aur/version/phasor.svg)](https://aur.archlinux.org/packages/phasor)
@@ -7,7 +7,9 @@
 
 A dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
 
-Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of my unified safe type system, which provides C++ RAII support to the runtime, stdlib, but user memory management is manual for now.
+Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of a unified type system, which provides C++ RAII support to the runtime, stdlib, and FFI interfaces.
+
+Memory management is deterministic, you set variables to null or do nothing and let the runtime clear them at shutdown.
 
 See [Language Features](#language-features) for more info on memory management.
 
@@ -75,6 +77,7 @@ shutdown(code); // from stdsys
 - **Structs** with C style static field access ```struct.member = 14;```
 - **Arrays** with C syntax ```var arrayName[arraySize];```
 - **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
+- LLVM Jit for hot loops / functions
 
 ---
 
@@ -240,6 +243,10 @@ This repo contains:
     vm.exec(&bytecode, "hi", &[])?;
 
     // VM is automatically freed when it goes out of scope (Drop)
+
+    // For static linking, ensure you use clang on macos, msvc on windows and gcc on linux
+    // First build the cmake project under the correct config
+    // Next, use cargo with --no-default-features
     ```
 
   - [phasorrt-zig Zig bindings (runtime)](https://phasor-docs.pages.dev/man?f=phasorrt-zig.3) `src/Zig` (Zig)
@@ -284,6 +291,8 @@ This repo contains:
 - Required:
   - [Ninja](https://github.com/ninja-build/ninja/releases)
   - [CMake 3.21+](https://cmake.org/download/)
+  - GAS Assembler (Unix-based System V compliant OS / Darwin (OSX/macOS) 64-bit only)
+  - MASM Assembler (Windows 64-bit only)
   - CC (C 23 Compliant) compiler and CXX (C++ 23 Compliant) compiler supporting GCC/Clang extensions or Windows specific extensions
     - [MSVC VS22 17.2 or later](https://visualstudio.microsoft.com/downloads/?q=build+tools)
     - [GCC 14 or later](https://gcc.gnu.org/install/)

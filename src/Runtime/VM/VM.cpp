@@ -13,6 +13,7 @@ VM::VM() : stack_pool(), stack(&stack_pool)
 #ifdef TRACING
 	log(std::format("Phasor::VM::{}(): v{}:\nnormal instance created {:#x}\n", __func__, getVersion(),
 	                (uintptr_t)this));
+	log(std::format("Value size: {}, VM Size: {}\n", sizeof(Phasor::Value), sizeof(Phasor::VM)));
 	flush();
 #endif
 }
