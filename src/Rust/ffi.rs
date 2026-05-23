@@ -90,7 +90,7 @@ pub type ResetStateFn = unsafe extern "C" fn(
 pub type IsErrorStatusFn = unsafe extern "C" fn(state: *mut c_void) -> bool;
 
 #[cfg(not(feature = "dynamic"))]
-extern "C" {
+unsafe extern "C" {
     pub fn getVersion() -> *const c_char;
     pub fn createState() -> *mut c_void;
     pub fn freeState(state: *mut c_void) -> bool;

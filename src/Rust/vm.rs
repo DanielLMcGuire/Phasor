@@ -40,7 +40,7 @@ impl PhasorVM {
         }
     }
 
-    unsafe fn is_error_status(&self) -> Result<bool, PhasorError> {
+    unsafe fn is_error_status(&self) -> Result<bool, PhasorError> { unsafe {
         #[cfg(feature = "dynamic")]
         {
             let f: Symbol<IsErrorStatusFn> = self._lib.get(b"isErrorStatus")?;
@@ -48,7 +48,7 @@ impl PhasorVM {
         }
         #[cfg(not(feature = "dynamic"))]
         Ok(isErrorStatus(self.state))
-    }
+    }}
 
     pub fn init_stdlib(&mut self) -> Result<(), PhasorError> {
         unsafe {
