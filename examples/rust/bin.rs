@@ -1,6 +1,7 @@
-use phasorrt_rs::{get_version, compile_phs, PhasorError, PhasorVM};
+use phasorrt_rs::{get_version, compile_phs, PhasorVM};
+use std::fs;
 
-fn main() -> Result<(), PhasorError> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Phasor Version: {}", get_version()?);
 
     let mut vm = PhasorVM::new()?;
@@ -9,9 +10,10 @@ fn main() -> Result<(), PhasorError> {
     let script = "
 using(\"stdsys\");
 fn main() -> int {
-    using(\"stdio\");
-    puts(\"Hello, World!\");
-    return 0;
+    using(\"stdio\", \"stdfile\");
+    puts(fcd());
+    putf(\"Hello, World! %d + %d = %d\", 15, 22, 15 + 22);
+    return 15 + 22;
 }
 shutdown(main());";
 
@@ -24,14 +26,33 @@ shutdown(main());";
         }
         Err(err) => {
             eprintln!("Compilation failed: {:?}", err);
-            return Err(err);
+            return Err(err.into());
+        }
+    };
+
+    match fs::write("script.phsb", &bc) {
+        Ok(_) => println!("Bytecode written to ./script.phsb"),
+        Err(err) => {
+            eprintln!("Failed to write bytecode file: {}", err);
+            return Err(err.into());
+        }
+    }
+
+    let new_bytecode = match fs::read("script.phsb") {
+        Ok(bytecode) => {
+            println!("Read bytecode from ./script.phsb");
+            bytecode
+        }
+        Err(err) => {
+            eprintln!("Failed to read bytecode file: {}", err);
+            return Err(err.into());
         }
     };
 
     // args are command line, i might add function args in a future C API version
-    match vm.exec_func_int(&bc, "exec_func_int Test", "main", &[]) {
+    match vm.exec_func_int(&new_bytecode, "exec_func_int Test", "main", &[]) {
         Ok(code) => {
-            if code == 0 {
+            if code == 15 + 22 {
                 println!("exec_func_int executed successfully");
             } else {
                 println!("Function returned code: {}", code);
@@ -40,12 +61,13 @@ shutdown(main());";
 
         Err(err) => {
             eprintln!("VM execution failed: {:?}", err);
+            return Err(err.into());
         }
     }
 
     match vm.evaluate_phs(script, "evaluate_phs Test", None, false) {
         Ok(code) => {
-            if code == 0 {
+            if code == 15 + 22 {
                 println!("evaluate_phs executed successfully");
             } else {
                 println!("evaluate_phs returned code: {}", code);
