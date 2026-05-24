@@ -276,13 +276,13 @@ Phasor::Token Lexer::string()
 			case '0': case '1': case '2': case '3':
 			case '4': case '5': case '6': case '7':
 			{
-				u32 val = static_cast<u32>(esc - '0');
+				Phasor::u32 val = static_cast<Phasor::u32>(esc - '0');
 				for (int i = 1; i < 3 && !isAtEnd(); ++i)
 				{
 					char d = peek();
 					if (d < '0' || d > '7') break;
 					advance();
-					val = val * 8 + static_cast<u32>(d - '0');
+					val = val * 8 + static_cast<Phasor::u32>(d - '0');
 				}
 				if (val > 0xFF)
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
@@ -304,13 +304,13 @@ Phasor::Token Lexer::string()
 			case 'u':
 			case 'U':
 			{
-				int      ndigits = (esc == 'u') ? 4 : 8;
-				u32 cp      = 0;
+				int ndigits = (esc == 'u') ? 4 : 8;
+				Phasor::u32 cp = 0;
 				for (int i = 0; i < ndigits; ++i)
 				{
 					if (isAtEnd() || hexValue(peek()) < 0)
 						return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
-					cp = (cp << 4) | static_cast<u32>(hexValue(advance()));
+					cp = (cp << 4) | static_cast<Phasor::u32>(hexValue(advance()));
 				}
 				if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};

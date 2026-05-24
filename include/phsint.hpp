@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace Phasor 
+{
 using f32 = float;
 using f64 = double;
 
@@ -35,3 +37,4 @@ using ifast8 = int_fast8_t;
 using ifast16 = int_fast16_t;
 using ifast32 = int_fast32_t;
 using ifast64 = int_fast64_t;
+}

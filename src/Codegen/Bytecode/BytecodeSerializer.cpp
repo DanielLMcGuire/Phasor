@@ -7,20 +7,20 @@
 #include <phsint.hpp>
 
 // Section IDs
-const u8 SECTION_CONSTANTS = 0x01;    //< Constants Section
-const u8 SECTION_VARIABLES = 0x02;    //< Variables Section
-const u8 SECTION_INSTRUCTIONS = 0x03; //< Instructions Section
-const u8 SECTION_FUNCTIONS = 0x04;    //< Functions Section
+const Phasor::u8 SECTION_CONSTANTS = 0x01;    //< Constants Section
+const Phasor::u8 SECTION_VARIABLES = 0x02;    //< Variables Section
+const Phasor::u8 SECTION_INSTRUCTIONS = 0x03; //< Instructions Section
+const Phasor::u8 SECTION_FUNCTIONS = 0x04;    //< Functions Section
 
-static u32 crc32_table[256]; //< CRC32 lookup table
+static Phasor::u32 crc32_table[256]; //< CRC32 lookup table
 static bool     crc32_table_initialized = false;
 
 /// @brief Init CRC32 Table
 void init_crc32_table()
 {
-	for (u32 i = 0; i < 256; i++)
+	for (Phasor::u32 i = 0; i < 256; i++)
 	{
-		u32 crc = i;
+		Phasor::u32 crc = i;
 		for (int j = 0; j < 8; j++)
 		{
 			if ((crc & 1) != 0u)
