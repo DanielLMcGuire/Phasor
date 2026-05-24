@@ -136,11 +136,7 @@ fn computeNextGeneration(state: Rule110State) {
     state.next_board = tmp;
 }
 
-fn calculateChunkStats(
-    state: Rule110State,
-    generation: int,
-    now: float
-) -> ChunkStats {
+fn calculateChunkStats(state: Rule110State, generation: int, now: float) -> ChunkStats {
 
     var chunk_time =
         msToSeconds(now - state.last_chunk_start);
@@ -187,11 +183,7 @@ fn printChunkStats(stats: ChunkStats) {
     );
 }
 
-fn rule110(
-    width: int,
-    generations: int,
-    stdout: bool
-) -> int {
+fn rule110(width: int, generations: int, stdout: bool) -> int {
 
     if (!stdout)
         puts(concat("Output at ", logfile));
@@ -269,13 +261,12 @@ fn rule110(
     return 0;
 }
 
-if (sys_argc() < 4)
-    shutdown(rule110(2085, 25050, false));
+fn main(args: array) -> int {
+    if (len(sys_args()) < 4)
+        return rule110(2085, 25050, false);
+    if (len(sys_args()) == 4)
+        return rule110(to_int(sys_args()[1]), to_int(sys_args()[2]), to_bool(sys_args()[3]));
+    return 1;
+}
 
-shutdown(
-    rule110(
-        to_int(sys_argv(1)),
-        to_int(sys_argv(2)),
-        to_int(sys_argv(3))
-    )
-);
+shutdown(main(sys_args()));

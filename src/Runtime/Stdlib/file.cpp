@@ -354,20 +354,17 @@ bool StdLib::file_create(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
+Value StdLib::file_read_directory(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "freaddir");
-	PhsString path = args[0].asString();
-	PhsString result;
-	for (const auto &entry : std::filesystem::directory_iterator(path.str()))
-	{
-		if (!result.empty())
-			result += "\n";
-		result += entry.path().filename().string();
-	}
-	if (!result.empty())
-		return result;
-	return false;
+    checkArgCount(args, 1, "freaddir");
+    PhsString path = args[0].asString();
+    
+    std::vector<Value> entries;
+    for (const auto &entry : std::filesystem::directory_iterator(path.str()))
+    {
+        entries.push_back(Value(PhsString(entry.path().filename().string())));
+    }
+    return Value::createArray(std::move(entries)); // empty array instead of false
 }
 
 bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)

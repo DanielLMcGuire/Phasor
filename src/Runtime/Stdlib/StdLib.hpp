@@ -149,8 +149,9 @@ class StdLib
 	static Value sys_isatty(const std::vector<Value> &args, VM *vm); ///< Check if the current output is a terminal
 #endif
 	static Value sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables
-	static Value   sys_argv(const std::vector<Value> &args, VM *vm); ///< Get the current command line arguments
-	static i64 sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments
+	static Value   sys_argv(const std::vector<Value> &args, VM *vm); ///< Get the current command line arguments -- deprecated, use sys_args() instead
+	static i64 sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments -- deprecated, use len(sys_args()) instead
+	static Value sys_setenv(const std::vector<Value> &args, VM *vm); ///< Set an environment variable
 	static f64  sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
 	static Value   sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
 	static Value   sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time

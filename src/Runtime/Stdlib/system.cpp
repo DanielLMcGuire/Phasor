@@ -20,6 +20,9 @@
 bool consentAskedCLI{false};
 bool consentGrantedCLI{false};
 
+bool consentAskedEnv{false};
+bool consentGrantedEnv{false};
+
 namespace Phasor
 {
 
@@ -42,8 +45,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 	vm->registerNativeFunction("isatty", StdLib::sys_isatty);
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
-	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
-	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
+	vm->registerNativeFunction("sys_args", StdLib::sys_args);
 #else
 	auto stub = [](const std::vector<Value> &, VM *) -> Value { return Value(); };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
@@ -52,22 +54,17 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("isatty", stub);
 	if (!std::getenv("PHASOR_NO_ENV")) {
 		vm->registerNativeFunction("sys_env", [] (const std::vector<Value> &v, VM *vm) -> Value {
-			if (prompt_consent("Standard library", EConsentVolition::Needs, "use", "system environment variables")) {
+			if (consentGrantedEnv) {
 				return sys_env(v, vm);
-			} else return Value();
-		});
-		vm->registerNativeFunction("sys_argv", [] (const std::vector<Value> &v, VM *vm) {
-			if (consentGrantedCLI) {
-				return sys_argc(v, vm);
 			}
-			if (!consentAskedCLI) {
+			if (!consentAskedEnv) {
 				[[unlikely]]
-				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
-				consentAskedCLI = true;
+				consentGrantedEnv = prompt_consent("Standard library", EConsentVolition::Wants, "use", "environment variables"); 
+				consentAskedEnv = true;
 			}
 			return Value();
 		});
-		vm->registerNativeFunction("sys_argc", [] (const std::vector<Value> &v, VM *vm) -> Value {
+		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm) {
 			if (consentGrantedCLI) {
 				return sys_argc(v, vm);
 			}
@@ -142,20 +139,29 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 	else return Value();
 }
 
+i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "sys_args");
+	return static_cast<i64>(argc);
+}
+
 Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
 	i64 index = args[0].asInt();
-	if (argv)
-		if (argc > index && index >= 0) return argv[index];
-		else throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
-	else return Value();
+	if (index < 0 || index >= argc) return Value();
+	return argv[index];
 }
 
-i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
+Value StdLib::sys_args(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 0, "sys_argc");
-	return static_cast<i64>(argc);
+	checkArgCount(args, 0, "sys_args");
+	std::vector<Value> arguments;
+	for (int i = 0; i < argc; ++i)
+	{
+		arguments.push_back(Value(argv[i]));
+	}
+	return Value::createArray(std::move(arguments));
 }
 
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)

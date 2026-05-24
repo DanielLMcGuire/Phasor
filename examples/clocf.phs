@@ -10,11 +10,11 @@ fn print_help() -> void {
     sb_free(sb);
 }
 
-fn main() -> int {
-    var argc = sys_argc();
+fn main(args: array) -> int {
+    var argc = len(args);
     
     if (argc > 1) {
-        var arg = sys_argv(1);
+        var arg = args[1];
         if (arg == "--help" || arg == "-h") {
             print_help();
             return 0;
@@ -142,4 +142,4 @@ fn main() -> int {
     return 0;
 }
 
-shutdown(main());
+shutdown(main(sys_args()));

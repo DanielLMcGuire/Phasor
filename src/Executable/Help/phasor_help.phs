@@ -103,18 +103,18 @@ SEE ALSO
     else puts(helpStr);
 }
 
-fn main() -> int {
-    if (sys_argc() == 3) {
-        var page = to_string(sys_argv(1));
-        var section = to_int(sys_argv(2));
+fn main(args: array) -> int {
+    if (len(args) == 3) {
+        var page = to_string(args[1]);
+        var section = to_int(args[2]);
         return sys_shell(getDocCmd(page, section));
-    } else if (sys_argc() == 2) {
-        var page = to_string(sys_argv(1));
+    } else if (len(args) == 2) {
+        var page = to_string(args[1]);
         return sys_shell(getDocCmd(page, 1));
     } else {
-        showHelp(fstem(sys_argv(0)), sys_argc() > 1);
+        showHelp(fstem(args[0]), len(args) > 1);
         return 1;
     }
 }
 
-shutdown(main());
+shutdown(main(sys_args()));
