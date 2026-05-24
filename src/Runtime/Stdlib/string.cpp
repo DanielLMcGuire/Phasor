@@ -24,9 +24,17 @@ void StdLib::registerStringFunctions(VM *vm)
 	vm->registerNativeFunction("sb_clear", StdLib::sb_clear);
 }
 
-// StringBuilder Pool
-static std::vector<PhsString> sbPool;
-static std::vector<size_t>      sbFreeIndices;
+static std::vector<PhsString>& getSbPool()
+{
+	static std::vector<PhsString> pool;
+	return pool;
+}
+
+static std::vector<size_t>& getSbFreeIndices()
+{
+	static std::vector<size_t> freeIndices;
+	return freeIndices;
+}
 
 i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 {
@@ -66,16 +74,16 @@ i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 0, "sb_new");
 	size_t idx;
-	if (!sbFreeIndices.empty())
+	if (!getSbFreeIndices().empty())
 	{
-		idx = sbFreeIndices.back();
-		sbFreeIndices.pop_back();
-		sbPool[idx] = "";
+		idx = getSbFreeIndices().back();
+		getSbFreeIndices().pop_back();
+		getSbPool()[idx] = "";
 	}
 	else
 	{
-		idx = sbPool.size();
-		sbPool.push_back("");
+		idx = getSbPool().size();
+		getSbPool().push_back("");
 	}
 	return static_cast<i64>(idx);
 }
@@ -84,10 +92,10 @@ Value StdLib::sb_append(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 2, "sb_append");
 	i64 idx = args[0].asInt();
-	if (idx < 0 || idx >= static_cast<i64>(sbPool.size()))
+	if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
 
-	sbPool[idx] += args[1].toString();
+	getSbPool()[idx] += args[1].toString();
 	return args[0]; // Return handle for chaining
 }
 
@@ -95,18 +103,18 @@ PhsString StdLib::sb_to_string(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_to_string");
 	i64 idx = args[0].asInt();
-	if (idx < 0 || idx >= static_cast<i64>(sbPool.size()))
+	if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
 		throw std::runtime_error("Invalid StringBuilder handle");
 
-	return sbPool[idx];
+	return getSbPool()[idx];
 }
 
 PhsString StdLib::sb_free(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_free");
 	size_t      idx = args[0].asInt();
-	PhsString value = sbPool[idx];
-	sbFreeIndices.push_back(idx);
+	PhsString value = getSbPool()[idx];
+	getSbFreeIndices().push_back(idx);
 	return value;
 }
 
@@ -114,9 +122,9 @@ Value StdLib::sb_clear(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_clear");
 	size_t idx = args[0].asInt();
-	if (idx >= sbPool.size())
+	if (idx >= getSbPool().size())
 		throw std::runtime_error("Invalid StringBuilder handle");
-	sbPool[idx].clear();
+	getSbPool()[idx].clear();
 	return args[0]; // Return handle for chaining
 }
 
