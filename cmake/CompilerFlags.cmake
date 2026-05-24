@@ -1,8 +1,8 @@
 if(MSVC)
-    set(MSVC_COMMON_RELEASE "/Oxyit /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
+    set(MSVC_COMMON_RELEASE "/Oxyit /GL /GF /Gy /Ob3 /W3 /fp:precise /Qspectre-")
     set(MSVC_COMMON_DEBUG   "/Od /Zi /fp:strict")
 
-    set(MSVC_CXX_EXTRA "/EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN")
+    set(MSVC_CXX_EXTRA "/EHsc /permissive-")
 
     if(IS_XBOX AND IS_XDURANGO)
         set(MSVC_ARCH "/arch:SSE2")
@@ -13,10 +13,13 @@ if(MSVC)
     set(CMAKE_C_FLAGS_RELEASE   "${MSVC_COMMON_RELEASE} ${MSVC_ARCH}")
     set(CMAKE_CXX_FLAGS_RELEASE "${MSVC_COMMON_RELEASE} ${MSVC_ARCH} ${MSVC_CXX_EXTRA}")
 
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELEASE} /Zi")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+
     set(CMAKE_C_FLAGS_DEBUG     "${MSVC_COMMON_DEBUG}")
     set(CMAKE_CXX_FLAGS_DEBUG   "${MSVC_COMMON_DEBUG} ${MSVC_CXX_EXTRA}")
 
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "/LTCG /OPT:REF /OPT:ICF")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "/LTCG /OPT:REF /OPT:ICF /PDBSTRIPPED")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/LTCG /OPT:REF /OPT:ICF")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG      "/DEBUG /MAP")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "/DEBUG /MAP")
@@ -53,11 +56,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         set(CLANG_SAN_FLAGS "")
     endif()
 
-    if (WIN32)
-        set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -DNOMINMAX -DWIN32_LEAN_AND_MEAN -Wno-gnu-label-as-value")
-    else()
-        set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -Wno-gnu-label-as-value")
-    endif()
+    set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -Wno-gnu-label-as-value")
     set(COMMON_FP   "-fno-fast-math")
     set(COMMON_WARN "-Wall -Wextra -pedantic")
     set(COMMON_CXX_LANG "-fexceptions -frtti")
@@ -151,6 +150,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     else()
         set(DEBUG_INFO "-g")
     endif()
+
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELEASE} -g")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -g")
 
     set(CMAKE_C_FLAGS_DEBUG
         "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fno-fast-math ${CLANG_SAN_FLAGS}"
