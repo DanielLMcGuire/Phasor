@@ -9,6 +9,8 @@ namespace Phasor
 void VM::evalLoop()
 {
 #if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 
     if (pc >= m_bytecode->instructions.size()) return;
 
@@ -866,6 +868,8 @@ void VM::evalLoop()
 #endif
         operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
     }
+
+#pragma GCC diagnostic pop
 #endif // defined(__GNUC__) || defined(__clang__)
 }
 
