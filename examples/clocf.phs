@@ -1,144 +1,164 @@
 #!/usr/bin/env phasor
-using("stdsys", "stdio", "stdstr", "stdfile", "stdtype");
+using("stdsys", "stdio", "stdstr", "stdfile", "stdtype", "stdarray", "stdmem");
+
+struct LangEntry {
+    name: string,
+    code: int
+}
+
+struct ClocState {
+    entries:    array,
+    totalCode:  int,
+    maxNameLen: int
+}
 
 fn print_help() -> void {
+    puts("clocf - cloc formatter\n");
+    puts("Usage:");
+    puts("  cloc [options] <path> | clocf         Process cloc output");
+    puts("  clocf --help                          Show this help\n");
+    puts("Examples:");
+    puts("  cloc . | clocf                        Pipe cloc output");
+}
+
+fn createState() -> ClocState {
+    return ClocState{
+        entries:    [],
+        totalCode:  0,
+        maxNameLen: 0
+    };
+}
+
+fn trimRight(s: string) -> string {
+    var end = len(s) - 1;
+    while (end >= 0 && (char_at(s, end) == " " || char_at(s, end) == "\t")) {
+        end = end - 1;
+    }
+    if (end < 0) return "";
+    return substr(s, 0, end + 1);
+}
+
+fn isDigit(c: string) -> bool {
+    return (c == "0" || c == "1" || c == "2" || c == "3" || c == "4" ||
+            c == "5" || c == "6" || c == "7" || c == "8" || c == "9");
+}
+
+fn parseLine(line: string) -> LangEntry {
+    var lineLen = len(line);
+    var empty = LangEntry{ name: "", code: 0 };
+
+    var nameEnd = 0;
+    while (nameEnd < lineLen && !isDigit(char_at(line, nameEnd))) {
+        nameEnd = nameEnd + 1;
+    }
+
+    if (nameEnd == 0 || nameEnd >= lineLen)
+        return empty;
+
+    var namePart = trimRight(substr(line, 0, nameEnd));
+    if (len(namePart) == 0) return empty;
+
+    var pos = nameEnd;
+    var nums = [];
+
+    while (pos < lineLen && len(nums) < 4) {
+        while (pos < lineLen && char_at(line, pos) == " ")
+            pos = pos + 1;
+
+        var numStr = "";
+        while (pos < lineLen && isDigit(char_at(line, pos))) {
+            var tempSb = sb_new();
+            sb_append(tempSb, numStr);
+            sb_append(tempSb, char_at(line, pos));
+            numStr = sb_free(tempSb);
+            pos = pos + 1;
+        }
+
+        if (len(numStr) > 0)
+            nums = arr_push(nums, to_int(numStr));
+        else
+            break;
+    }
+
+    if (len(nums) < 4) return empty;
+
+    return LangEntry{
+        name: namePart,
+        code: nums[3]
+    };
+}
+
+fn shouldSkipLine(line: string) -> bool {
+    return (
+        starts_with(line, "github.com/AlDanial/cloc") ||
+        starts_with(line, "-") ||
+        starts_with(line, "Language") ||
+        starts_with(line, "SUM")
+    );
+}
+
+fn readInput(state: ClocState) {
+    while (true) {
+        var line = gets();
+        if (len(line) == 0) break;
+        if (shouldSkipLine(line)) continue;
+
+        var entry = parseLine(line);
+
+        if (len(entry.name) > 0 && entry.code > 0) {
+            state.entries   = arr_push(state.entries, entry);
+            state.totalCode = state.totalCode + entry.code;
+
+            if (len(entry.name) > state.maxNameLen)
+                state.maxNameLen = len(entry.name);
+        } else {
+            free("entry");
+        }
+    }
+}
+
+fn padRight(s: string, width: int) -> string {
     var sb = sb_new();
-    sb_append(sb, "clocf - cloc formatter\n\n");
-    sb_append(sb, "Usage:\n");
-    sb_append(sb, "  cloc [options] <path> | clocf    # Process cloc output via pipe\n");
-    puts(sb_to_string(sb));
-    sb_free(sb);
+    sb_append(sb, s);
+    for (var p = 0; p < width - len(s); p++)
+        sb_append(sb, " ");
+    return sb_free(sb);
+}
+
+fn processResults(state: ClocState) -> string {
+    putf("Total code lines: %d\n", state.totalCode);
+    puts("Language percentages:");
+
+    var ret = "";
+    for (var k = 0; k < len(state.entries); k++) {
+        var entry   = state.entries[k];
+        var percent = (entry.code * 100.0) / state.totalCode;
+        ret = concat(ret, c_fmt("%s : %6.2f%% (%d lines)\n", padRight(entry.name, state.maxNameLen), percent, entry.code));
+        free("entry");
+    }
+    return ret;
 }
 
 fn main(args: array) -> int {
-    var argc = len(args);
-    
-    if (argc > 1) {
-        var arg = args[1];
-        if (arg == "--help" || arg == "-h") {
-            print_help();
-            return 0;
-        }
+    if (len(args) > 1 && (args[1] == "--help" || args[1] == "-h")) {
+        print_help();
+        return 0;
     }
 
-    var totalCode = 0;
-    var maxNameLen = 0;
-    var langCount = 0;
-    
-    var dataStorage = sb_new();
-    
-    while (true) {
-        var line = gets();
-        if (len(line) == 0) { break; }
+    var state = createState();
+    readInput(state);
 
-        if (starts_with(line, "github.com/AlDanial/cloc") || starts_with(line, "-") || starts_with(line, "Language") || starts_with(line, "SUM")) {
-            continue;
-        }
-
-        var codeStr = "";
-        var foundDigits = false;
-        var codeIdxStart = 0;
-
-        for (var i = len(line) - 1; i >= 0; i = i - 1) {
-            var c = char_at(line, i);
-            var isDigit = (c == "0" || c == "1" || c == "2" || c == "3" || c == "4" || 
-                           c == "5" || c == "6" || c == "7" || c == "8" || c == "9");
-            
-            if (isDigit) {
-                var tempSb = sb_new();
-                sb_append(tempSb, c);
-                sb_append(tempSb, codeStr);
-                codeStr = sb_free(tempSb);
-                foundDigits = true;
-            } else if (foundDigits) {
-                codeIdxStart = i;
-                break;
-            }
-        }
-
-        var namePart = "";
-        for (var j = 0; j < len(line); j = j + 1) {
-            var c = char_at(line, j);
-            if (c == " " && j > 0) {
-                if (char_at(line, j-1) != " ") {
-                     namePart = substr(line, 0, j);
-                     break;
-                }
-            }
-        }
-
-        if (len(codeStr) > 0 && len(namePart) > 0) {
-            var codeValue = to_int(codeStr);
-            totalCode = totalCode + codeValue;
-            
-            if (len(namePart) > maxNameLen) {
-                maxNameLen = len(namePart);
-            }
-
-            sb_append(dataStorage, namePart);
-            sb_append(dataStorage, ":");
-            sb_append(dataStorage, codeStr);
-            sb_append(dataStorage, "\n");
-            langCount = langCount + 1;
-        }
-    }
-
-    if (totalCode == 0) {
+    if (state.totalCode == 0) {
         puts_error("Error: No cloc data received via pipe.");
-        sb_free(dataStorage);
         return 1;
     }
 
-    var headerSb = sb_new();
-    sb_append(headerSb, "Total code lines: ");
-    sb_append(headerSb, to_string(to_int(totalCode)));
-    puts(sb_to_string(headerSb));
-    sb_free(headerSb);
-    puts("Language percentages:");
-
-    var rawResults = sb_free(dataStorage);
-    var currentPos = 0;
-
-    for (var k = 0; k < langCount; k = k + 1) {
-        var entry = "";
-        for (var m = currentPos; m < len(rawResults); m = m + 1) {
-            if (char_at(rawResults, m) == "\n") {
-                entry = substr(rawResults, currentPos, m - currentPos);
-                currentPos = m + 1;
-                break;
-            }
-        }
-
-        var splitIdx = 0;
-        for (var n = 0; n < len(entry); n = n + 1) {
-            if (char_at(entry, n) == ":") {
-                splitIdx = n;
-                break;
-            }
-        }
-
-        var lName = substr(entry, 0, splitIdx);
-        var lCode = to_int(substr(entry, splitIdx + 1));
-        var percent = (lCode * 100.0) / totalCode;
-
-        var lineSb = sb_new();
-        sb_append(lineSb, lName);
-        
-        var padding = maxNameLen - len(lName);
-        for (var p = 0; p < padding; p = p + 1) {
-            sb_append(lineSb, " ");
-        }
-
-        sb_append(lineSb, " : ");
-        sb_append(lineSb, to_string(percent));
-        sb_append(lineSb, "% (");
-        sb_append(lineSb, to_string(lCode));
-        sb_append(lineSb, " lines)");
-        
-        puts(sb_to_string(lineSb));
-        sb_free(lineSb);
+    if(len(args) > 1 && (args[1] == "--json")) {
+        puts(state);
+        return 0;
     }
 
+    puts(processResults(state));
     return 0;
 }
 
