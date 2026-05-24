@@ -41,7 +41,7 @@ f64 StdLib::to_float(const std::vector<Value> &args, VM *)
 	return args[0].asFloat();
 }
 
-std::string StdLib::to_string(const std::vector<Value> &args, VM *)
+PhsString StdLib::to_string(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_string");
 	return args[0].toString();

@@ -102,7 +102,7 @@ f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "timef");
-	std::string format = args[0].asString();
+	PhsString format = args[0].asString();
 
 	auto        now = std::chrono::system_clock::now();
 	std::time_t t = std::chrono::system_clock::to_time_t(now);
@@ -120,7 +120,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 		return Value(" ");
 	}
 
-	return std::string(buffer);
+	return PhsString(buffer);
 }
 
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
@@ -134,8 +134,8 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
-	std::string key = args[0].asString();
-	std::string value;
+	PhsString key = args[0].asString();
+	PhsString value;
 	dupenv_ret result = dupenv(value, key.c_str());
 	if (result == dupenv_ret::NotFound) return false;
 	else if (result == dupenv_ret::Success) return value;
@@ -168,7 +168,7 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 
-std::string StdLib::sys_os(const std::vector<Value> &args, VM *)
+PhsString StdLib::sys_os(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)

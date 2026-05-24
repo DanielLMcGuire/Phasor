@@ -46,7 +46,7 @@ Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm)
 }
 #endif
 
-std::string StdLib::meta_get_version(const std::vector<Value> &args, VM *)
+PhsString StdLib::meta_get_version(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "phs_version");
 	return PHASOR_VERSION_STRING;

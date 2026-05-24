@@ -30,6 +30,7 @@
 #include <vector>
 #include <format>
 #include "phsint.hpp"
+#include "PhasorString.hpp"
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -59,13 +60,13 @@ class Value
   public:
 	struct StructInstance
 	{
-		std::string                            structName;
-		std::unordered_map<std::string, Value> fields;
+		PhsString structName;
+		std::unordered_map<PhsString, Value> fields;
 	};
 	using ArrayInstance = std::vector<Value>;
 
   private:
-	using DataType = std::variant<std::monostate, bool, i64, f64, std::shared_ptr<std::string>,
+	using DataType = std::variant<std::monostate, bool, i64, f64, PhsString,
 	                              std::shared_ptr<StructInstance>,
 	                              std::shared_ptr<ArrayInstance>>;
 
@@ -93,16 +94,20 @@ class Value
 	{
 	}
 	/// @brief String constructor
-	Value(const std::string &s) : data(std::make_shared<std::string>(s))
+	Value(const std::string &s) : data(PhsString(s))
+	{
+	}
+	/// @brief Small Strring constructor
+	Value(const PhsString &s) : data(s)
 	{
 	}
 	/// @brief String constructor
-	Value(const char *s) : data(std::make_shared<std::string>(s))
+	Value(const char *s) : data(PhsString(s))
 	{
 	}
 	/// @brief Struct constructor
 	Value(std::shared_ptr<StructInstance> s) : data(std::move(s))
-	{
+	{	
 	}
 	/// @brief Array constructor
 	Value(std::shared_ptr<ArrayInstance> a) : data(std::move(a))
@@ -182,13 +187,22 @@ class Value
 		return 0.0;
 	}
 	/// @brief Get the value as a string
-	[[nodiscard]] std::string asString() const noexcept
+	[[nodiscard]] std::string string() const noexcept
 	{
 		if (isString())
 		{
-			return *std::get<std::shared_ptr<std::string>>(data);
+			return std::get<PhsString>(data).str();
 		}
 		return toString();
+	}
+	/// @brief Get the value as a Small String
+	[[nodiscard]] PhsString asString() const noexcept
+	{
+		if (isString())
+		{
+			return std::get<PhsString>(data);
+		}
+		return PhsString(toString());
 	}
 	/// @brief Get the value as an array
 	std::shared_ptr<ArrayInstance> asArray()
@@ -472,7 +486,7 @@ class Value
 		}
 		if (isString())
 		{
-			[[likely]] return asString();
+			[[likely]] return string();
 		}
 		if (isArray())
 		{
@@ -499,7 +513,7 @@ class Value
 		{
 			[[unlikely]] throw std::runtime_error("c_str() can only be called on string values");
 		}
-		return std::get<std::shared_ptr<std::string>>(data)->c_str();
+		return std::get<PhsString>(data).c_str();
 	}
 
 	/// @brief Print to output stream
@@ -524,7 +538,7 @@ class Value
 		return std::get<std::shared_ptr<StructInstance>>(data);
 	}
 
-	static Value createStruct(const std::string &name)
+	static Value createStruct(const PhsString &name)
 	{
 		return Value(std::make_shared<StructInstance>(StructInstance{.structName = name, .fields = {}}));
 	}
@@ -534,7 +548,7 @@ class Value
 		return {std::make_shared<ArrayInstance>(std::move(elements))};
 	}
 
-	[[nodiscard]] Value getField(const std::string &name) const
+	[[nodiscard]] Value getField(const PhsString &name) const
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
@@ -549,7 +563,7 @@ class Value
 		return it->second;
 	}
 
-	void setField(const std::string &name, Value value)
+	void setField(const PhsString &name, Value value)
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
@@ -559,7 +573,7 @@ class Value
 		s->fields[name] = std::move(value);
 	}
 
-	[[nodiscard]] bool hasField(const std::string &name) const noexcept
+	[[nodiscard]] bool hasField(const PhsString &name) const noexcept
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
@@ -644,10 +658,10 @@ template <> struct std::formatter<Phasor::Value>
 		switch (style)
 		{
 		case Style::TypeOnly:
-			return fwd(Value::typeToString(v.getType()).asString());
+			return fwd(Value::typeToString(v.getType()).asString().str());
 
 		case Style::TypeValue:
-			return fwd(Value::typeToString(v.getType()).asString() + "(" + escapeString(v.toString()) + ")");
+			return fwd(Value::typeToString(v.getType()).asString().str() + "(" + escapeString(v.toString()) + ")");
 
 		case Style::Debug:
 			return fwd(debug_repr(v));
@@ -683,7 +697,7 @@ template <> struct std::formatter<Phasor::Value>
 	}
 
   private:
-	static std::string escapeString(const std::string &input)
+	static std::string escapeString(std::string_view input)
 	{
 		std::string output;
 		output.reserve(input.size());
@@ -765,7 +779,7 @@ template <> struct std::formatter<Phasor::Value>
 		}
 		case ValueType::Struct: {
 			const auto &s = *v.asStruct();
-			std::string out = s.structName + " { ";
+			std::string out = s.structName.str() + " { ";
 			bool        first = true;
 			for (const auto &[k, val] : s.fields)
 			{
@@ -773,7 +787,7 @@ template <> struct std::formatter<Phasor::Value>
 				{
 					out += ", ";
 				}
-				out += k + ": " + debug_repr(val);
+				out += k.str() + ": " + debug_repr(val);
 				first = false;
 			}
 			return out + " }";
