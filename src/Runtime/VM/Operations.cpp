@@ -512,7 +512,17 @@ void VM::evalLoop()
 
     LABEL_LEN:
     {
-        { Value v = pop(); push(Value(static_cast<i64>(v.asString().length()))); }
+        {
+            Value v = pop();
+            if (v.isArray())
+            {
+                push(Value(static_cast<i64>(v.asArray()->size())));
+            }
+            else
+            {
+                push(Value(static_cast<i64>(v.asString().length())));
+            }
+        }
         NEXT();
     }
 
@@ -1391,7 +1401,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::LEN: {
 		Value v = pop();
-		push(Value(static_cast<i64>(v.asString().length())));
+		if (v.isArray())
+		{
+			push(Value(static_cast<i64>(v.asArray()->size())));
+		}
+		else
+		{
+			push(Value(static_cast<i64>(v.asString().length())));
+		}
 		break;
 	}
 

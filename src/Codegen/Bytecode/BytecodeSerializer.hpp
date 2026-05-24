@@ -28,22 +28,26 @@ class BytecodeSerializer
   private:
 	std::vector<u8> buffer;
 
-	void writeUInt8(u8 value);           ///< Helper method to write UInt8
-	void writeUInt16(u16 value);         ///< Helper method to write UInt16
-	void writeUInt32(u32 value);         ///< Helper method to write UInt32
-	void writeInt32(i32 value);           ///< Helper method to write Int32
-	void writeInt64(i64 value);           ///< Helper method to write Int64
-	void writeDouble(f64 value);           ///< Helper method to write Double
+	void writeUInt8(u8 value);                ///< Helper method to write UInt8
+	void writeUInt16(u16 value);              ///< Helper method to write UInt16
+	void writeUInt32(u32 value);              ///< Helper method to write UInt32
+	void writeInt32(i32 value);               ///< Helper method to write Int32
+	void writeInt64(i64 value);               ///< Helper method to write Int64
+	void writeDouble(f64 value);              ///< Helper method to write Double
 	void writeString(const std::string &str); ///< Helper method to write String
 
+	/// @brief Write a single Value (recursive — handles nested structs/arrays)
+	void writeValue(const Value &val);
+
 	/// @brief Section writers
-	void writeHeader(u32 dataChecksum);                     ///< Helper method to write header
+	void writeHeader(u32 dataChecksum);                          ///< Helper method to write header
 	void writeConstantPool(const std::vector<Value> &constants); ///< Helper method to write Constants Table
 	void writeVariableMapping(const std::unordered_map<std::string, int> &variables,
 	                          int nextVarIndex);                          ///< Helper method to write Variable Map Table
 	void writeInstructions(const std::vector<Instruction> &instructions); ///< Helper method to write Instruction Table
 	void writeFunctionEntries(
 	    const std::unordered_map<std::string, int> &functionEntries); ///< Helper method to write Function Table
+	void writeStructSection(const std::vector<StructInfo> &structs);  ///< Helper method to write Struct Section
 
 	/// @brief Calculate CRC32 checksum
 	static u32 calculateCRC32(const std::vector<u8> &data);

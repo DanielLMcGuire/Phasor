@@ -66,6 +66,8 @@ void VM::setup(const Bytecode &bc, const size_t initialPC) {
 	stack.clear();
 	callStack.clear();
 
+	registerArrayFunctions();
+
 #ifdef TRACING
 	log(std::format("\nVM::{}():\n\n{}\n", __func__, getBytecodeInformation()));
 	flush();

@@ -204,6 +204,8 @@ class CodeGenerator
 	void generateBreakStmt();
 	void generateContinueStmt();
 	void generateSwitchStmt(const AST::SwitchStmt *switchStmt);
+	void generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded);
+	void generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded);
 
 	// Loop context for break/continue
 	std::vector<int>              loopStartStack;     // Stack of loop start positions

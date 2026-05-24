@@ -76,6 +76,7 @@ class StdLib
 #endif
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
+	static void registerArrayFunctions(VM *vm);
 
 #pragma region stdmeta
 #ifndef SANDBOXED
@@ -162,6 +163,13 @@ class StdLib
 	static PhsString to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static bool        to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
 #pragma endregion
+
+#pragma region stdarray
+	static i64 array_length(const std::vector<Value> &args, VM *vm); ///< Get array length
+	static Value array_push(const std::vector<Value> &args, VM *vm);   ///< Push to array
+	static Value array_pop(const std::vector<Value> &args, VM *vm);    ///< Pop from array
+	static Value array_insert(const std::vector<Value> &args, VM *vm); ///< Insert into array
+	static Value array_resize(const std::vector<Value> &args, VM *vm); ///< Resize array
 
 #pragma region stdrand
 

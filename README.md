@@ -33,6 +33,8 @@ phasor <options>
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
+- **Structs*
+- **Arrays**
 - **Type annotations** (only in function declarations) ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
@@ -73,9 +75,6 @@ shutdown(code); // from stdsys
 > Some may *appear* to work before actual implementation
 >
 > The existance of a keyword/token type does not imply there is planned support for said feature
-
-- **Structs** with C style static field access ```struct.member = 14;```
-- **Arrays** with C syntax ```var arrayName[arraySize];```
 - **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
 - LLVM Jit for hot loops / functions
 

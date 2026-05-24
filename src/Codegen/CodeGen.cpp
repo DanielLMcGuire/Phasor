@@ -213,6 +213,14 @@ void CodeGenerator::generateExpression(const AST::Expression *expr, bool resultN
 	{
 		generatePostfixExpr(postfixExpr, resultNeeded);
 	}
+	else if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(expr))
+	{
+		generateArrayLiteralExpr(arrayLit, resultNeeded);
+	}
+	else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(expr))
+	{
+		generateArrayAccessExpr(arrayAccess, resultNeeded);
+	}
 	else
 	{
 		throw std::runtime_error("Unknown expression type in code generation");
@@ -949,7 +957,7 @@ void CodeGenerator::generateNullExpr(const AST::NullExpr *)
 
 void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr)
 {
-	// Support assignments to variables and struct fields.
+	// Support assignments to variables, struct fields, and array elements.
 	if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
 	{
 		// Variable assignment: a = value
@@ -980,22 +988,31 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 	}
 	else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(assignExpr->target.get()))
 	{
-		// Generate object (pushes struct)
 		generateExpression(fieldExpr->object.get());
-		// Generate value (pushes value on top)
 		generateExpression(assignExpr->value.get());
 
-		// Use dynamic field access since we don't have type information
 		int fieldNameIndex = bytecode.addStringConstant(fieldExpr->fieldName);
-		bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
 
-		// Reload the assigned field value so the assignment expression evaluates to it
-		generateExpression(fieldExpr->object.get());
+		bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
 		bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
+	}
+	else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(assignExpr->target.get()))
+	{
+		// a[i] = value
+		generateExpression(arrayAccess->array.get());   // array
+		generateExpression(arrayAccess->index.get());   // index
+		generateExpression(assignExpr->value.get());    // value
+		
+		int countIdx = bytecode.addConstant(Value(static_cast<i64>(3)));
+		bytecode.emit(OpCode::PUSH_CONST, countIdx);    // count for __set_elem
+		
+		int setIdx = bytecode.addStringConstant("__set_elem");
+		
+		bytecode.emit(OpCode::CALL_NATIVE, setIdx);
 	}
 	else
 	{
-		throw std::runtime_error("Invalid assignment target. Only variables and struct fields are supported.");
+		throw std::runtime_error("Invalid assignment target. Only variables, struct fields, and array elements are supported.");
 	}
 }
 
@@ -1147,4 +1164,33 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 		bytecode.instructions[jumpIdx].operand1 = endIndex;
 	}
 }
+
+void CodeGenerator::generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded)
+{
+    for (const auto &elem : arrayLit->elements)
+        generateExpression(elem.get());
+
+    int count = static_cast<int>(arrayLit->elements.size());
+    int countIdx = bytecode.addConstant(Value(static_cast<i64>(count)));
+    bytecode.emit(OpCode::PUSH_CONST, countIdx);
+
+    int funcNameIdx = bytecode.addStringConstant("__array_literal");
+    bytecode.emit(OpCode::CALL_NATIVE, funcNameIdx);
+
+    if (!resultNeeded)
+        bytecode.emit(OpCode::POP);
+}
+
+void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded)
+{
+    generateExpression(arrayAccess->array.get());   // array
+    generateExpression(arrayAccess->index.get());   // index
+    int countIdx = bytecode.addConstant(Value(static_cast<i64>(2)));
+    bytecode.emit(OpCode::PUSH_CONST, countIdx);    // count for __get_elem
+    int funcIdx = bytecode.addStringConstant("__get_elem");
+    bytecode.emit(OpCode::CALL_NATIVE, funcIdx);
+    if (!resultNeeded)
+        bytecode.emit(OpCode::POP);
+}
+
 } // namespace Phasor
