@@ -465,6 +465,15 @@ class Value
 		return !(*this < other);
 	}
 
+	[[nodiscard]] std::string toRepr() const noexcept
+	{
+		if (isString())
+		{
+			return "\"" + string() + "\"";
+		}
+		return toString();
+	}
+
 	/// @brief Convert to string for printing
 	[[nodiscard]] std::string toString() const noexcept
 	{
@@ -494,13 +503,30 @@ class Value
 			const auto &arr = *asArray();
 			for (size_t i = 0; i < arr.size(); ++i)
 			{
-				result += arr[i].toString();
+				result += arr[i].toRepr();
 				if (i < arr.size() - 1)
 				{
 					result += ", ";
 				}
 			}
 			result += "]";
+			return result;
+		}
+		if (isStruct())
+		{
+			std::string result = "{";
+			const auto &s = *asStruct();
+			bool first = true;
+			for (const auto &[k, v] : s.fields)
+			{
+				if (!first)
+				{
+					result += ", ";
+				}
+				result += "\"" + k.str() + "\": " + v.toRepr();
+				first = false;
+			}
+			result += "}";
 			return result;
 		}
 		return "unknown";
