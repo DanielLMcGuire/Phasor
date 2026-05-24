@@ -46,7 +46,6 @@
 
 #define BAD_STATUS -1
 
-
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {

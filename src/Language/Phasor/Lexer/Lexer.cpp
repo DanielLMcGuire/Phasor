@@ -38,7 +38,7 @@ std::vector<Token> Lexer::tokenize()
 		}
 		tokens.push_back(scanToken());
 	}
-	tokens.push_back({TokenType::EndOfFile, "", line, column});
+	tokens.push_back({Phasor::TokenType::EndOfFile, "", line, column});
 	return tokens;
 }
 
@@ -117,66 +117,66 @@ Token Lexer::scanToken()
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "++", line, column};
+		return {Phasor::TokenType::Symbol, "++", line, column};
 	}
 	if (c == '-' && position + 1 < source.length() && source[position + 1] == '-')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "--", line, column};
+		return {Phasor::TokenType::Symbol, "--", line, column};
 	}
 	if (c == '=' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "==", line, column};
+		return {Phasor::TokenType::Symbol, "==", line, column};
 	}
 	if (c == '!' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "!=", line, column};
+		return {Phasor::TokenType::Symbol, "!=", line, column};
 	}
 	if (c == '-' && position + 1 < source.length() && source[position + 1] == '>')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "->", line, column};
+		return {Phasor::TokenType::Symbol, "->", line, column};
 	}
 	if (c == '<' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "<=", line, column};
+		return {Phasor::TokenType::Symbol, "<=", line, column};
 	}
 	if (c == '>' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, ">=", line, column};
+		return {Phasor::TokenType::Symbol, ">=", line, column};
 	}
 	if (c == '&' && position + 1 < source.length() && source[position + 1] == '&')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "&&", line, column};
+		return {Phasor::TokenType::Symbol, "&&", line, column};
 	}
 	if (c == '|' && position + 1 < source.length() && source[position + 1] == '|')
 	{
 		advance();
 		advance();
-		return {TokenType::Symbol, "||", line, column};
+		return {Phasor::TokenType::Symbol, "||", line, column};
 	}
 
 	// Single-character symbols (parentheses, operators, punctuation, etc.)
 	if (std::string("()+-*/%<>=!&|.{}:;,[]").find(c) != std::string::npos)
 	{
 		advance();
-		return {TokenType::Symbol, std::string(1, c), line, column};
+		return {Phasor::TokenType::Symbol, std::string(1, c), line, column};
 	}
 
 	advance();
-	return {TokenType::Unknown, std::string(1, c), line, column};
+	return {Phasor::TokenType::Unknown, std::string(1, c), line, column};
 }
 
 Token Lexer::identifier()
@@ -196,11 +196,11 @@ Token Lexer::identifier()
 	{
 		if (text == kw)
 		{
-			return {TokenType::Keyword, text, line, column};
+			return {Phasor::TokenType::Keyword, text, line, column};
 		}
 	}
 
-	return {TokenType::Identifier, text, line, column};
+	return {Phasor::TokenType::Identifier, text, line, column};
 }
 
 Token Lexer::number()
@@ -219,7 +219,7 @@ Token Lexer::number()
 			advance();
 		}
 	}
-	return {TokenType::Number, source.substr(start, position - start), line, column};
+	return {Phasor::TokenType::Number, source.substr(start, position - start), line, column};
 }
 
 static int hexValue(char c)
@@ -251,12 +251,12 @@ Token Lexer::string()
 		char c = advance();
 
 		if (c == '\n')
-			return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+			return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 
 		if (c == '\\')
 		{
 			if (isAtEnd())
-				return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 
 			char esc = advance();
 			switch (esc)
@@ -289,7 +289,7 @@ Token Lexer::string()
 					val = val * 8 + static_cast<u32>(d - '0');
 				}
 				if (val > 0xFF)
-					return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 				out << static_cast<char>(val);
 				break;
 			}
@@ -297,7 +297,7 @@ Token Lexer::string()
 			case 'x':
 			{
 				if (isAtEnd() || hexValue(peek()) < 0)
-					return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 				int val = hexValue(advance());
 				if (!isAtEnd() && hexValue(peek()) >= 0)
 					val = (val << 4) | hexValue(advance());
@@ -313,11 +313,11 @@ Token Lexer::string()
 				for (int i = 0; i < ndigits; ++i)
 				{
 					if (isAtEnd() || hexValue(peek()) < 0)
-						return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+						return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 					cp = (cp << 4) | static_cast<u32>(hexValue(advance()));
 				}
 				if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
-					return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 				if      (cp <= 0x7F)   { out << static_cast<char>(cp); }
 				else if (cp <= 0x7FF)  { out << static_cast<char>(0xC0 | (cp >> 6))
 				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
@@ -338,7 +338,7 @@ Token Lexer::string()
 		}
 		else if (c == '"')
 		{
-			return {TokenType::String, out.str(), tokenLine, tokenColumn};
+			return {Phasor::TokenType::String, out.str(), tokenLine, tokenColumn};
 		}
 		else
 		{
@@ -346,7 +346,7 @@ Token Lexer::string()
 		}
 	}
 
-	return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+	return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 }
 
 Token Lexer::complexString()
@@ -365,13 +365,13 @@ Token Lexer::complexString()
 		if (c == '`')
 		{
 			// Closing backtick
-			return {TokenType::String, out.str(), tokenLine, tokenColumn};
+			return {Phasor::TokenType::String, out.str(), tokenLine, tokenColumn};
 		}
 
 		out << c;
 	}
 
 	// If we get here, string was unterminated
-	return {TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+	return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 }
 } // namespace Phasor

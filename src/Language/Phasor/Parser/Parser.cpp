@@ -999,7 +999,7 @@ bool Parser::isAtEnd()
 	return peek().type == Phasor::TokenType::EndOfFile;
 }
 
-bool Parser::check(TokenType type)
+bool Parser::check(Phasor::TokenType type)
 {
 	if (isAtEnd())
 	{
@@ -1008,7 +1008,7 @@ bool Parser::check(TokenType type)
 	return peek().type == type;
 }
 
-bool Parser::match(TokenType type)
+bool Parser::match(Phasor::TokenType type)
 {
 	if (check(type))
 	{
@@ -1018,7 +1018,7 @@ bool Parser::match(TokenType type)
 	return false;
 }
 
-Token Parser::consume(TokenType type, const std::string &message)
+Token Parser::consume(Phasor::TokenType type, const std::string &message)
 {
 	if (check(type))
 	{
@@ -1036,7 +1036,7 @@ Token Parser::consume(TokenType type, const std::string &message)
 	throw std::runtime_error(message);
 }
 
-bool Parser::match(TokenType type, const std::string &lexeme)
+bool Parser::match(Phasor::TokenType type, const std::string &lexeme)
 {
 	if (check(type) && peek().lexeme == lexeme)
 	{
@@ -1046,7 +1046,7 @@ bool Parser::match(TokenType type, const std::string &lexeme)
 	return false;
 }
 
-Token Parser::consume(TokenType type, const std::string &lexeme, const std::string &message)
+Token Parser::consume(Phasor::TokenType type, const std::string &lexeme, const std::string &message)
 {
 	if (check(type) && peek().lexeme == lexeme)
 	{
@@ -1065,7 +1065,7 @@ Token Parser::consume(TokenType type, const std::string &lexeme, const std::stri
 	throw std::runtime_error(message);
 }
 
-Token Parser::expect(TokenType type, const std::string &message)
+Token Parser::expect(Phasor::TokenType type, const std::string &message)
 {
 	if (check(type))
 	{

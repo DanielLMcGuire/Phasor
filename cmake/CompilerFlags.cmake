@@ -24,6 +24,10 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG      "/DEBUG /MAP")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "/DEBUG /MAP")
 
+    add_compile_options(
+        "$<$<COMPILE_LANGUAGE:CXX>:/FI>"
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/include/alloc_trace.hpp>"
+    )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -163,6 +167,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG    "${CLANG_SAN_FLAGS}")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CLANG_SAN_FLAGS}")
 
+    add_compile_options(
+        "$<$<COMPILE_LANGUAGE:CXX>:-include>"
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/include/alloc_trace.hpp>"
+    )
 else()
     message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. No custom flags applied.")
 endif()
