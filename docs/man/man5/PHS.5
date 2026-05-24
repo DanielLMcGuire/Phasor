@@ -1,4 +1,4 @@
-.TH PHS 5 "January 2026" "Phasor 3.3.0" "Phasor File Formats"
+.TH PHS 5 "May 2026" "Phasor 3.3.0" "Phasor File Formats"
 .SH NAME
 phs \- Phasor source code format
 .SH DESCRIPTION
@@ -23,6 +23,16 @@ C like syntax and control flow
 Standard library for I O, math, and system operations
 .RE
 .SH SYNTAX
+.SS Shebang
+If the first two characters of a source file are
+.BR #! ,
+the lexer will ignore the entire first line. This allows Unix-like systems to execute Phasor scripts directly:
+.PP
+.nf
+.RS
+#!/usr/bin/env phasor
+.RE
+.fi
 .SS Comments
 Phasor supports single line comments:
 .PP
@@ -63,6 +73,20 @@ Phasor supports the following data types:
 .B string
 \- UTF 8 encoded text strings
 .RE
+.SS Strings
+Phasor supports two types of string literals:
+.RS
+.IP \(bu 2
+.B Standard Strings ("...")
+\- Must be defined on a single line. Supports standard escape sequences (\\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\", \\e, \\E), octal escapes (e.g., \\033), hexadecimal escapes (\\xNN), and Unicode escapes (\\uNNNN, \\UNNNNNNNN).
+.IP \(bu 2
+.B Raw Strings (`...`)
+\- Enclosed in backticks. These can span multiple lines and do not process any escape sequences.
+.RE
+.SS Structs
+Custom structured data types are declared using the
+.B struct
+keyword.
 .SS Functions
 Functions are declared with the
 .B fn
@@ -81,6 +105,10 @@ fn greet(name: string) {
 .fi
 .PP
 Functions without a return type implicitly return null.
+.SS Modules
+Source files can include other files using the
+.B include
+keyword.
 .SS Control Flow
 .SS If Statements
 .PP
@@ -113,6 +141,12 @@ for (var i = 0; i < 10; i++) {
 }
 .RE
 .fi
+.PP
+Both
+.B break
+and
+.B continue
+statements are supported within loop bodies.
 .SS Switch Statements
 .PP
 .nf
@@ -145,6 +179,11 @@ switch (value) {
 .IP \(bu 2
 && (and), || (or), ! (not)
 .RE
+.SS Bitwise
+.RS
+.IP \(bu 2
+& (bitwise and), | (bitwise or)
+.RE
 .SS Assignment
 .RS
 .IP \(bu 2
@@ -159,6 +198,11 @@ switch (value) {
 .RS
 .IP \(bu 2
 ++ (increment), -- (decrement)
+.RE
+.SS Access
+.RS
+.IP \(bu 2
+. (member access), [ ] (array/map indexing), -> (return type)
 .RE
 .SH SOURCE FILE CHARACTERISTICS
 .RS
@@ -247,8 +291,6 @@ Current language limitations:
 No operator overloading
 .IP \(bu 2
 No macros or metaprogramming
-.IP \(bu 2
-No exception handling use return values
 .IP \(bu 2
 No garbage collection
 .IP \(bu 2
