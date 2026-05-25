@@ -67,8 +67,7 @@ extern "C"
 		PHASOR_TYPE_FLOAT,
 		PHASOR_TYPE_STRING,
 		PHASOR_TYPE_ARRAY,
-		// Note: Structs are not directly supported in this version of the FFI
-		// for simplicity, but can be added in the future.
+		PHASOR_TYPE_STRUCT,
 	} PhasorValueType;
 
 	/// @brief Forward declare for self-reference in the union
@@ -84,11 +83,13 @@ extern "C"
 			double      f;
 			const char *s; // Note: For strings returned from the VM, this is valid.
 			// For strings passed to the VM, the VM makes a copy.
-			struct
-			{
-				const PhasorValue *elements;
-				size_t             count;
-			} a;
+			struct{ const PhasorValue *elements; size_t count; } a;
+			struct {
+				const char *name;
+				const char **keys;
+				const PhasorValue *values;
+				size_t count;
+			} st;
 		} as;
 	};
 
@@ -145,6 +146,19 @@ extern "C"
 		return val;
 	}
 
+	static inline PhasorValue phasor_make_struct(const char *name, const char **keys,
+	const PhasorValue *values, size_t count) 
+	{
+		PhasorValue val;
+		val.type          = PHASOR_TYPE_STRUCT;
+		val.as.st.name    = name;
+		val.as.st.keys    = keys;
+		val.as.st.values  = values;
+		val.as.st.count   = count;
+		return val;
+	}
+
+
 	// Helper functions to check the type of a PhasorValue.
 	static inline bool phasor_is_null(PhasorValue val)
 	{
@@ -174,6 +188,11 @@ extern "C"
 	{
 		return phasor_is_int(val) || phasor_is_float(val);
 	}
+	static inline bool phasor_is_struct(PhasorValue val)
+	{
+		return val.type == PHASOR_TYPE_STRUCT;
+	}
+	
 
 	// Helper functions to get the underlying value from a PhasorValue.
 	// Note: These do not perform type checking. Use the `phasor_is_*` functions first.

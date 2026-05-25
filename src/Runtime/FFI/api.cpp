@@ -45,6 +45,21 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
 		}
 		return Phasor::Value::createArray(std::move(cpp_elements));
 	}
+	case PHASOR_TYPE_STRUCT: {
+		const auto &st = c_value.as.st;
+		Phasor::Value result = Phasor::Value::createStruct(
+			st.name ? PhsString(st.name) : PhsString(""));
+
+		for (size_t i = 0; i < st.count; ++i)
+		{
+			if (st.keys[i])
+			{
+				result.setField(PhsString(st.keys[i]),
+								from_c_value(st.values[i]));
+			}
+		}
+		return result;
+	}
 	default:
 		return Phasor::Value();
 	}
