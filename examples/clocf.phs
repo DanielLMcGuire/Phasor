@@ -30,8 +30,8 @@ fn createState() -> ClocState {
 }
 
 fn trimRight(s: string) -> string {
-    var end: int = len(s) - 1;
-    while (end >= 0 && (char_at(s, end) == " " || char_at(s, end) == "\t")) {
+    var end: int = s.len() - 1;
+    while (end >= 0 && (s.char_at(end) == " " || s.char_at(end) == "\t")) {
         end = end - 1;
     }
     if (end < 0) return "";
@@ -44,11 +44,11 @@ fn isDigit(c: string) -> bool {
 }
 
 fn parseLine(line: string) -> LangEntry {
-    var lineLen: int = len(line);
+    var lineLen: int = line.len();
     var empty: LangEntry = LangEntry{ name: "", code: 0 };
 
     var nameEnd: int = 0;
-    while (nameEnd < lineLen && !isDigit(char_at(line, nameEnd))) {
+    while (nameEnd < lineLen && !isDigit(line.char_at(nameEnd))) {
         nameEnd = nameEnd + 1;
     }
 
@@ -56,31 +56,31 @@ fn parseLine(line: string) -> LangEntry {
         return empty;
 
     var namePart: string = trimRight(substr(line, 0, nameEnd));
-    if (len(namePart) == 0) return empty;
+    if (namePart.len() == 0) return empty;
 
     var pos: int = nameEnd;
     var nums: int[] = [];
 
-    while (pos < lineLen && len(nums) < 4) {
-        while (pos < lineLen && char_at(line, pos) == " ")
+    while (pos < lineLen && nums.len() < 4) {
+        while (pos < lineLen && line.char_at(pos) == " ")
             pos = pos + 1;
 
         var numStr: string = "";
-        while (pos < lineLen && isDigit(char_at(line, pos))) {
+        while (pos < lineLen && isDigit(line.char_at(pos))) {
             var tempSb: int = sb_new();
-            sb_append(tempSb, numStr);
-            sb_append(tempSb, char_at(line, pos));
-            numStr = sb_free(tempSb);
+            tempSb.sb_append(numStr);
+            tempSb.sb_append(line.char_at(pos));
+            numStr = tempSb.sb_free();
             pos = pos + 1;
         }
 
-        if (len(numStr) > 0)
-            nums = arr_push(nums, to_int(numStr));
+        if (numStr.len() > 0)
+            nums = nums.arr_push(to_int(numStr));
         else
             break;
     }
 
-    if (len(nums) < 4) return empty;
+    if (nums.len() < 4) return empty;
 
     return LangEntry{
         name: namePart,
@@ -100,17 +100,17 @@ fn shouldSkipLine(line: string) -> bool {
 fn readInput(state: ClocState) -> void {
     while (true) {
         var line: string = gets();
-        if (len(line) == 0) break;
+        if (line.len() == 0) break;
         if (shouldSkipLine(line)) continue;
 
         var entry: LangEntry = parseLine(line);
 
-        if (len(entry.name) > 0 && entry.code > 0) {
-            state.entries   = arr_push(state.entries, entry);
+        if (entry.name.len() > 0 && entry.code > 0) {
+            state.entries   = state.entries.arr_push(entry);
             state.totalCode = state.totalCode + entry.code;
 
-            if (len(entry.name) > state.maxNameLen)
-                state.maxNameLen = len(entry.name);
+            if (entry.name.len() > state.maxNameLen)
+                state.maxNameLen = entry.name.len();
         } else {
             free("entry");
         }
@@ -119,10 +119,10 @@ fn readInput(state: ClocState) -> void {
 
 fn padRight(s: string, width: int) -> string {
     var sb: int = sb_new();
-    sb_append(sb, s);
-    for (var p: int = 0; p < width - len(s); p++)
-        sb_append(sb, " ");
-    return sb_free(sb);
+    sb.sb_append(s);
+    for (var p: int = 0; p < width - s.len(); p++)
+        sb.sb_append(" ");
+    return sb.sb_free();
 }
 
 fn processResults(state: ClocState) -> string {
@@ -130,7 +130,7 @@ fn processResults(state: ClocState) -> string {
     puts("Language percentages:");
 
     var ret: string = "";
-    for (var k: int = 0; k < len(state.entries); k++) {
+    for (var k: int = 0; k < state.entries.len(); k++) {
         var entry: LangEntry = state.entries[k];
         var percent: float = (entry.code * 100.0) / state.totalCode;
         ret = concat(ret, c_fmt("%s : %6.2f%% (%d lines)\n", padRight(entry.name, state.maxNameLen), percent, entry.code));
@@ -140,7 +140,7 @@ fn processResults(state: ClocState) -> string {
 }
 
 fn main(args: string[]) -> int {
-    if (len(args) > 1 && (args[1] == "--help" || args[1] == "-h")) {
+    if (args.len() > 1 && (args[1] == "--help" || args[1] == "-h")) {
         print_help();
         return 0;
     }
@@ -153,12 +153,12 @@ fn main(args: string[]) -> int {
         return 1;
     }
 
-    if (len(args) > 1 && (args[1] == "--json")) {
-        puts(state);
+    if (args.len() > 1 && (args[1] == "--json")) {
+        state.puts();
         return 0;
     }
 
-    puts(processResults(state));
+    processResults(state).puts();
     return 0;
 }
 

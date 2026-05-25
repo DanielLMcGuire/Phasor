@@ -51,7 +51,7 @@ fn createBoard(width: int) -> bool[] {
     var board: bool[] = [];
 
     for (var i: int = 0; i < width; i++) {
-        board = arr_push(board, false);
+        board = board.arr_push(false);
     }
 
     board[width - 1] = true;
@@ -63,18 +63,16 @@ fn boardToString(board: bool[]) -> string {
 
     var sb: int = sb_new();
 
-    for (var i: int = 0; i < len(board); i++) {
+    for (var i: int = 0; i < board.len(); i++) {
 
         if (board[i]) {
-            sb_append(sb, "#");
+            sb.sb_append("#");
         } else {
-            sb_append(sb, " ");
+            sb.sb_append(" ");
         }
     }
 
-    var out: string = sb_to_string(sb);
-
-    sb_free(sb);
+    var out: string = sb.sb_free();
 
     return out;
 }
@@ -184,7 +182,7 @@ fn printChunkStats(stats: ChunkStats) -> void {
 fn rule110(width: int, generations: int, stdout: bool) -> int {
 
     if (!stdout)
-        puts(concat("Output at ", logfile));
+        concat("Output at ", logfile).puts();
 
     frm(logfile);
 
@@ -211,19 +209,19 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
             boardToString(state.board);
 
         if (stdout)
-            puts(board_string);
+            board_string.puts();
 
-        sb_append(file_buffer, board_string);
-        sb_append(file_buffer, "\n");
+        file_buffer.sb_append(board_string);
+        file_buffer.sb_append("\n");
 
         computeNextGeneration(state);
 
         if (g != 0 && (g % 500 == 0)) {
 
-            var chunk: string = sb_to_string(file_buffer);
+            var chunk: string = file_buffer.sb_free();
             fappend(logfile, chunk);
 
-            sb_free(file_buffer);
+            
             file_buffer = sb_new();
 
             if (!stdout) {
@@ -244,10 +242,8 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
         }
     }
 
-    var chunk: string = sb_to_string(file_buffer);
+    var chunk: string = file_buffer.sb_free();
     fappend(logfile, chunk);
-
-    sb_free(file_buffer);
 
     putf(
         "\nTOTAL: %s",
@@ -260,7 +256,7 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
 }
 
 fn main(args: string[]) -> int {
-    if (len(args) < 3) return 1;
+    if (args.len() < 3) return 1;
     var width: int = to_int(args[1]);
     var generations: int = to_int(args[2]);
     var stdout: bool = to_bool(args[3]);
