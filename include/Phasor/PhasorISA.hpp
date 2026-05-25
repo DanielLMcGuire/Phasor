@@ -181,10 +181,9 @@ enum class OpCode : u8
 	SYSTEM_ERR_R  /// Run shell command and get error output: system_err(R[rA], R[rB])
 };
 
-/**
- * @struct Instruction
- * @brief Single instruction in the Phasor VM
- */
+/// @brief Instruction with up to 5 operands
+/// Format: instruction operand1, operand2, operand3
+/// Each instruction uses only the operands it needs
 struct Instruction
 {
 	OpCode  op;       ///< Operation code
@@ -216,16 +215,16 @@ struct StructInfo
 /// @brief Complete bytecode structure
 struct Bytecode
 {
-	std::vector<Instruction>   instructions;        ///< List of instructions
-	std::vector<Value>         constants;           ///< Constant pool
-	std::map<std::string, int> variables;           ///< Variable name -> index mapping
-	std::map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
-	std::map<std::string, int> functionParamCounts; ///< Function name -> parameter count
-	int                        nextVarIndex = 0;    ///< Next available variable index
+	std::vector<Instruction>             instructions;        ///< List of instructions
+	std::vector<Value>                   constants;           ///< Constant pool
+	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
+	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
+	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
+	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
-	std::vector<StructInfo>    structs;       ///< List of struct descriptors
-	std::map<std::string, int> structEntries; ///< Struct name -> index in structs
+	std::vector<StructInfo>              structs;       ///< List of struct descriptors
+	std::unordered_map<std::string, int> structEntries; ///< Struct name -> index in structs
 
 	/// @brief Add a constant to the pool and return its index
 	int addConstant(const Value &value)
@@ -233,6 +232,21 @@ struct Bytecode
 		constants.push_back(value);
 		return static_cast<int>(constants.size()) - 1;
 	}
+
+	/// @brief Add a string constant with deduplication
+	int addStringConstant(const std::string &s)
+	{
+		auto it = stringConstantCache.find(s);
+		if (it != stringConstantCache.end())
+		{
+			return it->second;
+		}
+		int idx = addConstant(Value(s));
+		stringConstantCache[s] = idx;
+		return idx;
+	}
+
+	std::unordered_map<std::string, int> stringConstantCache; ///< Dedup cache for string constants
 
 	/// @brief Get or create a variable index
 	int getOrCreateVar(const std::string &name)
