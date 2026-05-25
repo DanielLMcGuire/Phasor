@@ -7,7 +7,7 @@ struct LangEntry {
 }
 
 struct ClocState {
-    entries:    array,
+    entries:    LangEntry[],
     totalCode:  int,
     maxNameLen: int
 }
@@ -30,7 +30,7 @@ fn createState() -> ClocState {
 }
 
 fn trimRight(s: string) -> string {
-    var end = len(s) - 1;
+    var end: int = len(s) - 1;
     while (end >= 0 && (char_at(s, end) == " " || char_at(s, end) == "\t")) {
         end = end - 1;
     }
@@ -44,10 +44,10 @@ fn isDigit(c: string) -> bool {
 }
 
 fn parseLine(line: string) -> LangEntry {
-    var lineLen = len(line);
-    var empty = LangEntry{ name: "", code: 0 };
+    var lineLen: int = len(line);
+    var empty: LangEntry = LangEntry{ name: "", code: 0 };
 
-    var nameEnd = 0;
+    var nameEnd: int = 0;
     while (nameEnd < lineLen && !isDigit(char_at(line, nameEnd))) {
         nameEnd = nameEnd + 1;
     }
@@ -55,19 +55,19 @@ fn parseLine(line: string) -> LangEntry {
     if (nameEnd == 0 || nameEnd >= lineLen)
         return empty;
 
-    var namePart = trimRight(substr(line, 0, nameEnd));
+    var namePart: string = trimRight(substr(line, 0, nameEnd));
     if (len(namePart) == 0) return empty;
 
-    var pos = nameEnd;
-    var nums = [];
+    var pos: int = nameEnd;
+    var nums: int[] = [];
 
     while (pos < lineLen && len(nums) < 4) {
         while (pos < lineLen && char_at(line, pos) == " ")
             pos = pos + 1;
 
-        var numStr = "";
+        var numStr: string = "";
         while (pos < lineLen && isDigit(char_at(line, pos))) {
-            var tempSb = sb_new();
+            var tempSb: int = sb_new();
             sb_append(tempSb, numStr);
             sb_append(tempSb, char_at(line, pos));
             numStr = sb_free(tempSb);
@@ -97,13 +97,13 @@ fn shouldSkipLine(line: string) -> bool {
     );
 }
 
-fn readInput(state: ClocState) {
+fn readInput(state: ClocState) -> void {
     while (true) {
-        var line = gets();
+        var line: string = gets();
         if (len(line) == 0) break;
         if (shouldSkipLine(line)) continue;
 
-        var entry = parseLine(line);
+        var entry: LangEntry = parseLine(line);
 
         if (len(entry.name) > 0 && entry.code > 0) {
             state.entries   = arr_push(state.entries, entry);
@@ -118,9 +118,9 @@ fn readInput(state: ClocState) {
 }
 
 fn padRight(s: string, width: int) -> string {
-    var sb = sb_new();
+    var sb: int = sb_new();
     sb_append(sb, s);
-    for (var p = 0; p < width - len(s); p++)
+    for (var p: int = 0; p < width - len(s); p++)
         sb_append(sb, " ");
     return sb_free(sb);
 }
@@ -129,23 +129,23 @@ fn processResults(state: ClocState) -> string {
     putf("Total code lines: %d\n", state.totalCode);
     puts("Language percentages:");
 
-    var ret = "";
-    for (var k = 0; k < len(state.entries); k++) {
-        var entry   = state.entries[k];
-        var percent = (entry.code * 100.0) / state.totalCode;
+    var ret: string = "";
+    for (var k: int = 0; k < len(state.entries); k++) {
+        var entry: LangEntry = state.entries[k];
+        var percent: float = (entry.code * 100.0) / state.totalCode;
         ret = concat(ret, c_fmt("%s : %6.2f%% (%d lines)\n", padRight(entry.name, state.maxNameLen), percent, entry.code));
         free("entry");
     }
     return ret;
 }
 
-fn main(args: array) -> int {
+fn main(args: string[]) -> int {
     if (len(args) > 1 && (args[1] == "--help" || args[1] == "-h")) {
         print_help();
         return 0;
     }
 
-    var state = createState();
+    var state: ClocState = createState();
     readInput(state);
 
     if (state.totalCode == 0) {
@@ -153,7 +153,7 @@ fn main(args: array) -> int {
         return 1;
     }
 
-    if(len(args) > 1 && (args[1] == "--json")) {
+    if (len(args) > 1 && (args[1] == "--json")) {
         puts(state);
         return 0;
     }

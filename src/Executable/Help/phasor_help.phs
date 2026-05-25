@@ -1,8 +1,8 @@
 using("stdio", "stdsys", "stdstr", "stdtype", "stdfile", "stdmeta", "stdmem");
 
 fn getDocCmd(part: string, type: int) -> string {
-    var sb = sb_new();
-    var os = sys_os();
+    var sb: int = sb_new();
+    var os: string = sys_os();
     if (os == "win32") {
         if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
             sb_append(sb, "https://phasor-docs.pages.dev/man?f=");
@@ -39,11 +39,11 @@ fn getDocCmd(part: string, type: int) -> string {
 }
 
 fn showHelp(programName: string, error: bool) -> void {
-    var winStr = "C:\\Program Files\\Phasor Programming Language\\man\\man<section>\n    \\<page>.<section>.pdf";
-    var unixStr = "/usr/share/man/man<section>/<page>.<section>(.gz)";
-    var osxStr = "/usr/local/share/man/man<section>/<page>.<section>(.gz)";
-    var osStr;
-    var os = sys_os();
+    var winStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<section>\n    \\<page>.<section>.pdf";
+    var unixStr: string = "/usr/share/man/man<section>/<page>.<section>(.gz)";
+    var osxStr: string = "/usr/local/share/man/man<section>/<page>.<section>(.gz)";
+    var osStr: string;
+    var os: string = sys_os();
     if (os == "win32") {
         osStr = winStr;
     } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX") {  
@@ -58,7 +58,7 @@ fn showHelp(programName: string, error: bool) -> void {
     free("unixStr");
     free("osxStr");
 
-    var helpStr = c_fmt(`
+    var helpStr: string = c_fmt(`
 
 PHASOR-HELP(1)      Phasor %s      PHASOR-HELP(1)
 

@@ -171,40 +171,61 @@ std::unique_ptr<Statement> Parser::functionDeclaration()
 
 std::unique_ptr<TypeNode> Parser::parseType()
 {
-	Token start = peek();
-	bool  isPointer = false;
-	if (match(Phasor::TokenType::Symbol, "*"))
-	{
-		isPointer = true;
-	}
-	Token typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+    Token start = peek();
+    bool  isPointer = false;
+    if (match(Phasor::TokenType::Symbol, "*"))
+    {
+        isPointer = true;
+    }
+    Token typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
 
-	std::vector<int> dims;
-	while (match(Phasor::TokenType::Symbol, "["))
-	{
-		Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
-		dims.push_back(std::stoi(size.lexeme));
-		consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
-	}
-	auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
-	node->line = start.line;
-	node->column = start.column;
-	return node;
+    std::vector<int> dims;
+    while (match(Phasor::TokenType::Symbol, "["))
+    {
+        if (check(Phasor::TokenType::Number))
+        {
+            Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
+            dims.push_back(std::stoi(size.lexeme));
+        }
+        else
+        {
+            dims.push_back(-1); 
+        }
+        consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
+    }
+    auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
+    node->line = start.line;
+    node->column = start.column;
+    return node;
 }
 
 std::unique_ptr<Statement> Parser::varDeclaration()
 {
-	Token                       name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
-	std::unique_ptr<Expression> initializer = nullptr;
-	if (match(Phasor::TokenType::Symbol, "="))
-	{
-		initializer = expression();
-	}
-	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
-	auto node = std::make_unique<VarDecl>(name.lexeme, std::move(initializer));
-	node->line = name.line;
-	node->column = name.column;
-	return node;
+    Token name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
+    
+    std::unique_ptr<TypeNode> type = nullptr;
+    if (match(Phasor::TokenType::Symbol, ":"))
+    {
+        type = parseType();
+    }
+    
+    std::unique_ptr<Expression> initializer = nullptr;
+    if (match(Phasor::TokenType::Symbol, "="))
+    {
+        initializer = expression();
+    }
+    else if (!type)
+    {
+        lastError = {"Variables must have either an explicit type tag or an initializer.", name.line, name.column};
+        throw std::runtime_error("Variables must have either an explicit type tag or an initializer.");
+    }
+    
+    consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
+    
+    auto node = std::make_unique<VarDecl>(name.lexeme, std::move(type), std::move(initializer));
+    node->line = name.line;
+    node->column = name.column;
+    return node;
 }
 
 std::unique_ptr<Statement> Parser::statement()

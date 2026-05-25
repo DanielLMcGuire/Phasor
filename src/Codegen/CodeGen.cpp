@@ -229,37 +229,61 @@ void CodeGenerator::generateExpression(const AST::Expression *expr, bool resultN
 
 void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 {
-	if (varDecl->initializer)
-	{
-		// Generate initializer code
-		generateExpression(varDecl->initializer.get());
-		// Try to infer type from initializer
-		Value initVal;
-		if (isLiteralExpression(varDecl->initializer.get(), initVal))
-		{
-			inferredTypes[varDecl->name] = initVal.getType();
-		}
-		else if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(varDecl->initializer.get()))
-		{
-			// propagate known type from another variable
-			auto it = inferredTypes.find(ident->name);
-			if (it != inferredTypes.end())
-			{
-				inferredTypes[varDecl->name] = it->second;
-			}
-		}
+    bool hasExplicitType = (varDecl->type != nullptr);
+    bool isArrayType = (hasExplicitType && !varDecl->type->arrayDimensions.empty());
+    ValueType declaredType = ValueType::Float;
 
-		int varIndex = bytecode.getOrCreateVar(varDecl->name);
-		bytecode.emit(OpCode::STORE_VAR, varIndex);
-	}
-	else
-	{
-		// Store null value for uninitialized variable
-		int constIndex = bytecode.addConstant(Value());
-		bytecode.emit(OpCode::PUSH_CONST, constIndex);
-		int varIndex = bytecode.getOrCreateVar(varDecl->name);
-		bytecode.emit(OpCode::STORE_VAR, varIndex);
-	}
+    if (hasExplicitType)
+    {
+        if (isArrayType)
+        {
+            // Track the array's base type for future assignments
+            arrayBaseTypes[varDecl->name] = varDecl->type->name;
+            declaredType = ValueType::Struct; 
+        }
+        else if (bytecode.structEntries.contains(varDecl->type->name))
+        {
+            declaredType = ValueType::Struct;
+        }
+        else
+        {
+            declaredType = mapTypeNameToValueType(varDecl->type->name);
+        }
+        inferredTypes[varDecl->name] = declaredType;
+    }
+
+    if (varDecl->initializer)
+    {
+        if (isArrayType)
+        {
+            if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(varDecl->initializer.get()))
+            {
+                ValueType expectedElemType = mapTypeNameToValueType(varDecl->type->name);
+                for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+                {
+                    bool known = false;
+                    ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
+                    if (known && elemType != expectedElemType)
+                    {
+                        throw std::runtime_error("Type mismatch in array initialization: element at index " +
+                                                 std::to_string(i) + " is not of expected type '" +
+                                                 varDecl->type->name + "'.");
+                    }
+                }
+            }
+        }
+
+        generateExpression(varDecl->initializer.get());
+        int varIndex = bytecode.getOrCreateVar(varDecl->name);
+        bytecode.emit(OpCode::STORE_VAR, varIndex);
+    }
+    else
+    {
+        int constIndex = bytecode.addConstant(Value());
+        bytecode.emit(OpCode::PUSH_CONST, constIndex);
+        int varIndex = bytecode.getOrCreateVar(varDecl->name);
+        bytecode.emit(OpCode::STORE_VAR, varIndex);
+    }
 }
 
 void CodeGenerator::generateExpressionStmt(const AST::ExpressionStmt *exprStmt)
@@ -960,63 +984,92 @@ void CodeGenerator::generateNullExpr(const AST::NullExpr *)
 
 void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr)
 {
-	// Support assignments to variables, struct fields, and array elements.
-	if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
-	{
-		// Variable assignment: a = value
-		// 1. Generate value (pushes value to stack)
-		generateExpression(assignExpr->value.get());
+    if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
+    {
+        // Variable assignment: a = value
+        
+        // Validation: If assigning a raw array literal to a statically typed array
+        auto arrayIt = arrayBaseTypes.find(identExpr->name);
+        if (arrayIt != arrayBaseTypes.end())
+        {
+            std::string expectedBaseType = arrayIt->second;
+            ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
 
-		// Try to infer and record type
-		Value val;
-		if (isLiteralExpression(assignExpr->value.get(), val))
-		{
-			inferredTypes[identExpr->name] = val.getType();
-		}
-		else if (const auto *identRhs = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->value.get()))
-		{
-			auto it = inferredTypes.find(identRhs->name);
-			if (it != inferredTypes.end())
-			{
-				inferredTypes[identExpr->name] = it->second;
-			}
-		}
+            if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
+            {
+                for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+                {
+                    bool known = false;
+                    ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
+                    if (known && elemType != expectedElemType)
+                    {
+                        throw std::runtime_error("Type mismatch in array assignment: element at index " +
+                                                 std::to_string(i) + " does not match expected base type '" +
+                                                 expectedBaseType + "'.");
+                    }
+                }
+            }
+        }
 
-		// 2. Store in variable (pops value)
-		int varIndex = bytecode.getOrCreateVar(identExpr->name);
-		bytecode.emit(OpCode::STORE_VAR, varIndex);
+        generateExpression(assignExpr->value.get());
 
-		// 3. Load it back (assignment is an expression that returns the value)
-		bytecode.emit(OpCode::LOAD_VAR, varIndex);
-	}
-	else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(assignExpr->target.get()))
-	{
-		generateExpression(fieldExpr->object.get());
-		generateExpression(assignExpr->value.get());
+        // propagate type
+        Value val;
+        if (isLiteralExpression(assignExpr->value.get(), val))
+        {
+            inferredTypes[identExpr->name] = val.getType();
+        }
 
-		int fieldNameIndex = bytecode.addStringConstant(fieldExpr->fieldName);
+        int varIndex = bytecode.getOrCreateVar(identExpr->name);
+        bytecode.emit(OpCode::STORE_VAR, varIndex);
+        bytecode.emit(OpCode::LOAD_VAR, varIndex);
+    }
+    else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(assignExpr->target.get()))
+    {
+        generateExpression(fieldExpr->object.get());
+        generateExpression(assignExpr->value.get());
 
-		bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
-		bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
-	}
-	else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(assignExpr->target.get()))
-	{
-		// a[i] = value
-		generateExpression(arrayAccess->array.get());   // array
-		generateExpression(arrayAccess->index.get());   // index
-		generateExpression(assignExpr->value.get());    // value
-		
-		int countIdx = bytecode.addConstant(Value(static_cast<i64>(3)));
-		bytecode.emit(OpCode::PUSH_CONST, countIdx);    // count for __set_elem
-		
-		int setIdx = bytecode.addStringConstant("__set_elem");
-		
-		bytecode.emit(OpCode::CALL_NATIVE, setIdx);
-	}
-	else
-	{
-		throw std::runtime_error("Invalid assignment target. Only variables, struct fields, and array elements are supported.");
-	}
+        int fieldNameIndex = bytecode.addStringConstant(fieldExpr->fieldName);
+        bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
+        bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
+    }
+    else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(assignExpr->target.get()))
+    {
+        // Element-wise assignment: a[i] = value
+        
+        // Validation: If indexing into a statically typed array
+        if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
+        {
+            auto arrayIt = arrayBaseTypes.find(identExpr->name);
+            if (arrayIt != arrayBaseTypes.end())
+            {
+                std::string expectedBaseType = arrayIt->second;
+                ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
+
+                bool known = false;
+                ValueType valType = inferExpressionType(assignExpr->value.get(), known);
+                if (known && valType != expectedElemType)
+                {
+                    throw std::runtime_error("Type mismatch: cannot assign value of mismatching type to array element of type '" +
+                                             expectedBaseType + "'.");
+                }
+            }
+        }
+
+        generateExpression(arrayAccess->array.get());   // array
+        generateExpression(arrayAccess->index.get());   // index
+        generateExpression(assignExpr->value.get());    // value
+        
+        int countIdx = bytecode.addConstant(Value(static_cast<i64>(3)));
+        bytecode.emit(OpCode::PUSH_CONST, countIdx);    // count for __set_elem
+        
+        int setIdx = bytecode.addStringConstant("__set_elem");
+        bytecode.emit(OpCode::CALL_NATIVE, setIdx);
+    }
+    else
+    {
+        throw std::runtime_error("Invalid assignment target.");
+    }
 }
 
 void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *expr)
@@ -1194,6 +1247,21 @@ void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAcc
     bytecode.emit(OpCode::CALL_NATIVE, funcIdx);
     if (!resultNeeded)
         bytecode.emit(OpCode::POP);
+}
+
+ValueType CodeGenerator::mapTypeNameToValueType(const std::string &typeName)
+{
+    if (typeName == "int" || typeName == "i64")   return ValueType::Int;
+    if (typeName == "float" || typeName == "f64") return ValueType::Float;
+    if (typeName == "string")                     return ValueType::String;
+    if (typeName == "bool")                       return ValueType::Bool;
+	if (typeName == "array")                      return ValueType::Array;
+	if (typeName == "struct") [[unlikely]]        return ValueType::Struct;
+	if (bytecode.structEntries.find(typeName) != bytecode.structEntries.end())
+    { [[likely]] return ValueType::Struct; }
+	if (typeName == "void")                       return ValueType::Null;   
+
+    return ValueType::Float; 
 }
 
 } // namespace Phasor

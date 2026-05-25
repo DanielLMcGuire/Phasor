@@ -35,7 +35,7 @@ phasor <options>
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
 - **Structs**
 - **Arrays**
-- **Type annotations** (only in function declarations) ```fn func(input: string) -> void { ... }```
+- **Type annotations** (enforced for function declarations) ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
 - **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)
@@ -57,9 +57,12 @@ puts("Hello World!"); // Print string with newline
 
 ```javascript
 using("stdsys", "stdio"); // Import sys, io
-// Variables
+// Variables implicitly typed
 var code = 15; // int
 var fmt = "Code = %d"; // string
+// or explicitly:
+var code: int = 15;
+var fmt: string = "Code = %d";
 // Formatting
 printf("Exiting with code %d", code);
 putf("%d", code);
@@ -107,9 +110,9 @@ $
 using("stdio", "stdtype", "stdmem");
 
 puts("Enter a number:");
-var input = gets();
-var num1 = to_int(input);
-var num2 = 25;
+var input: string = gets();
+var num1: int = to_int(input);
+var num2: int = 25;
 putf("%d + %d = %d\n", num, num2, num1 + num2);
 ```
 

@@ -27,7 +27,7 @@ Value VM::native_get_elem(const std::vector<Value>& args, VM* /*vm*/)
 
     i64 idx = args[1].asInt();
     if (idx < 0 || idx >= static_cast<i64>(arr->size()))
-        throw std::runtime_error("Index out of bounds");
+        return Value();
 
     return (*arr)[static_cast<size_t>(idx)];
 }

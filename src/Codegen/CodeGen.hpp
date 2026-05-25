@@ -207,10 +207,14 @@ class CodeGenerator
 	void generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded);
 	void generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded);
 
+	ValueType mapTypeNameToValueType(const std::string &typeName);
+
 	// Loop context for break/continue
 	std::vector<int>              loopStartStack;     // Stack of loop start positions
 	std::vector<std::vector<int>> breakJumpsStack;    // Stack of break jump positions to patch
 	std::vector<std::vector<int>> continueJumpsStack; // Stack of continue jump positions to patch
+
+	std::unordered_map<std::string, std::string> arrayBaseTypes;
 
 	int switchCounter = 0; // Monotonic counter for unique switch temp variable names
 };
