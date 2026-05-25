@@ -900,6 +900,16 @@ std::unique_ptr<Expression> Parser::primary()
 		consume(Phasor::TokenType::Symbol, ")", "Expect ')' after expression.");
 		return expr;
 	}
+	if (check(Phasor::TokenType::Symbol) && peek().lexeme == "{")
+	{
+		if (current + 2 < static_cast<int>(tokens.size()) &&
+			tokens[current + 1].type == Phasor::TokenType::Identifier &&
+			tokens[current + 2].type == Phasor::TokenType::Symbol &&
+			tokens[current + 2].lexeme == ":")
+		{
+			return anonymousStructInstance();
+		}
+	}
 	std::cerr << "Error: Expect expression at '" << peek().lexeme << "'";
 	std::cerr << " (line " << peek().line << ", column " << peek().column << ")\n";
 	lastError = {"Expect expression", peek().line, peek().column};
@@ -945,7 +955,7 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 
 // Struct instantiation
 // Point{ x: 10, y: 20 }
-std::unique_ptr<StructInstanceExpr> Parser::structInstance()
+std::unique_ptr<AST::StructInstanceExpr> Parser::structInstance()
 {
 	Token nameTok = consume(Phasor::TokenType::Identifier, "Expected struct name");
 	consume(Phasor::TokenType::Symbol, "{", "Expected '{' in struct instance");
@@ -970,10 +980,42 @@ std::unique_ptr<StructInstanceExpr> Parser::structInstance()
 	}
 
 	consume(Phasor::TokenType::Symbol, "}", "Expected '}' after struct fields");
-	auto node = std::make_unique<StructInstanceExpr>(nameTok.lexeme, std::move(fields));
+	auto node = std::make_unique<AST::StructInstanceExpr>(nameTok.lexeme, std::move(fields));
 	node->line = nameTok.line;
 	node->column = nameTok.column;
 	return node;
+}
+
+// Anonymous struct literal
+// { x: 10, y: 20 }
+std::unique_ptr<AST::StructInstanceExpr> Parser::anonymousStructInstance()
+{
+    Token start = peek();
+    consume(Phasor::TokenType::Symbol, "{", "Expected '{' in anonymous struct literal.");
+
+    std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fields;
+    while (!check(Phasor::TokenType::Symbol) || peek().lexeme != "}")
+    {
+        if (isAtEnd())
+        {
+            lastError = {"Unterminated anonymous struct literal.", peek().line, peek().column};
+            throw std::runtime_error("Unterminated anonymous struct literal.");
+        }
+        Token fieldNameTok = consume(Phasor::TokenType::Identifier, "Expected field name in anonymous struct.");
+        consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name.");
+        auto value = expression();
+        fields.emplace_back(fieldNameTok.lexeme, std::move(value));
+
+        if (!match(Phasor::TokenType::Symbol, ","))
+            break;
+    }
+    consume(Phasor::TokenType::Symbol, "}", "Expected '}' after anonymous struct fields.");
+
+    // Empty name signals anonymous — falls through to the dynamic NEW_STRUCT path in CodeGen
+    auto node = std::make_unique<AST::StructInstanceExpr>("__anon", std::move(fields));
+    node->line = start.line;
+    node->column = start.column;
+    return node;
 }
 
 // Field access

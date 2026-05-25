@@ -82,6 +82,7 @@ class Parser
 	std::unique_ptr<AST::Expression>         primary();
 	std::unique_ptr<AST::StructDecl>         structDecl();
 	std::unique_ptr<AST::StructInstanceExpr> structInstance();
+	std::unique_ptr<AST::StructInstanceExpr> anonymousStructInstance();
 	std::unique_ptr<AST::Expression>         fieldAccess(std::unique_ptr<AST::Expression> object);
 };
 } // namespace Phasor
