@@ -386,14 +386,32 @@ void VM::evalLoop()
     LABEL_ILESS_EQUAL:    { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_equal(a.asInt(),b.asInt()))     : Value(a<=b)); } NEXT(); }
     LABEL_IGREATER_EQUAL: { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_equal(a.asInt(),b.asInt()))  : Value(a>=b)); } NEXT(); }
 
-    LABEL_FLAND:          { { Value b=pop(),a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0)));                               } NEXT(); }
-    LABEL_FLOR:           { { Value b=pop(),a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0)));                               } NEXT(); }
-    LABEL_FLEQUAL:        { { Value b=pop(),a=pop(); push(a.isFloat()&&b.isFloat() ? Value(asm_flequal(a.asFloat(),b.asFloat()))         : Value(a==b)); } NEXT(); }
-    LABEL_FLNOT_EQUAL:    { { Value b=pop(),a=pop(); push(a.isFloat()&&b.isFloat() ? Value(asm_flnot_equal(a.asFloat(),b.asFloat()))     : Value(a!=b)); } NEXT(); }
-    LABEL_FLLESS_THAN:    { { Value b=pop(),a=pop(); push(a.isFloat()&&b.isFloat() ? Value(asm_flless_than(a.asFloat(),b.asFloat()))     : Value(a< b)); } NEXT(); }
-    LABEL_FLGREATER_THAN: { { Value b=pop(),a=pop(); push(a.isFloat()&&b.isFloat() ? Value(asm_flgreater_than(a.asFloat(),b.asFloat()))  : Value(a> b)); } NEXT(); }
-    LABEL_FLLESS_EQUAL:   { { Value b=pop(),a=pop(); push(a.isFloat()&&b.isFloat() ? Value(asm_flless_equal(a.asFloat(),b.asFloat()))    : Value(a<=b)); } NEXT(); }
-    LABEL_FLGREATER_EQUAL:{ { Value b=pop(),a=pop(); push(a.isFloat()&&b.isFloat() ? Value(asm_flgreater_equal(a.asFloat(),b.asFloat())) : Value(a>=b)); } NEXT(); }
+    LABEL_FLAND:          { { Value b=pop(),a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
+    LABEL_FLOR:           { { Value b=pop(),a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
+    LABEL_FLEQUAL: { { 
+		Value b = pop(), a = pop(); 
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b)); 
+	} NEXT(); }
+    LABEL_FLNOT_EQUAL: { {
+        Value b = pop(), a = pop();
+        push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
+    } NEXT(); }
+    LABEL_FLLESS_THAN: { {
+        Value b = pop(), a = pop();
+            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
+    } NEXT(); }
+    LABEL_FLGREATER_THAN: { {
+        Value b = pop(), a = pop();
+        push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
+    } NEXT(); }
+    LABEL_FLLESS_EQUAL: { {
+            Value b = pop(), a = pop();
+            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
+        } NEXT(); }
+    LABEL_FLGREATER_EQUAL: { {
+            Value b = pop(), a = pop();
+            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
+    } NEXT(); }
 
     // STACK I/O
 
@@ -719,11 +737,11 @@ void VM::evalLoop()
     LABEL_FLMOD_R: { registers[rA] = Value(asm_flmod(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
     LABEL_SQRT_R:  { registers[rA] = Value(asm_sqrt (registers[rB].asFloat()));                            NEXT(); }
     LABEL_POW_R:   { registers[rA] = Value(asm_pow  (registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_LOG_R:   { registers[rA] = Value(asm_log  (registers[rB].asFloat()));                            NEXT(); }
-    LABEL_EXP_R:   { registers[rA] = Value(asm_exp  (registers[rB].asFloat()));                            NEXT(); }
-    LABEL_SIN_R:   { registers[rA] = Value(asm_sin  (registers[rB].asFloat()));                            NEXT(); }
-    LABEL_COS_R:   { registers[rA] = Value(asm_cos  (registers[rB].asFloat()));                            NEXT(); }
-    LABEL_TAN_R:   { registers[rA] = Value(asm_tan  (registers[rB].asFloat()));                            NEXT(); }
+    LABEL_LOG_R:   { registers[rA] = Value(asm_log  (registers[rB].asFloat()));                              NEXT(); }
+    LABEL_EXP_R:   { registers[rA] = Value(asm_exp  (registers[rB].asFloat()));                              NEXT(); }
+    LABEL_SIN_R:   { registers[rA] = Value(asm_sin  (registers[rB].asFloat()));                              NEXT(); }
+    LABEL_COS_R:   { registers[rA] = Value(asm_cos  (registers[rB].asFloat()));                              NEXT(); }
+    LABEL_TAN_R:   { registers[rA] = Value(asm_tan  (registers[rB].asFloat()));                              NEXT(); }
 
     
     // REGISTER LOGICAL
@@ -740,14 +758,38 @@ void VM::evalLoop()
     LABEL_IGT_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_than(b.asInt(),c.asInt()))      : Value(b> c); NEXT(); }
     LABEL_ILE_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_equal(b.asInt(),c.asInt()))        : Value(b<=c); NEXT(); }
     LABEL_IGE_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_equal(b.asInt(),c.asInt()))     : Value(b>=c); NEXT(); }
-    LABEL_FLEQ_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isFloat()&&c.isFloat()) ? Value(asm_flequal(b.asFloat(),c.asFloat()))        : Value(b==c); NEXT(); }
-    LABEL_FLNE_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isFloat()&&c.isFloat()) ? Value(asm_flnot_equal(b.asFloat(),c.asFloat()))    : Value(b!=c); NEXT(); }
-    LABEL_FLLT_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isFloat()&&c.isFloat()) ? Value(asm_flless_than(b.asFloat(),c.asFloat()))    : Value(b< c); NEXT(); }
-    LABEL_FLGT_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isFloat()&&c.isFloat()) ? Value(asm_flgreater_than(b.asFloat(),c.asFloat())) : Value(b> c); NEXT(); }
-    LABEL_FLLE_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isFloat()&&c.isFloat()) ? Value(asm_flless_equal(b.asFloat(),c.asFloat()))   : Value(b<=c); NEXT(); }
-    LABEL_FLGE_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isFloat()&&c.isFloat()) ? Value(asm_flgreater_equal(b.asFloat(),c.asFloat())): Value(b>=c); NEXT(); }
-    LABEL_FLAND_R: { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0));                           NEXT(); }
-    LABEL_FLOR_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0));                           NEXT(); }
+    LABEL_FLEQ_R: {
+        Value &b = registers[rB], &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
+        NEXT();
+    }
+    LABEL_FLNE_R: {
+        Value &b = registers[rB], &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
+        NEXT();
+    }
+    LABEL_FLLT_R: {
+        Value &b = registers[rB], &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
+        NEXT();
+    }
+    LABEL_FLGT_R: {
+        Value &b = registers[rB], &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+        NEXT();
+    }
+    LABEL_FLLE_R: {
+        Value &b = registers[rB], &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+        NEXT();
+    }
+    LABEL_FLGE_R: {
+        Value &b = registers[rB], &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+        NEXT();
+    }
+    LABEL_FLAND_R: { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_FLOR_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
 
     
     // REGISTER I/O
@@ -1262,42 +1304,42 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::FLEQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isFloat() && b.isFloat() ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b));
 		break;
 	}
 
 	case OpCode::FLNOT_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isFloat() && b.isFloat() ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
 		break;
 	}
 
 	case OpCode::FLLESS_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isFloat() && b.isFloat() ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
 		break;
 	}
 
 	case OpCode::FLGREATER_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isFloat() && b.isFloat() ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
 		break;
 	}
 
 	case OpCode::FLLESS_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isFloat() && b.isFloat() ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
 		break;
 	}
 
 	case OpCode::FLGREATER_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isFloat() && b.isFloat() ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
 		break;
 	}
 
@@ -1767,21 +1809,21 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::FLEQ_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
 		break;
 	}
 
 	case OpCode::FLNE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
 		break;
 	}
 
 	case OpCode::FLLT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isFloat() && c.isFloat()) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
 		break;
 	}
 
@@ -1789,7 +1831,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] =
-		    (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
 		break;
 	}
 
@@ -1797,7 +1839,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] =
-		    (b.isFloat() && c.isFloat()) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
 		break;
 	}
 
@@ -1805,7 +1847,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] =
-		    (b.isFloat() && c.isFloat()) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
 		break;
 	}
 

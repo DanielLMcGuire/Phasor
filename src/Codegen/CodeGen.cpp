@@ -82,6 +82,111 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 		}
 	}
 
+	// Unary expression
+	if (const auto *unaryExpr = dynamic_cast<const AST::UnaryExpr *>(expr))
+	{
+		if (unaryExpr->op == AST::UnaryOp::Not)
+		{
+			known = true;
+			return ValueType::Bool;
+		}
+		if (unaryExpr->op == AST::UnaryOp::Negate)
+		{
+			return inferExpressionType(unaryExpr->operand.get(), known);
+		}
+	}
+
+	// Binary expression
+	if (const auto *binExpr = dynamic_cast<const AST::BinaryExpr *>(expr))
+	{
+		if (binExpr->op == AST::BinaryOp::And || binExpr->op == AST::BinaryOp::Or ||
+		    binExpr->op == AST::BinaryOp::Equal || binExpr->op == AST::BinaryOp::NotEqual ||
+		    binExpr->op == AST::BinaryOp::LessThan || binExpr->op == AST::BinaryOp::GreaterThan ||
+		    binExpr->op == AST::BinaryOp::LessEqual || binExpr->op == AST::BinaryOp::GreaterEqual)
+		{
+			known = true;
+			return ValueType::Bool;
+		}
+
+		bool leftKnown = false, rightKnown = false;
+		ValueType leftType = inferExpressionType(binExpr->left.get(), leftKnown);
+		ValueType rightType = inferExpressionType(binExpr->right.get(), rightKnown);
+
+		if (leftKnown && rightKnown)
+		{
+			if (leftType == ValueType::Int && rightType == ValueType::Int)
+			{
+				known = true;
+				return ValueType::Int;
+			}
+			if (leftType == ValueType::Float || rightType == ValueType::Float)
+			{
+				known = true;
+				return ValueType::Float;
+			}
+			if (leftType == ValueType::String || rightType == ValueType::String)
+			{
+				known = true;
+				return ValueType::String;
+			}
+		}
+		else if (leftKnown)
+		{
+			if (leftType == ValueType::Float)
+			{
+				known = true;
+				return ValueType::Float;
+			}
+		}
+		else if (rightKnown)
+		{
+			if (rightType == ValueType::Float)
+			{
+				known = true;
+				return ValueType::Float;
+			}
+		}
+	}
+
+	// Postfix expression
+	if (const auto *postfixExpr = dynamic_cast<const AST::PostfixExpr *>(expr))
+	{
+		return inferExpressionType(postfixExpr->operand.get(), known);
+	}
+
+	// Assignment expression
+	if (const auto *assignExpr = dynamic_cast<const AST::AssignmentExpr *>(expr))
+	{
+		return inferExpressionType(assignExpr->value.get(), known);
+	}
+
+	// Call expression
+	if (const auto *callExpr = dynamic_cast<const AST::CallExpr *>(expr))
+	{
+		if (callExpr->callee == "len")
+		{
+			known = true;
+			return ValueType::Int;
+		}
+		if (callExpr->callee == "starts_with" || callExpr->callee == "ends_with")
+		{
+			known = true;
+			return ValueType::Bool;
+		}
+	}
+
+	if (dynamic_cast<const AST::ArrayLiteralExpr *>(expr))
+	{
+		known = true;
+		return ValueType::Array;
+	}
+
+	if (dynamic_cast<const AST::StructInstanceExpr *>(expr))
+	{
+		known = true;
+		return ValueType::Struct;
+	}
+
 	// Unknown
 	known = false;
 	return ValueType::Float; // default when unknown (not used unless known==true)
@@ -250,6 +355,15 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
             declaredType = mapTypeNameToValueType(varDecl->type->name);
         }
         inferredTypes[varDecl->name] = declaredType;
+    }
+    else if (varDecl->initializer)
+    {
+        bool known = false;
+        ValueType inferred = inferExpressionType(varDecl->initializer.get(), known);
+        if (known)
+        {
+            inferredTypes[varDecl->name] = inferred;
+        }
     }
 
     if (varDecl->initializer)
@@ -627,20 +741,14 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 		bytecode.emit(OpCode::POP_R, rRight);
 	}
 
-	// Conservative integer decision:
-	// treat operand as known-int if it's an integer literal or a variable previously inferred as Int.
 	auto exprIsKnownInt = [&](const AST::Expression *e, bool isLiteral, const Value &lit) -> bool {
 		if (isLiteral)
 		{
 			return lit.isInt();
 		}
-		// variable case
-		if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(e))
-		{
-			auto it = inferredTypes.find(ident->name);
-			return it != inferredTypes.end() && it->second == ValueType::Int;
-		}
-		return false;
+		bool known = false;
+		ValueType type = inferExpressionType(e, known);
+		return known && type == ValueType::Int;
 	};
 
 	bool leftKnownInt = exprIsKnownInt(binExpr->left.get(), leftIsLiteral, leftLiteral);
@@ -1183,6 +1291,14 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 	std::string tempName = "__switch_" + std::to_string(switchCounter++);
 	int         tempVarIndex = bytecode.getOrCreateVar(tempName);
 	bytecode.emit(OpCode::STORE_VAR, tempVarIndex);
+
+	// Propagate inferred type to temp var
+	bool known = false;
+	ValueType inferred = inferExpressionType(switchStmt->expr.get(), known);
+	if (known)
+	{
+		inferredTypes[tempName] = inferred;
+	}
 
 	std::vector<int> endJumps; // one per case, all patched to end
 
