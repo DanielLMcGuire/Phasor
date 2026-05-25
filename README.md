@@ -33,8 +33,9 @@ phasor <options>
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
-- **Structs**
-- **Arrays**
+- **Structs** ```struct Point { x: int, y: int } var p = Point{ x: 10, y: 20 }; p.x = 42;```
+- **Arrays** ```var dyn = [1, 2, 3]; var strict: int[10]; strict[0] = 99; var item = strict[0];```
+- **Uniform Function Call Syntax** for stdlib/builtin/ffi ```var x = 15; x.len(); "Hello".len().puts()```
 - **Type annotations** (enforced for function declarations) ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
