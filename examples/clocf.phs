@@ -67,10 +67,7 @@ fn parseLine(line: string) -> LangEntry {
 
         var numStr: string = "";
         while (pos < lineLen && isDigit(line.char_at(pos))) {
-            var tempSb: int = sb_new();
-            tempSb.sb_append(numStr);
-            tempSb.sb_append(line.char_at(pos));
-            numStr = tempSb.sb_free();
+            numStr = numStr.concat(line.char_at(pos));
             pos = pos + 1;
         }
 
@@ -117,24 +114,15 @@ fn readInput(state: ClocState) -> void {
     }
 }
 
-fn padRight(s: string, width: int) -> string {
-    var sb: int = sb_new();
-    sb.sb_append(s);
-    for (var p: int = 0; p < width - s.len(); p++)
-        sb.sb_append(" ");
-    return sb.sb_free();
-}
-
 fn processResults(state: ClocState) -> string {
     putf("Total code lines: %d\n", state.totalCode);
     puts("Language percentages:");
-
     var ret: string = "";
+    
     for (var k: int = 0; k < state.entries.len(); k++) {
         var entry: LangEntry = state.entries[k];
         var percent: float = (entry.code * 100.0) / state.totalCode;
-        ret = concat(ret, c_fmt("%s : %6.2f%% (%d lines)\n", padRight(entry.name, state.maxNameLen), percent, entry.code));
-        free("entry");
+        ret = concat(ret, c_fmt( "%-*s : %6.2f%% (%d lines)\n", state.maxNameLen, entry.name, percent, entry.code));
     }
     return ret;
 }
@@ -162,4 +150,4 @@ fn main(args: string[]) -> int {
     return 0;
 }
 
-shutdown(main(sys_args()));
+main(sys_args()).shutdown();
