@@ -733,25 +733,26 @@ void CodeGenerator::generateIfStmt(const AST::IfStmt *ifStmt)
 {
 	generateExpression(ifStmt->condition.get());
 
-	// Jump to else if false
 	int jumpToElseIndex = static_cast<int>(bytecode.instructions.size());
 	bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
 
 	generateStatement(ifStmt->thenBranch.get());
 
-	int jumpToEndIndex = static_cast<int>(bytecode.instructions.size());
-	bytecode.emit(OpCode::JUMP, 0);
-
-	// Patch jump to else
-	bytecode.instructions[jumpToElseIndex].operand1 = static_cast<int>(bytecode.instructions.size());
-
 	if (ifStmt->elseBranch)
 	{
-		generateStatement(ifStmt->elseBranch.get());
-	}
+		int jumpToEndIndex = static_cast<int>(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP, 0);
 
-	// Patch jump to end
-	bytecode.instructions[jumpToEndIndex].operand1 = static_cast<int>(bytecode.instructions.size());
+		bytecode.instructions[jumpToElseIndex].operand1 = static_cast<int>(bytecode.instructions.size());
+
+		generateStatement(ifStmt->elseBranch.get());
+
+		bytecode.instructions[jumpToEndIndex].operand1 = static_cast<int>(bytecode.instructions.size());
+	}
+	else
+	{
+		bytecode.instructions[jumpToElseIndex].operand1 = static_cast<int>(bytecode.instructions.size());
+	}
 }
 
 void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
@@ -930,9 +931,11 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	// Generate body
 	generateBlockStmt(funcDecl->body.get());
 
-	// Ensure return
-	bytecode.emit(OpCode::NULL_VAL);
-	bytecode.emit(OpCode::RETURN);
+	if (bytecode.instructions.empty() || bytecode.instructions.back().op != OpCode::RETURN)
+	{
+		bytecode.emit(OpCode::NULL_VAL);
+		bytecode.emit(OpCode::RETURN);
+	}
 
 	// Patch jump over
 	bytecode.instructions[jumpOverIndex].operand1 = static_cast<int>(bytecode.instructions.size());
