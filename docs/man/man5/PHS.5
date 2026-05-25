@@ -369,32 +369,6 @@ Source files are processed through several stages:
 .B Serialization
 \- Bytecode saved to .phsb or .phir format
 .RE
-.SH EXECUTION MODES
-Phasor source files can be executed in multiple ways:
-.RS
-.IP \(bu 2
-.B Direct execution
-\- Using
-.BR phasor (1)
-for development
-.IP \(bu 2
-.B Compiled execution
-\- Using
-.BR phasorcompiler (1)
-then
-.BR phasorvm (1)
-for production
-.IP \(bu 2
-.B Native compilation
-\- Using
-.BR phasornative (1)
-for maximum performance
-.IP \(bu 2
-.B Interactive
-\- Using
-.BR phasorrepl (1)
-for experimentation (the code generator operates in a dedicated REPL mode compiling expression statements into print instructions)
-.RE
 .SH LIMITATIONS
 Current language limitations:
 .RS
