@@ -9,6 +9,9 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+#include <dirent.h>
+#include <string.h>
 
 static PhasorValue phasor_open(PhasorVM *, int argc, const PhasorValue *argv)
 {
@@ -157,6 +160,103 @@ static PhasorValue phasor_clock_gettime(PhasorVM *, int argc, const PhasorValue 
 	return phasor_make_array(vals, 2);
 }
 
+static PhasorValue phasor_pipe(PhasorVM *, int, const PhasorValue *)
+{
+    int fd[2];
+    if (pipe(fd) != 0)
+        return phasor_make_array(NULL, 0);
+    PhasorValue elems[2] = {
+        phasor_make_int(fd[0]),
+        phasor_make_int(fd[1])
+    };
+    return phasor_make_array(elems, 2);
+}
+
+static PhasorValue phasor_getcwd(PhasorVM *, int, const PhasorValue *)
+{
+    static char buf[PATH_MAX];
+    if (getcwd(buf, sizeof(buf)))
+        return phasor_make_string(buf);
+    return phasor_make_string("");  // error
+}
+
+static PhasorValue phasor_chdir(PhasorVM *, int argc, const PhasorValue *argv)
+{
+    if (argc < 1 || !phasor_is_string(argv[0]))
+        return phasor_make_int(-1);
+    return phasor_make_int(chdir(phasor_to_string(argv[0])));
+}
+
+static PhasorValue phasor_getpid(PhasorVM *, int, const PhasorValue *)
+{
+    return phasor_make_int((int64_t)getpid());
+}
+
+static PhasorValue phasor_getppid(PhasorVM *, int, const PhasorValue *)
+{
+    return phasor_make_int((int64_t)getppid());
+}
+
+static PhasorValue phasor_stat(PhasorVM *, int argc, const PhasorValue *argv)
+{
+    if (argc < 1 || !phasor_is_string(argv[0]))
+        return phasor_make_null();
+
+    struct stat st;
+    if (stat(phasor_to_string(argv[0]), &st) != 0)
+        return phasor_make_null();
+
+    const char *keys[] = {
+        "dev", "ino", "mode", "nlink", "uid", "gid",
+        "rdev", "size", "blksize", "blocks",
+        "atime", "mtime", "ctime"
+    };
+    PhasorValue vals[] = {
+        phasor_make_int(st.st_dev),
+        phasor_make_int(st.st_ino),
+        phasor_make_int(st.st_mode),
+        phasor_make_int(st.st_nlink),
+        phasor_make_int(st.st_uid),
+        phasor_make_int(st.st_gid),
+        phasor_make_int(st.st_rdev),
+        phasor_make_int((int64_t)st.st_size),
+        phasor_make_int(st.st_blksize),
+        phasor_make_int(st.st_blocks),
+        phasor_make_int(st.st_atime),
+        phasor_make_int(st.st_mtime),
+        phasor_make_int(st.st_ctime)
+    };
+
+    return phasor_make_struct("stat", keys, vals, 13);
+}
+
+static PhasorValue phasor_readdir(PhasorVM *, int argc, const PhasorValue *argv)
+{
+    if (argc < 1 || !phasor_is_string(argv[0]))
+        return phasor_make_array(NULL, 0);
+
+    DIR *d = opendir(phasor_to_string(argv[0]));
+    if (!d) return phasor_make_array(NULL, 0);
+
+    PhasorValue *entries = NULL;
+    size_t count = 0;
+    struct dirent *ent;
+    while ((ent = readdir(d)) != NULL) {
+        entries = realloc(entries, (count+1) * sizeof(PhasorValue));
+        const char *keys[] = {"name", "type"};
+        PhasorValue vals[2];
+        vals[0] = phasor_make_string(strdup(ent->d_name));
+        vals[1] = phasor_make_int((int64_t)ent->d_type);
+        entries[count] = phasor_make_struct("dirent", keys, vals, 2);
+        count++;
+    }
+    closedir(d);
+
+    PhasorValue result = phasor_make_array(entries, count);
+    free(entries);
+    return result;
+}
+
 PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
 {
 	api->register_function(vm, "posix_open", phasor_open);
@@ -177,4 +277,12 @@ PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
 	api->register_function(vm, "posix_sleep", phasor_sleep);
 	api->register_function(vm, "posix_nanosleep", phasor_nanosleep);
 	api->register_function(vm, "posix_clock_gettime", phasor_clock_gettime);
+
+	api->register_function(vm, "posix_pipe",   phasor_pipe);
+	api->register_function(vm, "posix_getcwd", phasor_getcwd);
+	api->register_function(vm, "posix_chdir",  phasor_chdir);
+	api->register_function(vm, "posix_getpid", phasor_getpid);
+	api->register_function(vm, "posix_getppid",phasor_getppid);
+	api->register_function(vm, "posix_stat",   phasor_stat);
+	api->register_function(vm, "posix_readdir",phasor_readdir);
 }
