@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Union
+from typing import Dict, List, Tuple, Union
 
 
 class ValueType(IntEnum):
@@ -18,8 +18,10 @@ class ValueType(IntEnum):
     Int    = 2
     Float  = 3
     String = 4
+    Struct = 5
+    Array  = 6
 
-_Payload = Union[None, bool, int, float, str]
+_Payload = Union[None, bool, int, float, str, Tuple[str, Dict[str, "Value"]], List["Value"]]
 
 
 @dataclass
@@ -35,6 +37,8 @@ class Value:
         Value.from_int(42)
         Value.from_float(3.14)
         Value.from_string("hello")
+        Value.from_struct("MyStruct", {"x": Value.from_int(1)})
+        Value.from_array([Value.from_int(1), Value.from_int(2)])
     """
 
     type:  ValueType
@@ -65,6 +69,16 @@ class Value:
         """Return a new String-typed value wrapping *v*."""
         return cls(ValueType.String, str(v))
 
+    @classmethod
+    def from_struct(cls, name: str, fields: Dict[str, "Value"]) -> "Value":
+        """Return a new Struct-typed value."""
+        return cls(ValueType.Struct, (str(name), dict(fields)))
+
+    @classmethod
+    def from_array(cls, elements: List["Value"]) -> "Value":
+        """Return a new Array-typed value."""
+        return cls(ValueType.Array, list(elements))
+
     def as_bool(self) -> bool:
         """Return the payload as a Python ``bool``, raising ``TypeError`` if the type is not Bool."""
         if self.type != ValueType.Bool:
@@ -88,6 +102,18 @@ class Value:
         if self.type != ValueType.String:
             raise TypeError(f"Value is {self.type.name}, not String")
         return str(self._data)
+
+    def as_struct(self) -> Tuple[str, Dict[str, "Value"]]:
+        """Return the payload as a tuple of (name, fields dict), raising ``TypeError`` if the type is not Struct."""
+        if self.type != ValueType.Struct:
+            raise TypeError(f"Value is {self.type.name}, not Struct")
+        return self._data  # type: ignore[return-value]
+
+    def as_array(self) -> List["Value"]:
+        """Return the payload as a Python ``list`` of ``Value``s, raising ``TypeError`` if the type is not Array."""
+        if self.type != ValueType.Array:
+            raise TypeError(f"Value is {self.type.name}, not Array")
+        return self._data  # type: ignore[return-value]
 
     def __repr__(self) -> str:
         """Return a concise debug representation showing the type and payload."""

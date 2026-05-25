@@ -17,6 +17,16 @@ from .Value import Value
 
 
 @dataclass
+class StructInfo:
+    """Metadata for a declared struct type."""
+
+    name: str
+    first_const_index: int
+    field_count: int
+    field_names: List[str]
+
+
+@dataclass
 class Bytecode:
     """In-memory representation of a compiled Phasor program.
 
@@ -30,6 +40,8 @@ class Bytecode:
         variables: Maps each variable name to its integer slot index.
         function_entries: Maps each function name to the index of its first instruction.
         next_var_index: Next available variable slot; serialised as part of the variables section.
+        structs: List of struct descriptors.
+        struct_entries: Maps each struct name to its index in the structs list.
     """
 
     instructions:    List[Instruction]       = field(default_factory=list)
@@ -37,6 +49,8 @@ class Bytecode:
     variables:       Dict[str, int]          = field(default_factory=dict)
     function_entries: Dict[str, int]         = field(default_factory=dict)
     next_var_index:  int                     = 0
+    structs:         List[StructInfo]        = field(default_factory=list)
+    struct_entries:  Dict[str, int]          = field(default_factory=dict)
 
     def add_constant(self, value: Value) -> int:
         """Append *value* to the constant pool and return its index."""
@@ -143,11 +157,12 @@ class Bytecode:
         return "\n".join(lines)
 
     def __repr__(self) -> str:
-        """Return a summary showing instruction, constant, variable, and function counts."""
+        """Return a summary showing instruction, constant, variable, function, and struct counts."""
         return (
             f"Bytecode("
             f"{len(self.instructions)} instructions, "
             f"{len(self.constants)} constants, "
             f"{len(self.variables)} variables, "
-            f"{len(self.function_entries)} functions)"
+            f"{len(self.function_entries)} functions, "
+            f"{len(self.structs)} structs)"
         )
