@@ -30,21 +30,17 @@ static PhasorValue phasor_close(PhasorVM *, int argc, const PhasorValue *argv)
 
 static PhasorValue phasor_read(PhasorVM *, int argc, const PhasorValue *argv)
 {
-	if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_int(argv[1]))
-		return phasor_make_string("");
-	int    fd = (int)phasor_to_int(argv[0]);
-	size_t count = (size_t)phasor_to_int(argv[1]);
-	char  *buf = (char *)malloc(count + 1);
-	if (!buf)
-		return phasor_make_string("");
-	ssize_t r = read(fd, buf, count);
-	if (r >= 0)
-		buf[r] = '\0';
-	else
-		buf[0] = '\0';
-	PhasorValue val = phasor_make_string(buf);
-	free(buf);
-	return val;
+    if (argc < 2 || !phasor_is_int(argv[0]) || !phasor_is_int(argv[1]))
+        return phasor_make_string("");
+    int    fd = (int)phasor_to_int(argv[0]);
+    size_t count = (size_t)phasor_to_int(argv[1]);
+    char  *buf = (char *)malloc(count + 1);
+    if (!buf) return phasor_make_string("");
+    ssize_t r = read(fd, buf, count);
+    if (r >= 0) buf[r] = '\0';
+    else        buf[0] = '\0';
+    PhasorValue val = phasor_make_string(buf);
+    return val;
 }
 
 static PhasorValue phasor_write(PhasorVM *, int argc, const PhasorValue *argv)
