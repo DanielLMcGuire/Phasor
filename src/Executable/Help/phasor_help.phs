@@ -1,35 +1,41 @@
 using("stdio", "stdsys", "stdstr", "stdtype", "stdfile", "stdmeta", "stdmem");
 
-fn getDocCmd(part: string, type: int) -> string {
+struct ManPage {
+    name: string,
+    section: int
+}
+
+fn getDocCmd(page: ManPage) -> string {
     var sb: int = sb_new();
     var os: string = sys_os();
+
     if (os == "win32") {
         if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
-            sb_append(sb, "https://phasor-docs.pages.dev/man?f=");
-            sb_append(sb, part);
-            sb_append(sb, ".");
-            sb_append(sb, type);
+            sb.sb_append("https://phasor-docs.pages.dev/man?f=");
+            sb.sb_append(page.name);
+            sb.sb_append(".");
+            sb.sb_append(page.section);
             var path = sb_to_string(sb);
-            sb_free(sb);
+            sb.sb_free();
             return concat("\"start ", path, "\"");
         }
-        sb_append(sb, "C:/Program%20Files/Phasor%20Programming%20Language/man/man");
-        sb_append(sb, type);
-        sb_append(sb, "/");
-        sb_append(sb, part);
-        sb_append(sb, ".");
-        sb_append(sb, type);
-        sb_append(sb, ".");
-        sb_append(sb, "pdf");
+        sb.sb_append("C:/Program%20Files/Phasor%20Programming%20Language/man/man");
+        sb.sb_append(page.section);
+        sb.sb_append("/");
+        sb.sb_append(page.name);
+        sb.sb_append(".");
+        sb.sb_append(page.section);
+        sb.sb_append(".");
+        sb.sb_append("pdf");
         var path = sb_to_string(sb);
-        sb_free(sb);
+        sb.sb_free();
         return concat("\"start file:///", path, "\"");
     } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX" || os == "Darwin") {
-        sb_append(sb, type);
-        sb_append(sb, " ");
-        sb_append(sb, part);
+        sb.sb_append(page.name);
+        sb.sb_append(" ");
+        sb.sb_append(page.section);
         var args = sb_to_string(sb);
-        sb_free(sb);
+        sb.sb_free();
         return concat("man ", args);
     } else {
         putf_error("Could not find documentation for %s(%d) on %s", part, type, os);
@@ -103,18 +109,15 @@ SEE ALSO
     else puts(helpStr);
 }
 
-fn main(args: array) -> int {
-    if (len(args) == 3) {
-        var page = to_string(args[1]);
-        var section = to_int(args[2]);
-        return sys_shell(getDocCmd(page, section));
-    } else if (len(args) == 2) {
-        var page = to_string(args[1]);
-        return sys_shell(getDocCmd(page, 1));
+fn main(args: string[]) -> int {
+    if (args.len() == 3) {
+        return ManPage{name: args[1].to_string(), section: args[2].to_int()}.getDocCmd().sys_shell();
+    } else if (args.len() == 2) {
+        return ManPage{name: args[1], section: 1}.getDocCmd().sys_shell();
     } else {
-        showHelp(fstem(args[0]), len(args) > 1);
+        showHelp(args[0].fstem(), args.len() > 1);
         return 1;
     }
 }
 
-shutdown(main(sys_args()));
+main(sys_args()).shutdown();

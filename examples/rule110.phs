@@ -47,7 +47,6 @@ fn msToSeconds(milli: float) -> float {
 }
 
 fn createBoard(width: int) -> bool[] {
-
     var board: bool[] = [];
 
     for (var i: int = 0; i < width; i++) {
@@ -55,13 +54,11 @@ fn createBoard(width: int) -> bool[] {
     }
 
     board[width - 1] = true;
-
     return board;
 }
 
 fn boardToString(board: bool[]) -> string {
-
-    var sb: int = sb_new();
+    var sb = sb_new();
 
     for (var i: int = 0; i < board.len(); i++) {
 
@@ -73,7 +70,6 @@ fn boardToString(board: bool[]) -> string {
     }
 
     var out: string = sb.sb_free();
-
     return out;
 }
 
@@ -169,8 +165,7 @@ fn printChunkStats(stats: ChunkStats) -> void {
 
     prints("\r                                                                        ");
 
-    printf(
-        "\rGENERATION %d-%d TIME: %s, TOTAL: %s, ETA: %s",
+    printf("\rGENERATION %d-%d TIME: %s, TOTAL: %s, ETA: %s",
         stats.generation_start,
         stats.generation_end,
         secondsToMinutes(stats.chunk_time),
@@ -189,20 +184,15 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
     var state: Rule110State =
         createState(width, generations, stdout);
 
-    var file_buffer: int = sb_new();
+    var file_buffer = sb_new();
 
     if (!stdout) {
-
-        printf(
-            "GENERATION 0 TIME: %s",
-            secondsToMinutes(
-                msToSeconds(time() - state.start_time)
-            )
-        );
+        printf("GENERATION 0 TIME: %s", secondsToMinutes(
+            msToSeconds(time() - state.start_time)
+        ));
     }
 
     for (var g: int = 0; g <= generations; g++) {
-
         state.generation = g;
 
         var board_string: string =
@@ -213,21 +203,15 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
 
         file_buffer.sb_append(board_string);
         file_buffer.sb_append("\n");
-
         computeNextGeneration(state);
 
         if (g != 0 && (g % 500 == 0)) {
-
             var chunk: string = file_buffer.sb_free();
             fappend(logfile, chunk);
-
-            
             file_buffer = sb_new();
 
             if (!stdout) {
-
                 var now: float = time();
-
                 var stats: ChunkStats =
                     calculateChunkStats(
                         state,
@@ -236,7 +220,6 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
                     );
 
                 printChunkStats(stats);
-
                 state.last_chunk_start = now;
             }
         }
@@ -263,4 +246,4 @@ fn main(args: string[]) -> int {
     return rule110(width, generations, stdout);
 }
 
-shutdown(main(sys_args()));
+main(sys_args()).shutdown();
