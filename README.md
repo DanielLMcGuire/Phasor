@@ -37,6 +37,7 @@ phasor <options>
 - **Arrays** ```var dyn = [1, 2, 3]; var strict: int[10]; strict[0] = 99; var item = strict[0];```
 - **Uniform Function Call Syntax** for stdlib/builtin/ffi ```var x = 15; x.len(); "Hello".len().puts()```
 - **Type annotations** (enforced for function declarations) ```fn func(input: string) -> void { ... }```
+- **JSON Support**
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
 - **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)

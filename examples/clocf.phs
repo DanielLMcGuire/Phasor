@@ -133,6 +133,12 @@ fn main(args: string[]) -> int {
         return 0;
     }
 
+    if (args.len() > 1 && (args[1] == "--from-json")) {
+        var state: ClocState = args[2].from_json();
+        processResults(state).puts();
+        return 0;
+    }
+
     var state: ClocState = createState();
     readInput(state);
 

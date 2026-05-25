@@ -159,10 +159,11 @@ class StdLib
 #pragma endregion
 
 #pragma region stdtype
-	static i64     to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
-	static f64      to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
-	static PhsString to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
+	static i64         to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
+	static f64         to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
+	static PhsString   to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static bool        to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
+	static Value       from_json(const std::vector<Value> &args, VM *vm); ///< Convert JSON string to Value
 #pragma endregion
 
 #pragma region stdarray

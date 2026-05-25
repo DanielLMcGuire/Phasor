@@ -10,6 +10,7 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_float", StdLib::to_float);
 	vm->registerNativeFunction("to_string", StdLib::to_string);
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
+	vm->registerNativeFunction("from_json", StdLib::from_json);
 }
 
 i64 StdLib::to_int(const std::vector<Value> &args, VM *)
@@ -51,6 +52,14 @@ bool StdLib::to_bool(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_bool");
 	return args[0].isTruthy();
+}
+
+Value StdLib::from_json(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "from_json");
+	if (!args[0].isString())
+		throw std::runtime_error("from_json expects a string argument");
+	return Value::from_json(args[0].asString());
 }
 
 } // namespace Phasor

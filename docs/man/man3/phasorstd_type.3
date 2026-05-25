@@ -1,6 +1,6 @@
 .TH PHASORSTD_TYPE 3 "January 2026" "Phasor 3.3.0" "Phasor Standard Library 2.0.0"
 .SH NAME
-phasorstd_type \- Phasor type conversion functions
+phasorstd_type \- Phasor type conversion and JSON functions
 .SH SYNOPSIS
 .nf
 .B using("stdtype");
@@ -9,6 +9,7 @@ phasorstd_type \- Phasor type conversion functions
 .B to_float(value)
 .B to_string(value)
 .B to_bool(value)
+.B from_json(json_string)
 .fi
 .SH FUNCTIONS
 .TP
@@ -58,7 +59,7 @@ Float: Returns unchanged
 .IP \(bu 2
 Integer: Converts to float
 .IP \(bu 2
-String: Parses as float
+String: Parses as float (using standard conversion)
 .IP \(bu 2
 Boolean: true → 1.0, false → 0.0
 .IP \(bu 2
@@ -71,7 +72,7 @@ Other: Implementation-defined
 .PP
 .TP
 .BR to_string (value)
-Convert a value to a string representation.
+Convert a value to its string representation.
 .RS
 .PP
 .B Arguments:
@@ -87,17 +88,19 @@ String: Returns unchanged
 .IP \(bu 2
 Integer: Decimal representation
 .IP \(bu 2
-Float: Decimal representation with precision
+Float: Decimal representation with implementation-defined precision
 .IP \(bu 2
 Boolean: "true" or "false"
 .IP \(bu 2
 Null: "null"
 .IP \(bu 2
-Struct: String representation of struct
+Struct: JSON string representation of the struct
+.IP \(bu 2
+Array: JSON string representation of the array
 .RE
 .PP
 .B Returns:
-String representation of the value
+String representation of the value. For structs and arrays, returns a JSON string.
 .RE
 .PP
 .TP
@@ -124,11 +127,33 @@ String: empty → false, non-empty → true
 .IP \(bu 2
 Null: false
 .IP \(bu 2
-Other: Implementation-defined
+Other: Implementation-defined (typically true)
 .RE
 .PP
 .B Returns:
 Boolean true or false
+.RE
+.PP
+.TP
+.BR from_json (json_string)
+Parse a JSON string into a Phasor value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBjson_string\fR 12
+A string containing valid JSON data
+.RE
+.PP
+.B Description:
+Parses the given JSON string and returns the corresponding Phasor value.
+JSON objects become structs, JSON arrays become Phasor arrays, and JSON primitives become null, bool, int, float, or string as appropriate.
+.PP
+.B Returns:
+A Phasor value (struct, array, or primitive) representing the parsed JSON data.
+.PP
+.B Errors:
+Throws a runtime error if the argument is not a string or if the JSON is malformed.
 .RE
 .SH EXAMPLES
 .B Integer Conversion
@@ -163,10 +188,16 @@ puts(to_float(true));    // 1.0
 .nf
 .RS
 puts(to_string(42));     // "42"
-puts(to_string(3.14));   // "3.14" or "3.140000"
+puts(to_string(3.14));   // "3.14" (or similar)
 puts(to_string(true));   // "true"
 puts(to_string(false));  // "false"
 puts(to_string(null));   // "null"
+
+var person = { name: "Alice", age: 30 };
+puts(to_string(person)); // "{"name":"Alice","age":30}"
+
+var colors = ["red", "green", "blue"];
+puts(to_string(colors)); // "["red","green","blue"]"
 
 var x = 100;
 var msg = concat("Value: ", to_string(x));
@@ -186,6 +217,29 @@ puts(to_bool(0.1));      // true
 puts(to_bool(""));       // false
 puts(to_bool("hello"));  // true
 puts(to_bool("0"));      // true (non-empty string)
+.RE
+.fi
+.PP
+.B JSON Parsing
+.PP
+.nf
+.RS
+include_stdtype();
+
+var json_str = "{"name":"John","age":30,"tags":["dev","ops"]}";
+var data = from_json(json_str);
+
+puts(data.name);   // "John"
+puts(data.age);    // 30
+puts(data.tags.0); // "dev"
+puts(data.tags.1); // "ops"
+
+// Round-trip JSON
+var original = { a: 1, b: [2, 3] };
+var serialized = to_string(original);
+var restored = from_json(serialized);
+puts(restored.a);        // 1
+puts(restored.b.1);      // 3
 .RE
 .fi
 .PP
@@ -228,33 +282,18 @@ puts(result);  // 3.333...
 .RE
 .fi
 .PP
-.B Configuration Parsing
+.B Configuration Parsing with JSON
 .PP
 .nf
 .RS
-fn parse_config(config_string) {
-    // Parse "key=value" format
-    var parts = regex_split(null, config_string, "=");
-    var key = parts.0;
-    var value_str = parts.1;
-    
-    // Try to convert to appropriate type
-    var int_val = to_int(value_str);
-    if (to_string(int_val) == value_str) {
-        return int_val;  // It's an integer
-    }
-    
-    var float_val = to_float(value_str);
-    if (to_string(float_val) == value_str) {
-        return float_val;  // It's a float
-    }
-    
-    if (value_str == "true" || value_str == "false") {
-        return to_bool(value_str);
-    }
-    
-    return value_str;  // Keep as string
+// Assume config.json contains: { "timeout": 30, "debug": true }
+var config_str = read_file("config.json");
+var config = from_json(config_str);
+
+if (to_bool(config.debug)) {
+    puts("Debug mode enabled");
 }
+var timeout_ms = to_int(config.timeout) * 1000;
 .RE
 .fi
 .SH NOTES
@@ -265,46 +304,57 @@ String-to-number conversion returns 0 for invalid strings
 .IP \(bu 2
 Boolean conversion of strings only checks if empty, not content
 .IP \(bu 2
-Type conversion functions never throw errors
+Type conversion functions never throw errors (except \fBfrom_json\fR)
 .IP \(bu 2
 Float precision may vary in string conversion
 .IP \(bu 2
 Very large integers may lose precision when converted to float
+.IP \(bu 2
+\fBto_string\fR on structs/arrays produces JSON that is compatible with \fBfrom_json\fR
+.IP \(bu 2
+\fBfrom_json\fR requires a valid JSON string; malformed input causes a runtime error
+.IP \(bu 2
+JSON objects become structs; JSON arrays become Phasor arrays. Nested combinations are fully supported.
 .SH TYPE SYSTEM
 Phasor supports the following types:
 .RS
 .IP \(bu 2
 .B null
-- Null/undefined value
+\- Null/undefined value
 .IP \(bu 2
 .B bool
-- Boolean (true/false)
+\- Boolean (true/false)
 .IP \(bu 2
 .B int
-- 64-bit signed integer
+\- 64-bit signed integer
 .IP \(bu 2
 .B float
-- 64-bit floating-point (IEEE 754 double)
+\- 64-bit floating-point (IEEE 754 double)
 .IP \(bu 2
 .B string
-- UTF-8 text string
+\- UTF-8 text string
 .IP \(bu 2
 .B struct
-- User-defined composite type
+\- User-defined composite type (JSON object compatible)
+.IP \(bu 2
+.B array
+\- Ordered list of values (JSON array compatible)
 .RE
 .SH BEST PRACTICES
 .IP \(bu 2
 Always validate converted values when parsing user input
 .IP \(bu 2
-Use
-.B to_string()
-to concatenate non-string values
+Use \fBto_string()\fR to concatenate non-string values or to serialize structs/arrays to JSON
 .IP \(bu 2
 Be aware of precision loss when converting large integers to float
 .IP \(bu 2
 Check for zero before division when converting strings to numbers
 .IP \(bu 2
 Use explicit conversion rather than relying on implicit coercion
+.IP \(bu 2
+Use \fBfrom_json()\fR to parse structured data from external sources
+.IP \(bu 2
+Remember that \fBfrom_json()\fR can throw errors; wrap in try-catch if needed
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT
