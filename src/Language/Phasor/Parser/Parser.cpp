@@ -217,7 +217,7 @@ std::unique_ptr<Statement> Parser::varDeclaration()
     else if (!type)
     {
         lastError = {"Variables must have either an explicit type tag or an initializer.", name.line, name.column};
-        throw std::runtime_error("Variables must have either an explicit type tag or an initializer.");
+        throw std::runtime_error("Variables must have either an explicit type tag or an initializer. At: " + std::string(name.lexeme));
     }
     
     consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
@@ -771,10 +771,21 @@ std::unique_ptr<Expression> Parser::call()
 			Token op = previous();
 			auto  index = expression();
 			consume(Phasor::TokenType::Symbol, "]", "Expect ']' after index.");
-			auto node = std::make_unique<ArrayAccessExpr>(std::move(expr), std::move(index));
-			node->line = op.line;
-			node->column = op.column;
-			expr = std::move(node);
+
+			if (auto* strLit = dynamic_cast<StringExpr*>(index.get()))
+			{
+				auto node = std::make_unique<FieldAccessExpr>(std::move(expr), strLit->value);
+				node->line = op.line;
+				node->column = op.column;
+				expr = std::move(node);
+			}
+			else
+			{
+				auto node = std::make_unique<ArrayAccessExpr>(std::move(expr), std::move(index));
+				node->line = op.line;
+				node->column = op.column;
+				expr = std::move(node);
+			}
 		}
 		else
 		{
@@ -902,6 +913,14 @@ std::unique_ptr<Expression> Parser::primary()
 	}
 	if (check(Phasor::TokenType::Symbol) && peek().lexeme == "{")
 	{
+		// Empty struct: {}
+		if (current + 1 < static_cast<int>(tokens.size()) &&
+			tokens[current + 1].type == Phasor::TokenType::Symbol &&
+			tokens[current + 1].lexeme == "}")
+		{
+			return anonymousStructInstance();
+		}
+		// Struct with fields: { ident: ...
 		if (current + 2 < static_cast<int>(tokens.size()) &&
 			tokens[current + 1].type == Phasor::TokenType::Identifier &&
 			tokens[current + 2].type == Phasor::TokenType::Symbol &&
