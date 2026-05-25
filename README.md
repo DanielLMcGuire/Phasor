@@ -33,7 +33,7 @@ phasor <options>
 ## Language Features
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
-- **Structs*
+- **Structs**
 - **Arrays**
 - **Type annotations** (only in function declarations) ```fn func(input: string) -> void { ... }```
 - **Control flow**: if/else, while, for, switch/case, break/continue
