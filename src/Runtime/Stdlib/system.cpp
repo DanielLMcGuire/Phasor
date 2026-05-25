@@ -46,6 +46,8 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("isatty", StdLib::sys_isatty);
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
 	vm->registerNativeFunction("sys_args", StdLib::sys_args);
+	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
+	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 #else
 	auto stub = [](const std::vector<Value> &, VM *) -> Value { return Value(); };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
