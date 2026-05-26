@@ -169,12 +169,51 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     checkArgCount(args, 0, "get_self");
     auto bc = vm->getBytecode();
 
+    // struct StructData {
+    //     name: string,
+    //     firstConstIndex: i64,
+    //     fieldCount: i64,
+    //     fieldNames: string[]
+    // }
+    //
+    // struct FunctionData {
+    //     name: string,
+    //     entry: i64,
+    //     paramCount: i64
+    // }
+    //
+    // struct ConstantData {
+    //     type: string,
+    //     value: any
+    // }
+    //
+    // struct VariableData {
+    //     name: string,
+    //     type: string,
+    //     value: any
+    // }
+    //
+    // struct InstructionData {
+    //     op: string,
+    //     operand1: i64,
+    //     operand2: i64,
+    //     operand3: i64
+    // }
+    //
+    // struct Bytecode {
+    //     instructions: InstructionData[],
+    //     constants: ConstantData[],
+    //     variables: VariableData[],
+    //     functions: FunctionData[],
+    //     structs: StructData[]
+    // }
+
     auto bytecode_struct = Value::createStruct("Bytecode");
 
     auto inst_arr = Value::createArray();
     auto& inst_vec = *inst_arr.asArray();
     for (const auto& inst : bc.instructions) {
-        auto inst_val = Value::createStruct("Instruction");
+        auto inst_val = Value::createStruct("InstructionData");
         inst_val["op"] = opCodeToString(inst.op);
         inst_val["operand1"] = static_cast<i64>(inst.operand1);
         inst_val["operand2"] = static_cast<i64>(inst.operand2);
@@ -186,20 +225,30 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     auto const_arr = Value::createArray();
     auto& const_vec = *const_arr.asArray();
     for (const auto& val : bc.constants) {
-        const_vec.push_back(val);
+        auto const_info = Value::createStruct("ConstantData");
+        const_info["type"] = Phasor::Value::typeToString(val.getType());
+        const_info["value"] = val;
+        const_vec.push_back(const_info);
     }
     bytecode_struct["constants"] = const_arr;
 
-    auto vars_struct = Value::createStruct("Variables");
+    auto vars_array = Value::createArray();
+    auto& vars_vec = *vars_array.asArray();
     for (const auto& [name, idx] : bc.variables) {
-		auto var = vm->getVariable(idx);
-		vars_struct[name] = var;
+        auto var = vm->getVariable(idx);
+        auto var_info = Value::createStruct("VariableData");
+        var_info["name"] = name;
+        var_info["type"] = Phasor::Value::typeToString(var.getType());
+        var_info["value"] = var;
+        vars_vec.push_back(var_info);
     }
-    bytecode_struct["variables"] = vars_struct;
+    bytecode_struct["variables"] = vars_array;
 
-    auto funcs_struct = Value::createStruct("Functions");
+    auto funcs_arr = Value::createArray();
+    auto& func_vec = *funcs_arr.asArray();
     for (const auto& [name, entry] : bc.functionEntries) {
-        auto func_info = Value::createStruct("FunctionInfo");
+        auto func_info = Value::createStruct("FunctionData");
+        func_info["name"] = name;
         func_info["entry"] = static_cast<i64>(entry);
         
         i64 param_count = 0;
@@ -208,14 +257,15 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
             param_count = it->second;
         }
         func_info["paramCount"] = param_count;
-        funcs_struct[name] = func_info;
+        
+        func_vec.push_back(func_info);
     }
-    bytecode_struct["functions"] = funcs_struct;
+    bytecode_struct["functions"] = funcs_arr;
 
     auto structs_arr = Value::createArray();
     auto& structs_vec = *structs_arr.asArray();
     for (const auto& sinfo : bc.structs) {
-        auto s_val = Value::createStruct("StructInfo");
+        auto s_val = Value::createStruct("StructData");
         s_val["name"] = sinfo.name;
         s_val["firstConstIndex"] = static_cast<i64>(sinfo.firstConstIndex);
         s_val["fieldCount"] = static_cast<i64>(sinfo.fieldCount);
@@ -226,6 +276,7 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
             fields_vec.push_back(Value(fname));
         }
         s_val["fieldNames"] = fields_arr;
+        
         structs_vec.push_back(s_val);
     }
     bytecode_struct["structs"] = structs_arr;
