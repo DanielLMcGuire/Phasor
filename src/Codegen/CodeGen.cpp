@@ -338,46 +338,97 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
     bool isArrayType = (hasExplicitType && !varDecl->type->arrayDimensions.empty());
     ValueType declaredType = ValueType::Float;
 
-    if (hasExplicitType) {
-        if (isArrayType) {
+    if (hasExplicitType)
+    {
+        if (isArrayType)
+        {
             arrayBaseTypes[varDecl->name] = varDecl->type->name;
-            declaredType = ValueType::Array;
-        } else if (bytecode.structEntries.contains(varDecl->type->name)) {
+            declaredType = ValueType::Struct;
+        }
+        else if (bytecode.structEntries.contains(varDecl->type->name))
+        {
             declaredType = ValueType::Struct;
             inferredTypes[varDecl->name] = declaredType;
-        } else {
+        }
+        else
+        {
             declaredType = mapTypeNameToValueType(varDecl->type->name);
             inferredTypes[varDecl->name] = declaredType;
         }
-    } else if (varDecl->initializer) {
+    }
+    else if (varDecl->initializer)
+    {
         bool known = false;
         ValueType inferred = inferExpressionType(varDecl->initializer.get(), known);
-        if (known) inferredTypes[varDecl->name] = inferred;
+        if (known)
+        {
+            inferredTypes[varDecl->name] = inferred;
+        }
     }
 
-    if (varDecl->initializer) {
-        if (isArrayType && varDecl->type->name != "int" && varDecl->type->name != "float" &&
-            varDecl->type->name != "string" && varDecl->type->name != "bool") {
-            const std::string &expectedStructName = varDecl->type->name;
-            if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(varDecl->initializer.get())) {
-                for (size_t i = 0; i < arrayLit->elements.size(); ++i) {
-                    const auto *structInst = dynamic_cast<const AST::StructInstanceExpr *>(arrayLit->elements[i].get());
-                    if (!structInst) {
-                        throw std::runtime_error("Array element is not a struct instance");
-                    }
-                    if (structInst->structName != expectedStructName && structInst->structName != "__anon") {
-                        throw std::runtime_error("Type mismatch: expected struct '" + expectedStructName +
-                                                 "' but got '" + structInst->structName + "'");
+    if (varDecl->initializer)
+    {
+        if (isArrayType && bytecode.structEntries.contains(varDecl->type->name))
+        {
+            const std::string& expectedStruct = varDecl->type->name;
+            if (auto* arrayLit = dynamic_cast<AST::ArrayLiteralExpr*>(varDecl->initializer.get()))
+            {
+                auto expectedIt = bytecode.structEntries.find(expectedStruct);
+                if (expectedIt != bytecode.structEntries.end())
+                {
+                    const StructInfo& expectedInfo = bytecode.structs[expectedIt->second];
+                    for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+                    {
+                        auto* anon = dynamic_cast<AST::StructInstanceExpr*>(arrayLit->elements[i].get());
+                        if (!anon || anon->structName != "__anon")
+                        {
+                            throw std::runtime_error("Array element must be an anonymous struct literal");
+                        }
+                        if (anon->fieldValues.size() != expectedInfo.fieldNames.size())
+                        {
+                            throw std::runtime_error("Field count mismatch for struct '" + expectedStruct + "'");
+                        }
+                        for (const auto& [fname, fval] : anon->fieldValues)
+                        {
+                            if (std::find(expectedInfo.fieldNames.begin(), expectedInfo.fieldNames.end(), fname) == expectedInfo.fieldNames.end())
+                            {
+                                throw std::runtime_error("Unknown field '" + fname + "' in struct '" + expectedStruct + "'");
+                            }
+                        }
                     }
                 }
             }
         }
 
+        if (isArrayType)
+        {
+            if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(varDecl->initializer.get()))
+            {
+                ValueType expectedElemType = mapTypeNameToValueType(varDecl->type->name);
+                for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+                {
+                    bool known = false;
+                    ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
+                    if (known && elemType != expectedElemType)
+                    {
+                        throw std::runtime_error("Type mismatch in array initialization: element at index " +
+                                                 std::to_string(i) + " is not of expected type '" +
+                                                 varDecl->type->name + "'.");
+                    }
+                }
+            }
+            inferredTypes[varDecl->name] = declaredType;
+        }
+
         generateExpression(varDecl->initializer.get());
         int varIndex = bytecode.getOrCreateVar(varDecl->name);
         bytecode.emit(OpCode::STORE_VAR, varIndex);
-    } else {
-        if (isArrayType) inferredTypes[varDecl->name] = declaredType;
+    }
+    else
+    {
+        if (isArrayType)
+            inferredTypes[varDecl->name] = declaredType;
+
         int constIndex = bytecode.addConstant(Value());
         bytecode.emit(OpCode::PUSH_CONST, constIndex);
         int varIndex = bytecode.getOrCreateVar(varDecl->name);
@@ -393,10 +444,6 @@ void CodeGenerator::generateExpressionStmt(const AST::ExpressionStmt *exprStmt)
 		bytecode.emit(OpCode::PRINT);
 		return;
 	}
-
-	// In statement context the result is always discarded.
-	// For postfix specifically: resultNeeded=false skips saving the old value,
-	// and STORE_VAR already pops the result — stack is clean, no POP needed.
 	if (const auto *postfix = dynamic_cast<const AST::PostfixExpr *>(exprStmt->expression.get()))
 	{
 		generatePostfixExpr(postfix, false);
@@ -1167,29 +1214,35 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 
 void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *expr)
 {
-    auto it = bytecode.structEntries.find(expr->structName);
-    if (it != bytecode.structEntries.end()) {
-        int structIndex = it->second;
-        bytecode.emit(OpCode::NEW_STRUCT_INSTANCE_STATIC, structIndex);
+	// Prefer static struct instantiation when we have metadata
+	auto it = bytecode.structEntries.find(expr->structName);
+	if (it != bytecode.structEntries.end())
+	{
+		int structIndex = it->second;
+		// Create instance with defaults from Bytecode::structs / constants
+		bytecode.emit(OpCode::NEW_STRUCT_INSTANCE_STATIC, structIndex);
 
-        const StructInfo &info = bytecode.structs[structIndex];
-        for (const auto &[fieldName, fieldValue] : expr->fieldValues) {
-            auto idxIt = info.fieldNameToIndex.find(fieldName);
-            if (idxIt == info.fieldNameToIndex.end()) {
-                throw std::runtime_error("Unknown field '" + fieldName + "' in struct '" + expr->structName + "'");
-            }
-            generateExpression(fieldValue.get());
-            bytecode.emit(OpCode::SET_FIELD_IDX, idxIt->second);
-        }
-    } else {
-        int structNameIndex = bytecode.addStringConstant(expr->structName);
-        bytecode.emit(OpCode::NEW_STRUCT, structNameIndex);
-        for (const auto &[fieldName, fieldValue] : expr->fieldValues) {
-            generateExpression(fieldValue.get());
-            int fieldNameIndex = bytecode.addStringConstant(fieldName);
-            bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
-        }
-    }
+		// Apply any explicit field initializers as overrides using dynamic SET_FIELD
+		for (const auto &[fieldName, fieldValue] : expr->fieldValues)
+		{
+			generateExpression(fieldValue.get());
+			int fieldNameIndex = bytecode.addStringConstant(fieldName);
+			bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
+		}
+	}
+	else
+	{
+		// Fallback
+		int structNameIndex = bytecode.addStringConstant(expr->structName);
+		bytecode.emit(OpCode::NEW_STRUCT, structNameIndex);
+
+		for (const auto &[fieldName, fieldValue] : expr->fieldValues)
+		{
+			generateExpression(fieldValue.get());
+			int fieldNameIndex = bytecode.addStringConstant(fieldName);
+			bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
+		}
+	}
 }
 
 void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
@@ -1227,22 +1280,40 @@ void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr, bool resul
 
 void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 {
-    std::unordered_map<std::string, int> fieldIdx;
-    for (size_t i = 0; i < decl->fields.size(); ++i)
-        fieldIdx[decl->fields[i].name] = static_cast<int>(i);
+	std::string structDef = "struct " + decl->name + " {";
+	for (const auto &field : decl->fields)
+	{
+		structDef += " " + field.name + ":" + field.type->name + ",";
+	}
+	if (!decl->fields.empty())
+	{
+		structDef.pop_back();
+	}
+	structDef += " }";
+	bytecode.addConstant(Value(structDef));
 
-    StructInfo info;
-    info.name = decl->name;
-    info.fieldCount = static_cast<int>(decl->fields.size());
-    info.fieldNames.clear();
-    for (const auto &f : decl->fields) info.fieldNames.push_back(f.name);
-    info.fieldNameToIndex = std::move(fieldIdx);
+	int firstConstIndex = static_cast<int>(bytecode.constants.size());
+	for (const auto &field : decl->fields)
+	{
+		(void)field;
+		bytecode.addConstant(Value());
+	}
 
-    if (!bytecode.structEntries.contains(decl->name)) {
-        int index = static_cast<int>(bytecode.structs.size());
-        bytecode.structs.push_back(std::move(info));
-        bytecode.structEntries[decl->name] = index;
-    }
+	StructInfo info;
+	info.name = decl->name;
+	info.firstConstIndex = firstConstIndex;
+	info.fieldCount = static_cast<int>(decl->fields.size());
+	for (const auto &field : decl->fields)
+	{
+		info.fieldNames.push_back(field.name);
+	}
+
+	if (!bytecode.structEntries.contains(decl->name))
+	{
+		int index = static_cast<int>(bytecode.structs.size());
+		bytecode.structs.push_back(std::move(info));
+		bytecode.structEntries[decl->name] = index;
+	}
 }
 
 void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
