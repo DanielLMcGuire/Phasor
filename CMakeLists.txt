@@ -37,6 +37,8 @@ option(STATIC "Compile executables statically against C/CXX RT" OFF)
 option(NATIVE "Use if you only plan to use on THIS machine" OFF)
 option(FORCE_PROJECT_VERSION "Force project version string to lock to cmake project_version" OFF)
 option(USE_PCH "Use PCH" ON)
+option(PGO_A "Instrument PGO data" OFF)
+option(PGO_B "Use PGO data" OFF)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
