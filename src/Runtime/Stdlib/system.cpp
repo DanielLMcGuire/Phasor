@@ -215,15 +215,33 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 
 i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 1, "sys_fork", true);
-	const char         *executable = args[0].c_str();
-	int                 argc = (int)args.size() - 1;
-	std::vector<char *> v_argv(argc);
-	for (int i = 0; i < argc; ++i)
-	{
-		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
-	}
-	return static_cast<i64>(PHASORstd_sys_run(executable, argc, v_argv.data()));
+    checkArgCount(args, 1, "sys_fork", true);
+    
+    const char *executable = args[0].c_str();
+    std::vector<char *> v_argv;
+
+    if (args.size() == 2 && args[1].isArray()) 
+    {
+        const auto& arr = *args[1].asArray(); 
+        
+        v_argv.reserve(arr.size());
+        
+        for (const auto& val : arr) 
+        {
+            v_argv.push_back(const_cast<char *>(val.c_str()));
+        }
+    }
+    else 
+    {
+        int argc = (int)args.size() - 1;
+        v_argv.reserve(argc);
+        for (int i = 0; i < argc; ++i)
+        {
+            v_argv.push_back(const_cast<char *>(args[i + 1].c_str()));
+        }
+    }
+
+    return static_cast<i64>(PHASORstd_sys_run(executable, static_cast<int>(v_argv.size()), v_argv.data()));
 }
 
 i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
