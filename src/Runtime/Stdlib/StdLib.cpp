@@ -143,7 +143,7 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 	if (haveMessage) assert(args[0].isTruthy() && message);
 	else assert(args[0].isTruthy());
 #endif
-	return Value();
+	return phsnull;
 }
 #endif
 

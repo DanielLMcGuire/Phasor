@@ -94,7 +94,7 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *)
 	std::ifstream         file(path);
 	if (!file.is_open())
 	{
-		return Value(); // Return null if file cannot be opened
+		return phsnull; // Return null if file cannot be opened
 	}
 	std::stringstream buffer;
 	buffer << file.rdbuf();

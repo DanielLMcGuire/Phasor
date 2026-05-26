@@ -24,7 +24,7 @@ Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "clear");
 	vm->regRun(OpCode::PRINT_R, "\033[2J\033[H");
-	return Value();
+	return phsnull;
 }
 #endif
 
