@@ -34,7 +34,7 @@ phasor <options>
 
 - **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
 - **Structs** ```struct Point { x: int, y: int } var p: Point = { x: 10, y: 20 }; p.x = 42;```
-- **Arrays** ```var dyn: any[] = [1, 2, 3]; var strict: int[10]; strict[0] = 99; var item: int = strict[0];```
+- **Arrays** ```var dyn: any[] = [1, "hi", null, 15.1]; var typed: int[] = [15, 12]; var strict: int[10]; strict[0] = 99; var item: int = strict[0];```
 - **Uniform Function Call Syntax** for stdlib/builtin/ffi ```var x: any = 15; x.len(); "Hello".len().puts()```
 - **Type annotations** ```fn func(input: string) -> void { ... }```
 - **JSON Support**
