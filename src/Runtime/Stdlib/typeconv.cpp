@@ -10,6 +10,7 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_float", StdLib::to_float);
 	vm->registerNativeFunction("to_string", StdLib::to_string);
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
+	vm->registerNativeFunction("to_json", StdLib::to_json);
 	vm->registerNativeFunction("from_json", StdLib::from_json);
 }
 
@@ -46,6 +47,15 @@ PhsString StdLib::to_string(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_string");
 	return args[0].toString();
+}
+
+PhsString StdLib::to_json(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "to_json", true);
+	if (args.size() > 4) {
+		throw std::runtime_error("to_json expects at most 4 arguments");
+	}
+	return args[0].jsonSerialize(args.size() > 1 ? args[1].asInt() : -1, args.size() > 2 ? args[2].asInt() : 0);
 }
 
 bool StdLib::to_bool(const std::vector<Value> &args, VM *)

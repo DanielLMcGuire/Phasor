@@ -166,6 +166,7 @@ class StdLib
 	static f64         to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
 	static PhsString   to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static bool        to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
+	static PhsString   to_json(const std::vector<Value> &args, VM *vm);   ///< Convert Value to JSON string
 	static Value       from_json(const std::vector<Value> &args, VM *vm); ///< Convert JSON string to Value
 #pragma endregion
 
