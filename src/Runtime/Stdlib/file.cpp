@@ -358,13 +358,15 @@ Value StdLib::file_read_directory(const std::vector<Value> &args, VM *vm)
 {
     checkArgCount(args, 1, "freaddir");
     PhsString path = args[0].asString();
-    
+
     std::vector<Value> entries;
+
     for (const auto &entry : std::filesystem::directory_iterator(path.str()))
     {
-        entries.push_back(Value(PhsString(entry.path().filename().string())));
+        entries.emplace_back(PhsString(entry.path().filename().string()));
     }
-    return Value::createArray(std::move(entries)); // empty array instead of false
+
+    return Value::createArray(std::move(entries));
 }
 
 bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
