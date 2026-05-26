@@ -114,6 +114,10 @@ class VM
 	/// @return Number of registers
 	size_t getRegisterCount();
 
+	inline Bytecode getBytecode() {
+		return *m_bytecode;
+	}
+
 	/// @brief Enum for registers
 	enum Register : u8
 	{
