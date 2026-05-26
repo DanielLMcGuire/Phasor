@@ -5,7 +5,7 @@
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/DanielLMcGuire/Phasor/master.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/DanielLMcGuire/Phasor.svg?label=commits)
 
-A dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
+A statically/dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of a unified type system, which provides C++ RAII support to the runtime, stdlib, and FFI interfaces.
 
