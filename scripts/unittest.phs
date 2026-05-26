@@ -4,9 +4,9 @@ using("stdsys", "stdio");
 
 // @todo Something more probably
 
-var x = 15;
-var y = 24;
-var z = 72;
+var x: int = 15;
+var y: int = 24;
+var z: int = 72;
 
 fn main() -> int 
 {
