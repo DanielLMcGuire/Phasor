@@ -639,23 +639,42 @@ class Value
 			result += "\"";
 			return result;
 		}
+
+		const bool pretty = indent >= 0;
+
+		auto make_indent = [&](int level) -> std::string
+		{
+			if (!pretty)
+			{
+				return {};
+			}
+
+			const size_t spaces = static_cast<size_t>(level) * static_cast<size_t>(indent);
+			return std::string(spaces, ' ');
+		};
+
 		if (isArray())
 		{
 			const auto &arr = *asArray();
-			if (arr.empty()) return "[]";
+			if (arr.empty())
+			{
+				return "[]";
+			}
 
-			bool pretty = indent >= 0;
 			std::string result = pretty ? "[\n" : "[";
-			std::string item_indent = pretty ? std::string((depth + 1) * indent, ' ') : "";
-			std::string end_indent = pretty ? std::string(depth * indent, ' ') : "";
+			const std::string item_indent = make_indent(depth + 1);
+			const std::string end_indent = make_indent(depth);
 
 			for (size_t i = 0; i < arr.size(); ++i)
 			{
-				if (pretty) result += item_indent;
-				
+				if (pretty)
+				{
+					result += item_indent;
+				}
+
 				result += arr[i].jsonSerialize(indent, depth + 1).str();
-				
-				if (i < arr.size() - 1)
+
+				if (i + 1 < arr.size())
 				{
 					result += pretty ? ",\n" : ", ";
 				}
@@ -664,18 +683,23 @@ class Value
 					result += "\n";
 				}
 			}
-			result += end_indent + "]";
+
+			result += end_indent;
+			result += "]";
 			return result;
 		}
+
 		if (isStruct())
 		{
 			const auto &s = *asStruct();
-			if (s.fields.empty()) return "{}";
+			if (s.fields.empty())
+			{
+				return "{}";
+			}
 
-			bool pretty = indent >= 0;
 			std::string result = pretty ? "{\n" : "{";
-			std::string item_indent = pretty ? std::string((depth + 1) * indent, ' ') : "";
-			std::string end_indent = pretty ? std::string(depth * indent, ' ') : "";
+			const std::string item_indent = make_indent(depth + 1);
+			const std::string end_indent = make_indent(depth);
 
 			bool first = true;
 			for (const auto &[k, v] : s.fields)
@@ -684,17 +708,29 @@ class Value
 				{
 					result += pretty ? ",\n" : ", ";
 				}
-				
-				if (pretty) result += item_indent;
-				
-				result += "\"" + k.str() + "\":" + (pretty ? " " : " ");
+
+				if (pretty)
+				{
+					result += item_indent;
+				}
+
+				result += "\"";
+				result += k.str();
+				result += pretty ? "\": " : "\":";
 				result += v.jsonSerialize(indent, depth + 1).str();
+
 				first = false;
 			}
-			if (pretty) result += "\n";
-			result += end_indent + "}";
+
+			if (pretty)
+			{
+				result += "\n";
+			}
+			result += end_indent;
+			result += "}";
 			return result;
 		}
+
 		return "null";
 	}
 
