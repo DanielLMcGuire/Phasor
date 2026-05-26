@@ -354,7 +354,7 @@ bool StdLib::file_create(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-Value StdLib::file_read_directory(const std::vector<Value> &args, VM *vm)
+Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 1, "freaddir");
     PhsString path = args[0].asString();
