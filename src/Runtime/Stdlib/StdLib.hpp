@@ -84,6 +84,9 @@ class StdLib
 	static Value   meta_stack_run(const std::vector<Value> &args, VM *vm);
 #endif
 	static PhsString meta_get_version(const std::vector<Value> &args, VM *vm);
+	static Value     meta_get_alloc_info(const std::vector<Value> &args, VM *vm);
+	static Value     meta_get_struct_elements(const std::vector<Value> &args, VM *);
+	static Value     meta_get_struct_elements_values(const std::vector<Value> &args, VM *);
 
 #pragma endregion stdmeta
 

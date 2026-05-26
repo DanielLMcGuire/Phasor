@@ -2,6 +2,16 @@
 #include <version.h>
 #include <phsint.hpp>
 
+#if defined(_WIN32)
+  #include <windows.h>
+  #include <psapi.h>
+#elif defined(__linux__)
+  #include <malloc.h>
+  #include <sys/resource.h>
+#elif defined(__APPLE__)
+  #include <sys/resource.h>
+#endif
+
 namespace Phasor
 {
 
@@ -12,6 +22,9 @@ void StdLib::registerMetaFunctions(VM *vm)
 	vm->registerNativeFunction("phs_stack_run", StdLib::meta_stack_run);
 #endif
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
+	vm->registerNativeFunction("phs_alloc_info", StdLib::meta_get_alloc_info);
+	vm->registerNativeFunction("get_elements", StdLib::meta_get_struct_elements);
+	vm->registerNativeFunction("get_elements_values", StdLib::meta_get_struct_elements_values);
 }
 
 #ifndef SANDBOXED
@@ -50,6 +63,99 @@ PhsString StdLib::meta_get_version(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "phs_version");
 	return PHASOR_VERSION_STRING;
+}
+
+Value StdLib::meta_get_alloc_info(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "phs_alloc_info");
+
+	Value result = {{
+		{"heap_used", phsnull},
+		{"stack_limit", phsnull},
+		{"heap_used_kb", phsnull},
+		{"stack_limit_kb", phsnull},
+	}};
+
+#if defined(_WIN32)
+	PROCESS_MEMORY_COUNTERS pmc;
+	if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+		result["heap_used"] = static_cast<i64>(pmc.WorkingSetSize);
+
+	result["stack_limit"] = 1024 * 1024;
+#elif defined(__linux__)
+	struct mallinfo mi = mallinfo2();
+	result["heap_used"] = static_cast<i64>(mi.uordblks);
+
+	struct rlimit rl{};
+	getrlimit(RLIMIT_STACK, &rl);
+	result["stack_limit"] = static_cast<i64>(rl.rlim_cur);
+#elif defined (__APPLE__)
+	struct rusage ru{};
+	getrusage(RUSAGE_SELF, &ru);
+	result["heap_used"] = static_cast<i64>(ru.ru_maxrss);
+
+	struct rlimit rl{};
+	getrlimit(RLIMIT_STACK, &rl);
+	result["stack_limit"] = static_cast<i64>(rl.rlim_cur)
+#endif
+
+	result["heap_used_kb"] = result["heap_used"].asInt() / 1024;
+	result["stack_limit_kb"] = result["stack_limit"].asInt()  / 1024;
+	return result;
+}
+
+Value StdLib::meta_get_struct_elements(const std::vector<Value> &args, VM *)
+{
+    checkArgCount(args, 1, "get_elements");
+
+    const auto &structVal = args[0];
+    if (!structVal.isStruct())
+    {
+        throw std::runtime_error("meta_get_struct_elements: argument is not a struct");
+    }
+
+    const auto structPtr = structVal.asStruct();
+    if (!structPtr)
+    {
+        throw std::runtime_error("meta_get_struct_elements: struct instance is null");
+    }
+
+    std::vector<Value> keys;
+    keys.reserve(structPtr->fields.size());
+
+    for (const auto &[key, _] : structPtr->fields)
+    {
+        keys.push_back(key);
+    }
+
+    return Value::createArray(std::move(keys));
+}
+
+Value StdLib::meta_get_struct_elements_values(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "get_elements_values");
+
+	const auto &structVal = args[0];
+	if (!structVal.isStruct())
+	{
+		throw std::runtime_error("get_elements_values: argument is not a struct");
+	}
+
+	const auto structPtr = structVal.asStruct();
+	if (!structPtr)
+	{
+		throw std::runtime_error("get_elements_values: struct instance is null");
+	}
+
+	std::vector<Value> values;
+	values.reserve(structPtr->fields.size());
+
+	for (const auto &[key, value] : structPtr->fields)
+	{
+		values.push_back(value);
+	}
+
+	return Value::createArray(std::move(values));
 }
 
 } // namespace Phasor
