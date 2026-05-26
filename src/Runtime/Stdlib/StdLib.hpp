@@ -89,6 +89,7 @@ class StdLib
 	static Value     meta_get_struct_elements_values(const std::vector<Value> &args, VM *);
 	static Value     meta_get_self(const std::vector<Value> &args, VM *vm);
 	static Value     meta_get_registers(const std::vector<Value> &args, VM *vm);
+	static Value     meta_get_type(const std::vector<Value> &args, VM *vm);
 
 #pragma endregion stdmeta
 

@@ -28,6 +28,7 @@ void StdLib::registerMetaFunctions(VM *vm)
 	vm->registerNativeFunction("get_elements_values", StdLib::meta_get_struct_elements_values);
 	vm->registerNativeFunction("get_self", StdLib::meta_get_self);
 	vm->registerNativeFunction("get_registers", StdLib::meta_get_registers);
+	vm->registerNativeFunction("get_type", StdLib::meta_get_type);
 }
 
 #ifndef SANDBOXED
@@ -242,6 +243,13 @@ Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm)
 		reg_array.asArray()->push_back(vm->getRegister(i));
 	}
 	return reg_array;
+}
+
+Value StdLib::meta_get_type(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "get_type");
+	auto type = args[0].getType();
+	return Value::typeToString(type);
 }
 
 } // namespace Phasor
