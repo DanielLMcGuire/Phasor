@@ -83,7 +83,7 @@ Value StdLib::meta_get_alloc_info(const std::vector<Value> &args, VM *)
 
 	result["stack_limit"] = 1024 * 1024;
 #elif defined(__linux__)
-	struct mallinfo mi = mallinfo2();
+	struct mallinfo2 mi = mallinfo2();
 	result["heap_used"] = static_cast<i64>(mi.uordblks);
 
 	struct rlimit rl{};
