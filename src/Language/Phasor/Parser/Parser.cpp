@@ -177,7 +177,21 @@ std::unique_ptr<TypeNode> Parser::parseType()
     {
         isPointer = true;
     }
-    Token typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+
+    // Accept both identifiers and the 'any' keyword as type names
+    Token typeName;
+    if (check(Phasor::TokenType::Identifier))
+    {
+        typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+    }
+    else if (check(Phasor::TokenType::Keyword) && peek().lexeme == "any")
+    {
+        typeName = advance();
+    }
+    else
+    {
+        typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+    }
 
     std::vector<int> dims;
     while (match(Phasor::TokenType::Symbol, "["))
@@ -202,22 +216,19 @@ std::unique_ptr<TypeNode> Parser::parseType()
 std::unique_ptr<Statement> Parser::varDeclaration()
 {
     Token name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
-    
-    std::unique_ptr<TypeNode> type = nullptr;
-    if (match(Phasor::TokenType::Symbol, ":"))
+
+    if (!check(Phasor::TokenType::Symbol) || peek().lexeme != ":")
     {
-        type = parseType();
+        lastError = {"Variable '" + std::string(name.lexeme) + "' must have a type annotation (e.g. var " + std::string(name.lexeme) + ": int or var " + std::string(name.lexeme) + ": any)", name.line, name.column};
+        throw std::runtime_error("Variable '" + std::string(name.lexeme) + "' must have a type annotation.");
     }
-    
+    consume(Phasor::TokenType::Symbol, ":", "Expect ':' after variable name.");
+    auto type = parseType();
+
     std::unique_ptr<Expression> initializer = nullptr;
     if (match(Phasor::TokenType::Symbol, "="))
     {
         initializer = expression();
-    }
-    else if (!type)
-    {
-        lastError = {"Variables must have either an explicit type tag or an initializer.", name.line, name.column};
-        throw std::runtime_error("Variables must have either an explicit type tag or an initializer. At: " + std::string(name.lexeme));
     }
     
     consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
@@ -955,6 +966,11 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 		}
 
 		Token fieldNameTok = consume(Phasor::TokenType::Identifier, "Expected field name");
+		if (!check(Phasor::TokenType::Symbol) || peek().lexeme != ":")
+		{
+			lastError = {"Struct field '" + std::string(fieldNameTok.lexeme) + "' must have a type annotation (e.g. " + std::string(fieldNameTok.lexeme) + ": int or " + std::string(fieldNameTok.lexeme) + ": any[])", fieldNameTok.line, fieldNameTok.column};
+			throw std::runtime_error("Struct field '" + std::string(fieldNameTok.lexeme) + "' must have a type annotation.");
+		}
 		consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name");
 		auto type = parseType();
 		fields.emplace_back(fieldNameTok.lexeme, std::move(type));

@@ -15,7 +15,7 @@ fn getDocCmd(page: ManPage) -> string {
             sb.sb_append(page.name);
             sb.sb_append(".");
             sb.sb_append(page.section);
-            var path = sb_to_string(sb);
+            var path: string = sb_to_string(sb);
             sb.sb_free();
             return concat("\"start ", path, "\"");
         }
@@ -27,14 +27,14 @@ fn getDocCmd(page: ManPage) -> string {
         sb.sb_append(page.section);
         sb.sb_append(".");
         sb.sb_append("pdf");
-        var path = sb_to_string(sb);
+        var path: string = sb_to_string(sb);
         sb.sb_free();
         return concat("\"start file:///", path, "\"");
     } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX" || os == "Darwin") {
         sb.sb_append(page.name);
         sb.sb_append(" ");
         sb.sb_append(page.section);
-        var args = sb_to_string(sb);
+        var args: string = sb_to_string(sb);
         sb.sb_free();
         return concat("man ", args);
     } else {

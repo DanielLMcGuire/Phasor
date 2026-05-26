@@ -334,106 +334,110 @@ void CodeGenerator::generateExpression(const AST::Expression *expr, bool resultN
 
 void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 {
-    bool hasExplicitType = (varDecl->type != nullptr);
-    bool isArrayType = (hasExplicitType && !varDecl->type->arrayDimensions.empty());
-    ValueType declaredType = ValueType::Float;
+	bool hasExplicitType = (varDecl->type != nullptr);
+	bool isAny = (hasExplicitType && varDecl->type->name == "any");
+	bool isArrayType = (hasExplicitType && !varDecl->type->arrayDimensions.empty());
+	ValueType declaredType = ValueType::Float;
 
-    if (hasExplicitType)
-    {
-        if (isArrayType)
-        {
-            arrayBaseTypes[varDecl->name] = varDecl->type->name;
-            declaredType = ValueType::Struct;
-        }
-        else if (bytecode.structEntries.contains(varDecl->type->name))
-        {
-            declaredType = ValueType::Struct;
-            inferredTypes[varDecl->name] = declaredType;
-        }
-        else
-        {
-            declaredType = mapTypeNameToValueType(varDecl->type->name);
-            inferredTypes[varDecl->name] = declaredType;
-        }
-    }
-    else if (varDecl->initializer)
-    {
-        bool known = false;
-        ValueType inferred = inferExpressionType(varDecl->initializer.get(), known);
-        if (known)
-        {
-            inferredTypes[varDecl->name] = inferred;
-        }
-    }
+	if (hasExplicitType)
+	{
+		if (isAny)
+		{
+			// 'any' opts out of all type tracking — leave inferredTypes unpopulated
+			if (isArrayType)
+				arrayBaseTypes[varDecl->name] = "any";
+		}
+		else if (isArrayType)
+		{
+			arrayBaseTypes[varDecl->name] = varDecl->type->name;
+			declaredType = ValueType::Array;
+			inferredTypes[varDecl->name] = declaredType;
+		}
+		else if (bytecode.structEntries.contains(varDecl->type->name))
+		{
+			declaredType = ValueType::Struct;
+			inferredTypes[varDecl->name] = declaredType;
+		}
+		else
+		{
+			declaredType = mapTypeNameToValueType(varDecl->type->name);
+			inferredTypes[varDecl->name] = declaredType;
+		}
+	}
 
-    if (varDecl->initializer)
-    {
-        if (isArrayType && bytecode.structEntries.contains(varDecl->type->name))
-        {
-            const std::string& expectedStruct = varDecl->type->name;
-            if (auto* arrayLit = dynamic_cast<AST::ArrayLiteralExpr*>(varDecl->initializer.get()))
-            {
-                auto expectedIt = bytecode.structEntries.find(expectedStruct);
-                if (expectedIt != bytecode.structEntries.end())
-                {
-                    const StructInfo& expectedInfo = bytecode.structs[expectedIt->second];
-                    for (size_t i = 0; i < arrayLit->elements.size(); ++i)
-                    {
-                        auto* anon = dynamic_cast<AST::StructInstanceExpr*>(arrayLit->elements[i].get());
-                        if (!anon || anon->structName != "__anon")
-                        {
-                            throw std::runtime_error("Array element must be an anonymous struct literal");
-                        }
-                        if (anon->fieldValues.size() != expectedInfo.fieldNames.size())
-                        {
-                            throw std::runtime_error("Field count mismatch for struct '" + expectedStruct + "'");
-                        }
-                        for (const auto& [fname, fval] : anon->fieldValues)
-                        {
-                            if (std::find(expectedInfo.fieldNames.begin(), expectedInfo.fieldNames.end(), fname) == expectedInfo.fieldNames.end())
-                            {
-                                throw std::runtime_error("Unknown field '" + fname + "' in struct '" + expectedStruct + "'");
-                            }
-                        }
-                    }
-                }
-            }
-        }
+	if (varDecl->initializer)
+	{
+		const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(varDecl->initializer.get());
 
-        if (isArrayType)
-        {
-            if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(varDecl->initializer.get()))
-            {
-                ValueType expectedElemType = mapTypeNameToValueType(varDecl->type->name);
-                for (size_t i = 0; i < arrayLit->elements.size(); ++i)
-                {
-                    bool known = false;
-                    ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
-                    if (known && elemType != expectedElemType)
-                    {
-                        throw std::runtime_error("Type mismatch in array initialization: element at index " +
-                                                 std::to_string(i) + " is not of expected type '" +
-                                                 varDecl->type->name + "'.");
-                    }
-                }
-            }
-            inferredTypes[varDecl->name] = declaredType;
-        }
+		if (hasExplicitType && !isAny)
+		{
+			// Only literal arrays can be element checked here.
+			// Non literal array values like state.board are allowed through.
+			if (!isArrayType && arrayLit)
+			{
+				throw std::runtime_error("Variable '" + varDecl->name +
+				                         "' is declared as a scalar type but assigned an array literal.");
+			}
 
-        generateExpression(varDecl->initializer.get());
-        int varIndex = bytecode.getOrCreateVar(varDecl->name);
-        bytecode.emit(OpCode::STORE_VAR, varIndex);
-    }
-    else
-    {
-        if (isArrayType)
-            inferredTypes[varDecl->name] = declaredType;
+			if (isArrayType && arrayLit)
+			{
+				// For typed struct arrays, validate element field names/count
+				if (bytecode.structEntries.contains(varDecl->type->name))
+				{
+					const std::string &expectedStruct = varDecl->type->name;
+					auto expectedIt = bytecode.structEntries.find(expectedStruct);
+					const StructInfo &expectedInfo = bytecode.structs[expectedIt->second];
 
-        int constIndex = bytecode.addConstant(Value());
-        bytecode.emit(OpCode::PUSH_CONST, constIndex);
-        int varIndex = bytecode.getOrCreateVar(varDecl->name);
-        bytecode.emit(OpCode::STORE_VAR, varIndex);
-    }
+					for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+					{
+						auto *anon = dynamic_cast<AST::StructInstanceExpr *>(arrayLit->elements[i].get());
+						if (!anon || anon->structName != "__anon")
+							throw std::runtime_error("Array element must be an anonymous struct literal");
+
+						if (anon->fieldValues.size() != expectedInfo.fieldNames.size())
+							throw std::runtime_error("Field count mismatch for struct '" + expectedStruct + "'");
+
+						for (const auto &[fname, fval] : anon->fieldValues)
+						{
+							if (std::find(expectedInfo.fieldNames.begin(), expectedInfo.fieldNames.end(), fname) ==
+							    expectedInfo.fieldNames.end())
+							{
+								throw std::runtime_error("Unknown field '" + fname + "' in struct '" + expectedStruct + "'");
+							}
+						}
+					}
+				}
+
+				// For typed primitive arrays, validate element types
+				if (!bytecode.structEntries.contains(varDecl->type->name))
+				{
+					ValueType expectedElemType = mapTypeNameToValueType(varDecl->type->name);
+					for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+					{
+						bool known = false;
+						ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
+						if (known && elemType != expectedElemType)
+						{
+							throw std::runtime_error("Type mismatch in array initialization: element at index " +
+							                         std::to_string(i) + " is not of expected type '" +
+							                         varDecl->type->name + "'.");
+						}
+					}
+				}
+			}
+		}
+
+		generateExpression(varDecl->initializer.get());
+		int varIndex = bytecode.getOrCreateVar(varDecl->name);
+		bytecode.emit(OpCode::STORE_VAR, varIndex);
+	}
+	else
+	{
+		int constIndex = bytecode.addConstant(Value());
+		bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		int varIndex = bytecode.getOrCreateVar(varDecl->name);
+		bytecode.emit(OpCode::STORE_VAR, varIndex);
+	}
 }
 
 void CodeGenerator::generateExpressionStmt(const AST::ExpressionStmt *exprStmt)
@@ -1133,19 +1137,21 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
         if (arrayIt != arrayBaseTypes.end())
         {
             std::string expectedBaseType = arrayIt->second;
-            ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
-
-            if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
+            if (expectedBaseType != "any")
             {
-                for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+                ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
+                if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
                 {
-                    bool known = false;
-                    ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
-                    if (known && elemType != expectedElemType)
+                    for (size_t i = 0; i < arrayLit->elements.size(); ++i)
                     {
-                        throw std::runtime_error("Type mismatch in array assignment: element at index " +
-                                                 std::to_string(i) + " does not match expected base type '" +
-                                                 expectedBaseType + "'.");
+                        bool known = false;
+                        ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
+                        if (known && elemType != expectedElemType)
+                        {
+                            throw std::runtime_error("Type mismatch in array assignment: element at index " +
+                                                     std::to_string(i) + " does not match expected base type '" +
+                                                     expectedBaseType + "'.");
+                        }
                     }
                 }
             }
@@ -1184,14 +1190,16 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
             if (arrayIt != arrayBaseTypes.end())
             {
                 std::string expectedBaseType = arrayIt->second;
-                ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
-
-                bool known = false;
-                ValueType valType = inferExpressionType(assignExpr->value.get(), known);
-                if (known && valType != expectedElemType)
+                if (expectedBaseType != "any")
                 {
-                    throw std::runtime_error("Type mismatch: cannot assign value of mismatching type to array element of type '" +
-                                             expectedBaseType + "'.");
+                    ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
+                    bool      known = false;
+                    ValueType valType = inferExpressionType(assignExpr->value.get(), known);
+                    if (known && valType != expectedElemType)
+                    {
+                        throw std::runtime_error("Type mismatch: cannot assign value of mismatching type to array element of type '" +
+                                                 expectedBaseType + "'.");
+                    }
                 }
             }
         }
@@ -1219,6 +1227,7 @@ void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *ex
 	if (it != bytecode.structEntries.end())
 	{
 		int structIndex = it->second;
+
 		// Create instance with defaults from Bytecode::structs / constants
 		bytecode.emit(OpCode::NEW_STRUCT_INSTANCE_STATIC, structIndex);
 
@@ -1244,7 +1253,6 @@ void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *ex
 		}
 	}
 }
-
 void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
 {
 	generateExpression(expr->object.get());
@@ -1306,6 +1314,8 @@ void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
 	for (const auto &field : decl->fields)
 	{
 		info.fieldNames.push_back(field.name);
+		info.fieldArrayDims.push_back(field.type->arrayDimensions);
+		info.fieldTypeNames.push_back(field.type->name);
 	}
 
 	if (!bytecode.structEntries.contains(decl->name))

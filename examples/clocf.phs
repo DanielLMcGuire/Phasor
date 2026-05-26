@@ -148,7 +148,9 @@ fn main(args: string[]) -> int {
     }
 
     if (args.len() > 1 && (args[1] == "--json")) {
-        state.puts();
+        if (args.len() == 3)
+        state.to_json(args[2].to_int()).puts();
+        else state.to_json().puts();
         return 0;
     }
 

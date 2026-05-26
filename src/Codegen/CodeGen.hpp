@@ -39,10 +39,12 @@ struct Instruction
 /// @brief Struct metadata stored alongside bytecode (struct section)
 struct StructInfo
 {
-	std::string              name;            ///< Struct name
-	int                      firstConstIndex; ///< Index into constants for the first default value
-	int                      fieldCount;      ///< Number of fields in this struct
-	std::vector<std::string> fieldNames;      ///< Field names in declaration order
+    std::string              name;
+    int                      firstConstIndex;
+    int                      fieldCount;
+    std::vector<std::string> fieldNames;
+    std::vector<std::vector<int>> fieldArrayDims;
+    std::vector<std::string>      fieldTypeNames;
 };
 
 /// @brief Complete bytecode structure
