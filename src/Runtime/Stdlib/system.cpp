@@ -49,7 +49,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 #else
-	auto stub = [](const std::vector<Value> &, VM *) -> Value { return Value(); };
+	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
@@ -64,7 +64,7 @@ void StdLib::registerSysFunctions(VM *vm)
 				consentGrantedEnv = prompt_consent("Standard library", EConsentVolition::Wants, "use", "environment variables"); 
 				consentAskedEnv = true;
 			}
-			return Value();
+			return phsnull;
 		});
 		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm) {
 			if (consentGrantedCLI) {
@@ -75,7 +75,7 @@ void StdLib::registerSysFunctions(VM *vm)
 				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
 				consentAskedCLI = true;
 			}
-			return Value();
+			return phsnull;
 		});
 	}
 #endif
@@ -138,7 +138,7 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 	dupenv_ret result = dupenv(value, key.c_str());
 	if (result == dupenv_ret::NotFound) return false;
 	else if (result == dupenv_ret::Success) return value;
-	else return Value();
+	else return phsnull;
 }
 
 i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
@@ -151,7 +151,7 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
 	i64 index = args[0].asInt();
-	if (index < 0 || index >= argc) return Value();
+	if (index < 0 || index >= argc) return phsnull;
 	return argv[index];
 }
 
@@ -251,7 +251,7 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "reset");
 	vm->reset();
-	return Value();
+	return phsnull;
 }
 
 i64 StdLib::sys_pid(const std::vector<Value> &args, VM *)

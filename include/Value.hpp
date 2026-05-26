@@ -21,6 +21,8 @@
 // T (type and value), ? (debug repr with quoted strings and recursive expansion), and
 // q (quoted strings, default otherwise).
 
+#define phsnull Value()
+
 #pragma once
 #include <iostream>
 #include <string>
@@ -112,6 +114,14 @@ class Value
 	/// @brief Array constructor
 	Value(std::shared_ptr<ArrayInstance> a) : data(std::move(a))
 	{
+	}
+	/// @brief Struct constructor
+	Value(std::initializer_list<std::pair<std::string, Value>> fields)
+	{
+		auto s = std::make_shared<StructInstance>();
+		for (auto& [k, v] : fields)
+			s->fields[PhsString(k)] = std::move(v);
+		data = std::move(s);
 	}
 
 	static Value from_json(const std::string& json);
@@ -216,6 +226,66 @@ class Value
 	[[nodiscard]] std::shared_ptr<const ArrayInstance> asArray() const noexcept
 	{
 		return std::get<std::shared_ptr<ArrayInstance>>(data);
+	}
+
+	[[nodiscard]] bool contains(const std::string& key) const noexcept
+	{
+		return hasField(PhsString(key));
+	}
+
+	[[nodiscard]] Value get_or(const std::string& key, Value fallback) const noexcept
+	{
+		if (!isStruct()) return fallback;
+		auto it = asStruct()->fields.find(PhsString(key));
+		return it != asStruct()->fields.end() ? it->second : fallback;
+	}
+
+	Value operator[](const size_t index) const
+	{
+		if (!std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
+			throw std::runtime_error("Value is not an array");
+		auto arr = asArray();
+		if (index >= arr->size())
+			throw std::out_of_range("Array index out of range");
+		return (*arr)[index];
+	}
+
+	Value& operator[](const size_t index)
+	{
+		if (isNull())
+			data = std::make_shared<ArrayInstance>();
+
+		if (!std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
+			throw std::runtime_error("Value is not an array");
+
+		auto arr = asArray();
+		if (index >= arr->size())
+			arr->resize(index + 1);
+
+		return (*arr)[index];
+	}
+
+	Value& operator[](const std::string& key)
+	{
+		if (isNull()) {
+			data.emplace<std::shared_ptr<StructInstance>>(std::make_shared<StructInstance>());
+		}
+
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			throw std::runtime_error("Value is not a struct");
+
+		return std::get<std::shared_ptr<StructInstance>>(data)->fields[PhsString(key)];
+	}
+
+	Value operator[](const std::string& key) const
+	{
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			throw std::runtime_error("Value is not a struct");
+		const auto& fields = std::get<std::shared_ptr<StructInstance>>(data)->fields;
+		auto it = fields.find(key);
+		if (it == fields.end())
+			return {};
+		return it->second;
 	}
 
 	/// @brief Add two values
@@ -471,7 +541,7 @@ class Value
 	{
 		if (isString())
 		{
-			return "\"" + string() + "\"";
+			return jsonSerialize().str();
 		}
 		return toString();
 	}
@@ -520,7 +590,7 @@ class Value
 		return std::get<PhsString>(data).c_str();
 	}
 
-	[[nodiscard]] PhsString jsonSerialize() const
+	[[nodiscard]] PhsString jsonSerialize(int indent = -1, int depth = 0) const
 	{
 		if (isNull())
 		{
@@ -545,27 +615,13 @@ class Value
 			{
 				switch (c)
 				{
-				case '\"':
-					result += "\\\"";
-					break;
-				case '\\':
-					result += "\\\\";
-					break;
-				case '\b':
-					result += "\\b";
-					break;
-				case '\f':
-					result += "\\f";
-					break;
-				case '\n':
-					result += "\\n";
-					break;
-				case '\r':
-					result += "\\r";
-					break;
-				case '\t':
-					result += "\\t";
-					break;
+				case '\"': result += "\\\""; break;
+				case '\\': result += "\\\\"; break;
+				case '\b': result += "\\b"; break;
+				case '\f': result += "\\f"; break;
+				case '\n': result += "\\n"; break;
+				case '\r': result += "\\r"; break;
+				case '\t': result += "\\t"; break;
 				default:
 					if (static_cast<unsigned char>(c) < 0x20)
 					{
@@ -585,34 +641,58 @@ class Value
 		}
 		if (isArray())
 		{
-			std::string result = "[";
 			const auto &arr = *asArray();
+			if (arr.empty()) return "[]";
+
+			bool pretty = indent >= 0;
+			std::string result = pretty ? "[\n" : "[";
+			std::string item_indent = pretty ? std::string((depth + 1) * indent, ' ') : "";
+			std::string end_indent = pretty ? std::string(depth * indent, ' ') : "";
+
 			for (size_t i = 0; i < arr.size(); ++i)
 			{
-				result += arr[i].jsonSerialize();
+				if (pretty) result += item_indent;
+				
+				result += arr[i].jsonSerialize(indent, depth + 1).str();
+				
 				if (i < arr.size() - 1)
 				{
-					result += ", ";
+					result += pretty ? ",\n" : ", ";
+				}
+				else if (pretty)
+				{
+					result += "\n";
 				}
 			}
-			result += "]";
+			result += end_indent + "]";
 			return result;
 		}
 		if (isStruct())
 		{
-			std::string result = "{";
 			const auto &s = *asStruct();
+			if (s.fields.empty()) return "{}";
+
+			bool pretty = indent >= 0;
+			std::string result = pretty ? "{\n" : "{";
+			std::string item_indent = pretty ? std::string((depth + 1) * indent, ' ') : "";
+			std::string end_indent = pretty ? std::string(depth * indent, ' ') : "";
+
 			bool first = true;
 			for (const auto &[k, v] : s.fields)
 			{
 				if (!first)
 				{
-					result += ", ";
+					result += pretty ? ",\n" : ", ";
 				}
-				result += "\"" + k.str() + "\": " + v.toRepr();
+				
+				if (pretty) result += item_indent;
+				
+				result += "\"" + k.str() + "\":" + (pretty ? " " : " ");
+				result += v.jsonSerialize(indent, depth + 1).str();
 				first = false;
 			}
-			result += "}";
+			if (pretty) result += "\n";
+			result += end_indent + "}";
 			return result;
 		}
 		return "null";
@@ -998,7 +1078,7 @@ template <> struct std::formatter<Phasor::Value>
 			case ValueType::Float:
 				return fwd(v.asFloat());
 			case ValueType::String:
-				return fwd(debug_repr(escapeString(v.asString())));
+				return fwd(v.string());
 			case ValueType::Array:
 				return fwd(v.toString());
 			case ValueType::Struct:
