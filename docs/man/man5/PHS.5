@@ -4,7 +4,8 @@ phs \- Phasor source code format
 .SH DESCRIPTION
 The
 .B .phs
-file format contains Phasor programming language source code. Phasor is a scripting language with a C-like syntax, supporting optional static type annotations, functions, variables, control structures, and structured types.
+file format contains Phasor programming language source code.
+Phasor is a scripting language with a C-like syntax, supporting static type annotations, functions, variables, control structures, and structured types.
 .PP
 Source files are plain text using UTF-8 encoding and can be executed by
 .BR phasor (1)
@@ -14,7 +15,7 @@ or compiled to bytecode by
 Phasor features:
 .RS
 .IP \(bu 2
-Dynamic typing with optional static type annotations and compile-time type inference
+Mandatory type annotations for variables, structure fields, and parameters, with an \fBany\fR type to opt out of static tracking
 .IP \(bu 2
 A register-based compiler emitting type-specialized execution paths (e.g., integer versus floating-point instructions)
 .IP \(bu 2
@@ -48,11 +49,12 @@ Phasor supports single-line comments:
 .SS Variables and Type Annotations
 Variables are declared with the
 .B var
-keyword. They can be dynamically typed or explicitly constrained using optional type annotations:
+keyword. They require an explicit type constraint, though the \fBany\fR type can be used to bypass compile-time tracking:
 .PP
 .nf
 .RS
-var x = 42;                    // Dynamically typed i64
+var x: int = 42;               // Explicit integer constraint
+var dyn: any = "Dynamic";      // Opt-out of static type tracking
 var y: float = 3.14;           // Explicit float constraint
 var name: string = "Alice";    // Explicit string constraint
 var flag: bool = true;         // Explicit boolean constraint
@@ -60,13 +62,16 @@ var empty: int;                // Defaults to null (uninitialized)
 .RE
 .fi
 .PP
-A variable declaration must contain either an explicit type annotation, an initializer expression, or both. If neither is provided, a compilation error is raised.
+A variable declaration must contain a type annotation. The initializer expression is optional. If no initializer is provided, the variable defaults to \fBnull\fR.
 .SS Data Types
 Phasor supports the following basic types:
 .RS
 .IP \(bu 2
 .B null
 \- Represents a null or uninitialized value.
+.IP \(bu 2
+.B any
+\- Opts out of compile-time type tracking, allowing dynamic type assignment.
 .IP \(bu 2
 .B bool
 \- Boolean values
@@ -92,6 +97,9 @@ and
 .IP \(bu 2
 .B struct
 \- Custom user-defined structures.
+.IP \(bu 2
+.B void
+\- Used primarily for function return types indicating no return value.
 .RE
 .SS Strings
 Phasor supports two types of string literals:
@@ -106,7 +114,7 @@ Phasor supports two types of string literals:
 .SS Structs
 Custom structured types are declared using the
 .B struct
-keyword, containing named fields and optional types:
+keyword, requiring named fields and explicit type annotations:
 .PP
 .nf
 .RS
@@ -121,7 +129,15 @@ Structs are instantiated using named field values:
 .PP
 .nf
 .RS
-var p = Point{ x: 10, y: 20 };
+var p: Point = Point{ x: 10, y: 20 };
+.RE
+.fi
+.PP
+Anonymous struct literals are also supported using curly braces without a type name:
+.PP
+.nf
+.RS
+var anon: any = { x: 10, y: 20 };
 .RE
 .fi
 .PP
@@ -130,15 +146,15 @@ Fields can be accessed or mutated via dot notation:
 .nf
 .RS
 p.x = 42;
-var current_x = p.x;
+var current_x: int = p.x;
 .RE
 .fi
 .SS Arrays
-Array literals are constructed using square brackets:
+Array literals are constructed using square brackets. Because type annotations are mandatory, arrays must be explicitly typed:
 .PP
 .nf
 .RS
-var list = [1, 2, 3];
+var list: int[] = [1, 2, 3];
 .RE
 .fi
 .PP
@@ -152,14 +168,14 @@ Elements are accessed and assigned using standard bracket syntax:
 .PP
 .nf
 .RS
-var item = list[0];
+var item: int = list[0];
 list[1] = 99;
 .RE
 .fi
 .SS Functions and UFCS Method Calls
 Functions are declared with the
 .B fn
-keyword. Parameters and return values may optionally specify types:
+keyword. Parameters must explicitly specify types, while the return type is optional:
 .PP
 .nf
 .RS
@@ -182,6 +198,16 @@ is supported. Calling a function on an object using dot notation (e.g.
 ) is automatically rewritten by the parser into a global function call with the object passed as the first parameter (e.g.
 .B method(obj, arg)
 ).
+.SS Print Statements
+Expressions can be evaluated and printed to standard output using the
+.B print
+keyword:
+.PP
+.nf
+.RS
+print "Hello, World!";
+.RE
+.fi
 .SS Includes
 Phasor supports source organization via dumb C-style file inclusion:
 .RS
@@ -216,7 +242,7 @@ while (condition) {
 .PP
 .nf
 .RS
-for (var i = 0; i < 10; i++) {
+for (var i: int = 0; i < 10; i++) {
     // code
 }
 .RE
@@ -311,8 +337,7 @@ The Phasor compiler translates the parsed Abstract Syntax Tree (AST) into byteco
 .BR ISUB_R )
 are selected. Otherwise, the compiler falls back to double-precision floating-point instructions (e.g.
 .BR FLADD_R ,
-.BR FLSUB_R ).
-Similarly, postfix operators utilize specialized integer or float increments.
+.BR FLSUB_R ). Similarly, postfix operators utilize specialized integer or float increments.
 .IP 3.
 .B Array Type Checking
 \- Compile-time type validations are executed on array literals and array element assignments to guarantee conformity to their statically declared base types.
