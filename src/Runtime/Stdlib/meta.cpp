@@ -1,6 +1,7 @@
 #include "StdLib.hpp"
 #include <version.h>
 #include <phsint.hpp>
+#include <../ISA/map.hpp>
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -25,6 +26,8 @@ void StdLib::registerMetaFunctions(VM *vm)
 	vm->registerNativeFunction("phs_alloc_info", StdLib::meta_get_alloc_info);
 	vm->registerNativeFunction("get_elements", StdLib::meta_get_struct_elements);
 	vm->registerNativeFunction("get_elements_values", StdLib::meta_get_struct_elements_values);
+	vm->registerNativeFunction("get_self", StdLib::meta_get_self);
+	vm->registerNativeFunction("get_registers", StdLib::meta_get_registers);
 }
 
 #ifndef SANDBOXED
@@ -34,10 +37,12 @@ i64 StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
 	if (args.size() > 4)
 		throw std::runtime_error("Function 'phs_op' expects at most 4 arguments, but got " +
 		                         std::to_string(args.size()));
-	if (!args[0].isInt())
-		throw std::runtime_error("Function 'phs_op' expects an OpCode (int) as the first argument");
+	if (!args[0].isInt() && !args[0].isString())
+		throw std::runtime_error("Function 'phs_op' expects an OpCode (int/string) as the first argument");
 
-	auto ret = vm->operation(static_cast<Phasor::OpCode>(args[0].asInt()),
+	Phasor::OpCode opcode = args[0].isString() ? stringToOpCode(args[0].string()) : static_cast<OpCode>(args[0].asInt());
+
+	auto ret = vm->operation(opcode,
 	                         args.size() > 1 ? static_cast<int>(args[1].asInt()) : 0,
 	                         args.size() > 2 ? static_cast<int>(args[2].asInt()) : 0,
 	                         args.size() > 3 ? static_cast<int>(args[3].asInt()) : 0);
@@ -47,9 +52,9 @@ i64 StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
 Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "phs_stack_run");
-	if (!args[0].isInt())
-		throw std::runtime_error("Function 'phs_stack_run' expects an OpCode (int) as the first argument");
-	auto opcode = static_cast<Phasor::OpCode>(args[0].asInt());
+	if (!args[0].isInt() && !args[0].isString())
+		throw std::runtime_error("Function 'phs_stack_run' expects an OpCode (int/string) as the first argument");
+	Phasor::OpCode opcode = args[0].isString() ? stringToOpCode(args[0].string()) : static_cast<Phasor::OpCode>(args[0].asInt());
 
 	for (size_t i = args.size(); i-- > 1;)
 		vm->push(args[i]);
@@ -156,6 +161,87 @@ Value StdLib::meta_get_struct_elements_values(const std::vector<Value> &args, VM
 	}
 
 	return Value::createArray(std::move(values));
+}
+
+Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
+{
+    checkArgCount(args, 0, "get_self");
+    auto bc = vm->getBytecode();
+
+    auto bytecode_struct = Value::createStruct("Bytecode");
+
+    auto inst_arr = Value::createArray();
+    auto& inst_vec = *inst_arr.asArray();
+    for (const auto& inst : bc.instructions) {
+        auto inst_val = Value::createStruct("Instruction");
+        inst_val["op"] = opCodeToString(inst.op);
+        inst_val["operand1"] = static_cast<i64>(inst.operand1);
+        inst_val["operand2"] = static_cast<i64>(inst.operand2);
+        inst_val["operand3"] = static_cast<i64>(inst.operand3);
+        inst_vec.push_back(inst_val);
+    }
+    bytecode_struct["instructions"] = inst_arr;
+
+    auto const_arr = Value::createArray();
+    auto& const_vec = *const_arr.asArray();
+    for (const auto& val : bc.constants) {
+        const_vec.push_back(val);
+    }
+    bytecode_struct["constants"] = const_arr;
+
+    auto vars_struct = Value::createStruct("Variables");
+    for (const auto& [name, idx] : bc.variables) {
+		auto var = vm->getVariable(idx);
+		vars_struct[name] = var;
+    }
+    bytecode_struct["variables"] = vars_struct;
+
+    auto funcs_struct = Value::createStruct("Functions");
+    for (const auto& [name, entry] : bc.functionEntries) {
+        auto func_info = Value::createStruct("FunctionInfo");
+        func_info["entry"] = static_cast<i64>(entry);
+        
+        i64 param_count = 0;
+        auto it = bc.functionParamCounts.find(name);
+        if (it != bc.functionParamCounts.end()) {
+            param_count = it->second;
+        }
+        func_info["paramCount"] = param_count;
+        funcs_struct[name] = func_info;
+    }
+    bytecode_struct["functions"] = funcs_struct;
+
+    auto structs_arr = Value::createArray();
+    auto& structs_vec = *structs_arr.asArray();
+    for (const auto& sinfo : bc.structs) {
+        auto s_val = Value::createStruct("StructInfo");
+        s_val["name"] = sinfo.name;
+        s_val["firstConstIndex"] = static_cast<i64>(sinfo.firstConstIndex);
+        s_val["fieldCount"] = static_cast<i64>(sinfo.fieldCount);
+        
+        auto fields_arr = Value::createArray();
+        auto& fields_vec = *fields_arr.asArray();
+        for (const auto& fname : sinfo.fieldNames) {
+            fields_vec.push_back(Value(fname));
+        }
+        s_val["fieldNames"] = fields_arr;
+        structs_vec.push_back(s_val);
+    }
+    bytecode_struct["structs"] = structs_arr;
+
+    return bytecode_struct;
+}
+
+Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm) 
+{
+	checkArgCount(args, 0, "get_registers");
+	size_t registers = vm->getRegisterCount();
+	auto reg_array = Value::createArray();
+	for (const auto& i : std::views::iota(0u, registers))
+	{
+		reg_array.asArray()->push_back(vm->getRegister(i));
+	}
+	return reg_array;
 }
 
 } // namespace Phasor
