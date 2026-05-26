@@ -96,7 +96,7 @@ Value StdLib::meta_get_alloc_info(const std::vector<Value> &args, VM *)
 
 	struct rlimit rl{};
 	getrlimit(RLIMIT_STACK, &rl);
-	result["stack_limit"] = static_cast<i64>(rl.rlim_cur)
+	result["stack_limit"] = static_cast<i64>(rl.rlim_cur);
 #endif
 
 	result["heap_used_kb"] = result["heap_used"].asInt() / 1024;
