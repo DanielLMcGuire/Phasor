@@ -577,7 +577,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 else if (type == Phasor::ValueType::Null)
                     str = "(null)";
                 else
-                    str = val.toString();
+                    str = val.jsonSerialize().str();
 
                 std::size_t len = (s.prec >= 0)
                     ? std::min((std::size_t)s.prec, str.size())
