@@ -295,7 +295,7 @@ This repo contains:
 - Required:
   - [Ninja](https://github.com/ninja-build/ninja/releases)
   - [CMake 3.21+](https://cmake.org/download/)
-  - GAS Assembler (Unix-based System V compliant OS / Darwin (OSX/macOS) 64-bit only)
+  - GAS/Clang Assembler (Unix-based System V compliant OS / Darwin (OSX/macOS) 64-bit only)
   - MASM Assembler (Windows 64-bit only)
   - CC (C 23 Compliant) compiler and CXX (C++ 23 Compliant) compiler supporting GCC/Clang extensions or Windows specific extensions
     - [MSVC VS22 17.2 or later](https://visualstudio.microsoft.com/downloads/?q=build+tools)
