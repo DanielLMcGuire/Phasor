@@ -343,13 +343,13 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 	{
 		if (isAny)
 		{
-			// 'any' opts out of all type tracking — leave inferredTypes unpopulated
 			if (isArrayType)
 				arrayBaseTypes[varDecl->name] = "any";
 		}
 		else if (isArrayType)
 		{
 			arrayBaseTypes[varDecl->name] = varDecl->type->name;
+			arrayDimensions[varDecl->name] = varDecl->type->arrayDimensions; 
 			declaredType = ValueType::Array;
 			inferredTypes[varDecl->name] = declaredType;
 		}
@@ -381,6 +381,16 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 			if (isArrayType && arrayLit)
 			{
+				if (!varDecl->type->arrayDimensions.empty() && varDecl->type->arrayDimensions[0] != -1)
+				{
+					if (arrayLit->elements.size() != varDecl->type->arrayDimensions[0])
+					{
+						throw std::runtime_error("Array bounds error: variable '" + varDecl->name + 
+                                                 "' expects " + std::to_string(varDecl->type->arrayDimensions[0]) + 
+                                                 " elements, but got " + std::to_string(arrayLit->elements.size()));
+					}
+				}
+
 				// For typed struct arrays, validate element field names/count
 				if (bytecode.structEntries.contains(varDecl->type->name))
 				{
@@ -644,7 +654,24 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 				ValueType argType = inferExpressionType(callExpr->arguments[i].get(), known);
 				if (!known) continue;
 
-				if (argType == ValueType::Array) continue;
+				if (argType == ValueType::Array) 
+				{
+					auto dimsIt = bytecode.functionParamArrayDims.find(callExpr->callee);
+					if (dimsIt != bytecode.functionParamArrayDims.end() && i < dimsIt->second.size()) {
+						const auto& expectedDims = dimsIt->second[i];
+						if (!expectedDims.empty() && expectedDims[0] != -1) {
+							if (const auto* arrayLit = dynamic_cast<const AST::ArrayLiteralExpr*>(callExpr->arguments[i].get())) {
+								if (arrayLit->elements.size() != expectedDims[0]) {
+									throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+									          + "' has wrong size: expected " + std::to_string(expectedDims[0])
+									          + " elements, got " + std::to_string(arrayLit->elements.size())
+									          + " (line " + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
+								}
+							}
+						}
+					}
+					continue;
+				}
 
 				ValueType expectedType = mapTypeNameToValueType(expectedTypeName);
 				if (argType != expectedType)
@@ -1129,29 +1156,32 @@ void CodeGenerator::generateUnsafeBlockStmt(const AST::UnsafeBlockStmt *unsafeSt
 
 void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 {
-	// Jump over function body
 	int jumpOverIndex = static_cast<int>(bytecode.instructions.size());
 	bytecode.emit(OpCode::JUMP, 0);
 
-	// Record entry point
 	int entryPoint = static_cast<int>(bytecode.instructions.size());
 	bytecode.functionEntries[funcDecl->name] = entryPoint;
 
-	// Record parameter count
 	bytecode.functionParamCounts[funcDecl->name] = static_cast<int>(funcDecl->params.size());
 
 	std::vector<std::string> paramTypeNames;
+	std::vector<std::vector<int>> paramArrayDims; 
 	paramTypeNames.reserve(funcDecl->params.size());
+	paramArrayDims.reserve(funcDecl->params.size()); 
+
 	for (const auto &p : funcDecl->params)
+	{
 		paramTypeNames.push_back(p.type ? p.type->name : "any");
+		paramArrayDims.push_back(p.type ? p.type->arrayDimensions : std::vector<int>{}); 
+	}
 	bytecode.functionParamTypeNames[funcDecl->name] = std::move(paramTypeNames);
+	bytecode.functionParamArrayDims[funcDecl->name] = std::move(paramArrayDims); 
 
 	std::string prevReturnType = currentFunctionReturnType;
 	currentFunctionReturnType = (funcDecl->returnType ? funcDecl->returnType->name : "any");
 	bytecode.functionReturnTypeNames[funcDecl->name] = currentFunctionReturnType;
 	bytecode.emit(OpCode::POP);
 
-	// Pop parameters in reverse order and store in variables
 	for (auto it = funcDecl->params.rbegin(); it != funcDecl->params.rend(); ++it)
 	{
 		int varIndex = bytecode.getOrCreateVar(it->name);
@@ -1163,6 +1193,7 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 			if (isArrayParam)
 			{
 				arrayBaseTypes[it->name] = it->type->name;
+				arrayDimensions[it->name] = it->type->arrayDimensions; 
 				inferredTypes[it->name]  = ValueType::Array;
 			}
 			else
@@ -1214,8 +1245,6 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
     if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
     {
         // Variable assignment: a = value
-        
-        // Validation: If assigning a raw array literal to a statically typed array
         auto arrayIt = arrayBaseTypes.find(identExpr->name);
         if (arrayIt != arrayBaseTypes.end())
         {
@@ -1225,6 +1254,14 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
                 ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
                 if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
                 {
+                    auto dimsIt = arrayDimensions.find(identExpr->name);
+                    if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1) {
+                        if (arrayLit->elements.size() != dimsIt->second[0]) {
+                            throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) + 
+                                                     " elements to array '" + identExpr->name + "' of size " + std::to_string(dimsIt->second[0]));
+                        }
+                    }
+
                     for (size_t i = 0; i < arrayLit->elements.size(); ++i)
                     {
                         bool known = false;
@@ -1265,10 +1302,21 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
     else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(assignExpr->target.get()))
     {
         // Element-wise assignment: a[i] = value
-        
-        // Validation: If indexing into a statically typed array
         if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
         {
+            auto dimsIt = arrayDimensions.find(identExpr->name);
+            if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1) {
+                Value idxVal;
+                if (isLiteralExpression(arrayAccess->index.get(), idxVal) && idxVal.isInt()) {
+                    i64 idx = idxVal.asInt();
+                    if (idx < 0 || idx >= dimsIt->second[0]) {
+                        throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) + 
+                                                 " is out of bounds for array '" + identExpr->name + 
+                                                 "' of size " + std::to_string(dimsIt->second[0]));
+                    }
+                }
+            }
+
             auto arrayIt = arrayBaseTypes.find(identExpr->name);
             if (arrayIt != arrayBaseTypes.end())
             {
@@ -1479,6 +1527,21 @@ void CodeGenerator::generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayL
 
 void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded)
 {
+    if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get())) {
+        auto dimsIt = arrayDimensions.find(identExpr->name);
+        if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1) {
+            Value idxVal;
+            if (isLiteralExpression(arrayAccess->index.get(), idxVal) && idxVal.isInt()) {
+                i64 idx = idxVal.asInt();
+                if (idx < 0 || idx >= dimsIt->second[0]) {
+                    throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) + 
+                                             " is out of bounds for array '" + identExpr->name + 
+                                             "' of size " + std::to_string(dimsIt->second[0]));
+                }
+            }
+        }
+    }
+
     generateExpression(arrayAccess->array.get());   // array
     generateExpression(arrayAccess->index.get());   // index
     int countIdx = bytecode.addConstant(Value(static_cast<i64>(2)));
