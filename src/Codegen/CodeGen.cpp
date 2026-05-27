@@ -626,11 +626,36 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 			int got = static_cast<int>(callExpr->arguments.size());
 			if (expected != got)
 			{
-				std::cerr << "ERROR: calling function '" << callExpr->callee << "' with " << got
-				          << " arguments but it expects " << expected << "\n";
-				std::exit(1);
+				throw std::runtime_error("ERROR: calling function '" + callExpr->callee + "' with " + std::to_string(got)
+				          + " arguments but it expects " + std::to_string(expected) + "\n");
 			}
 		}
+
+		auto typeIt = bytecode.functionParamTypeNames.find(callExpr->callee);
+		if (typeIt != bytecode.functionParamTypeNames.end())
+		{
+			const auto &paramTypes = typeIt->second;
+			for (size_t i = 0; i < callExpr->arguments.size() && i < paramTypes.size(); ++i)
+			{
+				const std::string &expectedTypeName = paramTypes[i];
+				if (expectedTypeName == "any") continue;
+
+				bool      known   = false;
+				ValueType argType = inferExpressionType(callExpr->arguments[i].get(), known);
+				if (!known) continue;
+
+				if (argType == ValueType::Array) continue;
+
+				ValueType expectedType = mapTypeNameToValueType(expectedTypeName);
+				if (argType != expectedType)
+				{
+					throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+					          + "' has wrong type: expected '" + expectedTypeName
+					          + "' (line " + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
+				}
+			}
+		}
+
 		bytecode.emit(OpCode::CALL, nameIndex);
 	}
 	else
@@ -1059,10 +1084,39 @@ void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
 {
 	if (returnStmt->value)
 	{
+		if (!currentFunctionReturnType.empty() &&
+		    currentFunctionReturnType != "any"  &&
+		    currentFunctionReturnType != "void")
+		{
+			bool      known   = false;
+			ValueType retType = inferExpressionType(returnStmt->value.get(), known);
+			if (known)
+			{
+				if (retType != ValueType::Array)
+				{
+					ValueType expectedType = mapTypeNameToValueType(currentFunctionReturnType);
+					if (retType != expectedType)
+					{
+						throw std::runtime_error("ERROR: return type mismatch: function declared to return '"
+						          + currentFunctionReturnType + "' but returning a different type"
+						          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
+					}
+				}
+			}
+		}
+
 		generateExpression(returnStmt->value.get());
 	}
 	else
 	{
+		if (!currentFunctionReturnType.empty() &&
+		    currentFunctionReturnType != "any"  &&
+		    currentFunctionReturnType != "void")
+		{
+			throw std::runtime_error("ERROR: bare 'return' in function declared to return '"
+			          + currentFunctionReturnType + "'"
+			          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
+		}
 		bytecode.emit(OpCode::NULL_VAL);
 	}
 	bytecode.emit(OpCode::RETURN);
@@ -1086,7 +1140,15 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	// Record parameter count
 	bytecode.functionParamCounts[funcDecl->name] = static_cast<int>(funcDecl->params.size());
 
-	// Pop argument count (it's on the stack when function is called)
+	std::vector<std::string> paramTypeNames;
+	paramTypeNames.reserve(funcDecl->params.size());
+	for (const auto &p : funcDecl->params)
+		paramTypeNames.push_back(p.type ? p.type->name : "any");
+	bytecode.functionParamTypeNames[funcDecl->name] = std::move(paramTypeNames);
+
+	std::string prevReturnType = currentFunctionReturnType;
+	currentFunctionReturnType = (funcDecl->returnType ? funcDecl->returnType->name : "any");
+	bytecode.functionReturnTypeNames[funcDecl->name] = currentFunctionReturnType;
 	bytecode.emit(OpCode::POP);
 
 	// Pop parameters in reverse order and store in variables
@@ -1094,18 +1156,39 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	{
 		int varIndex = bytecode.getOrCreateVar(it->name);
 		bytecode.emit(OpCode::STORE_VAR, varIndex);
+
+		if (it->type && it->type->name != "any")
+		{
+			bool isArrayParam = !it->type->arrayDimensions.empty();
+			if (isArrayParam)
+			{
+				arrayBaseTypes[it->name] = it->type->name;
+				inferredTypes[it->name]  = ValueType::Array;
+			}
+			else
+			{
+				inferredTypes[it->name] = mapTypeNameToValueType(it->type->name);
+			}
+		}
 	}
 
-	// Generate body
 	generateBlockStmt(funcDecl->body.get());
 
 	if (bytecode.instructions.empty() || bytecode.instructions.back().op != OpCode::RETURN)
 	{
+		if (!currentFunctionReturnType.empty() &&
+		    currentFunctionReturnType != "any"  &&
+		    currentFunctionReturnType != "void")
+		{
+			throw std::runtime_error("ERROR: function '" + funcDecl->name + "' is declared to return '"
+			          + currentFunctionReturnType + "' but has no return statement.\n");
+		}
 		bytecode.emit(OpCode::NULL_VAL);
 		bytecode.emit(OpCode::RETURN);
 	}
 
-	// Patch jump over
+	currentFunctionReturnType = prevReturnType;
+
 	bytecode.instructions[jumpOverIndex].operand1 = static_cast<int>(bytecode.instructions.size());
 }
 
@@ -1412,13 +1495,14 @@ ValueType CodeGenerator::mapTypeNameToValueType(const std::string &typeName)
     if (typeName == "float" || typeName == "f64") return ValueType::Float;
     if (typeName == "string")                     return ValueType::String;
     if (typeName == "bool")                       return ValueType::Bool;
-	if (typeName == "array")                      return ValueType::Array;
-	if (typeName == "struct") [[unlikely]]        return ValueType::Struct;
-	if (bytecode.structEntries.find(typeName) != bytecode.structEntries.end())
+    // NOTE: "array" is no longer a valid standalone type name.
+    // Arrays are declared via the T[] suffix (e.g. int[], string[], any[]).
+    if (typeName == "struct") [[unlikely]]        return ValueType::Struct;
+    if (bytecode.structEntries.find(typeName) != bytecode.structEntries.end())
     { [[likely]] return ValueType::Struct; }
-	if (typeName == "void")                       return ValueType::Null;   
+    if (typeName == "void")                       return ValueType::Null;
 
-    return ValueType::Float; 
+    return ValueType::Float;
 }
 
 } // namespace Phasor

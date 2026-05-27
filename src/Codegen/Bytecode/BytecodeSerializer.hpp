@@ -47,6 +47,9 @@ class BytecodeSerializer
 	void writeInstructions(const std::vector<Instruction> &instructions); ///< Helper method to write Instruction Table
 	void writeFunctionEntries(
 	    const std::unordered_map<std::string, int> &functionEntries); ///< Helper method to write Function Table
+	void writeFunctionTypes(
+	    const std::unordered_map<std::string, std::vector<std::string>> &paramTypeNames,
+	    const std::unordered_map<std::string, std::string>              &returnTypeNames); ///< Helper method to write Function Type Table
 	void writeStructSection(const std::vector<StructInfo> &structs);  ///< Helper method to write Struct Section
 
 	/// @brief Calculate CRC32 checksum

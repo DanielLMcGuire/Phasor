@@ -506,6 +506,19 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
     for (const auto &[name, address] : bytecode.functionEntries)
         ss << name << " " << address << "\n";
 
+    // Function Type Signatures Section
+    // Format per line: <name> <returnType> <paramCount> [<paramType>...]
+    ss << ".FUNCTYPES " << bytecode.functionParamTypeNames.size() << "\n";
+    for (const auto &[name, paramTypes] : bytecode.functionParamTypeNames)
+    {
+        auto retIt = bytecode.functionReturnTypeNames.find(name);
+        const std::string &retType = (retIt != bytecode.functionReturnTypeNames.end()) ? retIt->second : "any";
+        ss << name << " " << retType << " " << paramTypes.size();
+        for (const auto &typeName : paramTypes)
+            ss << " " << typeName;
+        ss << "\n";
+    }
+
     // Structs Section
     ss << ".STRUCTS " << bytecode.structs.size() << "\n";
     for (const auto &info : bytecode.structs)
@@ -647,6 +660,30 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
                 int         address;
                 ss >> name >> address;
                 bytecode.functionEntries[name] = address;
+            }
+        }
+        else if (section == ".FUNCTYPES")
+        {
+            int count;
+            ss >> count;
+            for (int i = 0; i < count; ++i)
+            {
+                std::string name, retType;
+                int         paramCount;
+                ss >> name >> retType >> paramCount;
+
+                std::vector<std::string> paramTypes;
+                paramTypes.reserve(static_cast<size_t>(paramCount));
+                for (int p = 0; p < paramCount; ++p)
+                {
+                    std::string typeName;
+                    ss >> typeName;
+                    paramTypes.push_back(std::move(typeName));
+                }
+
+                bytecode.functionParamTypeNames[name]  = std::move(paramTypes);
+                bytecode.functionReturnTypeNames[name]  = std::move(retType);
+                bytecode.functionParamCounts[name]      = paramCount;
             }
         }
         else if (section == ".STRUCTS")

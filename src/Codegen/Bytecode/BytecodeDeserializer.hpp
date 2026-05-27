@@ -45,6 +45,7 @@ class BytecodeDeserializer
 	void readVariableMapping(Bytecode &bytecode); ///< Helper method to read Variable Table
 	void readInstructions(Bytecode &bytecode);    ///< Helper method to read Instructions Table
 	void readFunctionEntries(Bytecode &bytecode); ///< Helper method to read Function Entries
+	void readFunctionTypes(Bytecode &bytecode);   ///< Helper method to read Function Type Table
 	void readStructSection(Bytecode &bytecode);   ///< Helper method to read Struct Section
 
 	/// @brief Calculate CRC32 checksum

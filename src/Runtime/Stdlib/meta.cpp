@@ -179,7 +179,8 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     // struct FunctionData {
     //     name: string,
     //     entry: i64,
-    //     paramCount: i64
+    //     paramTypes: string[],
+    //     returnType: string
     // }
     //
     // struct ConstantData {
@@ -248,6 +249,8 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     auto& func_vec = *funcs_arr.asArray();
     for (const auto& [name, entry] : bc.functionEntries) {
         auto func_info = Value::createStruct("FunctionData");
+        auto type_arr = Value::createArray();
+        auto& type_vec = *type_arr.asArray();
         func_info["name"] = name;
         func_info["entry"] = static_cast<i64>(entry);
         
@@ -256,7 +259,11 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
         if (it != bc.functionParamCounts.end()) {
             param_count = it->second;
         }
-        func_info["paramCount"] = param_count;
+        for (int i = 0; i < param_count; ++i) {
+            type_vec.push_back(bc.functionParamTypeNames[name][i]);
+        }
+        func_info["paramTypes"] = type_arr;
+        func_info["returnType"] = bc.functionReturnTypeNames[name];
         
         func_vec.push_back(func_info);
     }

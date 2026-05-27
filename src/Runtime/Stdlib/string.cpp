@@ -198,7 +198,7 @@ PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "starts_with");
-	std::string s = args[0].string();
+	std::string s = args[0].asString();
 	std::string prefix = args[1].string();
 	if (s.length() >= prefix.length())
 	{

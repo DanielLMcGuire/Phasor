@@ -220,6 +220,8 @@ struct Bytecode
 	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
 	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
 	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
+	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
+	std::unordered_map<std::string, std::string> functionReturnTypeNames; ///< Function name -> return type name
 	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)

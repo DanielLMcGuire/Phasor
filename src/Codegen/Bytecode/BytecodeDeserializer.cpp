@@ -11,6 +11,7 @@ const Phasor::u8 SECTION_VARIABLES    = 0x02;
 const Phasor::u8 SECTION_INSTRUCTIONS = 0x03;
 const Phasor::u8 SECTION_FUNCTIONS    = 0x04;
 const Phasor::u8 SECTION_STRUCTS      = 0x05;
+const Phasor::u8 SECTION_FUNC_TYPES   = 0x06;
 
 static Phasor::u32 crc32_table[256];
 static bool        crc32_table_initialized = false;
@@ -245,6 +246,36 @@ void BytecodeDeserializer::readFunctionEntries(Bytecode &bytecode)
 }
 
 /**
+ * @brief Read function type signatures section (0x06).
+ *
+ * Reconstructs bytecode.functionParamTypeNames, bytecode.functionReturnTypeNames,
+ * and bytecode.functionParamCounts.
+ */
+void BytecodeDeserializer::readFunctionTypes(Bytecode &bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_FUNC_TYPES)
+		throw std::runtime_error("Expected function type signatures section");
+
+	u32 count = readUInt32();
+	for (u32 i = 0; i < count; i++)
+	{
+		std::string name           = readString();
+		std::string returnTypeName = readString();
+		u32         paramCount     = readUInt32();
+
+		std::vector<std::string> paramTypes;
+		paramTypes.reserve(paramCount);
+		for (u32 p = 0; p < paramCount; p++)
+			paramTypes.push_back(readString());
+
+		bytecode.functionParamTypeNames[name]  = std::move(paramTypes);
+		bytecode.functionReturnTypeNames[name]  = std::move(returnTypeName);
+		bytecode.functionParamCounts[name]      = static_cast<int>(paramCount);
+	}
+}
+
+/**
  * @brief Read struct type definitions section (0x05).
  *
  * Reconstructs bytecode.structs and bytecode.structEntries.
@@ -299,6 +330,7 @@ Bytecode BytecodeDeserializer::deserialize(const std::vector<u8> &buffer)
 	readConstantPool(bytecode);
 	readVariableMapping(bytecode);
 	readFunctionEntries(bytecode);
+	readFunctionTypes(bytecode);
 	readStructSection(bytecode);
 	readInstructions(bytecode);
 

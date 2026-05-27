@@ -12,6 +12,7 @@ const Phasor::u8 SECTION_VARIABLES    = 0x02;
 const Phasor::u8 SECTION_INSTRUCTIONS = 0x03;
 const Phasor::u8 SECTION_FUNCTIONS    = 0x04;
 const Phasor::u8 SECTION_STRUCTS      = 0x05;
+const Phasor::u8 SECTION_FUNC_TYPES   = 0x06; ///< param+return type table
 
 static Phasor::u32 crc32_table[256];
 static bool        crc32_table_initialized = false;
@@ -223,6 +224,39 @@ void BytecodeSerializer::writeFunctionEntries(const std::unordered_map<std::stri
 }
 
 /**
+ * @brief Write function type signatures section (0x06).
+ *
+ * Binary layout:
+ *   u8     section_id = 0x06
+ *   u32    functionCount
+ *   for each function:
+ *     string  name
+ *     string  returnTypeName   ("any" when unspecified)
+ *     u32     paramCount
+ *     string  paramTypeName[0..paramCount-1]
+ */
+void BytecodeSerializer::writeFunctionTypes(
+    const std::unordered_map<std::string, std::vector<std::string>> &paramTypeNames,
+    const std::unordered_map<std::string, std::string>              &returnTypeNames)
+{
+	writeUInt8(SECTION_FUNC_TYPES);
+
+	// Only emit entries that have param type info; functions without entries are unknown-typed.
+	writeUInt32(static_cast<u32>(paramTypeNames.size()));
+	for (const auto &[name, paramTypes] : paramTypeNames)
+	{
+		writeString(name);
+
+		auto retIt = returnTypeNames.find(name);
+		writeString(retIt != returnTypeNames.end() ? retIt->second : "any");
+
+		writeUInt32(static_cast<u32>(paramTypes.size()));
+		for (const auto &typeName : paramTypes)
+			writeString(typeName);
+	}
+}
+
+/**
  * @brief Write struct type definitions section (0x05).
  *
  * Binary layout:
@@ -264,6 +298,7 @@ std::vector<u8> BytecodeSerializer::serialize(const Bytecode &bytecode)
 	writeConstantPool(bytecode.constants);
 	writeVariableMapping(bytecode.variables, bytecode.nextVarIndex);
 	writeFunctionEntries(bytecode.functionEntries);
+	writeFunctionTypes(bytecode.functionParamTypeNames, bytecode.functionReturnTypeNames);
 	writeStructSection(bytecode.structs);
 	writeInstructions(bytecode.instructions);
 
