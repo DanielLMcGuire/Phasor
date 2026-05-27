@@ -539,12 +539,9 @@ void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
 		bytecode.emit(OpCode::NOT);
 		break;
 	case AST::UnaryOp::AddressOf:
-		// Not implemented
-		//	bytecode.emit(OpCode::ADROF);
-		[[fallthrough]]; // for now
+		throw std::runtime_error("Address of not supported");
 	case AST::UnaryOp::Dereference:
-		//	bytecode.emit(OpCode::DREF);
-		break;
+		throw std::runtime_error("Dereference not supported");
 	}
 }
 
