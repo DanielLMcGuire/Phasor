@@ -17,3 +17,5 @@ SEC_CONSTANTS:    int = 0x01
 SEC_VARIABLES:    int = 0x02
 SEC_INSTRUCTIONS: int = 0x03
 SEC_FUNCTIONS:    int = 0x04
+SEC_STRUCTS:      int = 0x05
+SEC_FUNC_TYPES:   int = 0x06

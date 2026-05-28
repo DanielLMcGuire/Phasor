@@ -1,3 +1,4 @@
+# Serializer.py
 """
 phasor.Serializer
 =================
@@ -11,11 +12,11 @@ import zlib
 from pathlib import Path
 from typing import Dict, List
 
-from .Bytecode import Bytecode
+from .Bytecode import Bytecode, StructInfo
 from .Instruction import Instruction
 from .Metadata import (
     HEADER_SIZE, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
-    SEC_INSTRUCTIONS, SEC_VARIABLES, VERSION,
+    SEC_FUNC_TYPES, SEC_INSTRUCTIONS, SEC_STRUCTS, SEC_VARIABLES, VERSION,
 )
 from .Value import Value, ValueType
 
@@ -27,12 +28,12 @@ class BytecodeSerializer:
         """Initialise the serializer with an empty write buffer."""
         self._buf: bytearray = bytearray()
 
-
     def serialize(self, bytecode: Bytecode) -> bytes:
         """Serialise *bytecode* to the ``.phsb`` wire format.
 
         Writes a 16-byte header (magic, version, flags, CRC-32 checksum) followed
-        by the constants, variables, functions, and instructions sections in order.
+        by the constants, variables, functions, function-types, structs, and
+        instructions sections in order.
 
         Args:
             bytecode: The :class:`~phasor.Bytecode.Bytecode` object to serialise.
@@ -48,6 +49,8 @@ class BytecodeSerializer:
         self._write_constant_pool(bytecode.constants)
         self._write_variable_mapping(bytecode.variables, bytecode.next_var_index)
         self._write_function_entries(bytecode.function_entries)
+        self._write_function_types(bytecode)
+        self._write_struct_section(bytecode.structs)
         self._write_instructions(bytecode.instructions)
 
         checksum = zlib.crc32(self._buf[data_start:]) & 0xFFFFFFFF
@@ -96,8 +99,50 @@ class BytecodeSerializer:
             self._write_string(name)
             self._write_int32(address)
 
+    def _write_function_types(self, bytecode: Bytecode) -> None:
+        """Write the :data:`~phasor.Metadata.SEC_FUNC_TYPES` section (0x06).
+
+        Binary layout per entry::
+
+            string  name
+            string  returnTypeName   ("any" when absent)
+            uint32  paramCount
+            string  paramTypeName[0..paramCount-1]
+
+        Only functions present in
+        :attr:`~phasor.Bytecode.Bytecode.function_param_type_names` are emitted;
+        untyped functions are omitted from this section.
+        """
+        self._write_uint8(SEC_FUNC_TYPES)
+        self._write_uint32(len(bytecode.function_param_type_names))
+        for name, param_types in bytecode.function_param_type_names.items():
+            self._write_string(name)
+            self._write_string(bytecode.function_return_type_names.get(name, "any"))
+            self._write_uint32(len(param_types))
+            for type_name in param_types:
+                self._write_string(type_name)
+
+    def _write_struct_section(self, structs: List[StructInfo]) -> None:
+        """Write the :data:`~phasor.Metadata.SEC_STRUCTS` section (0x05).
+
+        Binary layout per entry::
+
+            string  name
+            int32   firstConstIndex
+            int32   fieldCount
+            string  fieldName[0..fieldCount-1]
+        """
+        self._write_uint8(SEC_STRUCTS)
+        self._write_uint32(len(structs))
+        for info in structs:
+            self._write_string(info.name)
+            self._write_int32(info.first_const_index)
+            self._write_int32(info.field_count)
+            for field_name in info.field_names:
+                self._write_string(field_name)
+
     def _write_instructions(self, instructions: List[Instruction]) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_INSTRUCTIONS` section: count then each :class:`~phasor.Instruction.Instruction` as ``uint8`` opcode + five ``int32`` operands."""
+        """Write the :data:`~phasor.Metadata.SEC_INSTRUCTIONS` section: count then each :class:`~phasor.Instruction.Instruction` as ``uint8`` opcode + three ``int32`` operands."""
         self._write_uint8(SEC_INSTRUCTIONS)
         self._write_uint32(len(instructions))
         for instr in instructions:
@@ -109,9 +154,19 @@ class BytecodeSerializer:
     def _write_value(self, value: Value) -> None:
         """Write a :class:`~phasor.Value.Value` as a ``uint8`` type tag followed by its payload.
 
+        Tags and layouts::
+
+            0  Null
+            1  Bool   : uint8(0|1)
+            2  Int    : int64
+            3  Float  : float64
+            4  String : uint16(len) + bytes
+            5  Struct : string(structName) uint32(fieldCount) [string(name) value]...
+            6  Array  : uint32(elementCount) [value]...
+
         Raises:
-            NotImplementedError: If :attr:`value.type <phasor.Value.Value.type>` is not one of
-                Null, Bool, Int, Float, or String.
+            NotImplementedError: If :attr:`value.type <phasor.Value.Value.type>` is not a
+                recognised :class:`~phasor.Value.ValueType`.
         """
         t = value.type
         if t == ValueType.Null:
@@ -128,6 +183,20 @@ class BytecodeSerializer:
         elif t == ValueType.String:
             self._write_uint8(4)
             self._write_string(value.as_string())
+        elif t == ValueType.Struct:
+            s = value.as_struct()
+            self._write_uint8(5)
+            self._write_string(s.struct_name)
+            self._write_uint32(len(s.fields))
+            for field_name, field_val in s.fields.items():
+                self._write_string(field_name)
+                self._write_value(field_val)
+        elif t == ValueType.Array:
+            elems = value.as_array()
+            self._write_uint8(6)
+            self._write_uint32(len(elems))
+            for elem in elems:
+                self._write_value(elem)
         else:
             raise NotImplementedError(f"Serialization not implemented for {t!r}")
 

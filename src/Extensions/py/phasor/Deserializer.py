@@ -1,3 +1,4 @@
+# Deserializer.py
 """
 phasor.Deserializer
 ===================
@@ -10,11 +11,11 @@ import struct
 import zlib
 from pathlib import Path
 
-from .Bytecode import Bytecode
+from .Bytecode import Bytecode, StructInfo
 from .Instruction import Instruction
 from .Metadata import (
     HEADER_SIZE, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
-    SEC_INSTRUCTIONS, SEC_VARIABLES, VERSION,
+    SEC_FUNC_TYPES, SEC_INSTRUCTIONS, SEC_STRUCTS, SEC_VARIABLES, VERSION,
 )
 from .OpCode import OpCode
 from .Value import Value, ValueType
@@ -57,6 +58,8 @@ class BytecodeDeserializer:
         self._read_constant_pool(bytecode)
         self._read_variable_mapping(bytecode)
         self._read_function_entries(bytecode)
+        self._read_function_types(bytecode)
+        self._read_struct_section(bytecode)
         self._read_instructions(bytecode)
 
         return bytecode
@@ -141,6 +144,54 @@ class BytecodeDeserializer:
             address = self._read_int32()
             bytecode.function_entries[name] = address
 
+    def _read_function_types(self, bytecode: Bytecode) -> None:
+        """Read the :data:`~phasor.Metadata.SEC_FUNC_TYPES` section (0x06) and populate
+        :attr:`~phasor.Bytecode.Bytecode.function_param_type_names`,
+        :attr:`~phasor.Bytecode.Bytecode.function_return_type_names`, and
+        :attr:`~phasor.Bytecode.Bytecode.function_param_counts`.
+        """
+        section_id = self._read_uint8()
+        if section_id != SEC_FUNC_TYPES:
+            raise ValueError(
+                f"Expected function-types section (0x{SEC_FUNC_TYPES:02x}), "
+                f"got 0x{section_id:02x}"
+            )
+        count = self._read_uint32()
+        for _ in range(count):
+            name        = self._read_string()
+            return_type = self._read_string()
+            param_count = self._read_uint32()
+            param_types = [self._read_string() for _ in range(param_count)]
+            bytecode.function_return_type_names[name] = return_type
+            bytecode.function_param_type_names[name]  = param_types
+            bytecode.function_param_counts[name]       = param_count
+
+    def _read_struct_section(self, bytecode: Bytecode) -> None:
+        """Read the :data:`~phasor.Metadata.SEC_STRUCTS` section (0x05) and populate
+        :attr:`~phasor.Bytecode.Bytecode.structs` and
+        :attr:`~phasor.Bytecode.Bytecode.struct_entries`.
+        """
+        section_id = self._read_uint8()
+        if section_id != SEC_STRUCTS:
+            raise ValueError(
+                f"Expected structs section (0x{SEC_STRUCTS:02x}), "
+                f"got 0x{section_id:02x}"
+            )
+        count = self._read_uint32()
+        for i in range(count):
+            name              = self._read_string()
+            first_const_index = self._read_int32()
+            field_count       = self._read_int32()
+            field_names       = [self._read_string() for _ in range(field_count)]
+            info = StructInfo(
+                name=name,
+                first_const_index=first_const_index,
+                field_count=field_count,
+                field_names=field_names,
+            )
+            bytecode.structs.append(info)
+            bytecode.struct_entries[name] = i
+
     def _read_instructions(self, bytecode: Bytecode) -> None:
         """Read the :data:`~phasor.Metadata.SEC_INSTRUCTIONS` section and populate :attr:`bytecode.instructions <phasor.Bytecode.Bytecode.instructions>`."""
         section_id = self._read_uint8()
@@ -158,7 +209,18 @@ class BytecodeDeserializer:
             bytecode.instructions.append(Instruction(opcode, op1, op2, op3))
 
     def _read_value(self) -> Value:
-        """Read a type-tagged value and return the corresponding :class:`~phasor.Value.Value`."""
+        """Read a type-tagged value and return the corresponding :class:`~phasor.Value.Value`.
+
+        Tags::
+
+            0  Null
+            1  Bool   : uint8(0|1)
+            2  Int    : int64
+            3  Float  : float64
+            4  String : uint16(len) + bytes
+            5  Struct : string(structName) uint32(fieldCount) [string(name) value]...
+            6  Array  : uint32(elementCount) [value]...
+        """
         tag = self._read_uint8()
         if tag == 0:
             return Value.null()
@@ -170,6 +232,18 @@ class BytecodeDeserializer:
             return Value.from_float(self._read_double())
         if tag == 4:
             return Value.from_string(self._read_string())
+        if tag == 5:
+            struct_name = self._read_string()
+            field_count = self._read_uint32()
+            fields: dict = {}
+            for _ in range(field_count):
+                field_name = self._read_string()
+                fields[field_name] = self._read_value()
+            return Value.from_struct(struct_name, fields)
+        if tag == 6:
+            elem_count = self._read_uint32()
+            elems = [self._read_value() for _ in range(elem_count)]
+            return Value.from_array(elems)
         raise ValueError(f"Unknown value type tag: {tag}")
 
     def _require(self, n: int) -> None:
