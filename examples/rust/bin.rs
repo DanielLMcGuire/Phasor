@@ -53,9 +53,9 @@ using(\"stdsys\");
 fn main() -> int {
     using(\"stdio\", \"stdfile\");
     puts(fcd());
-    var x = 15;
-    var y = 22;
-    var z = x + y;
+    var x: int = 15;
+    var y: int = 22;
+    var z: int = x + y;
     putf(\"Hello, World! %d + %d = %d\", x, y, z);
     return z;
 }
