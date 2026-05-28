@@ -129,6 +129,7 @@ class CodeGenerator
 	bool     isRepl = false; ///< REPL mode
 	// Inferred types for variables (simple, flow-insensitive mapping)
 	std::unordered_map<std::string, ValueType> inferredTypes;
+	std::unordered_map<std::string, std::unordered_map<std::string, ValueType>> inferredFieldTypes;
 	std::string currentFunctionReturnType;
 	std::unordered_map<std::string, std::vector<int>> arrayDimensions;
 
@@ -191,7 +192,7 @@ class CodeGenerator
 	void generateIdentifierExpr(const AST::IdentifierExpr *identExpr); ///< Generate bytecode from Identifier Expression
 	void generateUnaryExpr(const AST::UnaryExpr *unaryExpr);           ///< Generate bytecode from Unary Expression
 	void generateCallExpr(const AST::CallExpr *callExpr);              ///< Generate bytecode from Call Expression
-	void generateBinaryExpr(const AST::BinaryExpr *binExpr);           ///< Generate bytecode from Binary Expression
+	void generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType hint = ValueType::Null);           ///< Generate bytecode from Binary Expression
 	void generateBlockStmt(const AST::BlockStmt *blockStmt);           ///< Generate bytecode from Block Statement
 	void generateIfStmt(const AST::IfStmt *ifStmt);                    ///< Generate bytecode from If Statement
 	void generateWhileStmt(const AST::WhileStmt *whileStmt);           ///< Generate bytecode from While Statement

@@ -187,6 +187,41 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 		return ValueType::Struct;
 	}
 
+	if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(expr))
+	{
+		// field on a named variable we have field-type records for
+		if (const auto *objIdent = dynamic_cast<const AST::IdentifierExpr *>(fieldExpr->object.get()))
+		{
+			auto varIt = inferredFieldTypes.find(objIdent->name);
+			if (varIt != inferredFieldTypes.end())
+			{
+				auto fieldIt = varIt->second.find(fieldExpr->fieldName);
+				if (fieldIt != varIt->second.end())
+				{
+					known = true;
+					return fieldIt->second;
+				}
+			}
+
+			// named struct type, need to look up StructInfo
+			auto typeIt = inferredTypes.find(objIdent->name);
+			if (typeIt != inferredTypes.end() && typeIt->second == ValueType::Struct)
+			{
+				for (const auto &s : bytecode.structs)
+				{
+					for (size_t i = 0; i < s.fieldNames.size(); ++i)
+					{
+						if (s.fieldNames[i] == fieldExpr->fieldName)
+						{
+							known = true;
+							return mapTypeNameToValueType(s.fieldTypeNames[i]);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// Unknown
 	known = false;
 	return ValueType::Float; // default when unknown (not used unless known==true)
@@ -345,11 +380,31 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 		{
 			if (isArrayType)
 				arrayBaseTypes[varDecl->name] = "any";
+
+			if (varDecl->initializer)
+			{
+				bool known = false;
+				ValueType inferred = inferExpressionType(varDecl->initializer.get(), known);
+				if (known)
+					inferredTypes[varDecl->name] = inferred;
+
+				if (const auto *structExpr = dynamic_cast<const AST::StructInstanceExpr *>(varDecl->initializer.get()))
+				{
+					inferredTypes[varDecl->name] = ValueType::Struct;
+					for (const auto &[fieldName, fieldValue] : structExpr->fieldValues)
+					{
+						bool fKnown = false;
+						ValueType fType = inferExpressionType(fieldValue.get(), fKnown);
+						if (fKnown)
+							inferredFieldTypes[varDecl->name][fieldName] = fType;
+					}
+				}
+			}
 		}
 		else if (isArrayType)
 		{
 			arrayBaseTypes[varDecl->name] = varDecl->type->name;
-			arrayDimensions[varDecl->name] = varDecl->type->arrayDimensions; 
+			arrayDimensions[varDecl->name] = varDecl->type->arrayDimensions;
 			declaredType = ValueType::Array;
 			inferredTypes[varDecl->name] = declaredType;
 		}
@@ -371,8 +426,6 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 		if (hasExplicitType && !isAny)
 		{
-			// Only literal arrays can be element checked here.
-			// Non literal array values like state.board are allowed through.
 			if (!isArrayType && arrayLit)
 			{
 				throw std::runtime_error("Variable '" + varDecl->name +
@@ -383,15 +436,14 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 			{
 				if (!varDecl->type->arrayDimensions.empty() && varDecl->type->arrayDimensions[0] != -1)
 				{
-					if (arrayLit->elements.size() != varDecl->type->arrayDimensions[0])
+					if (arrayLit->elements.size() != static_cast<size_t>(varDecl->type->arrayDimensions[0]))
 					{
-						throw std::runtime_error("Array bounds error: variable '" + varDecl->name + 
-                                                 "' expects " + std::to_string(varDecl->type->arrayDimensions[0]) + 
+						throw std::runtime_error("Array bounds error: variable '" + varDecl->name +
+                                                 "' expects " + std::to_string(varDecl->type->arrayDimensions[0]) +
                                                  " elements, but got " + std::to_string(arrayLit->elements.size()));
 					}
 				}
 
-				// For typed struct arrays, validate element field names/count
 				if (bytecode.structEntries.contains(varDecl->type->name))
 				{
 					const std::string &expectedStruct = varDecl->type->name;
@@ -418,7 +470,6 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 					}
 				}
 
-				// For typed primitive arrays, validate element types
 				if (!bytecode.structEntries.contains(varDecl->type->name))
 				{
 					ValueType expectedElemType = mapTypeNameToValueType(varDecl->type->name);
@@ -437,7 +488,16 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 			}
 		}
 
-		generateExpression(varDecl->initializer.get());
+		// Pass declared type as hint to binary expressions so float targets use float ops
+		if (const auto *binExpr = dynamic_cast<const AST::BinaryExpr *>(varDecl->initializer.get()))
+		{
+			generateBinaryExpr(binExpr, declaredType);
+		}
+		else
+		{
+			generateExpression(varDecl->initializer.get());
+		}
+
 		int varIndex = bytecode.getOrCreateVar(varDecl->name);
 		bytecode.emit(OpCode::STORE_VAR, varIndex);
 	}
@@ -552,13 +612,11 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	{
 		if (const auto *strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
 		{
-			// Constant fold len("literal")
 			auto len = (i64)strExpr->value.length();
 			int  constIndex = bytecode.addConstant(Value(len));
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 			return;
 		}
-		// Emit specialized opcode for variable strings
 		generateExpression(callExpr->arguments[0].get());
 		bytecode.emit(OpCode::LEN);
 		return;
@@ -566,12 +624,10 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 
 	if (callExpr->callee == "substr" && callExpr->arguments.size() == 3)
 	{
-		// Check for substr(s, i, 1) -> char_at(s, i)
 		if (const auto *numExpr = dynamic_cast<const AST::NumberExpr *>(callExpr->arguments[2].get()))
 		{
 			if (numExpr->value == "1" || numExpr->value == "1.0")
 			{
-				// Redirect to char_at opcode
 				generateExpression(callExpr->arguments[0].get());
 				generateExpression(callExpr->arguments[1].get());
 				bytecode.emit(OpCode::CHAR_AT);
@@ -611,6 +667,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 			return;
 		}
 	}
+
 	// Push arguments
 	for (const auto &arg : callExpr->arguments)
 	{
@@ -625,7 +682,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	auto entryIt = bytecode.functionEntries.find(callExpr->callee);
 	if (entryIt != bytecode.functionEntries.end())
 	{
-		int  nameIndex = bytecode.addStringConstant(callExpr->callee);
+		int nameIndex = bytecode.addStringConstant(callExpr->callee);
 		auto itParam = bytecode.functionParamCounts.find(callExpr->callee);
 		if (itParam != bytecode.functionParamCounts.end())
 		{
@@ -651,14 +708,18 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 				ValueType argType = inferExpressionType(callExpr->arguments[i].get(), known);
 				if (!known) continue;
 
-				if (argType == ValueType::Array) 
+				if (argType == ValueType::Array)
 				{
 					auto dimsIt = bytecode.functionParamArrayDims.find(callExpr->callee);
-					if (dimsIt != bytecode.functionParamArrayDims.end() && i < dimsIt->second.size()) {
-						const auto& expectedDims = dimsIt->second[i];
-						if (!expectedDims.empty() && expectedDims[0] != -1) {
-							if (const auto* arrayLit = dynamic_cast<const AST::ArrayLiteralExpr*>(callExpr->arguments[i].get())) {
-								if (arrayLit->elements.size() != expectedDims[0]) {
+					if (dimsIt != bytecode.functionParamArrayDims.end() && i < dimsIt->second.size())
+					{
+						const auto &expectedDims = dimsIt->second[i];
+						if (!expectedDims.empty() && expectedDims[0] != -1)
+						{
+							if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(callExpr->arguments[i].get()))
+							{
+								if (arrayLit->elements.size() != static_cast<size_t>(expectedDims[0]))
+								{
 									throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
 									          + "' has wrong size: expected " + std::to_string(expectedDims[0])
 									          + " elements, got " + std::to_string(arrayLit->elements.size())
@@ -689,7 +750,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	}
 }
 
-void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
+void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType hint)
 {
 	Value leftVal;
 	Value rightVal;
@@ -799,7 +860,6 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 	u8 rRight = allocateRegister();
 	u8 rResult = allocateRegister();
 
-	// Reuse literal detection done here to choose appropriate register opcodes.
 	Value leftLiteral;
 	bool  leftIsLiteral = isLiteralExpression(binExpr->left.get(), leftLiteral);
 	if (leftIsLiteral)
@@ -836,11 +896,11 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 		return known && type == ValueType::Int;
 	};
 
-	bool leftKnownInt = exprIsKnownInt(binExpr->left.get(), leftIsLiteral, leftLiteral);
+	bool leftKnownInt  = exprIsKnownInt(binExpr->left.get(), leftIsLiteral, leftLiteral);
 	bool rightKnownInt = exprIsKnownInt(binExpr->right.get(), rightIsLiteral, rightLiteral);
 
-	// Choose integer ops only when both operands are known ints.
-	if (leftKnownInt && rightKnownInt)
+	// Use integer ops only when both operands are known ints AND the target type is not float
+	if (leftKnownInt && rightKnownInt && hint != ValueType::Float)
 	{
 		switch (binExpr->op)
 		{
@@ -887,7 +947,6 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr)
 	}
 	else
 	{
-		// Fallback to float ops when we don't know both operands are integers.
 		switch (binExpr->op)
 		{
 		case AST::BinaryOp::Add:
@@ -1241,7 +1300,6 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 {
     if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
     {
-        // Variable assignment: a = value
         auto arrayIt = arrayBaseTypes.find(identExpr->name);
         if (arrayIt != arrayBaseTypes.end())
         {
@@ -1252,11 +1310,11 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
                 if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
                 {
                     auto dimsIt = arrayDimensions.find(identExpr->name);
-                    if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1) {
-                        if (arrayLit->elements.size() != dimsIt->second[0]) {
-                            throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) + 
+                    if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1)
+                    {
+                        if (arrayLit->elements.size() != static_cast<size_t>(dimsIt->second[0]))
+                            throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) +
                                                      " elements to array '" + identExpr->name + "' of size " + std::to_string(dimsIt->second[0]));
-                        }
                     }
 
                     for (size_t i = 0; i < arrayLit->elements.size(); ++i)
@@ -1274,9 +1332,23 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
             }
         }
 
-        generateExpression(assignExpr->value.get());
+        // Resolve the target variable's known type to use as a hint
+        ValueType targetType = ValueType::Null;
+        auto typeIt = inferredTypes.find(identExpr->name);
+        if (typeIt != inferredTypes.end())
+            targetType = typeIt->second;
 
-        // propagate type
+        // Pass target type as hint to binary expressions so float targets use float ops
+        if (const auto *binExpr = dynamic_cast<const AST::BinaryExpr *>(assignExpr->value.get()))
+        {
+            generateBinaryExpr(binExpr, targetType);
+        }
+        else
+        {
+            generateExpression(assignExpr->value.get());
+        }
+
+        // Propagate type from literal
         Value val;
         if (isLiteralExpression(assignExpr->value.get(), val))
         {
@@ -1298,17 +1370,19 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
     }
     else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(assignExpr->target.get()))
     {
-        // Element-wise assignment: a[i] = value
         if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
         {
             auto dimsIt = arrayDimensions.find(identExpr->name);
-            if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1) {
+            if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1)
+            {
                 Value idxVal;
-                if (isLiteralExpression(arrayAccess->index.get(), idxVal) && idxVal.isInt()) {
+                if (isLiteralExpression(arrayAccess->index.get(), idxVal) && idxVal.isInt())
+                {
                     i64 idx = idxVal.asInt();
-                    if (idx < 0 || idx >= dimsIt->second[0]) {
-                        throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) + 
-                                                 " is out of bounds for array '" + identExpr->name + 
+                    if (idx < 0 || idx >= dimsIt->second[0])
+                    {
+                        throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) +
+                                                 " is out of bounds for array '" + identExpr->name +
                                                  "' of size " + std::to_string(dimsIt->second[0]));
                     }
                 }
@@ -1332,13 +1406,13 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
             }
         }
 
-        generateExpression(arrayAccess->array.get());   // array
-        generateExpression(arrayAccess->index.get());   // index
-        generateExpression(assignExpr->value.get());    // value
-        
+        generateExpression(arrayAccess->array.get());
+        generateExpression(arrayAccess->index.get());
+        generateExpression(assignExpr->value.get());
+
         int countIdx = bytecode.addConstant(Value(static_cast<i64>(3)));
-        bytecode.emit(OpCode::PUSH_CONST, countIdx);    // count for __set_elem
-        
+        bytecode.emit(OpCode::PUSH_CONST, countIdx);
+
         int setIdx = bytecode.addStringConstant("__set_elem");
         bytecode.emit(OpCode::CALL_NATIVE, setIdx);
     }
