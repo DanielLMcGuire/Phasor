@@ -121,11 +121,10 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 	if (args.size() == 2)
 	{
 		message = args[1].c_str();
-		haveMessage = true;
 	}
 
 #ifdef TRACING
-#ifndef NDEBUG
+#ifdef _DEBUG
 	vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
 #else
 	vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
@@ -133,15 +132,14 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 	vm->flush();
 #endif
 
-#ifndef NDEBUG
+#ifdef _DEBUG
 	if (!args[0].isTruthy())
 	{ [[unlikely]]
 		vm->logerr(std::format("StdLib::{}({:T}): Assertion failed!\n", __func__, args[0]));
 		if (haveMessage) vm->logerr(std::format("{}\n", message));
 		vm->flusherr();
 	}
-	if (haveMessage) assert(args[0].isTruthy() && message);
-	else assert(args[0].isTruthy());
+	assert(args[0].isTruthy());
 #endif
 	return phsnull;
 }
