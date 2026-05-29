@@ -34,6 +34,55 @@
 #include "phsint.hpp"
 #include "PhasorString.hpp"
 
+template<typename K, typename V>
+struct PhsOrderedMap {
+    std::vector<std::pair<K, V>> data;
+    std::unordered_map<K, size_t> index;
+
+    V& operator[](const K& key) {
+        auto it = index.find(key);
+        if (it != index.end())
+            return data[it->second].second;
+        index[key] = data.size();
+        return data.emplace_back(key, V{}).second;
+    }
+
+    auto find(const K& key) {
+        auto it = index.find(key);
+        if (it != index.end()) return data.begin() + it->second;
+        return data.end();
+    }
+
+    auto find(const K& key) const {
+        auto it = index.find(key);
+        if (it != index.end()) return data.begin() + it->second;
+        return data.end();
+    }
+
+    void erase(const K& key) {
+        auto it = index.find(key);
+        if (it == index.end()) return;
+
+        size_t pos = it->second;
+        index.erase(it);
+
+        if (pos != data.size() - 1) {
+            std::swap(data[pos], data.back());
+            index[data[pos].first] = pos;
+        }
+        data.pop_back();
+    }
+
+    bool contains(const K& key) const { return index.count(key) > 0; }
+
+    auto end()         { return data.end(); }
+    auto end()   const { return data.end(); }
+    auto begin()       { return data.begin(); }
+    auto begin() const { return data.begin(); }
+    bool empty() const { return data.empty(); }
+    size_t size() const { return data.size(); }
+};
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -63,7 +112,7 @@ class Value
 	struct StructInstance
 	{
 		PhsString structName;
-		std::unordered_map<PhsString, Value> fields;
+		PhsOrderedMap<PhsString, Value> fields;
 	};
 	using ArrayInstance = std::vector<Value>;
 
