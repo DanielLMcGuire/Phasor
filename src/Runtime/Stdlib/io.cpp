@@ -24,18 +24,18 @@ Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "clear");
 	vm->regRun(OpCode::PRINT_R, "\033[2J\033[H");
-	return Value();
+	return phsnull;
 }
 #endif
 
-std::string StdLib::io_c_format(const std::vector<Value> &args, VM *)
+PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
 {
 	if (args.empty())
 	{
 		return ""; // Return empty string if no arguments
 	}
 
-	const std::string &fmt = args[0].asString();
+	const PhsString &fmt = args[0].asString();
 
 	// Make vector of format args
 	std::vector<Value> formatArgs(args.begin() + 1, args.end());
@@ -44,14 +44,14 @@ std::string StdLib::io_c_format(const std::vector<Value> &args, VM *)
 	
 }
 
-std::string StdLib::io_prints(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_prints(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "prints");
 	vm->regRun(OpCode::PRINT_R, args[0]);
 	return "";
 }
 
-std::string StdLib::io_printf(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "printf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
@@ -59,20 +59,20 @@ std::string StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 	return "";
 }
 
-std::string StdLib::io_puts(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_puts(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts", true);
-	std::string input = args[0].toString();
-	vm->regRun(OpCode::PRINT_R, input + "\n");
+	PhsString input = args[0].toString();
+	vm->regRun(OpCode::PRINT_R, input.str() + "\n");
 	return "";
 }
 
-std::string StdLib::io_putf(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	std::string        input = io_c_format(formatArgs, vm);
-	vm->regRun(OpCode::PRINT_R, input + "\n");
+	PhsString        input = io_c_format(formatArgs, vm);
+	vm->regRun(OpCode::PRINT_R, input.str() + "\n");
 	return "";
 }
 
@@ -84,20 +84,20 @@ Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 }
 #endif
 
-std::string StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "puts_error", true);
-	std::string input = args[0].toString();
-	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
+	PhsString input = args[0].toString();
+	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
 	return "";
 }
 
-std::string StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	std::string        input = io_c_format(formatArgs, vm);
-	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
+	PhsString        input = io_c_format(formatArgs, vm);
+	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
 	return "";
 }
 } // namespace Phasor

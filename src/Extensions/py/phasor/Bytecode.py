@@ -17,6 +17,16 @@ from .Value import Value
 
 
 @dataclass
+class StructInfo:
+    """Metadata for a declared struct type."""
+
+    name: str
+    first_const_index: int
+    field_count: int
+    field_names: List[str]
+
+
+@dataclass
 class Bytecode:
     """In-memory representation of a compiled Phasor program.
 
@@ -29,20 +39,53 @@ class Bytecode:
         constants: Constant pool; entries are indexed by :attr:`~phasor.OpCode.OpCode.PUSH_CONST` / :attr:`~phasor.OpCode.OpCode.LOAD_CONST_R`.
         variables: Maps each variable name to its integer slot index.
         function_entries: Maps each function name to the index of its first instruction.
+        function_param_counts: Maps each function name to its parameter count.
+        function_param_type_names: Maps each function name to its ordered list of parameter type names.
+        function_return_type_names: Maps each function name to its return type name.
         next_var_index: Next available variable slot; serialised as part of the variables section.
+        structs: List of struct descriptors.
+        struct_entries: Maps each struct name to its index in the structs list.
     """
 
-    instructions:    List[Instruction]       = field(default_factory=list)
-    constants:       List[Value]             = field(default_factory=list)
-    variables:       Dict[str, int]          = field(default_factory=dict)
-    function_entries: Dict[str, int]         = field(default_factory=dict)
-    next_var_index:  int                     = 0
+    instructions:              List[Instruction]       = field(default_factory=list)
+    constants:                 List[Value]             = field(default_factory=list)
+    variables:                 Dict[str, int]          = field(default_factory=dict)
+    function_entries:          Dict[str, int]          = field(default_factory=dict)
+    function_param_counts:     Dict[str, int]          = field(default_factory=dict)
+    function_param_type_names: Dict[str, List[str]]    = field(default_factory=dict)
+    function_return_type_names: Dict[str, str]         = field(default_factory=dict)
+    next_var_index:            int                     = 0
+    structs:                   List[StructInfo]        = field(default_factory=list)
+    struct_entries:            Dict[str, int]          = field(default_factory=dict)
+
+    # Mirrors C++ stringConstantCache: dedup cache for string constants.
+    # Not a dataclass field — excluded from __init__, __repr__, serialisation, etc.
+    _string_constant_cache:    Dict[str, int]          = field(default_factory=dict, repr=False, compare=False)
 
     def add_constant(self, value: Value) -> int:
         """Append *value* to the constant pool and return its index."""
         index = len(self.constants)
         self.constants.append(value)
         return index
+
+    def add_string_constant(self, s: str) -> int:
+        """Add a string constant with deduplication.
+
+        If an identical string is already in the constant pool (tracked via an
+        internal cache), its existing index is returned without adding a duplicate.
+        This mirrors the C++ ``addStringConstant`` / ``stringConstantCache`` behaviour.
+
+        Args:
+            s: The string value to intern.
+
+        Returns:
+            Index of the (possibly pre-existing) string constant in the pool.
+        """
+        if s in self._string_constant_cache:
+            return self._string_constant_cache[s]
+        idx = self.add_constant(Value(s))
+        self._string_constant_cache[s] = idx
+        return idx
 
     def find_or_add_constant(self, value: Value) -> int:
         """Return the index of an existing equal constant, or add a new one."""
@@ -64,7 +107,7 @@ class Bytecode:
 
         Args:
             op: The :class:`~phasor.OpCode.OpCode` for this instruction.
-            op1 … op5: Operand values; unused operands should be left as ``0``.
+            op1 … op3: Operand values; unused operands should be left as ``0``.
 
         Returns:
             The zero-based index of the newly appended instruction.
@@ -143,11 +186,12 @@ class Bytecode:
         return "\n".join(lines)
 
     def __repr__(self) -> str:
-        """Return a summary showing instruction, constant, variable, and function counts."""
+        """Return a summary showing instruction, constant, variable, function, and struct counts."""
         return (
             f"Bytecode("
             f"{len(self.instructions)} instructions, "
             f"{len(self.constants)} constants, "
             f"{len(self.variables)} variables, "
-            f"{len(self.function_entries)} functions)"
+            f"{len(self.function_entries)} functions, "
+            f"{len(self.structs)} structs)"
         )

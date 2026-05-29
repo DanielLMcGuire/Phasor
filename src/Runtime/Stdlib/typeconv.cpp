@@ -10,6 +10,8 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_float", StdLib::to_float);
 	vm->registerNativeFunction("to_string", StdLib::to_string);
 	vm->registerNativeFunction("to_bool", StdLib::to_bool);
+	vm->registerNativeFunction("to_json", StdLib::to_json);
+	vm->registerNativeFunction("from_json", StdLib::from_json);
 }
 
 i64 StdLib::to_int(const std::vector<Value> &args, VM *)
@@ -41,16 +43,33 @@ f64 StdLib::to_float(const std::vector<Value> &args, VM *)
 	return args[0].asFloat();
 }
 
-std::string StdLib::to_string(const std::vector<Value> &args, VM *)
+PhsString StdLib::to_string(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_string");
 	return args[0].toString();
+}
+
+PhsString StdLib::to_json(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "to_json", true);
+	if (args.size() > 4) {
+		throw std::runtime_error("to_json expects at most 4 arguments");
+	}
+	return args[0].jsonSerialize(args.size() > 1 ? args[1].asInt() : -1, args.size() > 2 ? args[2].asInt() : 0);
 }
 
 bool StdLib::to_bool(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_bool");
 	return args[0].isTruthy();
+}
+
+Value StdLib::from_json(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "from_json");
+	if (!args[0].isString())
+		throw std::runtime_error("from_json expects a string argument");
+	return Value::from_json(args[0].asString());
 }
 
 } // namespace Phasor

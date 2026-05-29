@@ -12,7 +12,7 @@ namespace Phasor
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 
-StdLib::dupenv_ret StdLib::dupenv(std::string &out, const char *name)
+StdLib::dupenv_ret StdLib::dupenv(PhsString &out, const char *name)
 {
 	if (!name || name[0] == '\0')
 	{
@@ -60,7 +60,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "using", true);
 
-	std::unordered_map<std::string, std::function<void(Phasor::VM *)>> modules{
+	std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> modules{
 	    {"stdio", registerIOFunctions},
 	    {"stdsys", registerSysFunctions},
 	    {"stdmath", registerMathFunctions},
@@ -69,6 +69,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 	    {"stdmeta", registerMetaFunctions},
 	    {"stdmem", registerMemoryFunctions},
 	    {"stdrand", registerRandomFunctions},
+		{"stdarray", registerArrayFunctions},
 #ifndef SANDBOXED
 	    {"stdfile", registerFileFunctions},
 #endif
@@ -82,6 +83,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		     registerMetaFunctions(vm);
 		     registerMemoryFunctions(vm);
 		     registerRandomFunctions(vm);
+			 registerArrayFunctions(vm);
 #ifndef SANDBOXED
 		     registerFileFunctions(vm);
 #endif
@@ -90,14 +92,14 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 
 	for (const auto &arg : args)
 	{
-		auto it = modules.find(arg.asString());
+		auto it = modules.find(arg.string());
 		if (it != modules.end())
 		{
 			it->second(vm);
 		}
 		else
 		{
-			throw std::runtime_error("Unknown module: " + arg.asString());
+			throw std::runtime_error("Unknown module: " + arg.string());
 		}
 	}
 	return true;
@@ -141,7 +143,7 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 	if (haveMessage) assert(args[0].isTruthy() && message);
 	else assert(args[0].isTruthy());
 #endif
-	return Value();
+	return phsnull;
 }
 #endif
 

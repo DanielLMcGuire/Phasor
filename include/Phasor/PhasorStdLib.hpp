@@ -82,7 +82,7 @@ class StdLib
 		NotFound = 2
 	};
 
-	static dupenv_ret dupenv(std::string &out, const char *name);
+	static dupenv_ret dupenv(PhsString &out, const char *name);
 
 	static void registerMetaFunctions(VM *vm);
 	static void registerMemoryFunctions(VM *vm);
@@ -101,7 +101,7 @@ class StdLib
 	static i64 meta_operation(const std::vector<Value> &args, VM *vm);
 	static Value   meta_stack_run(const std::vector<Value> &args, VM *vm);
 #endif
-	static std::string meta_get_version(const std::vector<Value> &args, VM *vm);
+	static PhsString meta_get_version(const std::vector<Value> &args, VM *vm);
 
 #pragma endregion stdmeta
 
@@ -127,11 +127,11 @@ class StdLib
 
 #pragma region stdfile
 #ifndef SANDBOXED
-	static std::string file_absolute(const std::vector<Value> &args, VM *vm);   ///< Get full path to relative path
+	static PhsString file_absolute(const std::vector<Value> &args, VM *vm);   ///< Get full path to relative path
 	static Value       file_read(const std::vector<Value> &args, VM *vm);       ///< Read file
 	static bool        file_write(const std::vector<Value> &args, VM *vm);      ///< Write to file
 	static bool        file_exists(const std::vector<Value> &args, VM *vm);     ///< Check if file exists
-	static std::string file_read_line(const std::vector<Value> &args, VM *vm);  ///< Read a line from file
+	static PhsString file_read_line(const std::vector<Value> &args, VM *vm);  ///< Read a line from file
 	static bool        file_write_line(const std::vector<Value> &args, VM *vm); ///< Write a line to file
 	static bool        file_append(const std::vector<Value> &args, VM *vm);     ///< Append to file
 	static bool        file_delete(const std::vector<Value> &args, VM *vm);     ///< Delete file
@@ -145,12 +145,12 @@ class StdLib
 	static Value       file_read_directory(const std::vector<Value> &args, VM *vm);
 	static bool        file_create_directory(const std::vector<Value> &args, VM *vm);
 	static bool        file_remove_directory(const std::vector<Value> &args, VM *vm);
-	static std::string file_join_path(const std::vector<Value> &args, VM *vm);
-	static std::string file_stem(const std::vector<Value> &args, VM *vm);         ///< Get the stem of a path
-	static std::string file_filename(const std::vector<Value> &args, VM *vm);     ///< Get the filename
-	static std::string file_extension(const std::vector<Value> &args, VM *vm);    ///< Get the extension of a path
+	static PhsString file_join_path(const std::vector<Value> &args, VM *vm);
+	static PhsString file_stem(const std::vector<Value> &args, VM *vm);         ///< Get the stem of a path
+	static PhsString file_filename(const std::vector<Value> &args, VM *vm);     ///< Get the filename
+	static PhsString file_extension(const std::vector<Value> &args, VM *vm);    ///< Get the extension of a path
 	static bool        file_is_directory(const std::vector<Value> &args, VM *vm); ///< Check if path is directory
-	static std::string file_parent(const std::vector<Value> &args, VM *vm);       ///< Get the parent of a path
+	static PhsString file_parent(const std::vector<Value> &args, VM *vm);       ///< Get the parent of a path
 	static i64     file_get_size(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
@@ -163,7 +163,7 @@ class StdLib
 	static Value       sys_crash(const std::vector<Value> &args, VM *vm);           ///< Crash the VM / Program
 	static Value       sys_reset(const std::vector<Value> &args, VM *vm);           ///< Reset the VM
 	static i64     sys_pid(const std::vector<Value> &args, VM *vm);             ///< Get the current process ID
-	static std::string sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
+	static PhsString sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
 	static Value sys_isatty(const std::vector<Value> &args, VM *vm); ///< Check if the current output is a terminal
 #endif
 	static Value sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables
@@ -178,7 +178,7 @@ class StdLib
 #pragma region stdtype
 	static i64     to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
 	static f64      to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
-	static std::string to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
+	static PhsString to_string(const std::vector<Value> &args, VM *vm); ///< Convert to string
 	static bool        to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
 #pragma endregion
 
@@ -196,37 +196,36 @@ class StdLib
 	static i64     str_len(const std::vector<Value> &args, VM *vm);         ///< Get string length
 	static Value       str_char_at(const std::vector<Value> &args, VM *vm);     ///< Get character at index
 	static Value       str_substr(const std::vector<Value> &args, VM *vm);      ///< Get substring
-	static std::string str_concat(const std::vector<Value> &args, VM *vm);      ///< Concatenate strings
-	static std::string str_upper(const std::vector<Value> &args, VM *vm);       ///< Convert to uppercase
-	static std::string str_lower(const std::vector<Value> &args, VM *vm);       ///< Convert to lowercase
+	static PhsString str_concat(const std::vector<Value> &args, VM *vm);      ///< Concatenate strings
+	static PhsString str_upper(const std::vector<Value> &args, VM *vm);       ///< Convert to uppercase
+	static PhsString str_lower(const std::vector<Value> &args, VM *vm);       ///< Convert to lowercase
 	static Value       str_starts_with(const std::vector<Value> &args, VM *vm); ///< Check if string starts with
 	static Value       str_ends_with(const std::vector<Value> &args, VM *vm);   ///< Check if string ends with
 	// StringBuilder functions
 	static i64     sb_new(const std::vector<Value> &args, VM *vm);       ///< Create new string builder
 	static Value       sb_append(const std::vector<Value> &args, VM *vm);    ///< Append to string builder
-	static std::string sb_to_string(const std::vector<Value> &args, VM *vm); ///< Convert string builder to string
+	static PhsString sb_to_string(const std::vector<Value> &args, VM *vm); ///< Convert string builder to string
 	static Value       sb_clear(const std::vector<Value> &args, VM *vm);     ///< Clear string builder
-	static std::string sb_free(const std::vector<Value> &args, VM *vm);      ///< Free string builder
+	static PhsString sb_free(const std::vector<Value> &args, VM *vm);      ///< Free string builder
 #pragma endregion
 
 #pragma region stdio
-	static std::string io_c_format(const std::vector<Value> &args, VM *vm); ///< Format string
+	static PhsString io_c_format(const std::vector<Value> &args, VM *vm); ///< Format string
 #ifndef SANDBOXED
 	static Value io_clear(const std::vector<Value> &args, VM *vm); ///< Clear the console
 #endif
-	static std::string io_prints(const std::vector<Value> &args, VM *vm); ///< Print string without newline
-	static std::string io_printf(const std::vector<Value> &args, VM *vm); ///< Print formatted string
-	static std::string io_puts(const std::vector<Value> &args, VM *vm);   ///< Print string with newline
-	static std::string io_putf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string with newline
+	static PhsString io_prints(const std::vector<Value> &args, VM *vm); ///< Print string without newline
+	static PhsString io_printf(const std::vector<Value> &args, VM *vm); ///< Print formatted string
+	static PhsString io_puts(const std::vector<Value> &args, VM *vm);   ///< Print string with newline
+	static PhsString io_putf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string with newline
 #ifndef SANDBOXED
 	static Value io_gets(const std::vector<Value> &args, VM *vm); ///< Get string
 #endif
-	static std::string io_putf_error(const std::vector<Value> &args,
+	static PhsString io_putf_error(const std::vector<Value> &args,
 	                                 VM *vm); ///< Print formatted string with newline to error output
-	static std::string io_puts_error(const std::vector<Value> &args,
+	static PhsString io_puts_error(const std::vector<Value> &args,
 	                                 VM                       *vm); ///< Print string with newline to error output
 #pragma endregion
 };
 
 } // namespace Phasor
-

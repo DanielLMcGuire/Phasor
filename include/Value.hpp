@@ -21,6 +21,8 @@
 // T (type and value), ? (debug repr with quoted strings and recursive expansion), and
 // q (quoted strings, default otherwise).
 
+#define phsnull Value()
+
 #pragma once
 #include <iostream>
 #include <string>
@@ -30,6 +32,7 @@
 #include <vector>
 #include <format>
 #include "phsint.hpp"
+#include "PhasorString.hpp"
 
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -59,13 +62,13 @@ class Value
   public:
 	struct StructInstance
 	{
-		std::string                            structName;
-		std::unordered_map<std::string, Value> fields;
+		PhsString structName;
+		std::unordered_map<PhsString, Value> fields;
 	};
 	using ArrayInstance = std::vector<Value>;
 
   private:
-	using DataType = std::variant<std::monostate, bool, i64, f64, std::shared_ptr<std::string>,
+	using DataType = std::variant<std::monostate, bool, i64, f64, PhsString,
 	                              std::shared_ptr<StructInstance>,
 	                              std::shared_ptr<ArrayInstance>>;
 
@@ -93,21 +96,35 @@ class Value
 	{
 	}
 	/// @brief String constructor
-	Value(const std::string &s) : data(std::make_shared<std::string>(s))
+	Value(const std::string &s) : data(PhsString(s))
+	{
+	}
+	/// @brief Small Strring constructor
+	Value(const PhsString &s) : data(s)
 	{
 	}
 	/// @brief String constructor
-	Value(const char *s) : data(std::make_shared<std::string>(s))
+	Value(const char *s) : data(PhsString(s))
 	{
 	}
 	/// @brief Struct constructor
 	Value(std::shared_ptr<StructInstance> s) : data(std::move(s))
-	{
+	{	
 	}
 	/// @brief Array constructor
 	Value(std::shared_ptr<ArrayInstance> a) : data(std::move(a))
 	{
 	}
+	/// @brief Struct constructor
+	Value(std::initializer_list<std::pair<std::string, Value>> fields)
+	{
+		auto s = std::make_shared<StructInstance>();
+		for (auto& [k, v] : fields)
+			s->fields[PhsString(k)] = std::move(v);
+		data = std::move(s);
+	}
+
+	static Value from_json(const std::string& json);
 
 	/// @brief Get the type of the value
 	[[nodiscard]] ValueType getType() const noexcept {
@@ -182,13 +199,22 @@ class Value
 		return 0.0;
 	}
 	/// @brief Get the value as a string
-	[[nodiscard]] std::string asString() const noexcept
+	[[nodiscard]] std::string string() const noexcept
 	{
 		if (isString())
 		{
-			return *std::get<std::shared_ptr<std::string>>(data);
+			return std::get<PhsString>(data).str();
 		}
 		return toString();
+	}
+	/// @brief Get the value as a Small String
+	[[nodiscard]] PhsString asString() const noexcept
+	{
+		if (isString())
+		{
+			return std::get<PhsString>(data);
+		}
+		return PhsString(toString());
 	}
 	/// @brief Get the value as an array
 	std::shared_ptr<ArrayInstance> asArray()
@@ -200,6 +226,66 @@ class Value
 	[[nodiscard]] std::shared_ptr<const ArrayInstance> asArray() const noexcept
 	{
 		return std::get<std::shared_ptr<ArrayInstance>>(data);
+	}
+
+	[[nodiscard]] bool contains(const std::string& key) const noexcept
+	{
+		return hasField(PhsString(key));
+	}
+
+	[[nodiscard]] Value get_or(const std::string& key, Value fallback) const noexcept
+	{
+		if (!isStruct()) return fallback;
+		auto it = asStruct()->fields.find(PhsString(key));
+		return it != asStruct()->fields.end() ? it->second : fallback;
+	}
+
+	Value operator[](const size_t index) const
+	{
+		if (!std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
+			throw std::runtime_error("Value is not an array");
+		auto arr = asArray();
+		if (index >= arr->size())
+			throw std::out_of_range("Array index out of range");
+		return (*arr)[index];
+	}
+
+	Value& operator[](const size_t index)
+	{
+		if (isNull())
+			data = std::make_shared<ArrayInstance>();
+
+		if (!std::holds_alternative<std::shared_ptr<ArrayInstance>>(data))
+			throw std::runtime_error("Value is not an array");
+
+		auto arr = asArray();
+		if (index >= arr->size())
+			arr->resize(index + 1);
+
+		return (*arr)[index];
+	}
+
+	Value& operator[](const std::string& key)
+	{
+		if (isNull()) {
+			data.emplace<std::shared_ptr<StructInstance>>(std::make_shared<StructInstance>());
+		}
+
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			throw std::runtime_error("Value is not a struct");
+
+		return std::get<std::shared_ptr<StructInstance>>(data)->fields[PhsString(key)];
+	}
+
+	Value operator[](const std::string& key) const
+	{
+		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
+			throw std::runtime_error("Value is not a struct");
+		const auto& fields = std::get<std::shared_ptr<StructInstance>>(data)->fields;
+		auto it = fields.find(key);
+		if (it == fields.end())
+			return {};
+		return it->second;
 	}
 
 	/// @brief Add two values
@@ -451,6 +537,15 @@ class Value
 		return !(*this < other);
 	}
 
+	[[nodiscard]] std::string toRepr() const noexcept
+	{
+		if (isString())
+		{
+			return jsonSerialize().str();
+		}
+		return toString();
+	}
+
 	/// @brief Convert to string for printing
 	[[nodiscard]] std::string toString() const noexcept
 	{
@@ -472,22 +567,15 @@ class Value
 		}
 		if (isString())
 		{
-			[[likely]] return asString();
+			[[likely]] return string();
 		}
 		if (isArray())
 		{
-			std::string result = "[";
-			const auto &arr = *asArray();
-			for (size_t i = 0; i < arr.size(); ++i)
-			{
-				result += arr[i].toString();
-				if (i < arr.size() - 1)
-				{
-					result += ", ";
-				}
-			}
-			result += "]";
-			return result;
+			return jsonSerialize();
+		}
+		if (isStruct())
+		{
+			return jsonSerialize();
 		}
 		return "unknown";
 	}
@@ -499,7 +587,151 @@ class Value
 		{
 			[[unlikely]] throw std::runtime_error("c_str() can only be called on string values");
 		}
-		return std::get<std::shared_ptr<std::string>>(data)->c_str();
+		return std::get<PhsString>(data).c_str();
+	}
+
+	[[nodiscard]] PhsString jsonSerialize(int indent = -1, int depth = 0) const
+	{
+		if (isNull())
+		{
+			return "null";
+		}
+		if (isBool())
+		{
+			return asBool() ? "true" : "false";
+		}
+		if (isInt())
+		{
+			return std::to_string(asInt());
+		}
+		if (isFloat())
+		{
+			return std::to_string(asFloat());
+		}
+		if (isString())
+		{
+			PhsString result = "\"";
+			for (char c : string())
+			{
+				switch (c)
+				{
+				case '\"': result += "\\\""; break;
+				case '\\': result += "\\\\"; break;
+				case '\b': result += "\\b"; break;
+				case '\f': result += "\\f"; break;
+				case '\n': result += "\\n"; break;
+				case '\r': result += "\\r"; break;
+				case '\t': result += "\\t"; break;
+				default:
+					if (static_cast<unsigned char>(c) < 0x20)
+					{
+						char buf[7];
+						snprintf(buf, sizeof(buf), "\\u%04X", static_cast<unsigned char>(c));
+						result += buf;
+					}
+					else
+					{
+						result += c;
+					}
+					break;
+				}
+			}
+			result += "\"";
+			return result;
+		}
+
+		const bool pretty = indent >= 0;
+
+		auto make_indent = [&](int level) -> std::string
+		{
+			if (!pretty)
+			{
+				return {};
+			}
+
+			const size_t spaces = static_cast<size_t>(level) * static_cast<size_t>(indent);
+			return std::string(spaces, ' ');
+		};
+
+		if (isArray())
+		{
+			const auto &arr = *asArray();
+			if (arr.empty())
+			{
+				return "[]";
+			}
+
+			std::string result = pretty ? "[\n" : "[";
+			const std::string item_indent = make_indent(depth + 1);
+			const std::string end_indent = make_indent(depth);
+
+			for (size_t i = 0; i < arr.size(); ++i)
+			{
+				if (pretty)
+				{
+					result += item_indent;
+				}
+
+				result += arr[i].jsonSerialize(indent, depth + 1).str();
+
+				if (i + 1 < arr.size())
+				{
+					result += pretty ? ",\n" : ", ";
+				}
+				else if (pretty)
+				{
+					result += "\n";
+				}
+			}
+
+			result += end_indent;
+			result += "]";
+			return result;
+		}
+
+		if (isStruct())
+		{
+			const auto &s = *asStruct();
+			if (s.fields.empty())
+			{
+				return "{}";
+			}
+
+			std::string result = pretty ? "{\n" : "{";
+			const std::string item_indent = make_indent(depth + 1);
+			const std::string end_indent = make_indent(depth);
+
+			bool first = true;
+			for (const auto &[k, v] : s.fields)
+			{
+				if (!first)
+				{
+					result += pretty ? ",\n" : ", ";
+				}
+
+				if (pretty)
+				{
+					result += item_indent;
+				}
+
+				result += "\"";
+				result += k.str();
+				result += pretty ? "\": " : "\":";
+				result += v.jsonSerialize(indent, depth + 1).str();
+
+				first = false;
+			}
+
+			if (pretty)
+			{
+				result += "\n";
+			}
+			result += end_indent;
+			result += "}";
+			return result;
+		}
+
+		return "null";
 	}
 
 	/// @brief Print to output stream
@@ -524,7 +756,7 @@ class Value
 		return std::get<std::shared_ptr<StructInstance>>(data);
 	}
 
-	static Value createStruct(const std::string &name)
+	static Value createStruct(const PhsString &name)
 	{
 		return Value(std::make_shared<StructInstance>(StructInstance{.structName = name, .fields = {}}));
 	}
@@ -534,7 +766,7 @@ class Value
 		return {std::make_shared<ArrayInstance>(std::move(elements))};
 	}
 
-	[[nodiscard]] Value getField(const std::string &name) const
+	[[nodiscard]] Value getField(const PhsString &name) const
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
@@ -549,7 +781,7 @@ class Value
 		return it->second;
 	}
 
-	void setField(const std::string &name, Value value)
+	void setField(const PhsString &name, Value value)
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
@@ -559,7 +791,7 @@ class Value
 		s->fields[name] = std::move(value);
 	}
 
-	[[nodiscard]] bool hasField(const std::string &name) const noexcept
+	[[nodiscard]] bool hasField(const PhsString &name) const noexcept
 	{
 		if (!std::holds_alternative<std::shared_ptr<StructInstance>>(data))
 		{
@@ -569,6 +801,216 @@ class Value
 		return s->fields.contains(name);
 	}
 };
+
+namespace json {
+    using json_iterator = std::string_view::const_iterator;
+
+    inline void skip_whitespace(json_iterator& it, json_iterator end) {
+        while (it != end && std::isspace(static_cast<unsigned char>(*it))) ++it;
+    }
+
+    inline PhsString parse_json_string(json_iterator& it, json_iterator end) {
+        if (it == end || *it != '"')
+            throw std::runtime_error("Expected '\"'");
+        ++it;
+
+        std::string result;
+        while (it != end && *it != '"') {
+            if (*it == '\\') {
+                ++it;
+                if (it == end) throw std::runtime_error("Unexpected end of string");
+                switch (*it) {
+                    case '"':  result += '"';  break;
+                    case '\\': result += '\\'; break;
+                    case '/':  result += '/';  break;
+                    case 'b':  result += '\b'; break;
+                    case 'f':  result += '\f'; break;
+                    case 'n':  result += '\n'; break;
+                    case 'r':  result += '\r'; break;
+                    case 't':  result += '\t'; break;
+                    case 'u': {
+                        if (std::distance(it, end) < 5)
+                            throw std::runtime_error("Invalid \\u escape");
+                        ++it; // move past 'u'
+                        char hex[5] = {0};
+                        for (int i = 0; i < 4; ++i, ++it) {
+                            if (it == end || !std::isxdigit(static_cast<unsigned char>(*it)))
+                                throw std::runtime_error("Invalid hex digit in \\u");
+                            hex[i] = *it;
+                        }
+                        --it;
+                        unsigned long codepoint = std::strtoul(hex, nullptr, 16);
+                        if (codepoint < 0x80) {
+                            result += static_cast<char>(codepoint);
+                        } else if (codepoint < 0x800) {
+                            result += static_cast<char>(0xC0 | (codepoint >> 6));
+                            result += static_cast<char>(0x80 | (codepoint & 0x3F));
+                        } else if (codepoint < 0xD800 || codepoint > 0xDFFF) {
+                            result += static_cast<char>(0xE0 | (codepoint >> 12));
+                            result += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+                            result += static_cast<char>(0x80 | (codepoint & 0x3F));
+                        } else {
+                            result += "\xEF\xBF\xBD";
+                        }
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("Invalid escape character");
+                }
+            } else {
+                result += *it;
+            }
+            ++it;
+        }
+        if (it == end) throw std::runtime_error("Unterminated string");
+        ++it;
+        return PhsString(result);
+    }
+
+    inline Value parse_value(json_iterator& it, json_iterator end);
+
+    inline Value parse_json_number(json_iterator& it, json_iterator end) {
+        auto start = it;
+        bool is_float = false;
+
+        if (it != end && *it == '-') ++it;
+        if (it == end || !std::isdigit(static_cast<unsigned char>(*it)))
+            throw std::runtime_error("Invalid number");
+        while (it != end && std::isdigit(static_cast<unsigned char>(*it))) ++it;
+
+        if (it != end && *it == '.') {
+            is_float = true;
+            ++it;
+            if (it == end || !std::isdigit(static_cast<unsigned char>(*it)))
+                throw std::runtime_error("Invalid number");
+            while (it != end && std::isdigit(static_cast<unsigned char>(*it))) ++it;
+        }
+        if (it != end && (*it == 'e' || *it == 'E')) {
+            is_float = true;
+            ++it;
+            if (it != end && (*it == '+' || *it == '-')) ++it;
+            if (it == end || !std::isdigit(static_cast<unsigned char>(*it)))
+                throw std::runtime_error("Invalid number");
+            while (it != end && std::isdigit(static_cast<unsigned char>(*it))) ++it;
+        }
+
+        std::string number_str(start, it);
+        if (is_float) {
+            try {
+                return Value(std::stod(number_str));
+            } catch (...) {
+                throw std::runtime_error("Number out of range");
+            }
+        } else {
+            try {
+                i64 val = std::stoll(number_str);
+                return Value(val);
+            } catch (const std::out_of_range&) {
+                try {
+                    return Value(std::stod(number_str));
+                } catch (...) {
+                    throw std::runtime_error("Number out of range");
+                }
+            }
+        }
+    }
+
+    inline Value parse_json_array(json_iterator& it, json_iterator end) {
+        if (it == end || *it != '[')
+            throw std::runtime_error("Expected '['");
+        ++it;
+        std::vector<Value> elements;
+        skip_whitespace(it, end);
+        if (it != end && *it != ']') {
+            while (true) {
+                elements.push_back(parse_value(it, end));
+                skip_whitespace(it, end);
+                if (it != end && *it == ',') {
+                    ++it;
+                    skip_whitespace(it, end);
+                } else {
+                    break;
+                }
+            }
+        }
+        if (it == end || *it != ']')
+            throw std::runtime_error("Expected ']'");
+        ++it;
+        return Value(std::make_shared<Value::ArrayInstance>(std::move(elements)));
+    }
+
+    inline Value parse_json_object(json_iterator& it, json_iterator end) {
+        if (it == end || *it != '{')
+            throw std::runtime_error("Expected '{'");
+        ++it;
+        auto struct_ptr = std::make_shared<Value::StructInstance>();
+        struct_ptr->structName = PhsString();
+
+        skip_whitespace(it, end);
+        if (it != end && *it != '}') {
+            while (true) {
+                skip_whitespace(it, end);
+                PhsString key = parse_json_string(it, end);
+                skip_whitespace(it, end);
+                if (it == end || *it != ':')
+                    throw std::runtime_error("Expected ':'");
+                ++it;
+                Value val = parse_value(it, end);
+                struct_ptr->fields[key] = std::move(val);
+                skip_whitespace(it, end);
+                if (it != end && *it == ',') {
+                    ++it;
+                    skip_whitespace(it, end);
+                } else {
+                    break;
+                }
+            }
+        }
+        if (it == end || *it != '}')
+            throw std::runtime_error("Expected '}'");
+        ++it;
+        return Value(std::move(struct_ptr));
+    }
+
+    inline Value parse_value(json_iterator& it, json_iterator end) {
+        skip_whitespace(it, end);
+        if (it == end)
+            throw std::runtime_error("Unexpected end of input");
+
+        if (*it == '"') {
+            return Value(parse_json_string(it, end));
+        } else if (*it == '[') {
+            return parse_json_array(it, end);
+        } else if (*it == '{') {
+            return parse_json_object(it, end);
+        } else if (*it == 't' && std::string_view(it, end).substr(0, 4) == "true") {
+            it += 4;
+            return Value(true);
+        } else if (*it == 'f' && std::string_view(it, end).substr(0, 5) == "false") {
+            it += 5;
+            return Value(false);
+        } else if (*it == 'n' && std::string_view(it, end).substr(0, 4) == "null") {
+            it += 4;
+            return Value();
+        } else if (*it == '-' || std::isdigit(static_cast<unsigned char>(*it))) {
+            return parse_json_number(it, end);
+        } else {
+            throw std::runtime_error("Unexpected character");
+        }
+    }
+} // namespace json
+
+inline Value Value::from_json(const std::string& json) {
+    std::string_view sv(json);
+    auto it = sv.begin();
+    auto end = sv.end();
+    Value result = json::parse_value(it, end);
+    json::skip_whitespace(it, end);
+    if (it != end)
+        throw std::runtime_error("Extra characters after JSON value");
+    return result;
+}
+
 } // namespace Phasor
 
 template <> struct std::formatter<Phasor::Value>
@@ -644,10 +1086,10 @@ template <> struct std::formatter<Phasor::Value>
 		switch (style)
 		{
 		case Style::TypeOnly:
-			return fwd(Value::typeToString(v.getType()).asString());
+			return fwd(Value::typeToString(v.getType()).asString().str());
 
 		case Style::TypeValue:
-			return fwd(Value::typeToString(v.getType()).asString() + "(" + escapeString(v.toString()) + ")");
+			return fwd(Value::typeToString(v.getType()).asString().str() + "(" + escapeString(v.toString()) + ")");
 
 		case Style::Debug:
 			return fwd(debug_repr(v));
@@ -672,7 +1114,7 @@ template <> struct std::formatter<Phasor::Value>
 			case ValueType::Float:
 				return fwd(v.asFloat());
 			case ValueType::String:
-				return fwd(debug_repr(escapeString(v.asString())));
+				return fwd(v.string());
 			case ValueType::Array:
 				return fwd(v.toString());
 			case ValueType::Struct:
@@ -683,7 +1125,7 @@ template <> struct std::formatter<Phasor::Value>
 	}
 
   private:
-	static std::string escapeString(const std::string &input)
+	static std::string escapeString(std::string_view input)
 	{
 		std::string output;
 		output.reserve(input.size());
@@ -765,7 +1207,7 @@ template <> struct std::formatter<Phasor::Value>
 		}
 		case ValueType::Struct: {
 			const auto &s = *v.asStruct();
-			std::string out = s.structName + " { ";
+			std::string out = s.structName.str() + " { ";
 			bool        first = true;
 			for (const auto &[k, val] : s.fields)
 			{
@@ -773,7 +1215,7 @@ template <> struct std::formatter<Phasor::Value>
 				{
 					out += ", ";
 				}
-				out += k + ": " + debug_repr(val);
+				out += k.str() + ": " + debug_repr(val);
 				first = false;
 			}
 			return out + " }";

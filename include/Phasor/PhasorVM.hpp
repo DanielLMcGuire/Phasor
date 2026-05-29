@@ -46,7 +46,6 @@
 
 #define BAD_STATUS -1
 
-
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -134,6 +133,10 @@ class VM
 	/// @brief Get the total number of registers
 	/// @return Number of registers
 	size_t getRegisterCount();
+
+	inline Bytecode getBytecode() {
+		return *m_bytecode;
+	}
 
 	/// @brief Enum for registers
 	enum Register : u8

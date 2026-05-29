@@ -20,6 +20,9 @@
 bool consentAskedCLI{false};
 bool consentGrantedCLI{false};
 
+bool consentAskedEnv{false};
+bool consentGrantedEnv{false};
+
 namespace Phasor
 {
 
@@ -42,21 +45,28 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 	vm->registerNativeFunction("isatty", StdLib::sys_isatty);
 	vm->registerNativeFunction("sys_env", StdLib::sys_env);
-	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
+	vm->registerNativeFunction("sys_args", StdLib::sys_args);
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
+	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 #else
-	auto stub = [](const std::vector<Value> &, VM *) -> Value { return Value(); };
+	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
 	vm->registerNativeFunction("isatty", stub);
 	if (!std::getenv("PHASOR_NO_ENV")) {
 		vm->registerNativeFunction("sys_env", [] (const std::vector<Value> &v, VM *vm) -> Value {
-			if (prompt_consent("Standard library", EConsentVolition::Needs, "use", "system environment variables")) {
+			if (consentGrantedEnv) {
 				return sys_env(v, vm);
-			} else return Value();
+			}
+			if (!consentAskedEnv) {
+				[[unlikely]]
+				consentGrantedEnv = prompt_consent("Standard library", EConsentVolition::Wants, "use", "environment variables"); 
+				consentAskedEnv = true;
+			}
+			return phsnull;
 		});
-		vm->registerNativeFunction("sys_argv", [] (const std::vector<Value> &v, VM *vm) {
+		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm) {
 			if (consentGrantedCLI) {
 				return sys_argc(v, vm);
 			}
@@ -65,18 +75,7 @@ void StdLib::registerSysFunctions(VM *vm)
 				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
 				consentAskedCLI = true;
 			}
-			return Value();
-		});
-		vm->registerNativeFunction("sys_argc", [] (const std::vector<Value> &v, VM *vm) -> Value {
-			if (consentGrantedCLI) {
-				return sys_argc(v, vm);
-			}
-			if (!consentAskedCLI) {
-				[[unlikely]]
-				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
-				consentAskedCLI = true;
-			}
-			return Value();
+			return phsnull;
 		});
 	}
 #endif
@@ -102,7 +101,7 @@ f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "timef");
-	std::string format = args[0].asString();
+	PhsString format = args[0].asString();
 
 	auto        now = std::chrono::system_clock::now();
 	std::time_t t = std::chrono::system_clock::to_time_t(now);
@@ -120,7 +119,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 		return Value(" ");
 	}
 
-	return std::string(buffer);
+	return PhsString(buffer);
 }
 
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
@@ -134,28 +133,37 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
-	std::string key = args[0].asString();
-	std::string value;
+	PhsString key = args[0].asString();
+	PhsString value;
 	dupenv_ret result = dupenv(value, key.c_str());
 	if (result == dupenv_ret::NotFound) return false;
 	else if (result == dupenv_ret::Success) return value;
-	else return Value();
+	else return phsnull;
+}
+
+i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "sys_args");
+	return static_cast<i64>(argc);
 }
 
 Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
 	i64 index = args[0].asInt();
-	if (argv)
-		if (argc > index && index >= 0) return argv[index];
-		else throw std::runtime_error("sys_argv: Index out of bounds: " + std::to_string(index));
-	else return Value();
+	if (index < 0 || index >= argc) return phsnull;
+	return argv[index];
 }
 
-i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
+Value StdLib::sys_args(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 0, "sys_argc");
-	return static_cast<i64>(argc);
+	checkArgCount(args, 0, "sys_args");
+	std::vector<Value> arguments;
+	for (int i = 0; i < argc; ++i)
+	{
+		arguments.push_back(Value(argv[i]));
+	}
+	return Value::createArray(std::move(arguments));
 }
 
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
@@ -168,7 +176,7 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 
-std::string StdLib::sys_os(const std::vector<Value> &args, VM *)
+PhsString StdLib::sys_os(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
@@ -207,15 +215,33 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 
 i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 1, "sys_fork", true);
-	const char         *executable = args[0].c_str();
-	int                 argc = (int)args.size() - 1;
-	std::vector<char *> v_argv(argc);
-	for (int i = 0; i < argc; ++i)
-	{
-		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
-	}
-	return static_cast<i64>(PHASORstd_sys_run(executable, argc, v_argv.data()));
+    checkArgCount(args, 1, "sys_fork", true);
+    
+    const char *executable = args[0].c_str();
+    std::vector<char *> v_argv;
+
+    if (args.size() == 2 && args[1].isArray()) 
+    {
+        const auto& arr = *args[1].asArray(); 
+        
+        v_argv.reserve(arr.size());
+        
+        for (const auto& val : arr) 
+        {
+            v_argv.push_back(const_cast<char *>(val.c_str()));
+        }
+    }
+    else 
+    {
+        int argc = (int)args.size() - 1;
+        v_argv.reserve(argc);
+        for (int i = 0; i < argc; ++i)
+        {
+            v_argv.push_back(const_cast<char *>(args[i + 1].c_str()));
+        }
+    }
+
+    return static_cast<i64>(PHASORstd_sys_run(executable, static_cast<int>(v_argv.size()), v_argv.data()));
 }
 
 i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
@@ -243,7 +269,7 @@ Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "reset");
 	vm->reset();
-	return Value();
+	return phsnull;
 }
 
 i64 StdLib::sys_pid(const std::vector<Value> &args, VM *)

@@ -39,10 +39,12 @@ struct Instruction
 /// @brief Struct metadata stored alongside bytecode (struct section)
 struct StructInfo
 {
-	std::string              name;            ///< Struct name
-	int                      firstConstIndex; ///< Index into constants for the first default value
-	int                      fieldCount;      ///< Number of fields in this struct
-	std::vector<std::string> fieldNames;      ///< Field names in declaration order
+    std::string              name;
+    int                      firstConstIndex;
+    int                      fieldCount;
+    std::vector<std::string> fieldNames;
+    std::vector<std::vector<int>> fieldArrayDims;
+    std::vector<std::string>      fieldTypeNames;
 };
 
 /// @brief Complete bytecode structure
@@ -53,6 +55,9 @@ struct Bytecode
 	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
 	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
 	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
+	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
+	std::unordered_map<std::string, std::vector<std::vector<int>>> functionParamArrayDims;
+	std::unordered_map<std::string, std::string> functionReturnTypeNames; ///< Function name -> return type name
 	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
@@ -124,6 +129,9 @@ class CodeGenerator
 	bool     isRepl = false; ///< REPL mode
 	// Inferred types for variables (simple, flow-insensitive mapping)
 	std::unordered_map<std::string, ValueType> inferredTypes;
+	std::unordered_map<std::string, std::unordered_map<std::string, ValueType>> inferredFieldTypes;
+	std::string currentFunctionReturnType;
+	std::unordered_map<std::string, std::vector<int>> arrayDimensions;
 
 	// Register allocation for v2.0
 	u8           nextRegister = 0; ///< Next available register
@@ -184,7 +192,7 @@ class CodeGenerator
 	void generateIdentifierExpr(const AST::IdentifierExpr *identExpr); ///< Generate bytecode from Identifier Expression
 	void generateUnaryExpr(const AST::UnaryExpr *unaryExpr);           ///< Generate bytecode from Unary Expression
 	void generateCallExpr(const AST::CallExpr *callExpr);              ///< Generate bytecode from Call Expression
-	void generateBinaryExpr(const AST::BinaryExpr *binExpr);           ///< Generate bytecode from Binary Expression
+	void generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType hint = ValueType::Null);           ///< Generate bytecode from Binary Expression
 	void generateBlockStmt(const AST::BlockStmt *blockStmt);           ///< Generate bytecode from Block Statement
 	void generateIfStmt(const AST::IfStmt *ifStmt);                    ///< Generate bytecode from If Statement
 	void generateWhileStmt(const AST::WhileStmt *whileStmt);           ///< Generate bytecode from While Statement
@@ -204,11 +212,17 @@ class CodeGenerator
 	void generateBreakStmt();
 	void generateContinueStmt();
 	void generateSwitchStmt(const AST::SwitchStmt *switchStmt);
+	void generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded);
+	void generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded);
+
+	ValueType mapTypeNameToValueType(const std::string &typeName);
 
 	// Loop context for break/continue
 	std::vector<int>              loopStartStack;     // Stack of loop start positions
 	std::vector<std::vector<int>> breakJumpsStack;    // Stack of break jump positions to patch
 	std::vector<std::vector<int>> continueJumpsStack; // Stack of continue jump positions to patch
+
+	std::unordered_map<std::string, std::string> arrayBaseTypes;
 
 	int switchCounter = 0; // Monotonic counter for unique switch temp variable names
 };

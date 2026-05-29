@@ -33,7 +33,7 @@ prepare() {
 
 build() {
     cd "$startdir"
-    "/usr/bin/python" "$startdir/pmake-bootstrap.py" --native
+    "/usr/bin/python" "$startdir/pmake-bootstrap.py" --native --force
     chmod +x "$startdir/pmake"
     "$startdir/pmake" linux-64-rel -s "$startdir" -b
 

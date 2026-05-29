@@ -440,44 +440,42 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
 
         detail::Spec s;
 
-        for (bool more = true; more;) {
+        // ---- SAFE MANUAL PARSER (NO va_list) ----
+
+        while (true) {
             switch (*f) {
-                case '-':
-                    s.minus = true;
-                    ++f;
-                    break;
-                case '+':
-                    s.plus = true;
-                    ++f;
-                    break;
-                case ' ':
-                    s.space = true;
-                    ++f;
-                    break;
-                case '#':
-                    s.hash = true;
-                    ++f; 
-                    break;
-                case '0':
-                    s.zero = true;
-                    ++f;
-                    break;
-                case '\'':
-                    s.quote = true;
-                    ++f;
-                    break;
-                default:
-                    more = false;
-                    break;
+                case '-': s.minus = true; ++f; continue;
+                case '+': s.plus = true; ++f; continue;
+                case ' ': s.space = true; ++f; continue;
+                case '#': s.hash = true; ++f; continue;
+                case '0': s.zero = true; ++f; continue;
+                case '\'': s.quote = true; ++f; continue;
+                default: break;
             }
+            break;
         }
 
-        while (*f >= '0' && *f <= '9') s.width = s.width * 10 + (*f++ - '0');
+        if (*f == '*') {
+            if (argIndex < args.size() && args[argIndex].getType() == Phasor::ValueType::Int)
+                s.width = (int)args[argIndex++].asInt();
+            ++f;
+        } else {
+            while (*f >= '0' && *f <= '9')
+                s.width = s.width * 10 + (*f++ - '0');
+        }
 
         if (*f == '.') {
             ++f;
             s.prec = 0;
-            while (*f >= '0' && *f <= '9') s.prec = s.prec * 10 + (*f++ - '0');
+
+            if (*f == '*') {
+                if (argIndex < args.size() && args[argIndex].getType() == Phasor::ValueType::Int)
+                    s.prec = (int)args[argIndex++].asInt();
+                ++f;
+            } else {
+                while (*f >= '0' && *f <= '9')
+                    s.prec = s.prec * 10 + (*f++ - '0');
+            }
         }
 
         switch (*f) {
@@ -486,150 +484,142 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 if (*f == 'h') { s.length = detail::Length::hh; ++f; }
                 else s.length = detail::Length::h;
                 break;
-            case 'l': 
+            case 'l':
                 ++f;
                 if (*f == 'l') { s.length = detail::Length::ll; ++f; }
                 else s.length = detail::Length::l;
                 break;
-            case 'L': 
-                s.length = detail::Length::L; 
-                ++f; 
-                break;
-            case 'z': case 'Z': 
-                s.length = detail::Length::z;
-                ++f;
-                break;
-            case 't': 
-                s.length = detail::Length::t;
-                ++f;
-                break;
-            case 'j':
-                s.length = detail::Length::j;
-                ++f;
-                break;
-            default: 
-                break;
+            case 'L': s.length = detail::Length::L; ++f; break;
+            case 'z':
+            case 'Z': s.length = detail::Length::z; ++f; break;
+            case 't': s.length = detail::Length::t; ++f; break;
+            case 'j': s.length = detail::Length::j; ++f; break;
+            default: break;
         }
 
         s.conv = *f;
         if (*f) ++f;
 
-        if (s.conv == 'm') { result += ::strerror(errno); continue; }
-        if (s.conv == 'n') { continue; }
-
-        if (argIndex >= args.size()) continue;
+        if (argIndex >= args.size()) {
+            result += '%';
+            result += s.conv;
+            continue;
+        }
 
         const Phasor::Value &val = args[argIndex++];
-        const Phasor::ValueType type = val.getType();
+        const auto type = val.getType();
 
         switch (s.conv) {
-            case 'd': case 'i':
-            case 'u': case 'o': case 'x': case 'X': {
-                long long ival = 0;
-                switch (type) {
-                    case Phasor::ValueType::Int:
-                        ival = val.asInt();
-                        break;
-                    case Phasor::ValueType::Bool:
-                        ival = val.asBool() ? 1LL : 0LL;
-                        break;
-                    case Phasor::ValueType::Float:
-                        ival = (long long)val.asFloat();
-                        break;
-                    default:
-                    break;
-                }
+
+            case 'd': case 'i': {
+                long long v = 0;
+                if (type == Phasor::ValueType::Int)
+                    v = val.asInt();
+                else if (type == Phasor::ValueType::Bool)
+                    v = val.asBool() ? 1 : 0;
+                else if (type == Phasor::ValueType::Float)
+                    v = (long long)val.asFloat();
+
                 std::string fmtStr = detail::build_fmt(s, "ll", s.conv);
-                if (s.conv == 'd' || s.conv == 'i') {
-                    result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
-                        return std::snprintf(b, n, fmtStr.c_str(), ival);
-                    });
-                } else {
-                    unsigned long long uval = (unsigned long long)ival;
-                    result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
-                        return std::snprintf(b, n, fmtStr.c_str(), uval);
-                    });
-                }
+
+                result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
+                    return std::snprintf(b, n, fmtStr.c_str(), v);
+                });
                 break;
             }
 
-            case 'f': case 'F': case 'e': case 'E':
-            case 'g': case 'G': case 'a': case 'A': {
-                double dval = 0.0;
-                switch (type) {
-                    case Phasor::ValueType::Float:
-                        dval = val.asFloat(); 
-                        break;
-                    case Phasor::ValueType::Int:
-                        dval = (double)val.asInt();
-                        break;
-                    case Phasor::ValueType::Bool:
-                        dval = val.asBool() ? 1.0 : 0.0;
-                        break;
-                    default: 
-                        break;
-                }
-                std::string fmtStr = detail::build_fmt(s, "", s.conv);
+            case 'u': case 'o': case 'x': case 'X': {
+                unsigned long long v = 0;
+
+                if (type == Phasor::ValueType::Int)
+                    v = (unsigned long long)val.asInt();
+                else if (type == Phasor::ValueType::Bool)
+                    v = val.asBool() ? 1ULL : 0ULL;
+                else if (type == Phasor::ValueType::Float)
+                    v = (unsigned long long)val.asFloat();
+
+                std::string fmtStr = detail::build_fmt(s, "ll", s.conv);
+
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
-                    return std::snprintf(b, n, fmtStr.c_str(), dval);
+                    return std::snprintf(b, n, fmtStr.c_str(), v);
+                });
+                break;
+            }
+
+            case 'f': case 'F':
+            case 'e': case 'E':
+            case 'g': case 'G':
+            case 'a': case 'A': {
+                double v = 0.0;
+
+                if (type == Phasor::ValueType::Float)
+                    v = val.asFloat();
+                else if (type == Phasor::ValueType::Int)
+                    v = (double)val.asInt();
+                else if (type == Phasor::ValueType::Bool)
+                    v = val.asBool() ? 1.0 : 0.0;
+
+                std::string fmtStr = detail::build_fmt(s, "", s.conv);
+
+                result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
+                    return std::snprintf(b, n, fmtStr.c_str(), v);
                 });
                 break;
             }
 
             case 's': {
-                if (type == Phasor::ValueType::Struct || type == Phasor::ValueType::Array) break;
-
                 std::string str;
-                switch (type) {
-                    case Phasor::ValueType::String:
-                        str = val.asString();
-                        break;
-                    case Phasor::ValueType::Bool:
-                        str = val.asBool() ? "true" : "false";
-                        break;
-                    case Phasor::ValueType::Null:
-                        str = "(null)";
-                        break;
-                    default:
-                        str = val.toString();
-                        break;
-                }
+
+                if (type == Phasor::ValueType::String)
+                    str = val.asString();
+                else if (type == Phasor::ValueType::Bool)
+                    str = val.asBool() ? "true" : "false";
+                else if (type == Phasor::ValueType::Null)
+                    str = "(null)";
+                else
+                    str = val.jsonSerialize().str();
 
                 std::size_t len = (s.prec >= 0)
                     ? std::min((std::size_t)s.prec, str.size())
                     : str.size();
+
                 int pad = s.width - (int)len;
+
                 if (!s.minus && pad > 0) result.append(pad, ' ');
                 result.append(str.data(), len);
-                if ( s.minus && pad > 0) result.append(pad, ' ');
+                if (s.minus && pad > 0) result.append(pad, ' ');
                 break;
             }
 
             case 'c': {
                 char c = '\0';
-                switch (type) {
-                    case Phasor::ValueType::Int:
-                        c = (char)val.asInt();
-                        break;
-                    case Phasor::ValueType::Bool:
-                        c = val.asBool() ? '\x01' : '\x00';
-                        break;
-                    default: 
-                        break;
-                }
+
+                if (type == Phasor::ValueType::Int)
+                    c = (char)val.asInt();
+                else if (type == Phasor::ValueType::Bool)
+                    c = val.asBool() ? '1' : '0';
+
                 int pad = s.width - 1;
+
                 if (!s.minus && pad > 0) result.append(pad, ' ');
                 result += c;
-                if ( s.minus && pad > 0) result.append(pad, ' ');
+                if (s.minus && pad > 0) result.append(pad, ' ');
                 break;
             }
 
             case 'p': {
-                const void *ptr = static_cast<const void *>(&val);
+                const void *ptr = nullptr;
+
+                if (type == Phasor::ValueType::Int)
+                    ptr = (const void*)(uintptr_t)val.asInt();
+                else
+                    ptr = nullptr;
+
                 std::string fmtStr = "%";
                 if (s.minus) fmtStr += '-';
                 if (s.width > 0) fmtStr += std::to_string(s.width);
                 fmtStr += 'p';
+
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), ptr);
                 });
@@ -638,7 +628,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
 
             default:
                 result += '%';
-                if (s.conv) result += s.conv;
+                result += s.conv;
                 break;
         }
     }

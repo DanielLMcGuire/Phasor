@@ -66,6 +66,8 @@ void VM::setup(const Bytecode &bc, const size_t initialPC) {
 	stack.clear();
 	callStack.clear();
 
+	registerArrayFunctions();
+
 #ifdef TRACING
 	log(std::format("\nVM::{}():\n\n{}\n", __func__, getBytecodeInformation()));
 	flush();
@@ -73,21 +75,6 @@ void VM::setup(const Bytecode &bc, const size_t initialPC) {
 
 	registers.fill(Value());
 	variables.resize(m_bytecode->nextVarIndex);
-}
-
-void VM::evalLoop()
-{
-	while (pc < m_bytecode->instructions.size())
-	{
-		const Instruction &instr = m_bytecode->instructions[pc++];
-
-#ifdef TRACING
-		log(std::format("\nVM::{}(): RUN (pc={})\n", __func__, pc - 1));
-		flush();
-#endif
-
-		operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
-	}
 }
 
 int VM::run(const Bytecode &bc, const size_t startPC)

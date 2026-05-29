@@ -23,7 +23,7 @@ Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
 	}
 
 	PHASORstd_rand_seed(static_cast<u64>(s1), static_cast<u64>(s2));
-	return Value();
+	return phsnull;
 }
 
 i64 StdLib::rand_next_range(const std::vector<Value> &args, VM *)

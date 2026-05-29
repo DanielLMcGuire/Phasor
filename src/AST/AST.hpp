@@ -407,21 +407,32 @@ struct AssignmentExpr : public Expression
 };
 
 /// @brief Variable Declaration Node
-struct VarDecl : public Statement
+class VarDecl : public Statement
 {
-	std::string                 name;
-	std::unique_ptr<Expression> initializer;
-	VarDecl(std::string n, std::unique_ptr<Expression> init) : name(std::move(n)), initializer(std::move(init))
-	{
-	}
-	void print(int indent = 0) const override
-	{
-		std::cout << std::string(indent, ' ') << "VarDecl: " << name << "\n";
-		if (initializer)
-		{
-			initializer->print(indent + 2);
-		}
-	}
+public:
+    std::string name;
+    std::unique_ptr<TypeNode> type;
+    std::unique_ptr<Expression> initializer;
+
+    VarDecl(std::string name, std::unique_ptr<Expression> initializer)
+        : name(std::move(name)), type(nullptr), initializer(std::move(initializer)) {}
+
+    VarDecl(std::string name, std::unique_ptr<TypeNode> type, std::unique_ptr<Expression> initializer)
+        : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)) {}
+
+    void print(int indent = 0) const override
+    {
+        std::string spacing(indent, ' ');
+        std::cout << spacing << "VarDecl: " << name << "\n";
+        if (type)
+        {
+            type->print(indent + 2);
+        }
+        if (initializer)
+        {
+            initializer->print(indent + 2);
+        }
+    }
 };
 
 /// @brief Expression Statement Node

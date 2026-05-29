@@ -171,40 +171,72 @@ std::unique_ptr<Statement> Parser::functionDeclaration()
 
 std::unique_ptr<TypeNode> Parser::parseType()
 {
-	Token start = peek();
-	bool  isPointer = false;
-	if (match(Phasor::TokenType::Symbol, "*"))
-	{
-		isPointer = true;
-	}
-	Token typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+    Token start = peek();
+    bool  isPointer = false;
+    if (match(Phasor::TokenType::Symbol, "*"))
+    {
+        isPointer = true;
+    }
 
-	std::vector<int> dims;
-	while (match(Phasor::TokenType::Symbol, "["))
-	{
-		Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
-		dims.push_back(std::stoi(size.lexeme));
-		consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
-	}
-	auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
-	node->line = start.line;
-	node->column = start.column;
-	return node;
+    // Accept both identifiers and the 'any' keyword as type names
+    Token typeName;
+    if (check(Phasor::TokenType::Identifier))
+    {
+        typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+    }
+    else if (check(Phasor::TokenType::Keyword) && peek().lexeme == "any")
+    {
+        typeName = advance();
+    }
+    else
+    {
+        typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+    }
+
+    std::vector<int> dims;
+    while (match(Phasor::TokenType::Symbol, "["))
+    {
+        if (check(Phasor::TokenType::Number))
+        {
+            Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
+            dims.push_back(std::stoi(size.lexeme));
+        }
+        else
+        {
+            dims.push_back(-1); 
+        }
+        consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
+    }
+    auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
+    node->line = start.line;
+    node->column = start.column;
+    return node;
 }
 
 std::unique_ptr<Statement> Parser::varDeclaration()
 {
-	Token                       name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
-	std::unique_ptr<Expression> initializer = nullptr;
-	if (match(Phasor::TokenType::Symbol, "="))
-	{
-		initializer = expression();
-	}
-	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
-	auto node = std::make_unique<VarDecl>(name.lexeme, std::move(initializer));
-	node->line = name.line;
-	node->column = name.column;
-	return node;
+    Token name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
+
+    if (!check(Phasor::TokenType::Symbol) || peek().lexeme != ":")
+    {
+        lastError = {"Variable '" + std::string(name.lexeme) + "' must have a type annotation (e.g. var " + std::string(name.lexeme) + ": int or var " + std::string(name.lexeme) + ": any)", name.line, name.column};
+        throw std::runtime_error("Variable '" + std::string(name.lexeme) + "' must have a type annotation.");
+    }
+    consume(Phasor::TokenType::Symbol, ":", "Expect ':' after variable name.");
+    auto type = parseType();
+
+    std::unique_ptr<Expression> initializer = nullptr;
+    if (match(Phasor::TokenType::Symbol, "="))
+    {
+        initializer = expression();
+    }
+    
+    consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
+    
+    auto node = std::make_unique<VarDecl>(name.lexeme, std::move(type), std::move(initializer));
+    node->line = name.line;
+    node->column = name.column;
+    return node;
 }
 
 std::unique_ptr<Statement> Parser::statement()
@@ -750,10 +782,21 @@ std::unique_ptr<Expression> Parser::call()
 			Token op = previous();
 			auto  index = expression();
 			consume(Phasor::TokenType::Symbol, "]", "Expect ']' after index.");
-			auto node = std::make_unique<ArrayAccessExpr>(std::move(expr), std::move(index));
-			node->line = op.line;
-			node->column = op.column;
-			expr = std::move(node);
+
+			if (auto* strLit = dynamic_cast<StringExpr*>(index.get()))
+			{
+				auto node = std::make_unique<FieldAccessExpr>(std::move(expr), strLit->value);
+				node->line = op.line;
+				node->column = op.column;
+				expr = std::move(node);
+			}
+			else
+			{
+				auto node = std::make_unique<ArrayAccessExpr>(std::move(expr), std::move(index));
+				node->line = op.line;
+				node->column = op.column;
+				expr = std::move(node);
+			}
 		}
 		else
 		{
@@ -879,6 +922,24 @@ std::unique_ptr<Expression> Parser::primary()
 		consume(Phasor::TokenType::Symbol, ")", "Expect ')' after expression.");
 		return expr;
 	}
+	if (check(Phasor::TokenType::Symbol) && peek().lexeme == "{")
+	{
+		// Empty struct: {}
+		if (current + 1 < static_cast<int>(tokens.size()) &&
+			tokens[current + 1].type == Phasor::TokenType::Symbol &&
+			tokens[current + 1].lexeme == "}")
+		{
+			return anonymousStructInstance();
+		}
+		// Struct with fields: { ident: ...
+		if (current + 2 < static_cast<int>(tokens.size()) &&
+			tokens[current + 1].type == Phasor::TokenType::Identifier &&
+			tokens[current + 2].type == Phasor::TokenType::Symbol &&
+			tokens[current + 2].lexeme == ":")
+		{
+			return anonymousStructInstance();
+		}
+	}
 	std::cerr << "Error: Expect expression at '" << peek().lexeme << "'";
 	std::cerr << " (line " << peek().line << ", column " << peek().column << ")\n";
 	lastError = {"Expect expression", peek().line, peek().column};
@@ -905,6 +966,11 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 		}
 
 		Token fieldNameTok = consume(Phasor::TokenType::Identifier, "Expected field name");
+		if (!check(Phasor::TokenType::Symbol) || peek().lexeme != ":")
+		{
+			lastError = {"Struct field '" + std::string(fieldNameTok.lexeme) + "' must have a type annotation (e.g. " + std::string(fieldNameTok.lexeme) + ": int or " + std::string(fieldNameTok.lexeme) + ": any[])", fieldNameTok.line, fieldNameTok.column};
+			throw std::runtime_error("Struct field '" + std::string(fieldNameTok.lexeme) + "' must have a type annotation.");
+		}
 		consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name");
 		auto type = parseType();
 		fields.emplace_back(fieldNameTok.lexeme, std::move(type));
@@ -924,7 +990,7 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 
 // Struct instantiation
 // Point{ x: 10, y: 20 }
-std::unique_ptr<StructInstanceExpr> Parser::structInstance()
+std::unique_ptr<AST::StructInstanceExpr> Parser::structInstance()
 {
 	Token nameTok = consume(Phasor::TokenType::Identifier, "Expected struct name");
 	consume(Phasor::TokenType::Symbol, "{", "Expected '{' in struct instance");
@@ -949,10 +1015,42 @@ std::unique_ptr<StructInstanceExpr> Parser::structInstance()
 	}
 
 	consume(Phasor::TokenType::Symbol, "}", "Expected '}' after struct fields");
-	auto node = std::make_unique<StructInstanceExpr>(nameTok.lexeme, std::move(fields));
+	auto node = std::make_unique<AST::StructInstanceExpr>(nameTok.lexeme, std::move(fields));
 	node->line = nameTok.line;
 	node->column = nameTok.column;
 	return node;
+}
+
+// Anonymous struct literal
+// { x: 10, y: 20 }
+std::unique_ptr<AST::StructInstanceExpr> Parser::anonymousStructInstance()
+{
+    Token start = peek();
+    consume(Phasor::TokenType::Symbol, "{", "Expected '{' in anonymous struct literal.");
+
+    std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fields;
+    while (!check(Phasor::TokenType::Symbol) || peek().lexeme != "}")
+    {
+        if (isAtEnd())
+        {
+            lastError = {"Unterminated anonymous struct literal.", peek().line, peek().column};
+            throw std::runtime_error("Unterminated anonymous struct literal.");
+        }
+        Token fieldNameTok = consume(Phasor::TokenType::Identifier, "Expected field name in anonymous struct.");
+        consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name.");
+        auto value = expression();
+        fields.emplace_back(fieldNameTok.lexeme, std::move(value));
+
+        if (!match(Phasor::TokenType::Symbol, ","))
+            break;
+    }
+    consume(Phasor::TokenType::Symbol, "}", "Expected '}' after anonymous struct fields.");
+
+    // Empty name signals anonymous — falls through to the dynamic NEW_STRUCT path in CodeGen
+    auto node = std::make_unique<AST::StructInstanceExpr>("__anon", std::move(fields));
+    node->line = start.line;
+    node->column = start.column;
+    return node;
 }
 
 // Field access
@@ -999,7 +1097,7 @@ bool Parser::isAtEnd()
 	return peek().type == Phasor::TokenType::EndOfFile;
 }
 
-bool Parser::check(TokenType type)
+bool Parser::check(Phasor::TokenType type)
 {
 	if (isAtEnd())
 	{
@@ -1008,7 +1106,7 @@ bool Parser::check(TokenType type)
 	return peek().type == type;
 }
 
-bool Parser::match(TokenType type)
+bool Parser::match(Phasor::TokenType type)
 {
 	if (check(type))
 	{
@@ -1018,7 +1116,7 @@ bool Parser::match(TokenType type)
 	return false;
 }
 
-Token Parser::consume(TokenType type, const std::string &message)
+Token Parser::consume(Phasor::TokenType type, const std::string &message)
 {
 	if (check(type))
 	{
@@ -1036,7 +1134,7 @@ Token Parser::consume(TokenType type, const std::string &message)
 	throw std::runtime_error(message);
 }
 
-bool Parser::match(TokenType type, const std::string &lexeme)
+bool Parser::match(Phasor::TokenType type, const std::string &lexeme)
 {
 	if (check(type) && peek().lexeme == lexeme)
 	{
@@ -1046,7 +1144,7 @@ bool Parser::match(TokenType type, const std::string &lexeme)
 	return false;
 }
 
-Token Parser::consume(TokenType type, const std::string &lexeme, const std::string &message)
+Token Parser::consume(Phasor::TokenType type, const std::string &lexeme, const std::string &message)
 {
 	if (check(type) && peek().lexeme == lexeme)
 	{
@@ -1065,7 +1163,7 @@ Token Parser::consume(TokenType type, const std::string &lexeme, const std::stri
 	throw std::runtime_error(message);
 }
 
-Token Parser::expect(TokenType type, const std::string &message)
+Token Parser::expect(Phasor::TokenType type, const std::string &message)
 {
 	if (check(type))
 	{

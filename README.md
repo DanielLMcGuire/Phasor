@@ -9,7 +9,7 @@
 >
 > This is a in-development branch, stability is NOT a priority.
 
-A dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
+A statically/dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of a unified type system, which provides C++ RAII support to the runtime, stdlib, and FFI interfaces.
 
@@ -36,8 +36,12 @@ phasor <options>
 
 ## Language Features
 
-- **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x = 21; // int```
-- **Type annotations** (only in function declarations) ```fn func(input: string) -> void { ... }```
+- **Dynamic typing** with integers, floats (IEEE 754, double-percision), strings, booleans, and null. ```var x: any = 21; // int```
+- **Structs** ```struct Point { x: int, y: int } var p: Point = { x: 10, y: 20 }; p.x = 42;```
+- **Arrays** ```var dyn: any[] = [1, "hi", null, 15.1]; var typed: int[] = [15, 12]; var strict: int[10]; strict[0] = 99; var item: int = strict[0];```
+- **Uniform Function Call Syntax** for stdlib/builtin/ffi ```var x: any = 15; x.len(); "Hello".len().puts()```
+- **Type annotations** ```fn func(input: string) -> void { ... }```
+- **JSON Support** ```var x: string = to_json({ x: 10, y: 20 }); var y: any = from_json(x);```
 - **Control flow**: if/else, while, for, switch/case, break/continue
 - **Standard library** ```using(featureName: string)```
 - **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)
@@ -59,13 +63,16 @@ puts("Hello World!"); // Print string with newline
 
 ```javascript
 using("stdsys", "stdio"); // Import sys, io
-// Variables
-var code = 15; // int
-var fmt = "Code = %d"; // string
+// Variables implicitly typed
+var code: any = 15; // int
+var fmt: any = "Code = %d"; // string
+// or explicitly:
+var code: int = 15;
+var fmt: string = "Code = %d";
 // Formatting
 printf("Exiting with code %d", code);
 putf("%d", code);
-var fmtStr = c_fmt(fmt, code);
+var fmtStr: string = c_fmt(fmt, code);
 // Exit with a code other than 0
 shutdown(code); // from stdsys
 ```
@@ -77,9 +84,6 @@ shutdown(code); // from stdsys
 > Some may *appear* to work before actual implementation
 >
 > The existance of a keyword/token type does not imply there is planned support for said feature
-
-- **Structs** with C style static field access ```struct.member = 14;```
-- **Arrays** with C syntax ```var arrayName[arraySize];```
 - **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
 - LLVM Jit for hot loops / functions
 
@@ -112,9 +116,9 @@ $
 using("stdio", "stdtype", "stdmem");
 
 puts("Enter a number:");
-var input = gets();
-var num1 = to_int(input);
-var num2 = 25;
+var input: string = gets();
+var num1: int = to_int(input);
+var num2: int = 25;
 putf("%d + %d = %d\n", num, num2, num1 + num2);
 ```
 
@@ -295,7 +299,7 @@ This repo contains:
 - Required:
   - [Ninja](https://github.com/ninja-build/ninja/releases)
   - [CMake 3.21+](https://cmake.org/download/)
-  - GAS Assembler (Unix-based System V compliant OS / Darwin (OSX/macOS) 64-bit only)
+  - GAS/Clang Assembler (Unix-based System V compliant OS / Darwin (OSX/macOS) 64-bit only)
   - MASM Assembler (Windows 64-bit only)
   - CC (C 23 Compliant) compiler and CXX (C++ 23 Compliant) compiler supporting GCC/Clang extensions or Windows specific extensions
     - [MSVC VS22 17.2 or later](https://visualstudio.microsoft.com/downloads/?q=build+tools)

@@ -1,0 +1,11 @@
+#!/usr/bin/env phasor
+using("stdio", "stdsys");
+fn main(args: string[]) -> int {
+    for (var i: int = 1; i < len(args); i++) {
+        puts(args[i]);
+    }
+    // puts(args); ["script", "arg1", "arg2", etc] 
+    return 0;
+}
+
+shutdown(main(sys_args()));

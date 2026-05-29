@@ -1,8 +1,8 @@
 if(MSVC)
-    set(MSVC_COMMON_RELEASE "/Oxyit /GL /Gy /Ob3 /W3 /fp:precise /Qspectre-")
+    set(MSVC_COMMON_RELEASE "/Oxyit /GL /GF /Gy /Ob3 /W3 /fp:precise /Qspectre-")
     set(MSVC_COMMON_DEBUG   "/Od /Zi /fp:strict")
 
-    set(MSVC_CXX_EXTRA "/EHsc /permissive- /DNOMINMAX /DWIN32_LEAN_AND_MEAN")
+    set(MSVC_CXX_EXTRA "/EHsc /permissive-")
 
     if(IS_XBOX AND IS_XDURANGO)
         set(MSVC_ARCH "/arch:SSE2")
@@ -13,18 +13,29 @@ if(MSVC)
     set(CMAKE_C_FLAGS_RELEASE   "${MSVC_COMMON_RELEASE} ${MSVC_ARCH}")
     set(CMAKE_CXX_FLAGS_RELEASE "${MSVC_COMMON_RELEASE} ${MSVC_ARCH} ${MSVC_CXX_EXTRA}")
 
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELEASE} /Zi")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+
     set(CMAKE_C_FLAGS_DEBUG     "${MSVC_COMMON_DEBUG}")
     set(CMAKE_CXX_FLAGS_DEBUG   "${MSVC_COMMON_DEBUG} ${MSVC_CXX_EXTRA}")
 
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "/LTCG /OPT:REF /OPT:ICF")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "/LTCG /OPT:REF /OPT:ICF /PDBSTRIPPED")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/LTCG /OPT:REF /OPT:ICF")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG      "/DEBUG /MAP")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG   "/DEBUG /MAP")
 
+    add_compile_options(
+        "$<$<COMPILE_LANGUAGE:CXX>:/FI>"
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/include/alloc_trace.hpp>"
+    )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if (PGO_A)
+        set(LTO_FLAG "")
+    else()
         set(LTO_FLAG "-flto=thin")
+    endif()
 
         if(CLANG_SAN_ADDR AND CLANG_SAN_LEAK)
             set(CLANG_SAN_FLAGS "-fsanitize=address,leak -fno-omit-frame-pointer")
@@ -53,10 +64,15 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         set(CLANG_SAN_FLAGS "")
     endif()
 
-    if (WIN32)
-        set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -DNOMINMAX -DWIN32_LEAN_AND_MEAN")
-    else()
-        set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers")
+    if (PGO_A)
+        set(COMMON_OPT "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -Wno-gnu-label-as-value -fprofile-instr-generate=${CMAKE_SOURCE_DIR}/%m-%p.profraw")
+    endif()
+    if (PGO_B)
+        set(COMMON_OPT   "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -Wno-gnu-label-as-value -fprofile-instr-use=phasor.profdata")
+        set(COMMON_OPT   "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -Wno-gnu-label-as-value -fprofile-instr-use=phasor.profdata")
+    endif()
+    if (NOT PGO_A AND NOT PGO_B)
+     set(COMMON_OPT  "-O3 ${LTO_FLAG} -funroll-loops -fomit-frame-pointer -Wno-missing-field-initializers -Wno-gnu-label-as-value")
     endif()
     set(COMMON_FP   "-fno-fast-math")
     set(COMMON_WARN "-Wall -Wextra -pedantic")
@@ -152,6 +168,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         set(DEBUG_INFO "-g")
     endif()
 
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELEASE} -g")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -g")
+
     set(CMAKE_C_FLAGS_DEBUG
         "-O0 ${DEBUG_INFO} -fno-omit-frame-pointer -fno-fast-math ${CLANG_SAN_FLAGS}"
     )
@@ -161,6 +180,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG    "${CLANG_SAN_FLAGS}")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CLANG_SAN_FLAGS}")
 
+    add_compile_options(
+        "$<$<COMPILE_LANGUAGE:CXX>:-include>"
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/include/alloc_trace.hpp>"
+    )
 else()
     message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. No custom flags applied.")
 endif()

@@ -8,6 +8,10 @@ if(IS_TRACING)
     add_compile_definitions(TRACING)
 endif()
 
+if(IS_TRACING_ALLOCATIONS)
+    add_compile_definitions(TRACING_ALLOC)
+endif()
+
 if(IS_TIMING)
     add_compile_definitions(TIMING)
 endif()
@@ -32,4 +36,8 @@ endif()
 
 if(EMSCRIPTEN)
     set(IS_SANDBOXED ON)
+endif()
+
+if(WIN32)
+    add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
