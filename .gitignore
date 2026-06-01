@@ -717,3 +717,4 @@ scripts/harvest.wxs
 *.wixpdb
 /target
 /.zig-cache
+*.bak
