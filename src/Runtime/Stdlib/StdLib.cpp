@@ -106,11 +106,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 }
 
 #ifndef SANDBOXED
-#ifdef _DEBUG
 Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
-#else
-Value StdLib::std_assert(const std::vector<Value> &args, VM */*vm*/)
-#endif
 {
 	checkArgCount(args, 1, "assert", true);
 
