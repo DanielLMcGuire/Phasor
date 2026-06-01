@@ -420,6 +420,50 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 		}
 	}
 
+	auto declareVar = [&](const std::string &name) -> int {
+		if (!scopeStack.empty())
+		{
+			ScopeFrame &frame = scopeStack.back();
+			auto existing = bytecode.variables.find(name);
+			
+			if (frame.savedBindings.find(name) == frame.savedBindings.end())
+			{
+				frame.savedBindings[name] = (existing != bytecode.variables.end())
+												? existing->second : -1;
+			}
+
+			if (frame.savedInferredTypes.find(name) == frame.savedInferredTypes.end())
+			{
+				auto it = inferredTypes.find(name);
+				frame.savedInferredTypes[name] = (it != inferredTypes.end())
+													? std::optional<ValueType>(it->second)
+													: std::nullopt;
+			}
+
+			if (frame.savedArrayBaseTypes.find(name) == frame.savedArrayBaseTypes.end())
+			{
+				auto it = arrayBaseTypes.find(name);
+				frame.savedArrayBaseTypes[name] = (it != arrayBaseTypes.end())
+													? std::optional<std::string>(it->second)
+													: std::nullopt;
+			}
+
+			if (frame.savedArrayDimensions.find(name) == frame.savedArrayDimensions.end())
+			{
+				auto it = arrayDimensions.find(name);
+				frame.savedArrayDimensions[name] = (it != arrayDimensions.end())
+													? std::optional<std::vector<int>>(it->second)
+													: std::nullopt;
+			}
+
+			int idx = bytecode.nextVarIndex++;
+			bytecode.variables[name] = idx;
+			frame.declaredIndices.push_back(idx);
+			return idx;
+		}
+		return bytecode.getOrCreateVar(name);
+	};
+
 	if (varDecl->initializer)
 	{
 		const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(varDecl->initializer.get());
@@ -488,7 +532,6 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 			}
 		}
 
-		// Pass declared type as hint to binary expressions so float targets use float ops
 		if (const auto *binExpr = dynamic_cast<const AST::BinaryExpr *>(varDecl->initializer.get()))
 		{
 			generateBinaryExpr(binExpr, declaredType);
@@ -498,14 +541,14 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 			generateExpression(varDecl->initializer.get());
 		}
 
-		int varIndex = bytecode.getOrCreateVar(varDecl->name);
+		int varIndex = declareVar(varDecl->name);
 		bytecode.emit(OpCode::STORE_VAR, varIndex);
 	}
 	else
 	{
 		int constIndex = bytecode.addConstant(Value());
 		bytecode.emit(OpCode::PUSH_CONST, constIndex);
-		int varIndex = bytecode.getOrCreateVar(varDecl->name);
+		int varIndex = declareVar(varDecl->name);
 		bytecode.emit(OpCode::STORE_VAR, varIndex);
 	}
 }
@@ -999,12 +1042,54 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType
 
 void CodeGenerator::generateBlockStmt(const AST::BlockStmt *blockStmt)
 {
-	for (const auto &stmt : blockStmt->statements)
-	{
-		generateStatement(stmt.get());
-	}
-}
+    scopeStack.push_back({});
 
+    for (const auto &stmt : blockStmt->statements)
+        generateStatement(stmt.get());
+
+    ScopeFrame &frame = scopeStack.back();
+
+    for (auto &[name, oldIdx] : frame.savedBindings)
+    {
+        if (oldIdx == -1)
+            bytecode.variables.erase(name);
+        else
+            bytecode.variables[name] = oldIdx;
+    }
+
+    for (auto &[name, oldType] : frame.savedInferredTypes)
+    {
+        if (!oldType.has_value())
+            inferredTypes.erase(name);
+        else
+            inferredTypes[name] = *oldType;
+    }
+
+    for (auto &[name, oldBase] : frame.savedArrayBaseTypes)
+    {
+        if (!oldBase.has_value())
+            arrayBaseTypes.erase(name);
+        else
+            arrayBaseTypes[name] = *oldBase;
+    }
+
+    for (auto &[name, oldDims] : frame.savedArrayDimensions)
+    {
+        if (!oldDims.has_value())
+            arrayDimensions.erase(name);
+        else
+            arrayDimensions[name] = *oldDims;
+    }
+
+    if (!frame.declaredIndices.empty())
+    {
+        int scopeId = static_cast<int>(bytecode.scopeVarLists.size());
+        bytecode.scopeVarLists.push_back(frame.declaredIndices);
+        bytecode.emit(OpCode::EXIT_SCOPE, scopeId);
+    }
+
+    scopeStack.pop_back();
+}
 void CodeGenerator::generateIfStmt(const AST::IfStmt *ifStmt)
 {
 	generateExpression(ifStmt->condition.get());
@@ -1165,6 +1250,8 @@ void CodeGenerator::generateContinueStmt()
 
 void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
 {
+	currentFunctionHasReturn = true;
+
 	if (returnStmt->value)
 	{
 		if (!currentFunctionReturnType.empty() &&
@@ -1234,7 +1321,11 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	bytecode.functionParamArrayDims[funcDecl->name] = std::move(paramArrayDims); 
 
 	std::string prevReturnType = currentFunctionReturnType;
+	bool prevHasReturn = currentFunctionHasReturn;
+
 	currentFunctionReturnType = (funcDecl->returnType ? funcDecl->returnType->name : "any");
+	currentFunctionHasReturn = false;
+
 	bytecode.functionReturnTypeNames[funcDecl->name] = currentFunctionReturnType;
 	bytecode.emit(OpCode::POP);
 
@@ -1261,7 +1352,7 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 
 	generateBlockStmt(funcDecl->body.get());
 
-	if (bytecode.instructions.empty() || bytecode.instructions.back().op != OpCode::RETURN)
+	if (!currentFunctionHasReturn)
 	{
 		if (!currentFunctionReturnType.empty() &&
 		    currentFunctionReturnType != "any"  &&
@@ -1270,11 +1361,16 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 			throw std::runtime_error("ERROR: function '" + funcDecl->name + "' is declared to return '"
 			          + currentFunctionReturnType + "' but has no return statement.\n");
 		}
+	}
+
+	if (bytecode.instructions.empty() || bytecode.instructions.back().op != OpCode::RETURN)
+	{
 		bytecode.emit(OpCode::NULL_VAL);
 		bytecode.emit(OpCode::RETURN);
 	}
 
 	currentFunctionReturnType = prevReturnType;
+	currentFunctionHasReturn = prevHasReturn;
 
 	bytecode.instructions[jumpOverIndex].operand1 = static_cast<int>(bytecode.instructions.size());
 }

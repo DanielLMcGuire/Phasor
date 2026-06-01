@@ -162,3 +162,4 @@
 * `SYSTEM_R` – Run OS shell command: `system(R[rA])`
 * `SYSTEM_OUT_R` – Run shell command and get output: `system_out(R[rA], R[rB])`
 * `SYSTEM_ERR_R` – Run shell command and get error output: `system_err(R[rA], R[rB])`
+* `EXIT_SCOPE` - Clear all variables in current scope

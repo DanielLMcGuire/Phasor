@@ -47,6 +47,7 @@ class BytecodeDeserializer
 	void readFunctionEntries(Bytecode &bytecode); ///< Helper method to read Function Entries
 	void readFunctionTypes(Bytecode &bytecode);   ///< Helper method to read Function Type Table
 	void readStructSection(Bytecode &bytecode);   ///< Helper method to read Struct Section
+	void readScopeVars(Bytecode &bytecode);       ///< Helper method to read Scope Vars
 
 	/// @brief Calculate CRC32 checksum
 	static u32 calculateCRC32(const u8 *data, size_t size);

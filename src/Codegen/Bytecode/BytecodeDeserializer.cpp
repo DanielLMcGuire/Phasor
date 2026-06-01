@@ -12,6 +12,7 @@ const Phasor::u8 SECTION_INSTRUCTIONS = 0x03;
 const Phasor::u8 SECTION_FUNCTIONS    = 0x04;
 const Phasor::u8 SECTION_STRUCTS      = 0x05;
 const Phasor::u8 SECTION_FUNC_TYPES   = 0x06;
+const Phasor::u8 SECTION_SCOPE_VARS   = 0x07;
 
 static Phasor::u32 crc32_table[256];
 static bool        crc32_table_initialized = false;
@@ -306,6 +307,28 @@ void BytecodeDeserializer::readStructSection(Bytecode &bytecode)
 	}
 }
 
+/**
+ * @brief Read scope variable lists section (0x07).
+ * 
+ * Reconstructs bytecode.scopeVarLists.
+ */
+void BytecodeDeserializer::readScopeVars(Bytecode &bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_SCOPE_VARS)
+		throw std::runtime_error("Expected scope vars section");
+
+	u32 count = readUInt32();
+	bytecode.scopeVarLists.resize(count);
+	for (u32 i = 0; i < count; i++)
+	{
+		u32 listSize = readUInt32();
+		bytecode.scopeVarLists[i].reserve(listSize);
+		for (u32 j = 0; j < listSize; j++)
+			bytecode.scopeVarLists[i].push_back(readInt32());
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Top-level deserialize / loadFromFile
 // ---------------------------------------------------------------------------
@@ -329,6 +352,7 @@ Bytecode BytecodeDeserializer::deserialize(const std::vector<u8> &buffer)
 	// Sections must be read in the same order they were written.
 	readConstantPool(bytecode);
 	readVariableMapping(bytecode);
+	readScopeVars(bytecode);
 	readFunctionEntries(bytecode);
 	readFunctionTypes(bytecode);
 	readStructSection(bytecode);

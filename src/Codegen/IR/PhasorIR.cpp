@@ -95,6 +95,7 @@ int PhasorIR::getOperandCount(OpCode op)
     case OpCode::GET_FIELD:
     case OpCode::SET_FIELD:
     case OpCode::NEW_STRUCT_INSTANCE_STATIC:
+    case OpCode::EXIT_SCOPE:
         return 1;
 
     // 2 operands
@@ -501,6 +502,16 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
     for (const auto &[name, index] : bytecode.variables)
         ss << name << " " << index << "\n";
 
+    // Scopes Section
+    ss << ".SCOPES " << bytecode.scopeVarLists.size() << "\n";
+    for (const auto &varList : bytecode.scopeVarLists)
+    {
+        ss << varList.size();
+        for (int idx : varList)
+            ss << " " << idx;
+        ss << "\n";
+    }
+
     // Functions Section
     ss << ".FUNCTIONS " << bytecode.functionEntries.size() << "\n";
     for (const auto &[name, address] : bytecode.functionEntries)
@@ -648,6 +659,24 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
                 int         index;
                 ss >> name >> index;
                 bytecode.variables[name] = index;
+            }
+        }
+        else if (section == ".SCOPES")
+        {
+            int count;
+            ss >> count;
+            bytecode.scopeVarLists.resize(count);
+            for (int i = 0; i < count; ++i)
+            {
+                int varCount;
+                ss >> varCount;
+                bytecode.scopeVarLists[i].reserve(varCount);
+                for (int j = 0; j < varCount; ++j)
+                {
+                    int idx;
+                    ss >> idx;
+                    bytecode.scopeVarLists[i].push_back(idx);
+                }
             }
         }
         else if (section == ".FUNCTIONS")

@@ -51,6 +51,7 @@ class BytecodeSerializer
 	    const std::unordered_map<std::string, std::vector<std::string>> &paramTypeNames,
 	    const std::unordered_map<std::string, std::string>              &returnTypeNames); ///< Helper method to write Function Type Table
 	void writeStructSection(const std::vector<StructInfo> &structs);  ///< Helper method to write Struct Section
+	void writeScopeVars(const std::vector<std::vector<int>> &scopeVarLists); ///< Helper method to write Scope Vars
 
 	/// @brief Calculate CRC32 checksum
 	static u32 calculateCRC32(const std::vector<u8> &data);

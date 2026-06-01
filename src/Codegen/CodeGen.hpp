@@ -53,6 +53,7 @@ struct Bytecode
 	std::vector<Instruction>             instructions;        ///< List of instructions
 	std::vector<Value>                   constants;           ///< Constant pool
 	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
+	std::vector<std::vector<int>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
 	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
 	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
 	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
@@ -131,11 +132,21 @@ class CodeGenerator
 	std::unordered_map<std::string, ValueType> inferredTypes;
 	std::unordered_map<std::string, std::unordered_map<std::string, ValueType>> inferredFieldTypes;
 	std::string currentFunctionReturnType;
+	bool currentFunctionHasReturn = false;
 	std::unordered_map<std::string, std::vector<int>> arrayDimensions;
 
 	// Register allocation for v2.0
 	u8           nextRegister = 0; ///< Next available register
 	std::vector<bool> registerInUse;    ///< Track which registers are in use
+
+	struct ScopeFrame {
+		std::vector<int>                                            declaredIndices;
+		std::unordered_map<std::string, int>                        savedBindings;
+		std::unordered_map<std::string, std::optional<ValueType>>   savedInferredTypes;
+		std::unordered_map<std::string, std::optional<std::string>> savedArrayBaseTypes;
+		std::unordered_map<std::string, std::optional<std::vector<int>>> savedArrayDimensions;
+	};
+	std::vector<ScopeFrame> scopeStack;
 
 	/// @brief Allocate a new register
 	u8 allocateRegister()

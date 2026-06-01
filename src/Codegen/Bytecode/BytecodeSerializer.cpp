@@ -12,7 +12,8 @@ const Phasor::u8 SECTION_VARIABLES    = 0x02;
 const Phasor::u8 SECTION_INSTRUCTIONS = 0x03;
 const Phasor::u8 SECTION_FUNCTIONS    = 0x04;
 const Phasor::u8 SECTION_STRUCTS      = 0x05;
-const Phasor::u8 SECTION_FUNC_TYPES   = 0x06; ///< param+return type table
+const Phasor::u8 SECTION_FUNC_TYPES   = 0x06;
+const Phasor::u8 SECTION_SCOPE_VARS   = 0x07;
 
 static Phasor::u32 crc32_table[256];
 static bool        crc32_table_initialized = false;
@@ -282,6 +283,30 @@ void BytecodeSerializer::writeStructSection(const std::vector<StructInfo> &struc
 	}
 }
 
+/**
+ * @brief Write scope variable lists section (0x07).
+ * 
+ * Binary layout:
+ *    u8:  section_id = 0x07
+ *    u32: scopeCount
+ *    for each scope:
+ * 	    u32: varCount
+ *      for each var: 
+ * 		  i32(varIndex)
+ * 		   
+*/
+void BytecodeSerializer::writeScopeVars(const std::vector<std::vector<int>> &scopeVarLists)
+{
+	writeUInt8(SECTION_SCOPE_VARS);
+	writeUInt32(static_cast<u32>(scopeVarLists.size()));
+	for (const auto &list : scopeVarLists)
+	{
+		writeUInt32(static_cast<u32>(list.size()));
+		for (int varIndex : list)
+			writeInt32(varIndex);
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Top-level serialize / saveToFile
 // ---------------------------------------------------------------------------
@@ -297,6 +322,7 @@ std::vector<u8> BytecodeSerializer::serialize(const Bytecode &bytecode)
 	size_t dataStartPos = buffer.size();
 	writeConstantPool(bytecode.constants);
 	writeVariableMapping(bytecode.variables, bytecode.nextVarIndex);
+	writeScopeVars(bytecode.scopeVarLists);
 	writeFunctionEntries(bytecode.functionEntries);
 	writeFunctionTypes(bytecode.functionParamTypeNames, bytecode.functionReturnTypeNames);
 	writeStructSection(bytecode.structs);

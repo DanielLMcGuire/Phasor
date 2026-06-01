@@ -106,7 +106,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 }
 
 #ifndef SANDBOXED
-Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
+Value StdLib::std_assert(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "assert", true);
 
@@ -115,6 +115,7 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 		throw std::runtime_error("Assert expects 1 or 2 arguments, but got " + std::to_string(args.size()));
 	}
 
+#ifdef _DEBUG
 	bool haveMessage = false;
 	const char* message = nullptr;
 
@@ -122,6 +123,7 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
 	{
 		message = args[1].c_str();
 	}
+#endif
 
 #ifdef TRACING
 #ifdef _DEBUG

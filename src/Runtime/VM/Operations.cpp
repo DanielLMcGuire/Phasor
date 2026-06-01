@@ -162,6 +162,8 @@ void VM::evalLoop()
         s_table[(unsigned)OpCode::SYSTEM_OUT_R]               = &&LABEL_SYSTEM_OUT_R;
         s_table[(unsigned)OpCode::SYSTEM_ERR_R]               = &&LABEL_SYSTEM_ERR_R;
 
+		s_table[(unsigned)OpCode::EXIT_SCOPE]                 = &&LABEL_EXIT_SCOPE;
+
         s_ready = true;
     }
 
@@ -901,6 +903,18 @@ void VM::evalLoop()
 #endif
         NEXT();
     }
+
+	LABEL_EXIT_SCOPE:
+	{
+		int scopeId = operand1;
+		for (int idx : m_bytecode->scopeVarLists[scopeId])
+		{
+			if (idx < 0 || idx >= static_cast<int>(variables.size()))
+				throw std::runtime_error("Invalid variable index in scope exit");
+			variables[idx] = Value();
+		}
+		NEXT();
+	}
     
     // UNKNOWN
     
@@ -1955,6 +1969,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		registers[rA] = c_system_err(registers[rA].c_str());
 #endif
 #endif
+		break;
+	}
+
+	case OpCode::EXIT_SCOPE: 
+	{
+		int scopeId = operand1;
+		for (int idx : m_bytecode->scopeVarLists[scopeId])
+			freeVariable(static_cast<size_t>(idx));
 		break;
 	}
 

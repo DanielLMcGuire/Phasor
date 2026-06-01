@@ -156,7 +156,9 @@ enum class OpCode : u8
 	READLINE_R,   ///< Read line into register: readline(R[rA])
 	SYSTEM_R,     ///< Run an operating system shell command: system(R[rA])
 	SYSTEM_OUT_R, /// Run shell command and get output: system_out(R[rA], R[rB])
-	SYSTEM_ERR_R  /// Run shell command and get error output: system_err(R[rA], R[rB])
+	SYSTEM_ERR_R,  /// Run shell command and get error output: system_err(R[rA], R[rB])
+
+	EXIT_SCOPE
 };
 
 } // namespace Phasor
