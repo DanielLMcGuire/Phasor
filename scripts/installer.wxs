@@ -3,7 +3,7 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="Phasor Programming Language"
            Manufacturer="Phasor"
-           Version="3.3.0.0"
+           Version="4.0.0.0"
            UpgradeCode="21b71c69-201d-480c-9366-b01ea4e16cb9"
            Scope="perMachine">
 

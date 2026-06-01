@@ -1,7 +1,7 @@
 !include "x64.nsh"
 !define APP_NAME "Phasor Programming Language"
 !define COMP_NAME "Phasor"
-!define VERSION "3.3.0.0"
+!define VERSION "4.0.0.0"
 !define COPYRIGHT "(C) 2026 Daniel McGuire"
 !define LICENSE_TXT "../assets/LICENSE.rtf"
 !define DESCRIPTION "Functional VM Compiled Programming Language"

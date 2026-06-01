@@ -1,4 +1,4 @@
-.TH PHASORSTD_META 3 "April 2026" "Phasor 3.3.0" "Phasor Standard Library 3.3.0"
+.TH PHASORSTD_META 3 "April 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_meta \- Phasor VM introspection and meta-programming functions
 .SH SYNOPSIS
@@ -25,7 +25,7 @@ Return the current Phasor runtime version string.
 None
 .PP
 .B Returns:
-String containing the Phasor version (e.g.\& \fB"3.3.0"\fR)
+String containing the Phasor version (e.g.\& \fB"4.0.0"\fR)
 .RE
 .PP
 .TP
@@ -113,7 +113,7 @@ var result = phs_stack_run(OP_ADD, 10, 20);
 using("stdmeta");
 
 var ver = phs_version();
-if (ver == "3.3.0") {
+if (ver == "4.0.0") {
     // Use features specific to this version
 }
 .RE

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-if (-not ("PHASOR_INTERNAL_ABI_3_3_0" -as [type])) {
+if (-not ("PHASOR_INTERNAL_ABI_4_0_0" -as [type])) {
     [System.Runtime.InteropServices.NativeLibrary]::Load(
         (Get-Command phasorrt.dll).Source
     ) | Out-Null
@@ -12,7 +12,7 @@ $script:_PhasorTrackedStates = [System.Collections.Generic.List[PSCustomObject]]
 Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
     foreach ($state in $script:_PhasorTrackedStates) {
         if ($state.Pointer -ne [IntPtr]::Zero) {
-            [PHASOR_INTERNAL_ABI_3_3_0]::freeState($state.Pointer) | Out-Null
+            [PHASOR_INTERNAL_ABI_4_0_0]::freeState($state.Pointer) | Out-Null
             $state.Pointer = [IntPtr]::Zero
         }
     }
@@ -43,7 +43,7 @@ function New-PhasorState {
     [OutputType([PSCustomObject])]
     param()
 
-    $ptr = [PHASOR_INTERNAL_ABI_3_3_0]::createState()
+    $ptr = [PHASOR_INTERNAL_ABI_4_0_0]::createState()
     if ($ptr -eq [IntPtr]::Zero) {
         throw "phasorrt.dll returned a null pointer from createState()."
     }
@@ -79,7 +79,7 @@ function Remove-PhasorState {
     )
 
     process {
-        $ok = [PHASOR_INTERNAL_ABI_3_3_0]::freeState($State.Pointer)
+        $ok = [PHASOR_INTERNAL_ABI_4_0_0]::freeState($State.Pointer)
         if (-not $ok) {
             Write-Warning "freeState() returned false. The pointer may have already been freed."
         }
@@ -130,7 +130,7 @@ function Reset-PhasorState {
     )
 
     process {
-        $ok = [PHASOR_INTERNAL_ABI_3_3_0]::resetState($State.Pointer, $ResetFunctions.IsPresent, $ResetVariables.IsPresent)
+        $ok = [PHASOR_INTERNAL_ABI_4_0_0]::resetState($State.Pointer, $ResetFunctions.IsPresent, $ResetVariables.IsPresent)
         if (-not $ok) {
             Write-Error "resetState() failed for the provided state."
         }
@@ -155,7 +155,7 @@ function Register-PhasorStdLib {
         [PSCustomObject]$State
     )
 
-    [PHASOR_INTERNAL_ABI_3_3_0]::initStdLib($State.Pointer)
+    [PHASOR_INTERNAL_ABI_4_0_0]::initStdLib($State.Pointer)
 }
 
 <#
@@ -196,7 +196,7 @@ function Build-PhasorScript {
     process {
         # First pass: calculate required buffer size.
         $outSize = [UIntPtr]::Zero
-        $sizeOk = [PHASOR_INTERNAL_ABI_3_3_0]::compilePHS($Script, $ModuleName, $ModulePath, $null, [UIntPtr]::Zero, [ref]$outSize)
+        $sizeOk = [PHASOR_INTERNAL_ABI_4_0_0]::compilePHS($Script, $ModuleName, $ModulePath, $null, [UIntPtr]::Zero, [ref]$outSize)
         if (-not $sizeOk) {
             Write-Error "Phasor compilation failed (size probe)."
             return
@@ -205,7 +205,7 @@ function Build-PhasorScript {
         # Second pass: compile into a buffer of the known size.
         $buffer = New-Object byte[] $outSize.ToUInt64()
         $actualSize = [UIntPtr]::Zero
-        $compileOk = [PHASOR_INTERNAL_ABI_3_3_0]::compilePHS($Script, $ModuleName, $ModulePath, $buffer, $outSize, [ref]$actualSize)
+        $compileOk = [PHASOR_INTERNAL_ABI_4_0_0]::compilePHS($Script, $ModuleName, $ModulePath, $buffer, $outSize, [ref]$actualSize)
         if (-not $compileOk) {
             Write-Error "Phasor compilation failed (write pass)."
             return
@@ -252,7 +252,7 @@ function Build-PulsarScript {
 
     process {
         $outSize = [UIntPtr]::Zero
-        $sizeOk = [PHASOR_INTERNAL_ABI_3_3_0]::compilePUL($Script, $ModuleName, $null, [UIntPtr]::Zero, [ref]$outSize)
+        $sizeOk = [PHASOR_INTERNAL_ABI_4_0_0]::compilePUL($Script, $ModuleName, $null, [UIntPtr]::Zero, [ref]$outSize)
         if (-not $sizeOk) {
             Write-Error "Pulsar compilation failed (size probe)."
             return
@@ -260,7 +260,7 @@ function Build-PulsarScript {
 
         $buffer = New-Object byte[] $outSize.ToUInt64()
         $actualSize = [UIntPtr]::Zero
-        $compileOk = [PHASOR_INTERNAL_ABI_3_3_0]::compilePUL($Script, $ModuleName, $buffer, $outSize, [ref]$actualSize)
+        $compileOk = [PHASOR_INTERNAL_ABI_4_0_0]::compilePUL($Script, $ModuleName, $buffer, $outSize, [ref]$actualSize)
         if (-not $compileOk) {
             Write-Error "Pulsar compilation failed (write pass)."
             return
@@ -326,7 +326,7 @@ function Invoke-PhasorBytecode {
         $argc  = $ArgumentList.Count
         $argv  = if ($argc -gt 0) { $ArgumentList } else { $null }
 
-        $return = [PHASOR_INTERNAL_ABI_3_3_0]::exec(
+        $return = [PHASOR_INTERNAL_ABI_4_0_0]::exec(
             $ptr, $Bytecode, [UIntPtr][uint64]$Bytecode.Length, $ModuleName, $argc, $argv
         )
         if ($return -ne 0) {
@@ -389,7 +389,7 @@ function Start-PhasorEval {
 
     process {
         $ptr    = if ($State) { $State.Pointer } else { [IntPtr]::Zero }
-        $return = [PHASOR_INTERNAL_ABI_3_3_0]::evaluatePHS($ptr, $Script, $ModuleName, $ModulePath, $VerbosePreference)
+        $return = [PHASOR_INTERNAL_ABI_4_0_0]::evaluatePHS($ptr, $Script, $ModuleName, $ModulePath, $VerbosePreference)
         if ($return -ne 0) {
             Write-Error "Phasor script execution failed with exit code: $return"
         }
@@ -435,7 +435,7 @@ function Start-PulsarEval {
 
     process {
         $ptr    = if ($State) { $State.Pointer } else { [IntPtr]::Zero }
-        $return = [PHASOR_INTERNAL_ABI_3_3_0]::evaluatePUL($ptr, $Script, $ModuleName)
+        $return = [PHASOR_INTERNAL_ABI_4_0_0]::evaluatePUL($ptr, $Script, $ModuleName)
         if ($return -ne 0) {
             Write-Error "Pulsar script execution failed with exit code: $return"
         }

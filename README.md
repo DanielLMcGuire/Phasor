@@ -80,7 +80,7 @@ shutdown(code); // from stdsys
 > Some may *appear* to work before actual implementation
 >
 > The existance of a keyword/token type does not imply there is planned support for said feature
-- **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0)
+- **ActiveX Scripting Engine (COM)** (partial implementation already in 3.3.0+)
 - LLVM Jit for hot loops / functions
 
 ---

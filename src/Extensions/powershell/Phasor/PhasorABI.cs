@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-public static class PHASOR_INTERNAL_ABI_3_3_0 {
+public static class PHASOR_INTERNAL_ABI_4_0_0 {
     [DllImport("phasorrt.dll", CallingConvention = CallingConvention.Cdecl)]
     public static extern int evaluatePHS(IntPtr vm, string script, string moduleName, string modulePath, bool verbose);
 
