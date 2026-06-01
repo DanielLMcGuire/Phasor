@@ -21,6 +21,16 @@
             }
         },
         {
+            "name": "base-bsd",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "inherits": "base",
+            "cacheVariables": {
+                "CLANG_USES_LLVM_RUNTIME": "ON"
+            }
+        },
+        {
             "name": "cfg-macos-arm",
             "hidden": true,
             "inherits": "base",
@@ -132,6 +142,93 @@
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
+            },
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "cfg-bsd-x64",
+            "hidden": true,
+            "inherits": "base-bsd",
+            "condition": {
+                "type": "anyOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "FreeBSD"
+                    },
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "OpenBSD"
+                    },
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "NetBSD"
+                    }
+                ]
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "cfg-bsd-x86",
+            "hidden": true,
+            "inherits": "base-bsd",
+            "condition": {
+                "type": "anyOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "FreeBSD"
+                    },
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "OpenBSD"
+                    },
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "NetBSD"
+                    }
+                ]
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "cfg-bsd-arm64",
+            "hidden": true,
+            "inherits": "base-bsd",
+            "condition": {
+                "type": "anyOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "FreeBSD"
+                    },
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "OpenBSD"
+                    },
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "NetBSD"
+                    }
+                ]
             },
             "architecture": {
                 "value": "arm64",
@@ -820,6 +917,240 @@
             "displayName": "Linux (arm64 RelWithDebInfo) Sandboxed",
             "inherits": [
                 "linux-arm64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-64-dbg",
+            "displayName": "BSD (x64 Debug)",
+            "inherits": [
+                "cfg-bsd-x64",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "bsd-64-dbg_trace",
+            "displayName": "BSD (x64 Debug) Trace",
+            "inherits": [
+                "bsd-64-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-64-dbg_sandboxed",
+            "displayName": "BSD (x64 Debug) Sandboxed",
+            "inherits": [
+                "bsd-64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-64-rel",
+            "displayName": "BSD (x64 Release)",
+            "inherits": [
+                "cfg-bsd-x64",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "bsd-64-rel_trace",
+            "displayName": "BSD (x64 Release) Trace",
+            "inherits": [
+                "bsd-64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-64-rel_sandboxed",
+            "displayName": "BSD (x64 Release) Sandboxed",
+            "inherits": [
+                "bsd-64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-64-tst",
+            "displayName": "BSD (x64 RelWithDebInfo)",
+            "inherits": [
+                "cfg-bsd-x64",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "bsd-64-tst_trace",
+            "displayName": "BSD (x64 RelWithDebInfo) Trace",
+            "inherits": [
+                "bsd-64-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-64-tst_sandboxed",
+            "displayName": "BSD (x64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "bsd-64-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-32-dbg",
+            "displayName": "BSD (x86 Debug)",
+            "inherits": [
+                "cfg-bsd-x86",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "bsd-32-dbg_trace",
+            "displayName": "BSD (x86 Debug) Trace",
+            "inherits": [
+                "bsd-32-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-32-dbg_sandboxed",
+            "displayName": "BSD (x86 Debug) Sandboxed",
+            "inherits": [
+                "bsd-32-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-32-rel",
+            "displayName": "BSD (x86 Release)",
+            "inherits": [
+                "cfg-bsd-x86",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "bsd-32-rel_trace",
+            "displayName": "BSD (x86 Release) Trace",
+            "inherits": [
+                "bsd-32-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-32-rel_sandboxed",
+            "displayName": "BSD (x86 Release) Sandboxed",
+            "inherits": [
+                "bsd-32-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-32-tst",
+            "displayName": "BSD (x86 RelWithDebInfo)",
+            "inherits": [
+                "cfg-bsd-x86",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "bsd-32-tst_trace",
+            "displayName": "BSD (x86 RelWithDebInfo) Trace",
+            "inherits": [
+                "bsd-32-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-32-tst_sandboxed",
+            "displayName": "BSD (x86 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "bsd-32-tst"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-arm64-dbg",
+            "displayName": "BSD (arm64 Debug)",
+            "inherits": [
+                "cfg-bsd-arm64",
+                "cfg-dbg"
+            ]
+        },
+        {
+            "name": "bsd-arm64-dbg_trace",
+            "displayName": "BSD (arm64 Debug) Trace",
+            "inherits": [
+                "bsd-arm64-dbg",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-arm64-dbg_sandboxed",
+            "displayName": "BSD (arm64 Debug) Sandboxed",
+            "inherits": [
+                "bsd-arm64-dbg"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-arm64-rel",
+            "displayName": "BSD (arm64 Release)",
+            "inherits": [
+                "cfg-bsd-arm64",
+                "cfg-rel"
+            ]
+        },
+        {
+            "name": "bsd-arm64-rel_trace",
+            "displayName": "BSD (arm64 Release) Trace",
+            "inherits": [
+                "bsd-arm64-rel",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-arm64-rel_sandboxed",
+            "displayName": "BSD (arm64 Release) Sandboxed",
+            "inherits": [
+                "bsd-arm64-rel"
+            ],
+            "cacheVariables": {
+                "IS_SANDBOXED": "ON"
+            }
+        },
+        {
+            "name": "bsd-arm64-tst",
+            "displayName": "BSD (arm64 RelWithDebInfo)",
+            "inherits": [
+                "cfg-bsd-arm64",
+                "cfg-tst"
+            ]
+        },
+        {
+            "name": "bsd-arm64-tst_trace",
+            "displayName": "BSD (arm64 RelWithDebInfo) Trace",
+            "inherits": [
+                "bsd-arm64-tst",
+                "cfg-trace"
+            ]
+        },
+        {
+            "name": "bsd-arm64-tst_sandboxed",
+            "displayName": "BSD (arm64 RelWithDebInfo) Sandboxed",
+            "inherits": [
+                "bsd-arm64-tst"
             ],
             "cacheVariables": {
                 "IS_SANDBOXED": "ON"
