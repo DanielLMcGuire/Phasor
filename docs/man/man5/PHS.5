@@ -1,232 +1,418 @@
-.TH PHIR 5 "June 2026" "Phasor 4.0.0" "Phasor File Formats"
+.TH PHS 5 "June 2026" "Phasor 4.0.0" "Phasor File Formats"
 .SH NAME
-phir \- Phasor Intermediate Representation / Assembly format
+phs \- Phasor source code format
 .SH DESCRIPTION
 The
-.B .phir
-file format is a human-readable text-based intermediate representation of compiled Phasor bytecode that looks and behaves like assembly language. It serves as a middle ground between source code and binary bytecode, allowing developers to inspect, analyze, and manually modify compiled programs.
+.B .phs
+file format contains Phasor programming language source code.
+Phasor is a scripting language with a C-like syntax, supporting static type annotations, functions, variables, control structures, and structured types.
 .PP
-PHIR files are structured text documents containing serialized bytecode instructions, constant pools, variable mappings, function entries, type signatures, and struct definitions. The format uses a versioned header and section-based organization.
-.SH FILE STRUCTURE
-A PHIR file consists of the following sections in order:
-.PP
-.B 1. Header
+Source files are plain text using UTF-8 encoding and can be executed by
+.BR phasor (1)
+or compiled to bytecode by
+.BR phasorcompiler (1).
+.SH LANGUAGE OVERVIEW
+Phasor features:
 .RS
-The file begins with a magic identifier and version number:
-.PP
-.nf
-.RS
-\&.PHIR 3.0.0
+.IP \(bu 2
+Mandatory type annotations for variables, structure fields, and parameters, with an \fBany\fR type to opt out of static tracking
+.IP \(bu 2
+A register-based compiler emitting type-specialized execution paths (e.g., integer versus floating-point instructions)
+.IP \(bu 2
+First-class functions supporting Uniform Function Call Syntax (UFCS) method rewriting
+.IP \(bu 2
+C-like control structures and block scoping
+.IP \(bu 2
+Compile-time element-wise type validation on statically annotated arrays
+.IP \(bu 2
+Preprocessed relative file inclusion
 .RE
-.fi
-.RE
-.PP
-.B 2. Constants Section
-.RS
-Defines all constant values used in the program, supporting recursive representations for structured values:
-.PP
-.nf
-.RS
-\&.CONSTANTS <count>
-NULL
-BOOL true|false
-INT <integer_value>
-FLOAT <float_value>
-STRING "<escaped_string>"
-STRUCT "<struct_name>" <field_count>
-  FIELD <field_name> <value_type> <value_data...>
-ARRAY <element_count>
-  ELEM <value_type> <value_data...>
-.RE
-.fi
-.RE
-.PP
-.B 3. Variables Section
-.RS
-Maps variable names to their compilation indices:
+.SH SYNTAX
+.SS Shebang
+If the first two characters of a source file are
+.BR #! ,
+the lexer will ignore the entire first line. This allows Unix-like systems to execute Phasor scripts directly:
 .PP
 .nf
 .RS
-\&.VARIABLES <count> <next_index>
-<name> <index>
-...
+#!/usr/bin/env phasor
 .RE
 .fi
-.RE
-.PP
-.B 4. Functions Section
-.RS
-Maps function names to their bytecode entry point addresses:
+.SS Comments
+Phasor supports single-line comments:
 .PP
 .nf
 .RS
-\&.FUNCTIONS <count>
-<name> <address>
-...
+// This is a comment
 .RE
 .fi
-.RE
-.PP
-.B 5. Function Signatures Section
-.RS
-Describes function type signatures, outlining return types and parameter types:
+.SS Variables and Type Annotations
+Variables are declared with the
+.B var
+keyword. They require an explicit type constraint, though the \fBany\fR type can be used to bypass compile-time tracking:
 .PP
 .nf
 .RS
-\&.FUNCTYPES <count>
-<name> <return_type_name> <param_count> <param_type1> <param_type2> ...
-...
+var x: int = 42;               // Explicit integer constraint
+var dyn: any = "Dynamic";      // Opt-out of static type tracking
+var y: float = 3.14;           // Explicit float constraint
+var name: string = "Alice";    // Explicit string constraint
+var flag: bool = true;         // Explicit boolean constraint
+var empty: int;                // Defaults to null (uninitialized)
 .RE
 .fi
-.RE
 .PP
-.B 6. Structs Section
+A variable declaration must contain a type annotation. The initializer expression is optional. If no initializer is provided, the variable defaults to \fBnull\fR.
+.SS Data Types
+Phasor supports the following basic types:
 .RS
-Defines struct types with field layouts and default value indices:
+.IP \(bu 2
+.B null
+\- Represents a null or uninitialized value.
+.IP \(bu 2
+.B any
+\- Opts out of compile-time type tracking, allowing dynamic type assignment.
+.IP \(bu 2
+.B bool
+\- Boolean values
+.B true
+and
+.B false .
+.IP \(bu 2
+.B int
+(or
+.B i64 )
+\- 64-bit signed integers.
+.IP \(bu 2
+.B float
+(or
+.B f64 )
+\- 64-bit double-precision floating point numbers.
+.IP \(bu 2
+.B string
+\- UTF-8 encoded text strings.
+.IP \(bu 2
+.B array
+\- Dynamically or statically typed collections of elements.
+.IP \(bu 2
+.B struct
+\- Custom user-defined structures.
+.IP \(bu 2
+.B void
+\- Used primarily for function return types indicating no return value.
+.RE
+.SS Strings
+Phasor supports two types of string literals:
+.RS
+.IP \(bu 2
+.B Standard Strings ("...")
+\- Must be defined on a single line. Supports standard escape sequences (\\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\", \\e, \\E), octal escapes (e.g., \\033), hexadecimal escapes (\\xNN), and Unicode escapes (\\uNNNN, \\UNNNNNNNN). Standard escape sequences like \\e and \\E resolve to ASCII ESC (\\x1b).
+.IP \(bu 2
+.B Raw Strings (`...`)
+\- Enclosed in backticks. These can span multiple lines and do not process escape sequences.
+.RE
+.SS Structs
+Custom structured types are declared using the
+.B struct
+keyword, requiring named fields and explicit type annotations:
 .PP
 .nf
 .RS
-\&.STRUCTS <count>
-<name> <first_const_idx> <field_count> <field1> <field2> ...
-...
+struct Point {
+    x: int,
+    y: int
+}
 .RE
 .fi
-.RE
 .PP
-.B 7. Instructions Section
-.RS
-Contains register-allocated instruction sequences:
+Structs are instantiated using named field values:
 .PP
 .nf
 .RS
-\&.INSTRUCTIONS <count>
-<opcode> [operands...]  ; optional inline annotation
-...
+var p: Point = Point{ x: 10, y: 20 };
 .RE
 .fi
-.RE
-.SH INSTRUCTION FORMAT
-Instructions follow this general format:
+.PP
+Anonymous struct literals are also supported using curly braces without a type name:
 .PP
 .nf
 .RS
-OPCODE [operand1[, operand2[, operand3]]]  ; comment
+var anon: any = { x: 10, y: 20 };
 .RE
 .fi
 .PP
-Operands can be:
-.RS
-.IP \(bu 2
-Plain integers for immediate values or indexes
-.IP \(bu 2
-Registers represented as
-.B rN
-where N is the index of the virtual register
-.IP \(bu 2
-Constant pool indices
-.IP \(bu 2
-Variable indices
-.IP \(bu 2
-Function addresses
-.RE
-.PP
-Comments are automatically generated by the serializer to show:
-.RS
-.IP \(bu 2
-Constant values for constant pool references
-.IP \(bu 2
-Variable names for variable indices
-.IP \(bu 2
-Function names for function addresses
-.RE
-.SH STRING ESCAPING
-Strings in the PHIR format use C-style escape sequences:
-.RS
-.IP \(bu 2
-.B \en
-- newline
-.IP \(bu 2
-.B \er
-- carriage return
-.IP \(bu 2
-.B \et
-- tab
-.IP \(bu 2
-.B \e\e
-- backslash
-.IP \(bu 2
-.B \e"
-- double quote
-.IP \(bu 2
-.B \ee
-- escape ASCII character (0x1b)
-.RE
-.SH EXAMPLE
-A simple PHIR file:
+Fields can be accessed or mutated via dot notation:
 .PP
 .nf
 .RS
-\&.PHIR 3.0.0
-\&.CONSTANTS 2
-STRING "Hello, World!"
-INT 42
-\&.VARIABLES 1 1
-x 0
-\&.FUNCTIONS 1
-main 0
-\&.FUNCTYPES 1
-main void 0
-\&.STRUCTS 0
-\&.INSTRUCTIONS 5
-LOAD_CONST_R r0, 0                      ; const[0]="Hello, World!"
-PRINT_R r0
-LOAD_CONST_R r1, 1                      ; const[1]=42
-STORE_VAR_R r1, 0                       ; var=x
-HALT
+p.x = 42;
+var current_x: int = p.x;
 .RE
 .fi
-.SH USAGE
-PHIR files can be:
+.SS Arrays
+Array literals are constructed using square brackets. Because type annotations are mandatory, arrays must be explicitly typed:
+.PP
+.nf
+.RS
+var list: int[] = [1, 2, 3];
+.RE
+.fi
+.PP
+Arrays can be explicitly typed with fixed dimensions (e.g.,
+.B int[10]
+) or dynamic dimensions (e.g.,
+.B int[]
+). If a statically typed array variable is assigned or modified, the compiler validates at compile-time that the array literal elements or assigned values match the declared element type.
+.PP
+Elements are accessed and assigned using standard bracket syntax:
+.PP
+.nf
+.RS
+var item: int = list[0];
+list[1] = 99;
+.RE
+.fi
+.SS Functions and UFCS Method Calls
+Functions are declared with the
+.B fn
+keyword. Parameters must explicitly specify types, while the return type is optional:
+.PP
+.nf
+.RS
+fn add(x: int, y: int) -> int {
+    return x + y;
+}
+
+fn greet(name: string) {
+    print "Hello, " + name + "!";
+}
+.RE
+.fi
+.PP
+Functions without a return type or return expression implicitly evaluate to
+.B null .
+.PP
+.B Uniform Function Call Syntax (UFCS)
+is supported. Calling a function on an object using dot notation (e.g.
+.B obj.method(arg)
+) is automatically rewritten by the parser into a global function call with the object passed as the first parameter (e.g.
+.B method(obj, arg)
+).
+.SS Print Statements
+Expressions can be evaluated and printed to standard output using the
+.B print
+keyword:
+.PP
+.nf
+.RS
+print "Hello, World!";
+.RE
+.fi
+.SS Includes
+Phasor supports source organization via preprocessed file inclusion:
 .RS
 .IP \(bu 2
-Generated by
-.BR phasorcompiler (1)
-using the
-.B --ir
-flag
-.IP \(bu 2
-Manually edited for optimization, inspection, or analysis
-.IP \(bu 2
-Converted back to binary bytecode format
+.B Include (include "path";)
+\- Replaces the statement with the textual parsed AST of the specified file, resolved relative to the containing directory of the source file.
 .RE
-.SH ADVANTAGES
-The PHIR format provides several benefits:
+.SH CONTROL FLOW
+.SS If Statements
+.PP
+.nf
+.RS
+if (condition) {
+    // code
+} else if (other) {
+    // code
+} else {
+    // code
+}
+.RE
+.fi
+.SS While Loops
+.PP
+.nf
+.RS
+while (condition) {
+    // code
+}
+.RE
+.fi
+.SS For Loops
+.PP
+.nf
+.RS
+for (var i: int = 0; i < 10; i++) {
+    // code
+}
+.RE
+.fi
+.PP
+Both
+.B break
+and
+.B continue
+statements are supported within loop bodies.
+.SS Switch Statements
+The switch statement evaluates a control expression and jumps to matching case blocks. The comparison uses value equality:
+.PP
+.nf
+.RS
+switch (value) {
+    case 1:
+        // code
+        break;
+    case 2:
+        // code
+        break;
+    default:
+        // code
+}
+.RE
+.fi
+.SS Operators
+.SS Arithmetic
 .RS
 .IP \(bu 2
-.B Human-readable
-- Easy to inspect and understand compiled code
-.IP \(bu 2
-.B Editable
-- Can be manually modified for optimization or debugging
-.IP \(bu 2
-.B Portable
-- Text-based format works across platforms
-.IP \(bu 2
-.B Educational
-- Helps understand the Phasor compilation process
-.IP \(bu 2
-.B Debugging
-- Inline comments show variable names and constant values
-.IP \(bu 2
-.B Analysis
-- Suitable for automated verification tools
++, -, *, /, % (modulo)
 .RE
-.SH VERSION COMPATIBILITY
-The current PHIR format version is 3.0.0.
+.SS Comparison
+.RS
+.IP \(bu 2
+==, !=, <, >, <=, >=
+.RE
+.SS Logical
+.RS
+.IP \(bu 2
+&& (and), || (or) (both feature short-circuit evaluation)
+.RE
+.SS Assignment
+.RS
+.IP \(bu 2
+= (basic assignment; right-associative)
+.RE
+.SS Unary
+.RS
+.IP \(bu 2
+- (negate), ! (not)
+.RE
+.SS Postfix
+.RS
+.IP \(bu 2
+++ (increment), -- (decrement) (limited to variables; compiled using type-specialized add/subtract instructions)
+.RE
+.SS Access
+.RS
+.IP \(bu 2
+. (member access), [ ] (indexing), -> (return type arrow)
+.RE
+.SH COMPILER OPTIMIZATIONS AND BUILT-INS
+The code generator provides built-in optimizations and compile-time evaluations for key standard library functions:
+.RS
+.IP \(bu 2
+.B len(s)
+\- Returns string length. If the argument is a standard literal string, it is constant-folded at compile-time.
+.IP \(bu 2
+.B substr(s, i, length)
+\- Extracts a substring. If the length is evaluated as literal
+.B 1
+, the compiler automatically rewrites the call to a faster single-character retrieval instruction.
+.IP \(bu 2
+.B char_at(s, i)
+\- Emits a direct index character lookup instruction.
+.IP \(bu 2
+.B starts_with(s, prefix) / ends_with(s, suffix)
+\- Verifies if a string starts or ends with the specified substring. Constant-folded if both arguments are string literals.
+.RE
+.SH COMPILATION AND CODE GENERATION
+The Phasor compiler translates the parsed Abstract Syntax Tree (AST) into bytecode instructions utilizing a dynamic register allocator:
+.RS
+.IP 1.
+.B Constant Folding
+\- The compiler folds binary operations, logical operations, and optimized standard library calls when operands are literal values.
+.IP 2.
+.B Type Specialized Instructions
+\- Through variable type tracking and literal evaluation, the compiler optimizes binary operations. If both operands are known to be integers, integer-specific registers instructions (e.g.
+.BR IADD_R ,
+.BR ISUB_R )
+are selected. Otherwise, the compiler falls back to double-precision floating-point instructions (e.g.
+.BR FLADD_R ,
+.BR FLSUB_R ). Similarly, postfix operators utilize specialized integer or float increments.
+.IP 3.
+.B Array Type Checking
+\- Compile-time type validations are executed on array literals and array element assignments to guarantee conformity to their statically declared base types.
+.RE
+.SH SOURCE FILE CHARACTERISTICS
+.RS
+.IP \(bu 2
+Supports international characters in strings and comments
+.IP \(bu 2
+Identifiers are limited to ASCII alphanumerics and underscores
+.IP \(bu 2
+String literals support UTF-8 characters
+.RE
+.SH LINE ENDINGS
+Phasor accepts standard line endings:
+.RS
+.IP \(bu 2
+LF (\\n) Unix/Linux/macOS
+.IP \(bu 2
+CRLF (\\r\\n) Windows
+.RE
+.SH STYLE CONVENTIONS
+While not enforced, the following conventions are recommended:
+.RS
+.IP \(bu 2
+Use 4 spaces for indentation, no tabs
+.IP \(bu 2
+Opening braces on the same line
+.IP \(bu 2
+Function names in camelCase
+.IP \(bu 2
+Constants in UPPER_CASE
+.IP \(bu 2
+Variables in camelCase
+.IP \(bu 2
+One statement per line
+.IP \(bu 2
+Blank line between function definitions
+.RE
+.SH COMPILATION STAGES
+Source files are processed through several stages:
+.RS
+.IP 1.
+.B Lexical Analysis
+\- Source text tokenized by
+.BR Lexer
+.IP 2.
+.B Parsing
+\- Tokens converted to an Abstract Syntax Tree AST (preprocessor inclusions resolved textually)
+.IP 3.
+.B Code Generation
+\- AST compiled to register-allocated bytecode instructions with specialized instruction paths
+.IP 4.
+.B Serialization
+\- Bytecode saved to .phsb or .phir format
+.RE
+.SH LIMITATIONS
+Current language limitations:
+.RS
+.IP \(bu 2
+No operator overloading
+.IP \(bu 2
+No macros or metaprogramming
+.IP \(bu 2
+No garbage collection
+.RE
 .SH SEE ALSO
+.BR phasor (1),
 .BR phasorcompiler (1),
+.BR phasorvm (1),
+.BR phasorstd_array (3),
+.BR phasorstd_string (3),
+.BR phasorstd_type (3),
 .BR PHSB (5),
-.BR PHS (5)
+.BR PHIR (5)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT
