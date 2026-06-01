@@ -1,125 +1,189 @@
-.TH PHASOR-ISA 7 "January 2026" "Phasor 4.0.0" "Phasor Instruction Set 2.0"
+.TH PHASOR-ISA 7 "June 2026" "Phasor 4.0.0" "Phasor Instruction Set 2.0"
 .SH NAME
 phasor-isa \- overview of the Phasor virtual machine instruction set architecture
-
 .SH DESCRIPTION
-The Phasor Instruction Set is a hybrid architecture supporting both stack-based (v1.0) and register-based (v2.0) execution models. 
-
+The Phasor Instruction Set is a hybrid architecture supporting both stack-based (v1.0) and register-based (v2.0) execution models.
 The virtual machine maintains:
 .IP \(bu 2
-A primary data \fBstack\fR for temporary values.
+A primary data stack for temporary values.
 .IP \(bu 2
-A \fBcall stack\fR for function return addresses.
+A call stack for function return addresses.
 .IP \(bu 2
-256 virtual \fBregisters\fR (\fBr0\fR through \fBr255\fR).
+256 virtual registers (r0 through r255).
 .IP \(bu 2
-A global \fBvariable table\fR.
-
+A global variable table.
 .SH STACK-BASED INSTRUCTIONS
-These instructions manipulate the top of the data stack. For binary operations, the VM pops the second operand (\fIb\fR), then the first (\fIa\fR), and pushes the result.
-
+These instructions manipulate the top of the data stack.
+For binary operations, the VM pops the second operand (b), then the first (a), and pushes the result.
 .SS Data Movement
 .TP
-.B PUSH_CONST \fIindex\fR
-Pushes the constant at pool \fIindex\fR onto the stack.
+\fBPUSH_CONST\fR \fIindex\fR
+Pushes the constant at pool index onto the stack.
 .TP
-.B POP
+\fBPOP\fR
 Removes the top value from the stack.
 .TP
-.B TRUE_P, FALSE_P, NULL_VAL
-Pushes literal \fBtrue\fR, \fBfalse\fR, or \fBnull\fR.
-
+\fBTRUE_P\fR, \fBFALSE_P\fR, \fBNULL_VAL\fR
+Pushes literal true, false, or null.
+.TP
+\fBSTORE_VAR\fR \fIindex\fR
+Pops top of stack and stores in variable slot.
+.TP
+\fBLOAD_VAR\fR \fIindex\fR
+Pushes variable value onto stack.
 .SS Arithmetic
-.IP \(bu 2
-\fBIADD, ISUBTRACT, IMULTIPLY, IDIVIDE, IMODULO\fR: Integer operations.
-.IP \(bu 2
-\fBFLADD, FLSUBTRACT, FLMULTIPLY, FLDIVIDE, FLMODULO\fR: Float operations.
-.IP \(bu 2
-\fBSQRT, POW, LOG, EXP, SIN, COS, TAN\fR: Math functions.
-.IP \(bu 2
-\fBNEGATE\fR: Unary negation.
-
+.TP
+\fBIADD\fR, \fBISUBTRACT\fR, \fBIMULTIPLY\fR, \fBIDIVIDE\fR, \fBIMODULO\fR
+Integer operations.
+.TP
+\fBFLADD\fR, \fBFLSUBTRACT\fR, \fBFLMULTIPLY\fR, \fBFLDIVIDE\fR, \fBFLMODULO\fR
+Float operations.
+.TP
+\fBSQRT\fR, \fBPOW\fR, \fBLOG\fR, \fBEXP\fR, \fBSIN\fR, \fBCOS\fR, \fBTAN\fR
+Math functions.
+.TP
+\fBNEGATE\fR
+Unary negation.
 .SS Comparison and Logic
-.IP \(bu 2
-\fBIEQUAL, INOT_EQUAL, ILESS_THAN, IGREATER_THAN\fR: Integer comparisons.
-.IP \(bu 2
-\fBFLEQUAL, FLNOT_EQUAL, FLLESS_THAN, FLGREATER_THAN\fR: Float comparisons.
-.IP \(bu 2
-\fBIAND, IOR, NOT\fR: Logical operations.
-
+.TP
+\fBIEQUAL\fR, \fBINOT_EQUAL\fR, \fBILESS_THAN\fR, \fBIGREATER_THAN\fR, \fBILESS_EQUAL\fR, \fBIGREATER_EQUAL\fR
+Integer comparisons.
+.TP
+\fBFLEQUAL\fR, \fBFLNOT_EQUAL\fR, \fBFLLESS_THAN\fR, \fBFLGREATER_THAN\fR, \fBFLLESS_EQUAL\fR, \fBFLGREATER_EQUAL\fR
+Float comparisons.
+.TP
+\fBIAND\fR, \fBIOR\fR, \fBFLAND\fR, \fBFLOR\fR, \fBNOT\fR
+Logical operations.
+.SS String Operations
+.TP
+\fBLEN\fR
+Pops string or array, pushes its length.
+.TP
+\fBCHAR_AT\fR
+Pops index, pops string, pushes character at index.
+.TP
+\fBSUBSTR\fR
+Pops length, start index, and string, pushes substring.
 .SH REGISTER-BASED INSTRUCTIONS (v2.0)
-Register instructions operate on \fBr0-r255\fR. These are used for 3-address code optimizations.
-
-.SS 3-Address Arithmetic
-Format: \fBOP rA, rB, rC\fR (result \fBrA = rB op rC\fR).
-.IP \(bu 2
-\fBIADD_R, ISUB_R, IMUL_R, IDIV_R, IMOD_R\fR: Integer math.
-.IP \(bu 2
-\fBFLADD_R, FLSUB_R, FLMUL_R, FLDIV_R, FLMOD_R\fR: Float math.
-
+Register instructions operate on r0-r255.
+These are used for 3-address code optimizations.
 .SS Register Data Movement
 .TP
-.B MOV \fIrA, rB\fR
-Copy value from register \fBrB\fR to \fBrA\fR.
+\fBMOV\fR \fIrA\fR, \fIrB\fR
+Copy value from register rB to rA.
 .TP
-.B LOAD_CONST_R \fIrA, index\fR
-Load constant pool \fIindex\fR into register \fBrA\fR.
+\fBLOAD_CONST_R\fR \fIrA\fR, \fIindex\fR
+Load constant pool index into register rA.
 .TP
-.B LOAD_VAR_R \fIrA, index\fR
-Load global variable at \fIindex\fR into \fBrA\fR.
+\fBLOAD_VAR_R\fR \fIrA\fR, \fIindex\fR
+Load global variable at index into rA.
 .TP
-.B STORE_VAR_R \fIrA, index\fR
-Store value from \fBrA\fR into variable table at \fIindex\fR.
-
+\fBSTORE_VAR_R\fR \fIrA\fR, \fIindex\fR
+Store value from rA into variable table at index.
+.TP
+\fBPUSH_R\fR \fIrA\fR, \fBPUSH2_R\fR \fIrA\fR, \fIrB\fR
+Push one or two registers to the stack.
+.TP
+\fBPOP_R\fR \fIrA\fR, \fBPOP2_R\fR \fIrA\fR, \fIrB\fR
+Pop stack to one or two registers.
+.SS 3-Address Arithmetic
+Format: OP rA, rB, rC (result rA = rB op rC).
+.TP
+\fBIADD_R\fR, \fBISUB_R\fR, \fBIMUL_R\fR, \fBIDIV_R\fR, \fBIMOD_R\fR
+Integer math.
+.TP
+\fBFLADD_R\fR, \fBFLSUB_R\fR, \fBFLMUL_R\fR, \fBFLDIV_R\fR, \fBFLMOD_R\fR
+Float math.
+.TP
+\fBSQRT_R\fR, \fBPOW_R\fR, \fBLOG_R\fR, \fBEXP_R\fR, \fBSIN_R\fR, \fBCOS_R\fR, \fBTAN_R\fR
+Math functions in registers.
+.SS Register Comparison and Logic
+.TP
+\fBIEQ_R\fR, \fBINE_R\fR, \fBILT_R\fR, \fBIGT_R\fR, \fBILE_R\fR, \fBIGE_R\fR
+Integer comparisons.
+.TP
+\fBFLEQ_R\fR, \fBFLNE_R\fR, \fBFLLT_R\fR, \fBFLGT_R\fR, \fBFLLE_R\fR, \fBFLGE_R\fR
+Float comparisons.
+.TP
+\fBIAND_R\fR, \fBIOR_R\fR, \fBFLAND_R\fR, \fBFLOR_R\fR
+Logical operations.
+.TP
+\fBNEG_R\fR, \fBNOT_R\fR
+Unary negation and logical NOT.
 .SH CONTROL FLOW
 .TP
-.B JUMP \fIaddress\fR
-Unconditional jump to instruction at \fIaddress\fR.
+\fBJUMP\fR \fIaddress\fR
+Unconditional jump to instruction at address.
 .TP
-.B JUMP_IF_FALSE \fIaddress\fR
-Pops value; jumps if value is \fBfalse\fR or \fBnull\fR.
+\fBJUMP_IF_FALSE\fR \fIaddress\fR
+Pops value; jumps if value is false or null.
 .TP
-.B JUMP_IF_TRUE \fIaddress\fR
-Pops value; jumps if value is \fBtrue\fR.
+\fBJUMP_IF_TRUE\fR \fIaddress\fR
+Pops value; jumps if value is true.
 .TP
-.B CALL \fIindex\fR
-Pushes return address and jumps to function defined at constant \fIindex\fR.
+\fBJUMP_BACK\fR \fIaddress\fR
+Jump backwards (used for loops).
 .TP
-.B RETURN
+\fBCALL\fR \fIindex\fR
+Pushes return address and jumps to user function defined at constant index.
+.TP
+\fBCALL_NATIVE\fR \fIindex\fR
+Calls a native C/C++ function.
+.TP
+\fBRETURN\fR
 Pops return address from call stack and resumes.
-
+.TP
+\fBIMPORT\fR \fIindex\fR
+Imports a module using the constant path.
+.TP
+\fBEXIT_SCOPE\fR \fIindex\fR
+Cleans up variables upon exiting a local scope.
 .SH OBJECTS AND STRUCTS
 .TP
-.B NEW_STRUCT \fIindex\fR
-Creates an instance of the struct definition at constant \fIindex\fR.
+\fBNEW_STRUCT\fR \fIindex\fR
+Creates an instance of the struct definition at constant index.
 .TP
-.B GET_FIELD, SET_FIELD
-Dynamic field access (uses stack for object and field name).
+\fBGET_FIELD\fR, \fBSET_FIELD\fR
+Dynamic field access using stack.
 .TP
-.B GET_FIELD_STATIC \fIindex, offset\fR
-Optimized access using constant \fIindex\fR and pre-calculated \fIoffset\fR.
-
+\fBNEW_STRUCT_INSTANCE_STATIC\fR \fIindex\fR
+Optimized struct creation using metadata.
+.TP
+\fBGET_FIELD_STATIC\fR, \fBSET_FIELD_STATIC\fR
+Optimized access using constant index and pre-calculated offsets.
 .SH SYSTEM AND I/O
+.SS Stack I/O
 .TP
-.B PRINT
-Pops value and prints to \fBstdout\fR.
+\fBPRINT\fR
+Pops value and prints to stdout.
 .TP
-.B PRINTERROR
-Pops value and prints to \fBstderr\fR.
+\fBPRINTERROR\fR
+Pops value and prints to stderr.
 .TP
-.B READLINE
-Reads a line from \fBstdin\fR and pushes the string result.
+\fBREADLINE\fR
+Reads a line from stdin and pushes the string result.
 .TP
-.B SYSTEM
-Pops a command string and executes it via the host shell.
+\fBSYSTEM\fR
+Pops command and executes via host shell.
 .TP
-.B HALT
+\fBSYSTEM_OUT\fR, \fBSYSTEM_ERR\fR
+Executes shell command and pushes stdout or stderr.
+.TP
+\fBHALT\fR
 Terminates the virtual machine execution.
-
+.SS Register I/O
+.TP
+\fBPRINT_R\fR, \fBPRINTERROR_R\fR
+Print register to stdout or stderr.
+.TP
+\fBREADLINE_R\fR
+Read a line from input into a register.
+.TP
+\fBSYSTEM_R\fR, \fBSYSTEM_OUT_R\fR, \fBSYSTEM_ERR_R\fR
+Execute system commands utilizing registers for arguments and return outputs.
 .SH SEE ALSO
-.BR phasor (3),
-.BR phir (5)
+phasor(3), phir(5)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT
-Copyright \(co 2026 Daniel McGuire
+Copyright 2026 Daniel McGuire
