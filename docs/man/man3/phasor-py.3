@@ -1,4 +1,4 @@
-.TH PHASOR-PY 3 "March 2026" "phasor" "Phasor Programming Language"
+.TH PHASOR-PY 3 "June 2026" "phasor" "Phasor Programming Language"
 .SH NAME
 phasor \- Python module for reading, writing, and manipulating Phasor VM bytecode
 .SH SYNOPSIS
@@ -15,8 +15,8 @@ and programmatic construction facilities.
 A
 .I .phsb
 file consists of a 16-byte header (magic number, version, flags, and a
-CRC-32 checksum) followed by four sections: constants, variables,
-functions, and instructions.
+CRC-32 checksum) followed by six sections: constants, variables,
+functions, function types, structs, and instructions.
 Each instruction occupies exactly 13 bytes on disk: one
 .B uint8
 opcode and three
@@ -67,7 +67,8 @@ Ordered list of
 objects forming the program.
 .TP
 .B constants
-Constant pool; entries are indexed by
+Constant pool;
+entries are indexed by
 .B PUSH_CONST
 and
 .BR LOAD_CONST_R .
@@ -78,8 +79,24 @@ Mapping of variable name strings to integer slot indices.
 .B function_entries
 Mapping of function name strings to the index of the function's first instruction.
 .TP
+.B function_param_counts
+Mapping of function name strings to parameter counts.
+.TP
+.B function_param_type_names
+Mapping of function name strings to ordered lists of parameter type names.
+.TP
+.B function_return_type_names
+Mapping of function name strings to return type names.
+.TP
 .B next_var_index
-Next available variable slot counter; serialised as part of the variables section.
+Next available variable slot counter;
+serialised as part of the variables section.
+.TP
+.B structs
+List of struct descriptors (\fBStructInfo\fR).
+.TP
+.B struct_entries
+Mapping of struct name strings to indices in the structs list.
 .PP
 \fBClass methods:\fR
 .TP
@@ -118,6 +135,9 @@ Unused operands default to
 Append
 .I value
 to the constant pool and return its index.
+.TP
+.BI "add_string_constant(" s )
+Add a string constant with deduplication and return its index.
 .TP
 .BI "find_or_add_constant(" value )
 Return the index of an existing equal constant, or add a new one.
@@ -277,6 +297,12 @@ Return a new Float-typed value.
 .TP
 .BI "Value.from_string(" v )
 Return a new String-typed value.
+.TP
+.BI "Value.from_struct(" name ", " fields )
+Return a new Struct-typed value.
+.TP
+.BI "Value.from_array(" elements )
+Return a new Array-typed value.
 .PP
 \fBAccessors:\fR (raise
 .B TypeError
@@ -289,6 +315,10 @@ if the type does not match)
 .B as_float()
 .TP
 .B as_string()
+.TP
+.B as_struct()
+.TP
+.B as_array()
 .SS OpCode
 .PP
 .SS ValueType
@@ -303,6 +333,8 @@ Bool (1)	Boolean
 Int (2)	Integer
 Float (3)	Floating-point
 String (4)	String
+Struct (5)	Struct
+Array (6)	Array
 .TE
 .SH RUNTIME MODULE
 .PP
@@ -435,7 +467,8 @@ Execute pre-compiled
 .I .phsb
 bytecode.
 .I bytecode
-may be a raw
+may be a 
+raw
 .B bytes
 /
 .B bytearray
@@ -492,7 +525,8 @@ Compile and execute a Pulsar source string.
 Returns the script's exit code.
 .TP
 .BI "evaluate_pul_file(" path ", state=" None ", module_name=" None )
-Read and evaluate a
+Read 
+and evaluate a
 .I .pul
 source file.
 Returns the script's exit code.
@@ -507,7 +541,7 @@ does not exist.
 Magic number for
 .I .phsb
 files:
-.BR 0x424D5850 \ (1112754256).
+.BR 0x42534850 \ (1112754256).
 .TP
 .B VERSION
 Format version word:
@@ -617,7 +651,8 @@ print(bc.disassemble())
 .fi
 .RE
 .PP
-Compile and run a Phasor script, reusing the same VM state:
+Compile and run a Phasor script, 
+reusing the same VM state:
 .PP
 .RS 4
 .nf
@@ -629,7 +664,8 @@ Runtime.init_stdlib(vm)
 bc = Runtime.compile_phs('print("hello, world")', module_name="demo")
 Runtime.run(bc, state=vm)
 
-# Soft-reset between runs; globals and functions are preserved.
+# Soft-reset between runs;
+globals and functions are preserved.
 Runtime.reset_state(vm)
 Runtime.run_file("next.phsb", state=vm)
 
@@ -674,4 +710,3 @@ and
 See the
 .B phasor
 package metadata for information.
-
