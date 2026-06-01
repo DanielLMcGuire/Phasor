@@ -1,5 +1,14 @@
 #include "system.h"
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#  ifndef WIFEXITED
+#    define WIFEXITED(s)   (((s) & 0x7F) == 0)
+#  endif
+#  ifndef WEXITSTATUS
+#    define WEXITSTATUS(s) (((s) >> 8) & 0xFF)
+#  endif
+#endif
+
 size_t PHASORstd_sys_getAvailableMemory(void)
 {
 #ifdef _WIN32
@@ -80,7 +89,7 @@ int PHASORstd_sys_run(const char *name, int argc, char **argv)
 	}
 	int status;
 	waitpid(pid, &status, 0);
-	ret = WEXITSTATUS(status);
+	ret = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 #endif
 
 	free(args);
