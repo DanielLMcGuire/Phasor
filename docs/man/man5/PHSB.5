@@ -1,4 +1,4 @@
-.TH PHSB 5 "January 2026" "Phasor 4.0.0" "Phasor File Formats"
+.TH PHSB 5 "June 2026" "Phasor 4.0.0" "Phasor File Formats"
 .SH NAME
 phsb \- Phasor Binary bytecode format
 .SH DESCRIPTION
@@ -6,7 +6,7 @@ The
 .B .phsb
 file format is a compact binary representation of compiled Phasor bytecode. It is the standard compiled format for Phasor programs, designed for efficient loading and execution by the Phasor virtual machine.
 .PP
-PHSB files contain serialized bytecode instructions, constant values, variable mappings, function entry points with parameter counts, struct definitions, and integrity checksums, all stored in a platform-independent binary format.
+PHSB files contain serialized bytecode instructions, constant values, variable mappings, block scope allocations, function entry points, function type signatures, struct definitions, and integrity checksums, all stored in a platform-independent binary format.
 .SH FILE STRUCTURE
 A PHSB file consists of a header followed by multiple data sections. All multi-byte integers are stored in little-endian byte order.
 .PP
@@ -23,12 +23,12 @@ A PHSB file consists of a header followed by multiple data sections. All multi-b
 4-byte flags field (reserved for future use, currently 0)
 .TP
 .B Offset 12-15: Checksum
-4-byte CRC32 checksum of all data following the header
+4-byte CRC32 checksum of all data following the 16-byte header
 .RE
 .PP
 .B Data Sections
 .RS
-Following the header are five sections, each with a section identifier byte:
+Following the header are seven sections, each with a section identifier byte. The sections are processed in the following order:
 .IP \(bu 2
 .B 0x01
 - Constants section
@@ -36,14 +36,20 @@ Following the header are five sections, each with a section identifier byte:
 .B 0x02
 - Variables section
 .IP \(bu 2
+.B 0x07
+- Scope variables section
+.IP \(bu 2
 .B 0x04
 - Functions section
 .IP \(bu 2
-.B 0x03
-- Instructions section
+.B 0x06
+- Function types section
 .IP \(bu 2
 .B 0x05
 - Structs section
+.IP \(bu 2
+.B 0x03
+- Instructions section
 .RE
 .SH CONSTANTS SECTION
 The constants section stores all literal values used in the program.
@@ -75,6 +81,12 @@ Type tag (1 byte):
 .IP \- 2
 .B 0x04
 - String (followed by 2-byte length, then UTF-8 bytes)
+.IP \- 2
+.B 0x05
+- Struct (followed by name string, 4-byte uint32 field count, and then sequential [string field_name, value field_value] pairs)
+.IP \- 2
+.B 0x06
+- Array (followed by 4-byte uint32 element count, and then sequential elements recursively formatted as values)
 .RE
 .RE
 .RE
@@ -98,8 +110,30 @@ Name: String (2-byte length + UTF-8 bytes)
 Index: Variable index (4 bytes, int32)
 .RE
 .RE
+.SH SCOPE VARIABLES SECTION
+The scope variables section outlines the variables allocated inside individual lexical scope blocks to clear them on exit.
+.PP
+.B Format:
+.RS
+.IP \(bu 2
+Section ID: 0x07 (1 byte)
+.IP \(bu 2
+Count: Number of scope block entries (4 bytes, uint32)
+.IP \(bu 2
+For each scope block:
+.RS
+.IP \(bu 2
+Var count: Number of variables in this scope (4 bytes, uint32)
+.IP \(bu 2
+For each variable:
+.RS
+.IP \(bu 2
+Index: Variable compilation index (4 bytes, int32)
+.RE
+.RE
+.RE
 .SH FUNCTIONS SECTION
-The functions section maps function names to their entry point addresses and parameter counts.
+The functions section maps function names to their instruction index addresses.
 .PP
 .B Format:
 .RS
@@ -114,12 +148,62 @@ For each function:
 Name: String (2-byte length + UTF-8 bytes)
 .IP \(bu 2
 Address: Instruction index (4 bytes, int32)
+.RE
+.RE
+.SH FUNCTION TYPES SECTION
+The function types section stores return type and parameter type signature metadata.
+.PP
+.B Format:
+.RS
 .IP \(bu 2
-Param count: Number of parameters (4 bytes, int32)
+Section ID: 0x06 (1 byte)
+.IP \(bu 2
+Count: Number of type-annotated functions (4 bytes, uint32)
+.IP \(bu 2
+For each function:
+.RS
+.IP \(bu 2
+Name: String (2-byte length + UTF-8 bytes)
+.IP \(bu 2
+Return Type Name: String (2-byte length + UTF-8 bytes)
+.IP \(bu 2
+Param Count: Number of parameters (4 bytes, uint32)
+.IP \(bu 2
+For each parameter:
+.RS
+.IP \(bu 2
+Param Type Name: String (2-byte length + UTF-8 bytes)
+.RE
+.RE
+.RE
+.SH STRUCTS SECTION
+The structs section stores structural layouts for user-defined types.
+.PP
+.B Format:
+.RS
+.IP \(bu 2
+Section ID: 0x05 (1 byte)
+.IP \(bu 2
+Count: Number of structs (4 bytes, uint32)
+.IP \(bu 2
+For each struct:
+.RS
+.IP \(bu 2
+Name: String (2-byte length + UTF-8 bytes)
+.IP \(bu 2
+First constant index: Index in constant pool of the first default field value (4 bytes, int32)
+.IP \(bu 2
+Field count: Number of fields (4 bytes, int32)
+.IP \(bu 2
+For each field:
+.RS
+.IP \(bu 2
+Name: String (2-byte length + UTF-8 bytes)
+.RE
 .RE
 .RE
 .SH INSTRUCTIONS SECTION
-The instructions section contains the actual bytecode program. Each instruction is a fixed 13-byte record, supporting up to three 32-bit operands.
+The instructions section contains the actual program logic. Each instruction is a fixed 13-byte record, supporting up to three 32-bit operands.
 .PP
 .B Format:
 .RS
@@ -139,77 +223,44 @@ Operand 2: Second operand (4 bytes, int32)
 .IP \(bu 2
 Operand 3: Third operand (4 bytes, int32)
 .RE
-.PP
-The instruction set includes stack-based operations, register-based three-address code, control flow, variable access, I/O, struct manipulation, and native calls. For a complete listing, see
-.BR phasor-isa (7).
 .RE
-.SH STRUCTS SECTION
-The structs section stores metadata for user-defined composite types, including field names and default value references.
-.PP
-.B Format:
-.RS
-.IP \(bu 2
-Section ID: 0x05 (1 byte)
-.IP \(bu 2
-Count: Number of structs (4 bytes, uint32)
-.IP \(bu 2
-For each struct:
-.RS
-.IP \(bu 2
-Name: String (2-byte length + UTF-8 bytes)
-.IP \(bu 2
-First constant index: Index in constant pool of the first default value (4 bytes, int32)
-.IP \(bu 2
-Field count: Number of fields (4 bytes, uint32)
-.IP \(bu 2
-For each field:
-.RS
-.IP \(bu 2
-Name: String (2-byte length + UTF-8 bytes)
-.RE
-.RE
-.RE
-.PP
-The default values for a struct's fields are stored consecutively in the constant pool, starting at the given index. This allows the VM to initialize struct instances efficiently.
 .SH INTEGRITY VERIFICATION
 The PHSB format includes integrity checking through CRC32 checksums:
 .RS
 .IP 1. 3
-The checksum in the header covers all bytes following the 16-byte header
+The checksum in the header covers all bytes following the 16-byte header.
 .IP 2. 3
-The checksum uses the standard CRC32 algorithm with polynomial 0xEDB88320
+The checksum uses the standard CRC32 algorithm with polynomial 0xEDB88320.
 .IP 3. 3
-On loading, the runtime recalculates the checksum and compares it
+On loading, the runtime recalculates the checksum of the data sections and compares it.
 .IP 4. 3
-Mismatched checksums indicate file corruption or tampering
+Mismatched checksums indicate file corruption or tampering.
 .RE
 .SH BYTE ORDER
-All multi-byte values in PHSB files use little-endian byte order, ensuring platform independence across x86, x86-64, ARM, and other little-endian architectures. Big-endian systems must perform byte swapping during deserialization.
+All multi-byte values in PHSB files use little-endian byte order, ensuring platform independence across modern architectures. Big-endian systems must perform byte swapping during deserialization.
 .SH PLATFORM INDEPENDENCE
 PHSB files are platform-independent:
 .RS
 .IP \(bu 2
-No platform-specific data structures
+No platform-specific data structures are stored.
 .IP \(bu 2
-Consistent byte ordering (little-endian)
+Consistent byte ordering (little-endian) is enforced.
 .IP \(bu 2
-No pointer storage or memory addresses
+No direct pointer or raw memory address space details are serialized.
 .IP \(bu 2
-Fixed-size data types with explicit widths
+Fixed-size data types are used with explicit widths.
 .IP \(bu 2
-UTF-8 encoding for all text data
+UTF-8 encoding is used for all text data.
 .RE
 .PP
-A PHSB file compiled on one platform can be executed on any other platform with a compatible Phasor VM.
+A PHSB file compiled on one platform can be executed on any other platform with a compatible Phasor virtual machine.
 .SH VERSION COMPATIBILITY
 The version number in the header (currently 3.0.0.0) determines compatibility:
 .RS
 .IP \(bu 2
-The VM checks the version before loading
+The VM checks the version before loading.
 .IP \(bu 2
-Incompatible versions are rejected with an error
-.IP \(bu 2
-Future versions may provide backward compatibility
+Incompatible versions are rejected with an error.
 .RE
 .SH SIZE LIMITS
 The PHSB format has the following limits:
@@ -227,42 +278,35 @@ Maximum structs: 4,294,967,295 (uint32 max)
 .IP \(bu 2
 Maximum string length: 65,535 bytes (uint16 max)
 .RE
-.PP
-In practice, these limits are far beyond typical program requirements.
 .SH USAGE
 PHSB files are:
 .RS
 .IP \(bu 2
 Generated by
 .BR phasorcompiler (1)
-from Phasor source files
+from Phasor source files.
 .IP \(bu 2
 Executed by
 .BR phasorvm (1)
-for optimal performance
+for optimal performance.
 .IP \(bu 2
-Used as distribution format for compiled programs
-.IP \(bu 2
-Suitable for embedded systems and constrained environments
+Used as the standard distribution format for compiled Phasor applications.
 .RE
 .SH ADVANTAGES
 The binary format provides:
 .RS
 .IP \(bu 2
 .B Compact size
-- Significantly smaller than text-based formats
+- Significantly smaller than text-based formats.
 .IP \(bu 2
 .B Fast loading
-- No parsing required, direct deserialization
+- No parsing required, direct deserialization.
 .IP \(bu 2
 .B Integrity checking
-- CRC32 checksums detect corruption
+- CRC32 checksums detect corruption.
 .IP \(bu 2
 .B Platform independence
-- Runs on any system with Phasor VM
-.IP \(bu 2
-.B Security
-- Magic numbers prevent accidental execution of non-bytecode files
+- Runs on any system with a compatible Phasor VM.
 .RE
 .SH COMPARISON WITH PHIR
 .TS
@@ -283,21 +327,17 @@ Platform binary	No vs No
 While PHSB files include integrity checking, they should be treated with caution:
 .RS
 .IP \(bu 2
-CRC32 is not cryptographically secure
+CRC32 is not cryptographically secure.
 .IP \(bu 2
-Checksums detect corruption, not malicious modification
+Checksums detect corruption, not malicious modification.
 .IP \(bu 2
-Bytecode execution can perform arbitrary operations
-.IP \(bu 2
-Only execute PHSB files from trusted sources
+Only execute PHSB files from trusted sources.
 .RE
 .SH SEE ALSO
 .BR phasor (1),
 .BR phasorcompiler (1),
 .BR phasorvm (1),
-.BR phasor-isa (7),
-.BR PHIR (5),
-.BR PHS (5)
+.BR PHIR (5)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT
