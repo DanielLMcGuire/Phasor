@@ -1,6 +1,7 @@
 #include "CodeGen.hpp"
 #include <iostream>
 #include <unordered_map>
+#include <algorithm>
 #include <phsint.hpp>
 
 namespace Phasor
@@ -13,6 +14,15 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 	bytecode.variables = existingVars;
 	bytecode.nextVarIndex = nextVarIdx;
 	isRepl = replMode;
+
+	declaredTypes.clear();
+	inferredTypes.clear();
+	inferredFieldTypes.clear();
+	arrayDimensions.clear();
+	arrayBaseTypes.clear();
+	currentFunctionReturnType.clear();
+	currentFunctionReturnDims.clear();
+	currentFunctionHasReturn = false;
 
 	for (const auto &stmt : program.statements)
 	{
@@ -173,6 +183,21 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 			known = true;
 			return ValueType::Bool;
 		}
+
+		auto retTypeIt = bytecode.functionReturnTypeNames.find(callExpr->callee);
+		if (retTypeIt != bytecode.functionReturnTypeNames.end()) 
+		{
+			if (retTypeIt->second != "any") 
+			{
+				known = true;
+				auto dimsIt = bytecode.functionReturnArrayDims.find(callExpr->callee);
+				if (dimsIt != bytecode.functionReturnArrayDims.end() && !dimsIt->second.empty()) 
+				{
+					return ValueType::Array;
+				}
+				return mapTypeNameToValueType(retTypeIt->second);
+			}
+		}
 	}
 
 	if (dynamic_cast<const AST::ArrayLiteralExpr *>(expr))
@@ -185,6 +210,46 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 	{
 		known = true;
 		return ValueType::Struct;
+	}
+
+	if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(expr))
+	{
+		if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
+		{
+			auto arrayIt = arrayBaseTypes.find(ident->name);
+			if (arrayIt != arrayBaseTypes.end() && arrayIt->second != "any")
+			{
+				known = true;
+				return mapTypeNameToValueType(arrayIt->second);
+			}
+		}
+		else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(arrayAccess->array.get()))
+		{
+			if (const auto *objIdent = dynamic_cast<const AST::IdentifierExpr *>(fieldExpr->object.get()))
+			{
+				std::string structName = "";
+				auto declIt = declaredTypes.find(objIdent->name);
+				if (declIt != declaredTypes.end())
+				{
+					structName = declIt->second;
+				}
+
+				for (const auto &s : bytecode.structs)
+				{
+					if (!structName.empty() && s.name != structName)
+						continue;
+
+					for (size_t i = 0; i < s.fieldNames.size(); ++i)
+					{
+						if (s.fieldNames[i] == fieldExpr->fieldName)
+						{
+							known = true;
+							return mapTypeNameToValueType(s.fieldTypeNames[i]);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(expr))
@@ -207,13 +272,27 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 			auto typeIt = inferredTypes.find(objIdent->name);
 			if (typeIt != inferredTypes.end() && typeIt->second == ValueType::Struct)
 			{
+				std::string structName = "";
+				auto declIt = declaredTypes.find(objIdent->name);
+				if (declIt != declaredTypes.end())
+				{
+					structName = declIt->second;
+				}
+
 				for (const auto &s : bytecode.structs)
 				{
+					if (!structName.empty() && s.name != structName)
+						continue;
+
 					for (size_t i = 0; i < s.fieldNames.size(); ++i)
 					{
 						if (s.fieldNames[i] == fieldExpr->fieldName)
 						{
 							known = true;
+							if (!s.fieldArrayDims[i].empty())
+							{
+								return ValueType::Array;
+							}
 							return mapTypeNameToValueType(s.fieldTypeNames[i]);
 						}
 					}
@@ -376,6 +455,8 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 	if (hasExplicitType)
 	{
+		declaredTypes[varDecl->name] = varDecl->type->name;
+
 		if (isAny)
 		{
 			if (isArrayType)
@@ -453,6 +534,14 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 				auto it = arrayDimensions.find(name);
 				frame.savedArrayDimensions[name] = (it != arrayDimensions.end())
 													? std::optional<std::vector<int>>(it->second)
+													: std::nullopt;
+			}
+
+			if (frame.savedDeclaredTypes.find(name) == frame.savedDeclaredTypes.end())
+			{
+				auto it = declaredTypes.find(name);
+				frame.savedDeclaredTypes[name] = (it != declaredTypes.end())
+													? std::optional<std::string>(it->second)
 													: std::nullopt;
 			}
 
@@ -586,16 +675,13 @@ void CodeGenerator::generateImportStmt(const AST::ImportStmt *importStmt)
 
 void CodeGenerator::generateExportStmt(const AST::ExportStmt *exportStmt)
 {
-	// For now, export just executes the declaration in the current scope
 	generateStatement(exportStmt->declaration.get());
 }
 
 void CodeGenerator::generateNumberExpr(const AST::NumberExpr *numExpr)
 {
-	// Try to parse as integer first, then as float
 	try
 	{
-		// Check if it has a decimal point
 		if (numExpr->value.find('.') != std::string::npos)
 		{
 			f64 d = std::stod(numExpr->value);
@@ -629,10 +715,8 @@ void CodeGenerator::generateIdentifierExpr(const AST::IdentifierExpr *identExpr)
 
 void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
 {
-	// Generate operand
 	generateExpression(unaryExpr->operand.get());
 
-	// Emit operation
 	switch (unaryExpr->op)
 	{
 	case AST::UnaryOp::Negate:
@@ -650,7 +734,6 @@ void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
 
 void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 {
-	// Optimizations
 	if (callExpr->callee == "len" && callExpr->arguments.size() == 1)
 	{
 		if (const auto *strExpr = dynamic_cast<const AST::StringExpr *>(callExpr->arguments[0].get()))
@@ -711,17 +794,14 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 		}
 	}
 
-	// Push arguments
 	for (const auto &arg : callExpr->arguments)
 	{
 		generateExpression(arg.get());
 	}
 
-	// Push argument count
 	int constIndex = bytecode.addConstant(Value(static_cast<i64>(callExpr->arguments.size())));
 	bytecode.emit(OpCode::PUSH_CONST, constIndex);
 
-	// Check if it's a user function
 	auto entryIt = bytecode.functionEntries.find(callExpr->callee);
 	if (entryIt != bytecode.functionEntries.end())
 	{
@@ -757,7 +837,13 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 					if (dimsIt != bytecode.functionParamArrayDims.end() && i < dimsIt->second.size())
 					{
 						const auto &expectedDims = dimsIt->second[i];
-						if (!expectedDims.empty() && expectedDims[0] != -1)
+						if (expectedDims.empty())
+						{
+							throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+							          + "' expects scalar '" + expectedTypeName + "', got array (line "
+							          + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
+						}
+						if (expectedDims[0] != -1)
 						{
 							if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(callExpr->arguments[i].get()))
 							{
@@ -773,9 +859,23 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 					}
 					continue;
 				}
+				else
+				{
+					auto dimsIt = bytecode.functionParamArrayDims.find(callExpr->callee);
+					if (dimsIt != bytecode.functionParamArrayDims.end() && i < dimsIt->second.size())
+					{
+						const auto &expectedDims = dimsIt->second[i];
+						if (!expectedDims.empty())
+						{
+							throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+							          + "' expects array, got scalar (line "
+							          + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
+						}
+					}
+				}
 
 				ValueType expectedType = mapTypeNameToValueType(expectedTypeName);
-				if (argType != expectedType)
+				if (argType != expectedType && expectedType != ValueType::Struct)
 				{
 					throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
 					          + "' has wrong type: expected '" + expectedTypeName
@@ -942,7 +1042,6 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType
 	bool leftKnownInt  = exprIsKnownInt(binExpr->left.get(), leftIsLiteral, leftLiteral);
 	bool rightKnownInt = exprIsKnownInt(binExpr->right.get(), rightIsLiteral, rightLiteral);
 
-	// Use integer ops only when both operands are known ints AND the target type is not float
 	if (leftKnownInt && rightKnownInt && hint != ValueType::Float)
 	{
 		switch (binExpr->op)
@@ -1081,6 +1180,14 @@ void CodeGenerator::generateBlockStmt(const AST::BlockStmt *blockStmt)
             arrayDimensions[name] = *oldDims;
     }
 
+    for (auto &[name, oldDeclType] : frame.savedDeclaredTypes)
+    {
+        if (!oldDeclType.has_value())
+            declaredTypes.erase(name);
+        else
+            declaredTypes[name] = *oldDeclType;
+    }
+
     if (!frame.declaredIndices.empty())
     {
         int scopeId = static_cast<int>(bytecode.scopeVarLists.size());
@@ -1090,6 +1197,7 @@ void CodeGenerator::generateBlockStmt(const AST::BlockStmt *blockStmt)
 
     scopeStack.pop_back();
 }
+
 void CodeGenerator::generateIfStmt(const AST::IfStmt *ifStmt)
 {
 	generateExpression(ifStmt->condition.get());
@@ -1120,7 +1228,6 @@ void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
 {
 	int loopStartIndex = static_cast<int>(bytecode.instructions.size());
 
-	// Push loop context
 	loopStartStack.push_back(loopStartIndex);
 	breakJumpsStack.emplace_back();
 	continueJumpsStack.emplace_back();
@@ -1132,7 +1239,6 @@ void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
 
 	generateStatement(whileStmt->body.get());
 
-	// Patch continue jumps to loop start
 	for (int continueJump : continueJumpsStack.back())
 	{
 		bytecode.instructions[continueJump].operand1 = loopStartIndex;
@@ -1140,7 +1246,6 @@ void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
 
 	bytecode.emit(OpCode::JUMP_BACK, loopStartIndex);
 
-	// Patch jump to end and break jumps
 	int endIndex = static_cast<int>(bytecode.instructions.size());
 	bytecode.instructions[jumpToEndIndex].operand1 = endIndex;
 	for (int breakJump : breakJumpsStack.back())
@@ -1148,7 +1253,6 @@ void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
 		bytecode.instructions[breakJump].operand1 = endIndex;
 	}
 
-	// Pop loop context
 	loopStartStack.pop_back();
 	breakJumpsStack.pop_back();
 	continueJumpsStack.pop_back();
@@ -1156,7 +1260,6 @@ void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
 
 void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 {
-	// Generate initializer
 	if (forStmt->initializer)
 	{
 		generateStatement(forStmt->initializer.get());
@@ -1164,12 +1267,10 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 
 	int loopStartIndex = static_cast<int>(bytecode.instructions.size());
 
-	// Push loop context
 	loopStartStack.push_back(loopStartIndex);
 	breakJumpsStack.emplace_back();
 	continueJumpsStack.emplace_back();
 
-	// Generate condition (if present)
 	int jumpToEndIndex = -1;
 	if (forStmt->condition)
 	{
@@ -1178,36 +1279,29 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
 	}
 
-	// Generate body
 	generateStatement(forStmt->body.get());
 
-	// Continue jumps to increment (or loop start if no increment)
 	int incrementIndex = static_cast<int>(bytecode.instructions.size());
 	for (int continueJump : continueJumpsStack.back())
 	{
 		bytecode.instructions[continueJump].operand1 = incrementIndex;
 	}
 
-	// Generate increment
 	if (forStmt->increment)
 	{
 		if (const auto *postfix = dynamic_cast<const AST::PostfixExpr *>(forStmt->increment.get()))
 		{
-			// resultNeeded=false: skips the old-value LOAD_VAR, and STORE_VAR
-			// already pops the result — stack is clean, no POP needed.
 			generatePostfixExpr(postfix, false);
 		}
 		else
 		{
 			generateExpression(forStmt->increment.get());
-			bytecode.emit(OpCode::POP); // discard result
+			bytecode.emit(OpCode::POP);
 		}
 	}
 
-	// Jump back to condition check
 	bytecode.emit(OpCode::JUMP_BACK, loopStartIndex);
 
-	// Patch jump to end and break jumps
 	int endIndex = static_cast<int>(bytecode.instructions.size());
 	if (jumpToEndIndex != -1)
 	{
@@ -1218,7 +1312,6 @@ void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
 		bytecode.instructions[breakJump].operand1 = endIndex;
 	}
 
-	// Pop loop context
 	loopStartStack.pop_back();
 	breakJumpsStack.pop_back();
 	continueJumpsStack.pop_back();
@@ -1230,7 +1323,6 @@ void CodeGenerator::generateBreakStmt()
 	{
 		throw std::runtime_error("'break' statement outside of loop");
 	}
-	// Emit jump with placeholder, will be patched later
 	int jumpIndex = static_cast<int>(bytecode.instructions.size());
 	bytecode.emit(OpCode::JUMP, 0);
 	breakJumpsStack.back().push_back(jumpIndex);
@@ -1242,7 +1334,6 @@ void CodeGenerator::generateContinueStmt()
 	{
 		throw std::runtime_error("'continue' statement outside of loop");
 	}
-	// Emit jump with placeholder, will be patched later
 	int jumpIndex = static_cast<int>(bytecode.instructions.size());
 	bytecode.emit(OpCode::JUMP, 0);
 	continueJumpsStack.back().push_back(jumpIndex);
@@ -1262,10 +1353,23 @@ void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
 			ValueType retType = inferExpressionType(returnStmt->value.get(), known);
 			if (known)
 			{
-				if (retType != ValueType::Array)
+				bool expectedIsArray = !currentFunctionReturnDims.empty();
+				if (retType == ValueType::Array && !expectedIsArray)
+				{
+					throw std::runtime_error("ERROR: return type mismatch: function declared to return scalar '"
+					          + currentFunctionReturnType + "' but returning array"
+					          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
+				}
+				else if (retType != ValueType::Array && expectedIsArray)
+				{
+					throw std::runtime_error("ERROR: return type mismatch: function declared to return array '"
+					          + currentFunctionReturnType + "[]' but returning scalar"
+					          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
+				}
+				else if (!expectedIsArray)
 				{
 					ValueType expectedType = mapTypeNameToValueType(currentFunctionReturnType);
-					if (retType != expectedType)
+					if (retType != expectedType && expectedType != ValueType::Struct)
 					{
 						throw std::runtime_error("ERROR: return type mismatch: function declared to return '"
 						          + currentFunctionReturnType + "' but returning a different type"
@@ -1321,12 +1425,15 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	bytecode.functionParamArrayDims[funcDecl->name] = std::move(paramArrayDims); 
 
 	std::string prevReturnType = currentFunctionReturnType;
+	std::vector<int> prevReturnDims = currentFunctionReturnDims;
 	bool prevHasReturn = currentFunctionHasReturn;
 
 	currentFunctionReturnType = (funcDecl->returnType ? funcDecl->returnType->name : "any");
+	currentFunctionReturnDims = (funcDecl->returnType ? funcDecl->returnType->arrayDimensions : std::vector<int>{});
 	currentFunctionHasReturn = false;
 
 	bytecode.functionReturnTypeNames[funcDecl->name] = currentFunctionReturnType;
+	bytecode.functionReturnArrayDims[funcDecl->name] = currentFunctionReturnDims;
 	bytecode.emit(OpCode::POP);
 
 	for (auto it = funcDecl->params.rbegin(); it != funcDecl->params.rend(); ++it)
@@ -1370,6 +1477,7 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 	}
 
 	currentFunctionReturnType = prevReturnType;
+	currentFunctionReturnDims = prevReturnDims;
 	currentFunctionHasReturn = prevHasReturn;
 
 	bytecode.instructions[jumpOverIndex].operand1 = static_cast<int>(bytecode.instructions.size());
@@ -1396,45 +1504,70 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 {
     if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(assignExpr->target.get()))
     {
-        auto arrayIt = arrayBaseTypes.find(identExpr->name);
-        if (arrayIt != arrayBaseTypes.end())
-        {
-            std::string expectedBaseType = arrayIt->second;
-            if (expectedBaseType != "any")
-            {
-                ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
-                if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
-                {
-                    auto dimsIt = arrayDimensions.find(identExpr->name);
-                    if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1)
-                    {
-                        if (arrayLit->elements.size() != static_cast<size_t>(dimsIt->second[0]))
-                            throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) +
-                                                     " elements to array '" + identExpr->name + "' of size " + std::to_string(dimsIt->second[0]));
-                    }
+        auto declIt = declaredTypes.find(identExpr->name);
+        bool isAny = (declIt == declaredTypes.end() || declIt->second == "any");
 
-                    for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+        auto arrayIt = arrayBaseTypes.find(identExpr->name);
+        bool isArrayTarget = (arrayIt != arrayBaseTypes.end());
+
+        bool knownValType = false;
+        ValueType valType = inferExpressionType(assignExpr->value.get(), knownValType);
+
+        if (!isAny)
+        {
+            if (isArrayTarget)
+            {
+                if (knownValType && valType != ValueType::Array) {
+                    throw std::runtime_error("Type mismatch: cannot assign non-array to array variable '" + identExpr->name + "'");
+                }
+                
+                std::string expectedBaseType = arrayIt->second;
+                if (expectedBaseType != "any")
+                {
+                    ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
+                    if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
                     {
-                        bool known = false;
-                        ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), known);
-                        if (known && elemType != expectedElemType)
+                        auto dimsIt = arrayDimensions.find(identExpr->name);
+                        if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1)
                         {
-                            throw std::runtime_error("Type mismatch in array assignment: element at index " +
-                                                     std::to_string(i) + " does not match expected base type '" +
-                                                     expectedBaseType + "'.");
+                            if (arrayLit->elements.size() != static_cast<size_t>(dimsIt->second[0]))
+                                throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) +
+                                                         " elements to array '" + identExpr->name + "' of size " + std::to_string(dimsIt->second[0]));
+                        }
+
+                        for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+                        {
+                            bool elemKnown = false;
+                            ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), elemKnown);
+                            if (elemKnown && elemType != expectedElemType)
+                            {
+                                throw std::runtime_error("Type mismatch in array assignment: element at index " +
+                                                         std::to_string(i) + " does not match expected base type '" +
+                                                         expectedBaseType + "'.");
+                            }
                         }
                     }
                 }
             }
+            else
+            {
+                if (knownValType && valType == ValueType::Array) {
+                    throw std::runtime_error("Type mismatch: cannot assign array to scalar variable '" + identExpr->name + "'");
+                }
+                
+                ValueType expectedType = mapTypeNameToValueType(declIt->second);
+                if (knownValType && valType != expectedType && expectedType != ValueType::Null && expectedType != ValueType::Struct)
+                {
+                    throw std::runtime_error("Type mismatch: cannot assign value of mismatching type to variable '" + identExpr->name + "' of type '" + declIt->second + "'");
+                }
+            }
         }
 
-        // Resolve the target variable's known type to use as a hint
         ValueType targetType = ValueType::Null;
         auto typeIt = inferredTypes.find(identExpr->name);
         if (typeIt != inferredTypes.end())
             targetType = typeIt->second;
 
-        // Pass target type as hint to binary expressions so float targets use float ops
         if (const auto *binExpr = dynamic_cast<const AST::BinaryExpr *>(assignExpr->value.get()))
         {
             generateBinaryExpr(binExpr, targetType);
@@ -1444,7 +1577,6 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
             generateExpression(assignExpr->value.get());
         }
 
-        // Propagate type from literal
         Value val;
         if (isLiteralExpression(assignExpr->value.get(), val))
         {
@@ -1460,9 +1592,16 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
         generateExpression(fieldExpr->object.get());
         generateExpression(assignExpr->value.get());
 
+        std::string tempName = "__assign_val_" + std::to_string(switchCounter++);
+        int tempVar = bytecode.getOrCreateVar(tempName);
+        bytecode.emit(OpCode::STORE_VAR, tempVar); 
+        bytecode.emit(OpCode::LOAD_VAR, tempVar);  
+
         int fieldNameIndex = bytecode.addStringConstant(fieldExpr->fieldName);
         bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
-        bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
+        bytecode.emit(OpCode::POP); 
+
+        bytecode.emit(OpCode::LOAD_VAR, tempVar); 
     }
     else if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(assignExpr->target.get()))
     {
@@ -1520,16 +1659,13 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
 
 void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *expr)
 {
-	// Prefer static struct instantiation when we have metadata
 	auto it = bytecode.structEntries.find(expr->structName);
 	if (it != bytecode.structEntries.end())
 	{
 		int structIndex = it->second;
 
-		// Create instance with defaults from Bytecode::structs / constants
 		bytecode.emit(OpCode::NEW_STRUCT_INSTANCE_STATIC, structIndex);
 
-		// Apply any explicit field initializers as overrides using dynamic SET_FIELD
 		for (const auto &[fieldName, fieldValue] : expr->fieldValues)
 		{
 			generateExpression(fieldValue.get());
@@ -1539,7 +1675,6 @@ void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *ex
 	}
 	else
 	{
-		// Fallback
 		int structNameIndex = bytecode.addStringConstant(expr->structName);
 		bytecode.emit(OpCode::NEW_STRUCT, structNameIndex);
 
@@ -1551,6 +1686,7 @@ void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *ex
 		}
 	}
 }
+
 void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
 {
 	generateExpression(expr->object.get());
@@ -1631,7 +1767,6 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 	int         tempVarIndex = bytecode.getOrCreateVar(tempName);
 	bytecode.emit(OpCode::STORE_VAR, tempVarIndex);
 
-	// Propagate inferred type to temp var
 	bool known = false;
 	ValueType inferred = inferExpressionType(switchStmt->expr.get(), known);
 	if (known)
@@ -1639,17 +1774,16 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 		inferredTypes[tempName] = inferred;
 	}
 
-	std::vector<int> endJumps; // one per case, all patched to end
+	std::vector<int> endJumps; 
 
 	for (const auto &caseClause : switchStmt->cases)
 	{
-		// Reload switch value for every comparison
 		bytecode.emit(OpCode::LOAD_VAR, tempVarIndex);
 		generateExpression(caseClause.value.get());
 		bytecode.emit(OpCode::FLEQUAL);
 
 		int skipJump = static_cast<int>(bytecode.instructions.size());
-		bytecode.emit(OpCode::JUMP_IF_FALSE, 0); // skip this case if no match
+		bytecode.emit(OpCode::JUMP_IF_FALSE, 0); 
 
 		for (const auto &stmt : caseClause.statements)
 		{
@@ -1657,10 +1791,9 @@ void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
 		}
 
 		int endJump = static_cast<int>(bytecode.instructions.size());
-		bytecode.emit(OpCode::JUMP, 0); // after executing, jump to end
+		bytecode.emit(OpCode::JUMP, 0); 
 		endJumps.push_back(endJump);
 
-		// Patch skip jump to point at the next case
 		bytecode.instructions[skipJump].operand1 = static_cast<int>(bytecode.instructions.size());
 	}
 
@@ -1708,11 +1841,51 @@ void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAcc
             }
         }
     }
+    else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(arrayAccess->array.get()))
+    {
+        if (const auto *objIdent = dynamic_cast<const AST::IdentifierExpr *>(fieldExpr->object.get()))
+        {
+            std::string structName = "";
+            auto declIt = declaredTypes.find(objIdent->name);
+            if (declIt != declaredTypes.end())
+            {
+                structName = declIt->second;
+            }
 
-    generateExpression(arrayAccess->array.get());   // array
-    generateExpression(arrayAccess->index.get());   // index
+            for (const auto &s : bytecode.structs)
+            {
+                if (!structName.empty() && s.name != structName)
+                    continue;
+
+                for (size_t i = 0; i < s.fieldNames.size(); ++i)
+                {
+                    if (s.fieldNames[i] == fieldExpr->fieldName)
+                    {
+                        const auto &dims = s.fieldArrayDims[i];
+                        if (!dims.empty() && dims[0] != -1)
+                        {
+                            Value idxVal;
+                            if (isLiteralExpression(arrayAccess->index.get(), idxVal) && idxVal.isInt())
+                            {
+                                i64 idx = idxVal.asInt();
+                                if (idx < 0 || idx >= dims[0])
+                                {
+                                    throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) + 
+                                                             " is out of bounds for field array '" + fieldExpr->fieldName + 
+                                                             "' of size " + std::to_string(dims[0]));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    generateExpression(arrayAccess->array.get());   
+    generateExpression(arrayAccess->index.get());   
     int countIdx = bytecode.addConstant(Value(static_cast<i64>(2)));
-    bytecode.emit(OpCode::PUSH_CONST, countIdx);    // count for __get_elem
+    bytecode.emit(OpCode::PUSH_CONST, countIdx);    
     int funcIdx = bytecode.addStringConstant("__get_elem");
     bytecode.emit(OpCode::CALL_NATIVE, funcIdx);
     if (!resultNeeded)
@@ -1725,8 +1898,6 @@ ValueType CodeGenerator::mapTypeNameToValueType(const std::string &typeName)
     if (typeName == "float" || typeName == "f64") return ValueType::Float;
     if (typeName == "string")                     return ValueType::String;
     if (typeName == "bool")                       return ValueType::Bool;
-    // NOTE: "array" is no longer a valid standalone type name.
-    // Arrays are declared via the T[] suffix (e.g. int[], string[], any[]).
     if (typeName == "struct") [[unlikely]]        return ValueType::Struct;
     if (bytecode.structEntries.find(typeName) != bytecode.structEntries.end())
     { [[likely]] return ValueType::Struct; }

@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <optional>
 
 #include <platform.h>
 
@@ -59,6 +60,7 @@ struct Bytecode
 	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
 	std::unordered_map<std::string, std::vector<std::vector<int>>> functionParamArrayDims;
 	std::unordered_map<std::string, std::string> functionReturnTypeNames; ///< Function name -> return type name
+	std::unordered_map<std::string, std::vector<int>> functionReturnArrayDims; ///< Function name -> return array dims
 	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
@@ -131,9 +133,13 @@ class CodeGenerator
 	// Inferred types for variables (simple, flow-insensitive mapping)
 	std::unordered_map<std::string, ValueType> inferredTypes;
 	std::unordered_map<std::string, std::unordered_map<std::string, ValueType>> inferredFieldTypes;
+	std::unordered_map<std::string, std::string> declaredTypes;
+
 	std::string currentFunctionReturnType;
+	std::vector<int> currentFunctionReturnDims;
 	bool currentFunctionHasReturn = false;
 	std::unordered_map<std::string, std::vector<int>> arrayDimensions;
+	std::unordered_map<std::string, std::string> arrayBaseTypes;
 
 	// Register allocation for v2.0
 	u8           nextRegister = 0; ///< Next available register
@@ -145,6 +151,7 @@ class CodeGenerator
 		std::unordered_map<std::string, std::optional<ValueType>>   savedInferredTypes;
 		std::unordered_map<std::string, std::optional<std::string>> savedArrayBaseTypes;
 		std::unordered_map<std::string, std::optional<std::vector<int>>> savedArrayDimensions;
+		std::unordered_map<std::string, std::optional<std::string>> savedDeclaredTypes;
 	};
 	std::vector<ScopeFrame> scopeStack;
 
@@ -232,8 +239,6 @@ class CodeGenerator
 	std::vector<int>              loopStartStack;     // Stack of loop start positions
 	std::vector<std::vector<int>> breakJumpsStack;    // Stack of break jump positions to patch
 	std::vector<std::vector<int>> continueJumpsStack; // Stack of continue jump positions to patch
-
-	std::unordered_map<std::string, std::string> arrayBaseTypes;
 
 	int switchCounter = 0; // Monotonic counter for unique switch temp variable names
 };
