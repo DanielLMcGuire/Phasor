@@ -9,7 +9,9 @@ A statically/dynamically typed, compiled programming language with a fast byteco
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of a unified type system, which provides C++ RAII support to the runtime, stdlib, and FFI interfaces.
 
-Memory management is deterministic, you set variables to null or do nothing and let the runtime clear them at shutdown.
+Memory management is deterministic, the compiler will compute usage, and destroy objects at end of scope, or outside a block the runtime clear them at shutdown.
+
+You can also use `free("varName");`.
 
 See [Language Features](#language-features) for more info on memory management.
 
