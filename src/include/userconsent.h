@@ -17,6 +17,15 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#  ifndef WIFEXITED
+#    define WIFEXITED(s)   (((s) & 0x7F) == 0)
+#  endif
+#  ifndef WEXITSTATUS
+#    define WEXITSTATUS(s) (((s) >> 8) & 0xFF)
+#  endif
+#endif
+
 // If you are here, you probably have one question, why?
 // I cannot consistantly format grammar, this forces me (and potential contributors) to use "static time grammar"
 // It reads *almost* like english so it works
