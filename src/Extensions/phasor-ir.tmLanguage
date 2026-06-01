@@ -63,7 +63,7 @@
 					<key>name</key>
 					<string>keyword.control.section.phasor-ir</string>
 					<key>match</key>
-					<string>^\.(PHIR|CONSTANTS|VARIABLES|FUNCTIONS|STRUCTS|INSTRUCTIONS)\b</string>
+					<string>^\.(PHIR|CONSTANTS|VARIABLES|FUNCTIONS|FUNCTYPES|STRUCTS|INSTRUCTIONS)\b</string>
 				</dict>
 			</array>
 		</dict>
