@@ -40,4 +40,6 @@ endif()
 
 if(WIN32)
     add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
+else()
+    add_compile_definitions(PHASOR_DEFAULT_FIRST_PATH /opt/phasor/include)
 endif()

@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <print>
+#include <phs_dupenv.hpp>
 
 namespace Phasor
 {
@@ -211,6 +212,30 @@ void Compiler::parseArguments(int argc, char *argv[])
 	}
 	m_args.scriptArgv = argv + defaultArgLocation;
 	m_args.scriptArgc = argc - defaultArgLocation;
+
+	std::vector<std::filesystem::path> finalPaths;
+
+#ifdef PHASOR_DEFAULT_FIRST_PATH
+	finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+#endif
+
+	for (const auto& p : m_args.includePaths)
+	{
+		finalPaths.push_back(p);
+	}
+
+	PhsString includeDirs;
+	if (dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == dupenv_ret::Success)
+	{
+		std::stringstream ss(includeDirs.c_str());
+		std::string item;
+		while (std::getline(ss, item, ';'))
+		{
+			if (!item.empty())
+				finalPaths.push_back(item);
+		}
+	}
+	m_args.includePaths = std::move(finalPaths);
 }
 
 void Compiler::showHelp(const std::string &programName)

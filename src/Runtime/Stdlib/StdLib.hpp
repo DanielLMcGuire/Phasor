@@ -43,6 +43,7 @@ class StdLib
 		vm.registerNativeFunction("using", std_import);
 #ifndef SANDBOXED
 		vm.registerNativeFunction("assert", std_assert);
+		vm.registerNativeFunction("std_noimport", run_internal);
 #endif
 	}
 
@@ -53,7 +54,11 @@ class StdLib
 	                          bool allowMoreArguments = false);
 
   private:
+  	static std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> modules;
+	static std::unordered_map<PhsString, std::function<Value(const std::vector<Value> &args, VM *vm)>> functions;
+
 	static bool std_import(const std::vector<Value> &args, VM *vm);
+	static Value run_internal(const std::vector<Value> &args, VM *vm);
 #ifndef SANDBOXED
 	static Value std_assert(const std::vector<Value> &args, VM *vm);
 #endif

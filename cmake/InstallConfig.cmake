@@ -57,6 +57,10 @@ elseif(WIN32)
         PATTERN "*.7" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/
+        DESTINATION phsinclude
+    )
 elseif(APPLE)
     install(TARGETS
         phasor_main
@@ -90,6 +94,10 @@ elseif(APPLE)
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/
+        DESTINATION opt/phasor/include
+    )
 else()
     install(TARGETS
         phasor_main
@@ -121,5 +129,9 @@ else()
         PATTERN "*.py" EXCLUDE
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
+    )
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/
+        DESTINATION opt/phasor/include
     )
 endif()

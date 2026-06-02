@@ -297,6 +297,7 @@ SetRegView 32
 
 EnVar::SetHKLM
 EnVar::AddValue "PATH" "$INSTDIR\bin"
+EnVar::AddValue "PHASOR_INCLUDE_DIRS" "$INSTDIR\phsinclude"
 
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd

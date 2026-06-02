@@ -49,7 +49,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 #else
-	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull };
+	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull; };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
@@ -68,7 +68,7 @@ void StdLib::registerSysFunctions(VM *vm)
 		});
 		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm) {
 			if (consentGrantedCLI) {
-				return sys_argc(v, vm);
+				return sys_args(v, vm);
 			}
 			if (!consentAskedCLI) {
 				[[unlikely]]
