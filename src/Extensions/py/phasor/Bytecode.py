@@ -50,6 +50,7 @@ class Bytecode:
     instructions:              List[Instruction]       = field(default_factory=list)
     constants:                 List[Value]             = field(default_factory=list)
     variables:                 Dict[str, int]          = field(default_factory=dict)
+    scope_var_lists: List[List[tuple[int, str]]] = field(default_factory=list)
     function_entries:          Dict[str, int]          = field(default_factory=dict)
     function_param_counts:     Dict[str, int]          = field(default_factory=dict)
     function_param_type_names: Dict[str, List[str]]    = field(default_factory=dict)

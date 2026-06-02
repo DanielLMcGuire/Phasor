@@ -547,7 +547,7 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 			int idx = bytecode.nextVarIndex++;
 			bytecode.variables[name] = idx;
-			frame.declaredIndices.push_back(idx);
+			frame.declaredIndices.push_back({idx, name});
 			return idx;
 		}
 		return bytecode.getOrCreateVar(name);

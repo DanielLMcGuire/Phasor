@@ -314,19 +314,23 @@ void BytecodeDeserializer::readStructSection(Bytecode &bytecode)
  */
 void BytecodeDeserializer::readScopeVars(Bytecode &bytecode)
 {
-	u8 sectionId = readUInt8();
-	if (sectionId != SECTION_SCOPE_VARS)
-		throw std::runtime_error("Expected scope vars section");
+    u8 sectionId = readUInt8();
+    if (sectionId != SECTION_SCOPE_VARS)
+        throw std::runtime_error("Expected scope vars section");
 
-	u32 count = readUInt32();
-	bytecode.scopeVarLists.resize(count);
-	for (u32 i = 0; i < count; i++)
-	{
-		u32 listSize = readUInt32();
-		bytecode.scopeVarLists[i].reserve(listSize);
-		for (u32 j = 0; j < listSize; j++)
-			bytecode.scopeVarLists[i].push_back(readInt32());
-	}
+    u32 count = readUInt32();
+    bytecode.scopeVarLists.resize(count);
+    for (u32 i = 0; i < count; i++)
+    {
+        u32 listSize = readUInt32();
+        bytecode.scopeVarLists[i].reserve(listSize);
+        for (u32 j = 0; j < listSize; j++)
+        {
+            int         idx  = readInt32();
+            std::string name = readString();
+            bytecode.scopeVarLists[i].push_back({idx, name});
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

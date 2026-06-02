@@ -507,8 +507,8 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
     for (const auto &varList : bytecode.scopeVarLists)
     {
         ss << varList.size();
-        for (int idx : varList)
-            ss << " " << idx;
+        for (const auto &[idx, name] : varList)
+            ss << " " << idx << " " << name;
         ss << "\n";
     }
 
@@ -674,8 +674,9 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
                 for (int j = 0; j < varCount; ++j)
                 {
                     int idx;
-                    ss >> idx;
-                    bytecode.scopeVarLists[i].push_back(idx);
+                    std::string name;
+                    ss >> idx >> name;
+                    bytecode.scopeVarLists[i].push_back({idx, name});
                 }
             }
         }

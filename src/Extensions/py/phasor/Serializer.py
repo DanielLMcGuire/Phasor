@@ -48,6 +48,7 @@ class BytecodeSerializer:
 
         self._write_constant_pool(bytecode.constants)
         self._write_variable_mapping(bytecode.variables, bytecode.next_var_index)
+        self._write_scope_vars(bytecode.scope_var_lists)
         self._write_function_entries(bytecode.function_entries)
         self._write_function_types(bytecode)
         self._write_struct_section(bytecode.structs)
@@ -90,6 +91,15 @@ class BytecodeSerializer:
         for name, index in variables.items():
             self._write_string(name)
             self._write_int32(index)
+
+    def _write_scope_vars(self, scope_var_lists: list[list[tuple[int, str]]]) -> None:
+        self._write_uint8(SEC_SCOPE_VARS)
+        self._write_uint32(len(scope_var_lists))
+        for scope in scope_var_lists:
+            self._write_uint32(len(scope))
+            for var_index, var_name in scope:
+                self._write_int32(var_index)
+                self._write_string(var_name)
 
     def _write_function_entries(self, function_entries: Dict[str, int]) -> None:
         """Write the :data:`~phasor.Metadata.SEC_FUNCTIONS` section: count then each name→instruction-index entry point."""

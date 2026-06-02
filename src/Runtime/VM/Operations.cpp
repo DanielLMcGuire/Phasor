@@ -907,7 +907,7 @@ void VM::evalLoop()
 	LABEL_EXIT_SCOPE:
 	{
 		int scopeId = operand1;
-		for (int idx : m_bytecode->scopeVarLists[scopeId])
+		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
 		{
 			if (idx < 0 || idx >= static_cast<int>(variables.size()))
 				throw std::runtime_error("Invalid variable index in scope exit");
@@ -1975,7 +1975,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::EXIT_SCOPE: 
 	{
 		int scopeId = operand1;
-		for (int idx : m_bytecode->scopeVarLists[scopeId])
+		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
 			freeVariable(static_cast<size_t>(idx));
 		break;
 	}

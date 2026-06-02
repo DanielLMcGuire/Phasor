@@ -283,28 +283,19 @@ void BytecodeSerializer::writeStructSection(const std::vector<StructInfo> &struc
 	}
 }
 
-/**
- * @brief Write scope variable lists section (0x07).
- * 
- * Binary layout:
- *    u8:  section_id = 0x07
- *    u32: scopeCount
- *    for each scope:
- * 	    u32: varCount
- *      for each var: 
- * 		  i32(varIndex)
- * 		   
-*/
-void BytecodeSerializer::writeScopeVars(const std::vector<std::vector<int>> &scopeVarLists)
+void BytecodeSerializer::writeScopeVars(const std::vector<std::vector<std::pair<int, std::string>>> &scopeVarLists)
 {
-	writeUInt8(SECTION_SCOPE_VARS);
-	writeUInt32(static_cast<u32>(scopeVarLists.size()));
-	for (const auto &list : scopeVarLists)
-	{
-		writeUInt32(static_cast<u32>(list.size()));
-		for (int varIndex : list)
-			writeInt32(varIndex);
-	}
+    writeUInt8(SECTION_SCOPE_VARS);
+    writeUInt32(static_cast<u32>(scopeVarLists.size()));
+    for (const auto &list : scopeVarLists)
+    {
+        writeUInt32(static_cast<u32>(list.size()));
+        for (const auto &[varIndex, varName] : list)
+        {
+            writeInt32(varIndex);
+            writeString(varName);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

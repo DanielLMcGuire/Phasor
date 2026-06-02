@@ -15,8 +15,8 @@ and programmatic construction facilities.
 A
 .I .phsb
 file consists of a 16-byte header (magic number, version, flags, and a
-CRC-32 checksum) followed by six sections: constants, variables,
-functions, function types, structs, and instructions.
+CRC-32 checksum) followed by seven sections: constants, variables,
+scope variables, functions, function types, structs, and instructions.
 Each instruction occupies exactly 13 bytes on disk: one
 .B uint8
 opcode and three
@@ -91,6 +91,15 @@ Mapping of function name strings to return type names.
 .B next_var_index
 Next available variable slot counter;
 serialised as part of the variables section.
+.TP
+.B scope_var_lists
+List of scope blocks; each block is a list of
+.B (int, str)
+tuples pairing a variable's runtime slot index with its source name.
+Used by
+.B EXIT_SCOPE
+to clear variables when a lexical scope is exited,
+and by introspection tools to resolve variable names without consulting the global variables table.
 .TP
 .B structs
 List of struct descriptors (\fBStructInfo\fR).

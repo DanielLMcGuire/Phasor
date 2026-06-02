@@ -169,6 +169,11 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     checkArgCount(args, 0, "get_self");
     auto bc = vm->getBytecode();
 
+    // struct ScopeData {
+    //     scopeIndex: i64,
+    //     varNames: string[]
+    // }
+    //
     // struct StructData {
     //     name: string,
     //     firstConstIndex: i64,
@@ -180,7 +185,10 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     //     name: string,
     //     entry: i64,
     //     paramTypes: string[],
-    //     returnType: string
+    //     paramArrayDims: i64[][],
+    //     returnType: string,
+    //     returnArrayDims: i64[],
+    //     scopes: ScopeData[]
     // }
     //
     // struct ConstantData {
@@ -190,6 +198,7 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     //
     // struct VariableData {
     //     name: string,
+    //     index: i64,
     //     type: string,
     //     value: any
     // }
@@ -206,8 +215,43 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     //     constants: ConstantData[],
     //     variables: VariableData[],
     //     functions: FunctionData[],
-    //     structs: StructData[]
+    //     structs: StructData[],
+    //     globalScopes: ScopeData[]
     // }
+
+    std::unordered_map<int, std::string> varIdxToName;
+    for (const auto& [name, idx] : bc.variables)
+        varIdxToName[idx] = name;
+
+    std::vector<std::pair<int, std::string>> sortedFuncs;
+    sortedFuncs.reserve(bc.functionEntries.size());
+    for (const auto& [name, entry] : bc.functionEntries)
+        sortedFuncs.push_back({entry, name});
+    std::sort(sortedFuncs.begin(), sortedFuncs.end());
+
+    std::unordered_map<int, std::string> scopeOwner;
+    for (size_t fi = 0; fi < sortedFuncs.size(); ++fi) {
+        int start        = sortedFuncs[fi].first;
+        int end          = (fi + 1 < sortedFuncs.size())
+                         ? sortedFuncs[fi + 1].first
+                         : (int)bc.instructions.size();
+        const auto& fname = sortedFuncs[fi].second;
+        for (int i = start; i < end; ++i) {
+            if (opCodeToString(bc.instructions[i].op) == "EXIT_SCOPE")
+                scopeOwner[bc.instructions[i].operand1] = fname;
+        }
+    }
+
+    auto makeScopeVal = [&](int si) {
+        auto scope_val = Value::createStruct("ScopeData");
+        scope_val["scopeIndex"] = static_cast<i64>(si);
+        auto vars_arr = Value::createArray();
+        auto& vars_vec = *vars_arr.asArray();
+        for (const auto &[varIdx, varName] : bc.scopeVarLists[si])
+            vars_vec.push_back(Value(varName));
+        scope_val["varNames"] = vars_arr;
+        return scope_val;
+    };
 
     auto bytecode_struct = Value::createStruct("Bytecode");
 
@@ -215,7 +259,7 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     auto& inst_vec = *inst_arr.asArray();
     for (const auto& inst : bc.instructions) {
         auto inst_val = Value::createStruct("InstructionData");
-        inst_val["op"] = opCodeToString(inst.op);
+        inst_val["op"]       = opCodeToString(inst.op);
         inst_val["operand1"] = static_cast<i64>(inst.operand1);
         inst_val["operand2"] = static_cast<i64>(inst.operand2);
         inst_val["operand3"] = static_cast<i64>(inst.operand3);
@@ -227,7 +271,7 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     auto& const_vec = *const_arr.asArray();
     for (const auto& val : bc.constants) {
         auto const_info = Value::createStruct("ConstantData");
-        const_info["type"] = Phasor::Value::typeToString(val.getType());
+        const_info["type"]  = Phasor::Value::typeToString(val.getType());
         const_info["value"] = val;
         const_vec.push_back(const_info);
     }
@@ -236,10 +280,11 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     auto vars_array = Value::createArray();
     auto& vars_vec = *vars_array.asArray();
     for (const auto& [name, idx] : bc.variables) {
-        auto var = vm->getVariable(idx);
+        auto var      = vm->getVariable(idx);
         auto var_info = Value::createStruct("VariableData");
-        var_info["name"] = name;
-        var_info["type"] = Phasor::Value::typeToString(var.getType());
+        var_info["name"]  = name;
+        var_info["index"] = static_cast<i64>(idx);
+        var_info["type"]  = Phasor::Value::typeToString(var.getType());
         var_info["value"] = var;
         vars_vec.push_back(var_info);
     }
@@ -249,41 +294,78 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     auto& func_vec = *funcs_arr.asArray();
     for (const auto& [name, entry] : bc.functionEntries) {
         auto func_info = Value::createStruct("FunctionData");
-        auto type_arr = Value::createArray();
-        auto& type_vec = *type_arr.asArray();
-        func_info["name"] = name;
+        func_info["name"]  = name;
         func_info["entry"] = static_cast<i64>(entry);
-        
+
         i64 param_count = 0;
-        auto it = bc.functionParamCounts.find(name);
-        if (it != bc.functionParamCounts.end()) {
+        if (auto it = bc.functionParamCounts.find(name); it != bc.functionParamCounts.end())
             param_count = it->second;
-        }
+
+        auto param_types_arr = Value::createArray();
+        auto param_dims_arr  = Value::createArray();
+        auto& ptv = *param_types_arr.asArray();
+        auto& pdv = *param_dims_arr.asArray();
+
+        auto param_names_it = bc.functionParamTypeNames.find(name);
+        auto param_dims_it  = bc.functionParamArrayDims.find(name);
         for (int i = 0; i < param_count; ++i) {
-            type_vec.push_back(bc.functionParamTypeNames[name][i]);
+            ptv.push_back(
+                (param_names_it != bc.functionParamTypeNames.end() && i < (int)param_names_it->second.size())
+                ? Value(param_names_it->second[i])
+                : Value("<unknown>")
+            );
+            auto dim_arr = Value::createArray();
+            auto& dv = *dim_arr.asArray();
+            if (param_dims_it != bc.functionParamArrayDims.end() && i < (int)param_dims_it->second.size())
+                for (int d : param_dims_it->second[i])
+                    dv.push_back(static_cast<i64>(d));
+            pdv.push_back(dim_arr);
         }
-        func_info["paramTypes"] = type_arr;
-        func_info["returnType"] = bc.functionReturnTypeNames[name];
-        
+        func_info["paramTypes"]     = param_types_arr;
+        func_info["paramArrayDims"] = param_dims_arr;
+
+        auto ret_name_it = bc.functionReturnTypeNames.find(name);
+        func_info["returnType"] = (ret_name_it != bc.functionReturnTypeNames.end())
+                                ? Value(ret_name_it->second)
+                                : Value("<unknown>");
+
+        auto ret_dims_arr = Value::createArray();
+        auto& rdv = *ret_dims_arr.asArray();
+        if (auto it = bc.functionReturnArrayDims.find(name); it != bc.functionReturnArrayDims.end())
+            for (int d : it->second)
+                rdv.push_back(static_cast<i64>(d));
+        func_info["returnArrayDims"] = ret_dims_arr;
+
+        auto func_scopes_arr = Value::createArray();
+        auto& fsv = *func_scopes_arr.asArray();
+        for (int si = 0; si < (int)bc.scopeVarLists.size(); ++si)
+            if (auto it = scopeOwner.find(si); it != scopeOwner.end() && it->second == name)
+                fsv.push_back(makeScopeVal(si));
+        func_info["scopes"] = func_scopes_arr;
+
         func_vec.push_back(func_info);
     }
     bytecode_struct["functions"] = funcs_arr;
+
+    auto global_scopes_arr = Value::createArray();
+    auto& gsv = *global_scopes_arr.asArray();
+    for (int si = 0; si < (int)bc.scopeVarLists.size(); ++si)
+        if (scopeOwner.find(si) == scopeOwner.end())
+            gsv.push_back(makeScopeVal(si));
+    bytecode_struct["globalScopes"] = global_scopes_arr;
 
     auto structs_arr = Value::createArray();
     auto& structs_vec = *structs_arr.asArray();
     for (const auto& sinfo : bc.structs) {
         auto s_val = Value::createStruct("StructData");
-        s_val["name"] = sinfo.name;
+        s_val["name"]            = sinfo.name;
         s_val["firstConstIndex"] = static_cast<i64>(sinfo.firstConstIndex);
-        s_val["fieldCount"] = static_cast<i64>(sinfo.fieldCount);
-        
+        s_val["fieldCount"]      = static_cast<i64>(sinfo.fieldCount);
         auto fields_arr = Value::createArray();
         auto& fields_vec = *fields_arr.asArray();
-        for (const auto& fname : sinfo.fieldNames) {
+        for (const auto& fname : sinfo.fieldNames)
             fields_vec.push_back(Value(fname));
-        }
         s_val["fieldNames"] = fields_arr;
-        
         structs_vec.push_back(s_val);
     }
     bytecode_struct["structs"] = structs_arr;

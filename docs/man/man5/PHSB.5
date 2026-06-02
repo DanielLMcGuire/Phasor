@@ -112,6 +112,7 @@ Index: Variable index (4 bytes, int32)
 .RE
 .SH SCOPE VARIABLES SECTION
 The scope variables section outlines the variables allocated inside individual lexical scope blocks to clear them on exit.
+Each variable entry carries both its runtime slot index and its source name, allowing debuggers and introspection tools to identify variables by name without a separate lookup.
 .PP
 .B Format:
 .RS
@@ -128,7 +129,9 @@ Var count: Number of variables in this scope (4 bytes, uint32)
 For each variable:
 .RS
 .IP \(bu 2
-Index: Variable compilation index (4 bytes, int32)
+Index: Variable compilation slot index (4 bytes, int32)
+.IP \(bu 2
+Name: Variable source name (2-byte length + UTF-8 bytes)
 .RE
 .RE
 .RE

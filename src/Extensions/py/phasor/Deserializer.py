@@ -57,6 +57,7 @@ class BytecodeDeserializer:
 
         self._read_constant_pool(bytecode)
         self._read_variable_mapping(bytecode)
+        self._read_scope_vars(bytecode)
         self._read_function_entries(bytecode)
         self._read_function_types(bytecode)
         self._read_struct_section(bytecode)
@@ -129,6 +130,23 @@ class BytecodeDeserializer:
             name  = self._read_string()
             index = self._read_int32()
             bytecode.variables[name] = index
+
+    def _read_scope_vars(self, bytecode: Bytecode) -> None:
+        section_id = self._read_uint8()
+        if section_id != SEC_SCOPE_VARS:
+            raise ValueError(
+                f"Expected scope vars section (0x{SEC_SCOPE_VARS:02x}), "
+                f"got 0x{section_id:02x}"
+            )
+        count = self._read_uint32()
+        for _ in range(count):
+            list_size = self._read_uint32()
+            scope: list[tuple[int, str]] = []
+            for _ in range(list_size):
+                idx  = self._read_int32()
+                name = self._read_string()
+                scope.append((idx, name))
+            bytecode.scope_var_lists.append(scope)
 
     def _read_function_entries(self, bytecode: Bytecode) -> None:
         """Read the :data:`~phasor.Metadata.SEC_FUNCTIONS` section and populate :attr:`bytecode.function_entries <phasor.Bytecode.Bytecode.function_entries>`."""
