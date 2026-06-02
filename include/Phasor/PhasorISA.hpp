@@ -220,10 +220,13 @@ struct Bytecode
 	std::vector<Instruction>             instructions;        ///< List of instructions
 	std::vector<Value>                   constants;           ///< Constant pool
 	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
+	std::vector<std::vector<std::pair<int, std::string>>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
 	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
 	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
 	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
+	std::unordered_map<std::string, std::vector<std::vector<int>>> functionParamArrayDims;
 	std::unordered_map<std::string, std::string> functionReturnTypeNames; ///< Function name -> return type name
+	std::unordered_map<std::string, std::vector<int>> functionReturnArrayDims; ///< Function name -> return array dims
 	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
