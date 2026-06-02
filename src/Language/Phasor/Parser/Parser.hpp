@@ -20,6 +20,11 @@ class Parser
 		sourcePath = path;
 	}
 
+	void setIncludePaths(const std::vector<std::filesystem::path> &paths)
+	{
+		includePaths = paths;
+	}
+
 	std::unique_ptr<AST::Program> parse();
 
 	struct Error
@@ -34,11 +39,12 @@ class Parser
 	}
 
   private:
-	std::vector<Token>    tokens;
-	int                   current = 0;
-	std::string           currentFunction;
-	std::optional<Error>  lastError;
-	std::filesystem::path sourcePath;
+	std::vector<Token>                 tokens;
+	int                                current = 0;
+	std::string                        currentFunction;
+	std::optional<Error>               lastError;
+	std::filesystem::path              sourcePath;
+	std::vector<std::filesystem::path> includePaths;
 
 	Token peek();
 	Token previous();

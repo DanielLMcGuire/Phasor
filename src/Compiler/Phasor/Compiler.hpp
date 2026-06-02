@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -21,12 +22,13 @@ class Compiler
   private:
 	struct Args
 	{
-		std::string inputFile;
-		std::string outputFile;
-		bool        verbose = false;
-		bool        irMode = false;
-		int         scriptArgc = 0;
-		char      **scriptArgv = nullptr;
+		std::string                        inputFile;
+		std::string                        outputFile;
+		std::vector<std::filesystem::path> includePaths;
+		bool                               verbose = false;
+		bool                               irMode = false;
+		int                                scriptArgc = 0;
+		char                             **scriptArgv = nullptr;
 	} m_args;
 
 	void        parseArguments(int argc, char *argv[]);

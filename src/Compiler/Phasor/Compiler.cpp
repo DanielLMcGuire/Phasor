@@ -58,6 +58,7 @@ int Compiler::compileToBytecode()
 	{
 		Lexer         lexer(source);
 		Parser        parser(lexer.tokenize(), m_args.inputFile);
+		parser.setIncludePaths(m_args.includePaths);
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);
@@ -110,6 +111,7 @@ int Compiler::compileToIR()
 	{
 		Lexer         lexer(source);
 		Parser        parser(lexer.tokenize(), m_args.inputFile);
+		parser.setIncludePaths(m_args.includePaths);
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);
@@ -149,6 +151,36 @@ void Compiler::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		}
+		else if (arg.starts_with("-i=") || arg.starts_with("-I=") || arg.starts_with("--include="))
+		{
+			std::string values = arg.substr(arg.find('=') + 1);
+			std::stringstream ss(values);
+			std::string item;
+			while (std::getline(ss, item, ','))
+			{
+				if (!item.empty())
+					m_args.includePaths.push_back(item);
+			}
+		}
+		else if (arg == "-I" || arg == "--include")
+		{
+			if (i + 1 < argc)
+			{
+				std::string values = argv[++i];
+				std::stringstream ss(values);
+				std::string item;
+				while (std::getline(ss, item, ','))
+				{
+					if (!item.empty())
+						m_args.includePaths.push_back(item);
+				}
+			}
+			else
+			{
+				std::print(std::cerr, "Error: {} requires an argument\n", arg);
+				exit(1);
+			}
+		}
 		else if (arg == "-o" || arg == "--output")
 		{
 			if (i + 1 < argc)
@@ -157,7 +189,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 			}
 			else
 			{
-				std::print(std::cerr, "Error: {} requires an argument", arg);
+				std::print(std::cerr, "Error: {} requires an argument\n", arg);
 				exit(1);
 			}
 		}
@@ -189,8 +221,10 @@ void Compiler::showHelp(const std::string &programName)
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
 	             "Usage:\n"
 	             "  {} [options] <file.phs>\n\n"
-	             "Options:\n  -o, --output FILE   Specify output file\n"
+	             "Options:\n"
+	             "  -o, --output FILE   Specify output file\n"
 	             "  -i, --ir            Compile to IR format (.phir) instead of bytecode\n"
+	             "  -I, --include PATHS Comma-separated list of include directories (e.g. -I=..., --include=...)\n"
 	             "  -v, --verbose       Enable verbose output\n"
 	             "  -h, --help          Show this help message",
 	             PHASOR_VERSION_STRING, filename);

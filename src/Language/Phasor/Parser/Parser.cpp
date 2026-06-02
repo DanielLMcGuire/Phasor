@@ -23,10 +23,12 @@ static std::vector<Token> tokenizeFile(const std::filesystem::path &path)
 }
 
 static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts,
-                                                                    const std::filesystem::path &baseDir);
+                                                                    const std::filesystem::path &baseDir,
+                                                                    const std::vector<std::filesystem::path> &includePaths);
 
 static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
-    std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir)
+    std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir,
+    const std::vector<std::filesystem::path> &includePaths)
 {
 	std::vector<std::unique_ptr<AST::Statement>> result;
 
@@ -34,12 +36,32 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 	{
 		if (auto *includeStmt = dynamic_cast<AST::IncludeStmt *>(i.get()))
 		{
-			auto   includePath = (baseDir / includeStmt->modulePath).lexically_normal();
+			auto includePath = (baseDir / includeStmt->modulePath).lexically_normal();
+			if (!std::filesystem::exists(includePath))
+			{
+				bool found = false;
+				for (const auto &incDir : includePaths)
+				{
+					auto tryPath = (incDir / includeStmt->modulePath).lexically_normal();
+					if (std::filesystem::exists(tryPath))
+					{
+						includePath = tryPath;
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+				{
+					throw std::runtime_error("Could not find included file: " + includeStmt->modulePath.string());
+				}
+			}
+
 			auto   tokens = tokenizeFile(includePath);
 			Parser parser(tokens, includePath);
+			parser.setIncludePaths(includePaths);
 			auto   program = parser.parse();
 
-			auto resolved = resolveIncludes(program->statements, includePath.parent_path());
+			auto resolved = resolveIncludes(program->statements, includePath.parent_path(), includePaths);
 			for (auto &stmt : resolved)
 			{
 				result.push_back(std::move(stmt));
@@ -55,9 +77,10 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 }
 
 static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts,
-                                                                    const std::filesystem::path &baseDir)
+                                                                    const std::filesystem::path &baseDir,
+                                                                    const std::vector<std::filesystem::path> &includePaths)
 {
-	return resolveIncludesInternal(stmts, baseDir);
+	return resolveIncludesInternal(stmts, baseDir, includePaths);
 }
 
 using namespace AST;
@@ -79,7 +102,7 @@ std::unique_ptr<Program> Parser::parse()
 		program->statements.push_back(declaration());
 	}
 
-	program->statements = Phasor::resolveIncludes(program->statements, sourcePath.parent_path());
+	program->statements = Phasor::resolveIncludes(program->statements, sourcePath.parent_path(), includePaths);
 
 	return program;
 }

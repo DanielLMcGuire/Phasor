@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <filesystem>
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
@@ -22,18 +23,19 @@ class CppCompiler
   private:
 	struct Args
 	{
-		std::filesystem::path inputFile;
-		std::filesystem::path outputFile;
-		std::filesystem::path mainFile;
-		std::string           moduleName;
-		bool                  verbose = false;
-		bool                  showHelp = false;
-		std::string           compiler;
-		std::string           linker;
-		bool                  run = false;
-		bool                  headerOnly = false;
-		bool                  objectOnly = false;
-		bool                  generateOnly = false;
+		std::filesystem::path              inputFile;
+		std::filesystem::path              outputFile;
+		std::filesystem::path              mainFile;
+		std::vector<std::filesystem::path> includePaths;
+		std::string                        moduleName;
+		bool                               verbose = false;
+		bool                               showHelp = false;
+		std::string                        compiler;
+		std::string                        linker;
+		bool                               run = false;
+		bool                               headerOnly = false;
+		bool                               objectOnly = false;
+		bool                               generateOnly = false;
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);

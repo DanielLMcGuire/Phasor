@@ -139,6 +139,37 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		}
+		else if (arg.starts_with("-i=") || arg.starts_with("-I=") || arg.starts_with("--include="))
+		{
+			std::string values = arg.substr(arg.find('=') + 1);
+			std::stringstream ss(values);
+			std::string item;
+			while (std::getline(ss, item, ','))
+			{
+				if (!item.empty())
+					m_args.includePaths.push_back(item);
+			}
+		}
+		else if (arg == "-I" || arg == "--include")
+		{
+			if (i + 1 < argc)
+			{
+				std::string values = argv[++i];
+				std::stringstream ss(values);
+				std::string item;
+				while (std::getline(ss, item, ','))
+				{
+					if (!item.empty())
+						m_args.includePaths.push_back(item);
+				}
+			}
+			else
+			{
+				std::println(std::cerr, "Error: {} requires an argument", arg);
+				m_args.showHelp = true;
+				return true;
+			}
+		}
 		else if (arg == "-o" || arg == "--output")
 		{
 			if (i + 1 < argc)
@@ -251,13 +282,14 @@ bool CppCompiler::showHelp(const std::string &programName)
 	             "  -c, --compiler <name>   Compiler to use (default: g++)\n"
 	             "  -l, --linker <name>     Linker to use (default: g++)\n"
 	             "  -s, --source <name>     The source file to compile with\n"
-	             "  -o, --output <file>   Output file\n"
-	             "  -m, --module <name>   Module name for generated code (default: input filename)\n"
-	             "  -H, --header-only     Generate header file only\n"
-	             "  -g, --generate-only   Generate source file only\n"
-	             "  -O, --object-only     Generate and compile to object only\n"
-	             "  -v, --verbose         Enable verbose output\n"
-	             "  -h, --help            Show this help message\n"
+	             "  -o, --output <file>     Output file\n"
+	             "  -m, --module <name>     Module name for generated code (default: input filename)\n"
+	             "  -H, --header-only       Generate header file only\n"
+	             "  -g, --generate-only     Generate source file only\n"
+	             "  -O, --object-only       Generate and compile to object only\n"
+	             "  -I, --include PATHS     Comma-separated list of include directories\n"
+	             "  -v, --verbose           Enable verbose output\n"
+	             "  -h, --help              Show this help message\n"
 	             "Example:\n"
 	             "  {} program.phs -o program.exe -c clang++ -l lld\n"
 	             "  {} -O program.phs -o program.obj -c clang++\n"
@@ -307,6 +339,7 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 				std::println("Parsing...");
 
 			Parser parser(tokens, sourcePath);
+			parser.setIncludePaths(m_args.includePaths);
 			auto   program = parser.parse();
 
 			// Generate bytecode
