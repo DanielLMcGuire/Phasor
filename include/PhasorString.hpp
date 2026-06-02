@@ -6,6 +6,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string_view>
+#include <variant>
 #include <format>
 
 inline constexpr std::size_t kSSOCapacity = 23;
