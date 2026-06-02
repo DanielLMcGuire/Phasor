@@ -12,16 +12,12 @@ provides an in-memory representation of compiled Phasor VM programs
 (\fI.phsb\fR files), together with serialisation, deserialisation,
 and programmatic construction facilities.
 .PP
-A
+Compiled Phasor programs are stored in the
 .I .phsb
-file consists of a 16-byte header (magic number, version, flags, and a
-CRC-32 checksum) followed by seven sections: constants, variables,
-scope variables, functions, function types, structs, and instructions.
-Each instruction occupies exactly 13 bytes on disk: one
-.B uint8
-opcode and three
-.B int32
-operands.
+binary format. For comprehensive details on the file structure and binary sections, see
+.BR PHSB (5).
+For full documentation of the instruction set architecture, opcode semantics, and stack effects, consult
+.BR phasor-isa (7).
 .PP
 The module exposes the following public names:
 .RS 4
@@ -68,10 +64,7 @@ objects forming the program.
 .TP
 .B constants
 Constant pool;
-entries are indexed by
-.B PUSH_CONST
-and
-.BR LOAD_CONST_R .
+entries are referenced by constant-loading instructions.
 .TP
 .B variables
 Mapping of variable name strings to integer slot indices.
@@ -225,6 +218,9 @@ and up to three
 .B int32
 operands (unused operands default to
 .BR 0 ).
+See
+.BR phasor-isa (7)
+for detailed VM execution behavior, operand requirements, and stack effects for each instruction.
 .PP
 \fBFactory class methods:\fR
 .TP
@@ -236,52 +232,37 @@ instruction.
 .BI "Instruction.push_const(" const_index )
 Return a
 .B PUSH_CONST
-instruction that pushes
-.I constants[const_index]
-onto the stack.
+instruction using the provided constant pool index.
 .TP
 .BI "Instruction.load_var(" var_index )
 Return a
 .B LOAD_VAR
-instruction that pushes the variable at slot
-.I var_index
-onto the stack.
+instruction.
 .TP
 .BI "Instruction.store_var(" var_index )
 Return a
 .B STORE_VAR
-instruction that pops the top-of-stack into slot
-.IR var_index .
+instruction.
 .TP
 .BI "Instruction.jump(" offset )
 Return an unconditional
 .B JUMP
-to instruction
-.IR offset .
+instruction to the target offset.
 .TP
 .BI "Instruction.jump_if_false(" offset )
 Return a
 .B JUMP_IF_FALSE
-instruction that branches to
-.I offset
-and pops TOS when it is falsy.
+instruction.
 .TP
 .BI "Instruction.jump_if_true(" offset )
 Return a
 .B JUMP_IF_TRUE
-instruction that branches to
-.I offset
-and pops TOS when it is truthy.
+instruction.
 .TP
 .BI "Instruction.call(" name_const_index ", " arg_count )
 Return a
 .B CALL
-instruction.
-.I name_const_index
-is the constant-pool index of the function name string;
-.I arg_count
-is the number of arguments already pushed onto the stack (default
-.BR 0 ).
+instruction referencing the target function name's constant index.
 .SS Value
 A typed constant-pool entry.
 Use the class-method constructors rather than setting
@@ -330,6 +311,9 @@ if the type does not match)
 .B as_array()
 .SS OpCode
 .PP
+Enumeration of all supported VM opcodes. See
+.BR phasor-isa (7)
+for a complete list and their execution semantics.
 .SS ValueType
 .B IntEnum
 encoding the type of a constant-pool
@@ -673,8 +657,7 @@ Runtime.init_stdlib(vm)
 bc = Runtime.compile_phs('print("hello, world")', module_name="demo")
 Runtime.run(bc, state=vm)
 
-# Soft-reset between runs;
-globals and functions are preserved.
+# Soft-reset between runs; globals and functions are preserved.
 Runtime.reset_state(vm)
 Runtime.run_file("next.phsb", state=vm)
 
