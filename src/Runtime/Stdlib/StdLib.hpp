@@ -1,4 +1,5 @@
 #pragma once
+#include <phs_dupenv.hpp>
 #include <functional>
 #include <map>
 #include <string>
@@ -56,14 +57,6 @@ class StdLib
 #ifndef SANDBOXED
 	static Value std_assert(const std::vector<Value> &args, VM *vm);
 #endif
-
-	enum class dupenv_ret {
-		Success = 0,
-		InvalidInput = 1,
-		NotFound = 2
-	};
-
-	static dupenv_ret dupenv(PhsString &out, const char *name);
 
 	static void registerMetaFunctions(VM *vm);
 	static void registerMemoryFunctions(VM *vm);
