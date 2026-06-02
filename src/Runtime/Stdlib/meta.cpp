@@ -219,10 +219,6 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     //     globalScopes: ScopeData[]
     // }
 
-    std::unordered_map<int, std::string> varIdxToName;
-    for (const auto& [name, idx] : bc.variables)
-        varIdxToName[idx] = name;
-
     std::vector<std::pair<int, std::string>> sortedFuncs;
     sortedFuncs.reserve(bc.functionEntries.size());
     for (const auto& [name, entry] : bc.functionEntries)
