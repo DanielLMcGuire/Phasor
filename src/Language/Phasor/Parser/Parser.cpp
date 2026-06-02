@@ -3,10 +3,14 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <utility>
 
 namespace Phasor
 {
+
+static std::set<std::filesystem::path> visitedFiles;
+static int parseDepth = 0;
 
 static std::vector<Token> tokenizeFile(const std::filesystem::path &path)
 {
@@ -56,12 +60,19 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 				}
 			}
 
-			auto   tokens = tokenizeFile(includePath);
-			Parser parser(tokens, includePath);
+			auto canonicalPath = std::filesystem::canonical(includePath);
+			if (visitedFiles.count(canonicalPath) > 0)
+			{
+				continue;
+			}
+			visitedFiles.insert(canonicalPath);
+
+			auto   tokens = tokenizeFile(canonicalPath);
+			Parser parser(tokens, canonicalPath);
 			parser.setIncludePaths(includePaths);
 			auto   program = parser.parse();
 
-			auto resolved = resolveIncludes(program->statements, includePath.parent_path(), includePaths);
+			auto resolved = resolveIncludes(program->statements, canonicalPath.parent_path(), includePaths);
 			for (auto &stmt : resolved)
 			{
 				result.push_back(std::move(stmt));
@@ -96,6 +107,24 @@ Parser::Parser(const std::vector<Token> &tokens, std::filesystem::path sourcePat
 
 std::unique_ptr<Program> Parser::parse()
 {
+	if (parseDepth == 0)
+	{
+		visitedFiles.clear();
+		if (!sourcePath.empty())
+		{
+			visitedFiles.insert(std::filesystem::canonical(sourcePath));
+		}
+	}
+	parseDepth++;
+
+	struct DepthGuard
+	{
+		~DepthGuard()
+		{
+			parseDepth--;
+		}
+	} guard;
+
 	auto program = std::make_unique<Program>();
 	while (!isAtEnd())
 	{
@@ -194,72 +223,72 @@ std::unique_ptr<Statement> Parser::functionDeclaration()
 
 std::unique_ptr<TypeNode> Parser::parseType()
 {
-    Token start = peek();
-    bool  isPointer = false;
-    if (match(Phasor::TokenType::Symbol, "*"))
-    {
-        isPointer = true;
-    }
+	Token start = peek();
+	bool  isPointer = false;
+	if (match(Phasor::TokenType::Symbol, "*"))
+	{
+		isPointer = true;
+	}
 
-    // Accept both identifiers and the 'any' keyword as type names
-    Token typeName;
-    if (check(Phasor::TokenType::Identifier))
-    {
-        typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
-    }
-    else if (check(Phasor::TokenType::Keyword) && peek().lexeme == "any")
-    {
-        typeName = advance();
-    }
-    else
-    {
-        typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
-    }
+	// Accept both identifiers and the 'any' keyword as type names
+	Token typeName;
+	if (check(Phasor::TokenType::Identifier))
+	{
+		typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+	}
+	else if (check(Phasor::TokenType::Keyword) && peek().lexeme == "any")
+	{
+		typeName = advance();
+	}
+	else
+	{
+		typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
+	}
 
-    std::vector<int> dims;
-    while (match(Phasor::TokenType::Symbol, "["))
-    {
-        if (check(Phasor::TokenType::Number))
-        {
-            Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
-            dims.push_back(std::stoi(size.lexeme));
-        }
-        else
-        {
-            dims.push_back(-1); 
-        }
-        consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
-    }
-    auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
-    node->line = start.line;
-    node->column = start.column;
-    return node;
+	std::vector<int> dims;
+	while (match(Phasor::TokenType::Symbol, "["))
+	{
+		if (check(Phasor::TokenType::Number))
+		{
+			Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
+			dims.push_back(std::stoi(size.lexeme));
+		}
+		else
+		{
+			dims.push_back(-1); 
+		}
+		consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
+	}
+	auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
+	node->line = start.line;
+	node->column = start.column;
+	return node;
 }
 
 std::unique_ptr<Statement> Parser::varDeclaration()
 {
-    Token name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
+	Token name = consume(Phasor::TokenType::Identifier, "Expect variable name.");
 
-    if (!check(Phasor::TokenType::Symbol) || peek().lexeme != ":")
-    {
-        lastError = {"Variable '" + std::string(name.lexeme) + "' must have a type annotation (e.g. var " + std::string(name.lexeme) + ": int or var " + std::string(name.lexeme) + ": any)", name.line, name.column};
-        throw std::runtime_error("Variable '" + std::string(name.lexeme) + "' must have a type annotation.");
-    }
-    consume(Phasor::TokenType::Symbol, ":", "Expect ':' after variable name.");
-    auto type = parseType();
+	if (!check(Phasor::TokenType::Symbol) || peek().lexeme != ":")
+	{
+		lastError = {"Variable '" + std::string(name.lexeme) + "' must have a type annotation (e.g. var " + std::string(name.lexeme) + ": int or var " + std::string(name.lexeme) + ": any)", name.line, name.column};
+		throw std::runtime_error("Variable '" + std::string(name.lexeme) + "' must have a type annotation.");
+	}
+	consume(Phasor::TokenType::Symbol, ":", "Expect ':' after variable name.");
+	auto type = parseType();
 
-    std::unique_ptr<Expression> initializer = nullptr;
-    if (match(Phasor::TokenType::Symbol, "="))
-    {
-        initializer = expression();
-    }
-    
-    consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
-    
-    auto node = std::make_unique<VarDecl>(name.lexeme, std::move(type), std::move(initializer));
-    node->line = name.line;
-    node->column = name.column;
-    return node;
+	std::unique_ptr<Expression> initializer = nullptr;
+	if (match(Phasor::TokenType::Symbol, "="))
+	{
+		initializer = expression();
+	}
+	
+	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after variable declaration.");
+	
+	auto node = std::make_unique<VarDecl>(name.lexeme, std::move(type), std::move(initializer));
+	node->line = name.line;
+	node->column = name.column;
+	return node;
 }
 
 std::unique_ptr<Statement> Parser::statement()
@@ -385,7 +414,6 @@ std::unique_ptr<Statement> Parser::ifStatement()
 		elseBranch = statement();
 	}
 	return std::make_unique<IfStmt>(std::move(condition), std::move(thenBranch), std::move(elseBranch));
-	// Note: line/column is set by the caller (statement()) from the 'if' keyword token.
 }
 
 std::unique_ptr<Statement> Parser::whileStatement()
@@ -511,7 +539,6 @@ std::unique_ptr<Statement> Parser::returnStatement()
 	}
 	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after return value.");
 	return std::make_unique<ReturnStmt>(std::move(value));
-	// Note: line/column is set by the caller (statement()) from the 'return' keyword token.
 }
 
 std::unique_ptr<Statement> Parser::unsafeStatement()
@@ -541,7 +568,6 @@ std::unique_ptr<Statement> Parser::printStatement()
 	auto expr = expression();
 	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after print statement.");
 	return std::make_unique<PrintStmt>(std::move(expr));
-	// Note: line/column set by caller (statement()) from the 'print' keyword token.
 }
 
 std::unique_ptr<Statement> Parser::importStatement()
@@ -557,7 +583,6 @@ std::unique_ptr<Statement> Parser::importStatement()
 std::unique_ptr<Statement> Parser::exportStatement()
 {
 	auto node = std::make_unique<ExportStmt>(declaration());
-	// line/column set by caller (declaration()) from the 'export' keyword token.
 	return node;
 }
 
@@ -584,7 +609,7 @@ std::unique_ptr<Expression> Parser::assignment()
 	if (match(Phasor::TokenType::Symbol, "="))
 	{
 		Token op = previous();
-		auto  value = assignment(); // Right-associative
+		auto  value = assignment();
 		auto  node = std::make_unique<AssignmentExpr>(std::move(expr), std::move(value));
 		node->line = op.line;
 		node->column = op.column;
@@ -842,8 +867,6 @@ std::unique_ptr<Expression> Parser::finishCall(std::unique_ptr<Expression> calle
 	}
 	consume(Phasor::TokenType::Symbol, ")", "Expect ')' after arguments.");
 
-	// For now, we only support direct function calls by name, or calls on field access which are
-	// rewritten to pass the object as the first argument.
 	if (auto *ident = dynamic_cast<IdentifierExpr *>(callee.get()))
 	{
 		auto node = std::make_unique<CallExpr>(ident->name, std::move(arguments));
@@ -853,7 +876,6 @@ std::unique_ptr<Expression> Parser::finishCall(std::unique_ptr<Expression> calle
 	}
 	if (auto field = dynamic_cast<FieldAccessExpr *>(callee.get()))
 	{
-		// Transform obj.method(args) -> method(obj, args)
 		std::string methodName = field->fieldName;
 		size_t      fline = field->line, fcol = field->column;
 		arguments.insert(arguments.begin(), std::move(field->object));
@@ -886,7 +908,6 @@ std::unique_ptr<Expression> Parser::primary()
 	}
 	if (check(Phasor::TokenType::Identifier))
 	{
-		// Look ahead for struct instance syntax: Name{ ... }
 		Token identTok = peek();
 		if (!isAtEnd() && peekNext().type == Phasor::TokenType::Symbol && peekNext().lexeme == "{")
 		{
@@ -947,14 +968,12 @@ std::unique_ptr<Expression> Parser::primary()
 	}
 	if (check(Phasor::TokenType::Symbol) && peek().lexeme == "{")
 	{
-		// Empty struct: {}
 		if (current + 1 < static_cast<int>(tokens.size()) &&
 			tokens[current + 1].type == Phasor::TokenType::Symbol &&
 			tokens[current + 1].lexeme == "}")
 		{
 			return anonymousStructInstance();
 		}
-		// Struct with fields: { ident: ...
 		if (current + 2 < static_cast<int>(tokens.size()) &&
 			tokens[current + 1].type == Phasor::TokenType::Identifier &&
 			tokens[current + 2].type == Phasor::TokenType::Symbol &&
@@ -969,11 +988,8 @@ std::unique_ptr<Expression> Parser::primary()
 	throw std::runtime_error("Expect expression.");
 }
 
-// Struct declaration
-// struct Point { x: int, y: int }
 std::unique_ptr<StructDecl> Parser::structDecl()
 {
-	// 'struct' keyword
 	Token start = peek();
 	consume(Phasor::TokenType::Keyword, "struct", "Expected 'struct'");
 	Token nameTok = consume(Phasor::TokenType::Identifier, "Expected struct name");
@@ -1011,8 +1027,6 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 	return node;
 }
 
-// Struct instantiation
-// Point{ x: 10, y: 20 }
 std::unique_ptr<AST::StructInstanceExpr> Parser::structInstance()
 {
 	Token nameTok = consume(Phasor::TokenType::Identifier, "Expected struct name");
@@ -1044,40 +1058,35 @@ std::unique_ptr<AST::StructInstanceExpr> Parser::structInstance()
 	return node;
 }
 
-// Anonymous struct literal
-// { x: 10, y: 20 }
 std::unique_ptr<AST::StructInstanceExpr> Parser::anonymousStructInstance()
 {
-    Token start = peek();
-    consume(Phasor::TokenType::Symbol, "{", "Expected '{' in anonymous struct literal.");
+	Token start = peek();
+	consume(Phasor::TokenType::Symbol, "{", "Expected '{' in anonymous struct literal.");
 
-    std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fields;
-    while (!check(Phasor::TokenType::Symbol) || peek().lexeme != "}")
-    {
-        if (isAtEnd())
-        {
-            lastError = {"Unterminated anonymous struct literal.", peek().line, peek().column};
-            throw std::runtime_error("Unterminated anonymous struct literal.");
-        }
-        Token fieldNameTok = consume(Phasor::TokenType::Identifier, "Expected field name in anonymous struct.");
-        consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name.");
-        auto value = expression();
-        fields.emplace_back(fieldNameTok.lexeme, std::move(value));
+	std::vector<std::pair<std::string, std::unique_ptr<Expression>>> fields;
+	while (!check(Phasor::TokenType::Symbol) || peek().lexeme != "}")
+	{
+		if (isAtEnd())
+		{
+			lastError = {"Unterminated anonymous struct literal.", peek().line, peek().column};
+			throw std::runtime_error("Unterminated anonymous struct literal.");
+		}
+		Token fieldNameTok = consume(Phasor::TokenType::Identifier, "Expected field name in anonymous struct.");
+		consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name.");
+		auto value = expression();
+		fields.emplace_back(fieldNameTok.lexeme, std::move(value));
 
-        if (!match(Phasor::TokenType::Symbol, ","))
-            break;
-    }
-    consume(Phasor::TokenType::Symbol, "}", "Expected '}' after anonymous struct fields.");
+		if (!match(Phasor::TokenType::Symbol, ","))
+			break;
+	}
+	consume(Phasor::TokenType::Symbol, "}", "Expected '}' after anonymous struct fields.");
 
-    // Empty name signals anonymous — falls through to the dynamic NEW_STRUCT path in CodeGen
-    auto node = std::make_unique<AST::StructInstanceExpr>("__anon", std::move(fields));
-    node->line = start.line;
-    node->column = start.column;
-    return node;
+	auto node = std::make_unique<AST::StructInstanceExpr>("__anon", std::move(fields));
+	node->line = start.line;
+	node->column = start.column;
+	return node;
 }
 
-// Field access
-// point.x
 std::unique_ptr<Expression> Parser::fieldAccess(std::unique_ptr<Expression> object)
 {
 	Token nameTok = consume(Phasor::TokenType::Identifier, "Expected field name after '.'");
