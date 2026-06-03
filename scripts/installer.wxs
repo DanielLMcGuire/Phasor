@@ -29,7 +29,7 @@
       <ComponentRef Id="PhasorIcon_Comp" />
 
       <ComponentRef Id="PathEnv" />
-      <ComponentRef Id="PhasorDefIncludePath">
+      <ComponentRef Id="PhasorDefIncludePath" />
 
       <ComponentRef Id="AppPaths_phasor" />
       <ComponentRef Id="AppPaths_phasorasm" />
@@ -79,7 +79,7 @@
       
       <Component Id="PhasorDefIncludePath" Guid="*">
         <RegistryValue Root="HKLM" Key="Software\Phasor\Install"
-                       Name="PathSet" Type="integer" Value="1" KeyPath="yes" />
+                       Name="IncludePathSet" Type="integer" Value="1" KeyPath="yes" />
         
         <Environment Id="PhasorIncludePath" Name="PHASOR_INCLUDE_DIRS" Value="[INSTALLFOLDER]phsinclude"
                      Permanent="no" Action="set" System="yes" />
