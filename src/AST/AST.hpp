@@ -649,6 +649,7 @@ struct UnsafeBlockStmt : public Statement
 struct FunctionDecl : public Statement
 {
 	std::string name;
+	bool        keep = false; ///< If true, never eliminated by dead-code elimination
 	struct Param
 	{
 		std::string               name;
@@ -658,14 +659,17 @@ struct FunctionDecl : public Statement
 	std::unique_ptr<TypeNode>  returnType;
 	std::unique_ptr<BlockStmt> body;
 
-	FunctionDecl(std::string n, std::vector<Param> p, std::unique_ptr<TypeNode> rt, std::unique_ptr<BlockStmt> b)
-	    : name(std::move(n)), params(std::move(p)), returnType(std::move(rt)), body(std::move(b))
+	FunctionDecl(std::string n, std::vector<Param> p, std::unique_ptr<TypeNode> rt, std::unique_ptr<BlockStmt> b,
+	             bool k = false)
+	    : name(std::move(n)), keep(k), params(std::move(p)), returnType(std::move(rt)), body(std::move(b))
 	{
 	}
 
 	void print(int indent = 0) const override
 	{
-		std::cout << std::string(indent, ' ') << "FunctionDecl: " << name << "\n";
+		std::cout << std::string(indent, ' ') << "FunctionDecl: " << name;
+		if (keep) std::cout << " [keep]";
+		std::cout << "\n";
 		for (const auto &param : params)
 		{
 			std::cout << std::string(indent + 2, ' ') << "Param: " << param.name << " Type: ";

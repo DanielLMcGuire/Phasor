@@ -142,7 +142,11 @@ std::unique_ptr<Statement> Parser::declaration()
 	{
 		Token start = peek();
 		advance();
-		auto node = functionDeclaration();
+		// Optional 'keep' modifier: fn keep myFunc() {}
+		bool keepFunc = (check(Phasor::TokenType::Keyword)   && peek().lexeme == "keep") ||
+		                (check(Phasor::TokenType::Identifier) && peek().lexeme == "keep");
+		if (keepFunc) advance();
+		auto node = functionDeclaration(keepFunc);
 		node->line = start.line;
 		node->column = start.column;
 		return node;
@@ -181,7 +185,7 @@ std::unique_ptr<Statement> Parser::declaration()
 	return statement();
 }
 
-std::unique_ptr<Statement> Parser::functionDeclaration()
+std::unique_ptr<Statement> Parser::functionDeclaration(bool keep)
 {
 	Token name = consume(Phasor::TokenType::Identifier, "Expect function name.");
 	consume(Phasor::TokenType::Symbol, "(", "Expect '(' after function name.");
@@ -215,7 +219,7 @@ std::unique_ptr<Statement> Parser::functionDeclaration()
 	// Restore previous function context
 	currentFunction = previousFunction;
 
-	auto node = std::make_unique<FunctionDecl>(name.lexeme, std::move(params), std::move(returnType), std::move(body));
+	auto node = std::make_unique<FunctionDecl>(name.lexeme, std::move(params), std::move(returnType), std::move(body), keep);
 	node->line = name.line;
 	node->column = name.column;
 	return node;

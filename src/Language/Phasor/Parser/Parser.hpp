@@ -60,7 +60,7 @@ class Parser
 
 	std::unique_ptr<AST::Statement>          declaration();
 	std::unique_ptr<AST::Statement>          varDeclaration();
-	std::unique_ptr<AST::Statement>          functionDeclaration();
+	std::unique_ptr<AST::Statement>          functionDeclaration(bool keep = false);
 	std::unique_ptr<AST::Statement>          statement();
 	std::unique_ptr<AST::Statement>          printStatement();
 	std::unique_ptr<AST::Statement>          ifStatement();

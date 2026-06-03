@@ -1,11 +1,131 @@
 #include "CodeGen.hpp"
 #include <iostream>
+#include <queue>
 #include <unordered_map>
+#include <unordered_set>
 #include <algorithm>
 #include <phsint.hpp>
 
 namespace Phasor
 {
+
+static void collectCallsExpr(const AST::Expression *expr, std::unordered_set<std::string> &out);
+static void collectCallsStmt(const AST::Statement  *stmt, std::unordered_set<std::string> &out);
+
+static void collectCallsExpr(const AST::Expression *expr, std::unordered_set<std::string> &out)
+{
+	if (!expr) return;
+
+	if (const auto *e = dynamic_cast<const AST::CallExpr *>(expr))
+	{
+		out.insert(e->callee);
+		for (const auto &a : e->arguments) collectCallsExpr(a.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::BinaryExpr *>(expr))
+	{
+		collectCallsExpr(e->left.get(), out);
+		collectCallsExpr(e->right.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::UnaryExpr *>(expr))
+	{
+		collectCallsExpr(e->operand.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::PostfixExpr *>(expr))
+	{
+		collectCallsExpr(e->operand.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::AssignmentExpr *>(expr))
+	{
+		collectCallsExpr(e->target.get(), out);
+		collectCallsExpr(e->value.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::FieldAccessExpr *>(expr))
+	{
+		collectCallsExpr(e->object.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::ArrayAccessExpr *>(expr))
+	{
+		collectCallsExpr(e->array.get(), out);
+		collectCallsExpr(e->index.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::ArrayLiteralExpr *>(expr))
+	{
+		for (const auto &elem : e->elements) collectCallsExpr(elem.get(), out);
+	}
+	else if (const auto *e = dynamic_cast<const AST::StructInstanceExpr *>(expr))
+	{
+		for (const auto &[fname, fval] : e->fieldValues) collectCallsExpr(fval.get(), out);
+	}
+	// Leaves (NumberExpr, StringExpr, BooleanExpr, NullExpr, IdentifierExpr) — no calls.
+}
+
+static void collectCallsStmt(const AST::Statement *stmt, std::unordered_set<std::string> &out)
+{
+	if (!stmt) return;
+
+	if (const auto *s = dynamic_cast<const AST::BlockStmt *>(stmt))
+	{
+		for (const auto &inner : s->statements) collectCallsStmt(inner.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::UnsafeBlockStmt *>(stmt))
+	{
+		collectCallsStmt(s->block.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::ExpressionStmt *>(stmt))
+	{
+		collectCallsExpr(s->expression.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::VarDecl *>(stmt))
+	{
+		collectCallsExpr(s->initializer.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::PrintStmt *>(stmt))
+	{
+		collectCallsExpr(s->expression.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::IfStmt *>(stmt))
+	{
+		collectCallsExpr(s->condition.get(), out);
+		collectCallsStmt(s->thenBranch.get(), out);
+		collectCallsStmt(s->elseBranch.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::WhileStmt *>(stmt))
+	{
+		collectCallsExpr(s->condition.get(), out);
+		collectCallsStmt(s->body.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::ForStmt *>(stmt))
+	{
+		collectCallsStmt(s->initializer.get(), out);
+		collectCallsExpr(s->condition.get(), out);
+		collectCallsExpr(s->increment.get(), out);
+		collectCallsStmt(s->body.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::ReturnStmt *>(stmt))
+	{
+		collectCallsExpr(s->value.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::SwitchStmt *>(stmt))
+	{
+		collectCallsExpr(s->expr.get(), out);
+		for (const auto &c : s->cases)
+		{
+			collectCallsExpr(c.value.get(), out);
+			for (const auto &cs : c.statements) collectCallsStmt(cs.get(), out);
+		}
+		for (const auto &ds : s->defaultStmts) collectCallsStmt(ds.get(), out);
+	}
+	else if (const auto *s = dynamic_cast<const AST::ExportStmt *>(stmt))
+	{
+		// Only scan the inner declaration if it isn't itself a function —
+		// function bodies are handled via the call-graph, not by scanning
+		// them as top-level code.
+		if (!dynamic_cast<const AST::FunctionDecl *>(s->declaration.get()))
+			collectCallsStmt(s->declaration.get(), out);
+	}
+	// BreakStmt, ContinueStmt, ImportStmt, IncludeStmt, StructDecl,
+	// FunctionDecl (body handled separately) — nothing to traverse here.
+}
 
 Bytecode CodeGenerator::generate(const AST::Program &program, const std::unordered_map<std::string, int> &existingVars,
                                  int nextVarIdx, bool replMode)
@@ -23,6 +143,84 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 	currentFunctionReturnType.clear();
 	currentFunctionReturnDims.clear();
 	currentFunctionHasReturn = false;
+
+	liveFunctions.clear();
+
+	if (!isRepl)
+	{
+		std::unordered_map<std::string, const AST::FunctionDecl *> allFunctions;
+		for (const auto &stmt : program.statements)
+		{
+			const AST::FunctionDecl *fd = dynamic_cast<const AST::FunctionDecl *>(stmt.get());
+			if (!fd)
+			{
+				if (const auto *es = dynamic_cast<const AST::ExportStmt *>(stmt.get()))
+					fd = dynamic_cast<const AST::FunctionDecl *>(es->declaration.get());
+			}
+			if (fd) allFunctions[fd->name] = fd;
+		}
+
+		std::unordered_map<std::string, std::unordered_set<std::string>> callGraph;
+		for (const auto &[name, fd] : allFunctions)
+		{
+			std::unordered_set<std::string> called;
+			collectCallsStmt(fd->body.get(), called);
+			callGraph[name] = std::move(called);
+		}
+
+		if (allFunctions.count("main")) liveFunctions.insert("main");
+
+		for (const auto &stmt : program.statements)
+		{
+			if (const auto *es = dynamic_cast<const AST::ExportStmt *>(stmt.get()))
+				if (const auto *fd = dynamic_cast<const AST::FunctionDecl *>(es->declaration.get()))
+					liveFunctions.insert(fd->name);
+		}
+
+		for (const auto &[name, fd] : allFunctions)
+			if (fd->keep) liveFunctions.insert(name);
+
+		for (const auto &stmt : program.statements)
+		{
+			bool isFuncDecl    = (dynamic_cast<const AST::FunctionDecl *>(stmt.get()) != nullptr);
+			bool isExportedFn  = false;
+			if (const auto *es = dynamic_cast<const AST::ExportStmt *>(stmt.get()))
+				isExportedFn = (dynamic_cast<const AST::FunctionDecl *>(es->declaration.get()) != nullptr);
+
+			if (!isFuncDecl && !isExportedFn)
+				collectCallsStmt(stmt.get(), liveFunctions);
+		}
+
+		std::queue<std::string> worklist;
+		for (const auto &name : liveFunctions) worklist.push(name);
+
+		while (!worklist.empty())
+		{
+			std::string fn = worklist.front();
+			worklist.pop();
+			auto it = callGraph.find(fn);
+			if (it == callGraph.end()) continue;
+			for (const auto &callee : it->second)
+			{
+				if (allFunctions.count(callee) && !liveFunctions.count(callee))
+				{
+					liveFunctions.insert(callee);
+					worklist.push(callee);
+				}
+			}
+		}
+
+#ifdef _DEBUG
+		for (const auto &[name, fd] : allFunctions)
+		{
+			if (!liveFunctions.count(name))
+			{
+				std::cerr << "\033[33m" << "WARNING: " "\033[0m" << "[UNUSED-FUNCTION] function '" << name << "' is unused and will not be emitted"
+				          << " (line " << fd->line << ", column " << fd->column << ")\n";
+			}
+		}
+#endif
+	}
 
 	for (const auto &stmt : program.statements)
 	{
@@ -1403,6 +1601,11 @@ void CodeGenerator::generateUnsafeBlockStmt(const AST::UnsafeBlockStmt *unsafeSt
 
 void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 {
+	// DCE: skip functions that were determined to be unreachable.
+	// In REPL mode liveFunctions is always empty and this check is bypassed.
+	if (!isRepl && !liveFunctions.count(funcDecl->name))
+		return;
+
 	int jumpOverIndex = static_cast<int>(bytecode.instructions.size());
 	bytecode.emit(OpCode::JUMP, 0);
 
