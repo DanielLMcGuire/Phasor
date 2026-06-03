@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <sstream>
 #include <iterator>
 #include <PhasorString.hpp>
 #include <phs_dupenv.hpp>
