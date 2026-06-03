@@ -5,7 +5,7 @@
 !define COPYRIGHT "(C) 2026 Daniel McGuire"
 !define LICENSE_TXT "../assets/LICENSE.rtf"
 !define DESCRIPTION "Functional VM Compiled Programming Language"
-!define INSTALLER_NAME "phasor-3.3.0_setup.exe"
+!define INSTALLER_NAME "phasor-4.0.0_setup.exe"
 !define INSTALL_TYPE "SetShellVarContext all"
 !define REG_ROOT "HKLM"
 !define MAIN_APP_EXE "bin\phasor.exe"
