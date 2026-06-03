@@ -81,7 +81,7 @@
         <RegistryValue Root="HKLM" Key="Software\Phasor\Install"
                        Name="IncludePathSet" Type="integer" Value="1" KeyPath="yes" />
         
-        <Environment Id="PhasorIncludePath" Name="PHASOR_INCLUDE_DIRS" Value="[INSTALLFOLDER]phsinclude"
+        <Environment Id="PhasorIncludePath" Name="PHASOR_INCLUDE_PATH" Value="[INSTALLFOLDER]phsinclude"
                      Permanent="no" Action="set" System="yes" />
       </Component>
 
