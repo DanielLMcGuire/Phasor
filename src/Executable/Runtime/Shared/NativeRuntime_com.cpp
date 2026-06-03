@@ -4,6 +4,9 @@
 #include "../../../Runtime/Stdlib/StdLib.hpp"
 #include "../../../Runtime/VM/VM.hpp"
 
+#include <PhasorString.hpp>
+#include <phs_dupenv.hpp>
+
 #include <oleauto.h>
 #include <string>
 #include <unordered_map>
@@ -11,6 +14,30 @@
 
 namespace
 {
+	std::vector<std::filesystem::path> fetchIncludeDirs() {
+		std::vector<std::filesystem::path> finalPaths;
+
+#ifdef PHASOR_DEFAULT_FIRST_PATH
+		finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+#endif
+
+		Phasor::PhsString includeDirs;
+		if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
+		{
+			std::stringstream ss(includeDirs.c_str());
+			std::string item;
+			while (std::getline(ss, item, ';'))
+			{
+				if (!item.empty())
+					finalPaths.push_back(item);
+			}
+		}
+
+		finalPaths.push_back(std::filesystem::current_path());
+
+		return finalPaths;
+	}
+
 	std::string wideToUtf8(LPCOLESTR text)
 	{
 		if (!text)
@@ -232,7 +259,7 @@ HRESULT __stdcall PhasorScriptEngine::ParseScriptText(
 	try
 	{
 		std::string src = wideToUtf8(code);
-		Phasor::Frontend::runScript(src.c_str(), &vm, "", false);
+		Phasor::Frontend::runScript(src.c_str(), &vm, fetchIncludeDirs(), false);
 		return S_OK;
 	}
 	catch (...)

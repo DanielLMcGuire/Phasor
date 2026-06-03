@@ -6,6 +6,8 @@
 #include <vector>
 #include <filesystem>
 #include <iterator>
+#include <PhasorString.hpp>
+#include <phs_dupenv.hpp>
 
 #include <version.h>
 
@@ -64,6 +66,30 @@ Options:
     -c, --command  Run a raw script string)");
 }
 
+std::vector<std::filesystem::path> fetchIncludeDirs() {
+	std::vector<std::filesystem::path> finalPaths;
+
+#ifdef PHASOR_DEFAULT_FIRST_PATH
+	finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+#endif
+
+	Phasor::PhsString includeDirs;
+	if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
+	{
+		std::stringstream ss(includeDirs.c_str());
+		std::string item;
+		while (std::getline(ss, item, ';'))
+		{
+			if (!item.empty())
+				finalPaths.push_back(item);
+		}
+	}
+
+	finalPaths.push_back(std::filesystem::current_path());
+
+	return finalPaths;
+}
+
 int main(int argc, char *argv[])
 {
 	try
@@ -73,12 +99,12 @@ int main(int argc, char *argv[])
 			const std::string source = readStdin();
 			if (!source.empty())
 			{
-				return Phasor::Frontend::runScript(source, nullptr, "");
+				return Phasor::Frontend::runScript(source, nullptr, fetchIncludeDirs());
 			}
 		}
 		if (argc < 2)
 		{
-			return Phasor::Frontend::runRepl();
+			return Phasor::Frontend::runRepl(nullptr, fetchIncludeDirs());
 		}
 
 		const fs::path programPath = argv[0];
@@ -103,7 +129,7 @@ int main(int argc, char *argv[])
 				}
 				else if (m_path == "command" || m_path == "c")
 				{
-					Phasor::ScriptingRuntime ScriptRT(argc, argv);
+					Phasor::ScriptingRuntime ScriptRT(argc, argv, fetchIncludeDirs());
 					auto                     vm = ScriptRT.createVm();
 					return ScriptRT.runSourceString(argv[2], *vm);
 				}
@@ -123,7 +149,7 @@ int main(int argc, char *argv[])
 
 		if (ext == ".phs")
 		{
-			Phasor::ScriptingRuntime ScriptRT(argc, argv);
+			Phasor::ScriptingRuntime ScriptRT(argc, argv, fetchIncludeDirs());
 			return ScriptRT.run();
 		}
 		else if (ext == ".phsb")

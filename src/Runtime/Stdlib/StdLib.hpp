@@ -43,7 +43,7 @@ class StdLib
 		vm.registerNativeFunction("using", std_import);
 #ifndef SANDBOXED
 		vm.registerNativeFunction("assert", std_assert);
-		vm.registerNativeFunction("std_noimport", run_internal);
+		vm.registerNativeFunction("phs__std_noimport", run_internal);
 #endif
 	}
 
@@ -86,6 +86,8 @@ class StdLib
 	static Value     meta_get_struct_elements(const std::vector<Value> &args, VM *);
 	static Value     meta_get_struct_elements_values(const std::vector<Value> &args, VM *);
 	static Value     meta_get_self(const std::vector<Value> &args, VM *vm);
+	static i64     meta_run_program(const std::vector<Value> &args, VM *vm);
+	static Value   meta_run_program_function(const std::vector<Value> &args, VM *vm);
 	static Value     meta_get_registers(const std::vector<Value> &args, VM *vm);
 	static Value     meta_get_type(const std::vector<Value> &args, VM *vm);
 

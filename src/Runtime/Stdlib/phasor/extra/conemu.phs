@@ -1,0 +1,42 @@
+fn conemu_sleep(ms: int) {
+    phs__std_noimport("printf", "\e]9;1;%d\a", ms);
+}
+fn conemu_messagebox(txt: string) {
+    phs__std_noimport("printf", "\e]9;2;%s\a", txt);
+}
+fn conemu_title(txt: string) {
+    phs__std_noimport("printf", "\e]9;3;%s\a", txt);
+}
+fn conemu_progress(st: int, pr: int) {
+    phs__std_noimport("printf", "\e]9;4;%d;%d\a", st, pr);
+}
+fn conemu_progress_reset() {
+    phs__std_noimport("printf", "\e]9;4;0;0\a");
+}
+fn conemu_wait_for_input() {
+    phs__std_noimport("printf", "\e]9;5\a");
+}
+fn conemu_guimacro(txt: string) -> string {
+    phs__std_noimport("printf", "\e]9;6;%s\a", txt);
+    if (phs__std_noimport("sys_os") == "sandbox") return "";
+    return phs__std_noimport("sys_env", "ConEmuMacroResult");
+}
+fn conemu_run(cmd: string) {
+    phs__std_noimport("printf", "\e]9;7;%s\a", cmd);
+}
+fn conemu_print_envvar(env: string) {
+    phs__std_noimport("printf", "\e]9;8;%s\a", env);
+}
+fn conemu_inform_cwd(cwd: string) {
+    phs__std_noimport("printf", "\e]9;9;%s\a", cwd);
+}
+fn conemu_request_xtermemulation() {
+    phs__std_noimport("printf", "\e]9;10\a");
+}
+// to follow spec
+fn conemu_comment(txt: string) {
+    phs__std_noimport("printf", "\e]9;11;%s\a", txt);
+}
+fn conemu_set_prompt_start() {
+    phs__std_noimport("printf", "\e]9;12\a");
+}

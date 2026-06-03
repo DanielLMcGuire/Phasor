@@ -14,16 +14,16 @@
 #include "Frontend.hpp"
 #include <nativeerror.h>
 
-int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::filesystem::path &path, bool verbose)
+int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::vector<std::filesystem::path> &paths, bool verbose)
 {
 	int           status = 0;
 	bool          ownVM = false;
 	CodeGenerator codegen;
 	Lexer         lexer(source);
 	Parser        parser(lexer.tokenize());
-	if (!path.empty() && std::filesystem::exists(path))
+	if (!paths.empty())
 	{
-		parser.setSourcePath(path);
+		parser.setIncludePaths(paths);
 	}
 
 	auto program = parser.parse();
@@ -64,7 +64,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str(), vm, path);
+		runScript(buffer.str(), vm, {path});
 	});
 
 	try
@@ -93,7 +93,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::fi
 	return status;
 }
 
-int Phasor::Frontend::runRepl(VM *vm, bool verbose)
+int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> paths, bool verbose)
 {
 	int           status = 0;
 	bool          ownVM = false;
@@ -122,7 +122,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		runScript(buffer.str(), vm, path);
+		runScript(buffer.str(), vm, {path});
 	});
 
 	if (status != 0)
@@ -164,6 +164,7 @@ int Phasor::Frontend::runRepl(VM *vm, bool verbose)
 
 			Lexer  lexer(line);
 			Parser parser(lexer.tokenize());
+			parser.setIncludePaths(paths);
 
 			auto program = parser.parse();
 #ifndef TRACING

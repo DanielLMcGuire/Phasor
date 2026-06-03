@@ -15,7 +15,8 @@
 namespace Phasor
 {
 
-ScriptingRuntime::ScriptingRuntime(int argc, char *argv[])
+ScriptingRuntime::ScriptingRuntime(int argc, char *argv[], const std::vector<std::filesystem::path> &paths)
+	: m_includePaths(paths)
 {
 	parseArguments(argc, argv);
 }
@@ -62,6 +63,10 @@ int ScriptingRuntime::runSourceString(const std::string &source, VM &vm)
 	Lexer  lexer(source);
 	auto   tokens = lexer.tokenize();
 	Parser parser(tokens, m_args.inputFile);
+	if (!m_includePaths.empty())
+	{
+		parser.setIncludePaths(m_includePaths);
+	}
 	auto   program = parser.parse();
 
 	if (m_args.verbose)

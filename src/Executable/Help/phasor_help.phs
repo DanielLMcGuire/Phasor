@@ -1,4 +1,10 @@
-using("stdio", "stdsys", "stdstr", "stdtype", "stdfile", "stdmeta", "stdmem");
+include "stdio.phs";
+include "stdsys.phs";
+include "stdstr.phs";
+include "stdtype.phs";
+include "stdmeta.phs";
+include "stdfile.phs";
+include "stdmem.phs";
 
 struct ManPage {
     name: string,
@@ -45,9 +51,9 @@ fn getDocCmd(page: ManPage) -> string {
 }
 
 fn showHelp(programName: string, error: bool) -> void {
-    var winStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<section>\n    \\<page>.<section>.pdf";
-    var unixStr: string = "/usr/share/man/man<section>/<page>.<section>(.gz)";
-    var osxStr: string = "/usr/local/share/man/man<section>/<page>.<section>(.gz)";
+    var winStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<SECTION>\n    \\<PAGE>.<SECTION>.pdf";
+    var unixStr: string = "/usr/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+    var osxStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
     var osStr: string;
     var os: string = sys_os();
     if (os == "win32") {
@@ -57,12 +63,8 @@ fn showHelp(programName: string, error: bool) -> void {
     } else if (os == "Darwin") {
         osStr = osxStr;
     } else {
-        osStr = "https://phasor-docs.pages.dev/man?f=<page>.<section>";
+        osStr = "https://phasor-docs.pages.dev/man?f=<PAGE>.<SECTION>";
     }
-
-    free("winStr");
-    free("unixStr");
-    free("osxStr");
 
     var helpStr: string = c_fmt(`
 
@@ -72,15 +74,15 @@ NAME
     %s - open Phasor manual pages
 
 SYNOPSIS
-    %s <page> <section>
+    %s PAGE SECTION
     %s --help
     %s -h
 
 ARGUMENTS
-    <page>
+    PAGE
     The name of the manual page to open.
 
-    <section>  
+    SECTION  
     The manual section number. This is an integer corresponding to 
     standard manual sections.  
 

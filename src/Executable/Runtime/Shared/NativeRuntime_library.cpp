@@ -52,6 +52,30 @@ std::string getCommandLine(LPSTR &lpszCmdLine) {
 
 #define msg error
 
+std::vector<std::filesystem::path> fetchIncludeDirs() {
+	std::vector<std::filesystem::path> finalPaths;
+
+#ifdef PHASOR_DEFAULT_FIRST_PATH
+	finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+#endif
+
+	Phasor::PhsString includeDirs;
+	if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
+	{
+		std::stringstream ss(includeDirs.c_str());
+		std::string item;
+		while (std::getline(ss, item, ';'))
+		{
+			if (!item.empty())
+				finalPaths.push_back(item);
+		}
+	}
+
+	finalPaths.push_back(std::filesystem::current_path());
+
+	return finalPaths;
+}
+
 extern "C"
 {
 	PHASOR_API const char *getVersion()
@@ -125,7 +149,9 @@ extern "C"
 		set_terminal_title(moduleName);
 		try
 		{
-			return Phasor::Frontend::runScript(script, static_cast<Phasor::VM *>(vmPtr), modulePath, verbose);
+			auto includeDirs = fetchIncludeDirs();
+			includeDirs.push_back(modulePath);
+			return Phasor::Frontend::runScript(script, static_cast<Phasor::VM *>(vmPtr), includeDirs, verbose);
 		}
 		catch (const std::exception &e)
 		{

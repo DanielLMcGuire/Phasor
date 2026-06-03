@@ -1,0 +1,92 @@
+using("stdmeta");
+
+struct ScopeVariableData {
+    index: i64,
+    name: string
+}
+
+struct ScopeData {
+    scopeIndex: i64,
+    variables: ScopeVariableData[]
+}
+
+struct StructData {
+    name: string,
+    firstConstIndex: i64,
+    fieldCount: i64,
+    fieldNames: string[]
+}
+
+struct FunctionData {
+    name: string,
+    entry: i64,
+    paramTypes: string[],
+    paramArrayDims: i64[][],
+    returnType: string,
+    returnArrayDims: i64[],
+    scopes: ScopeData[]
+}
+
+struct ConstantData {
+    type: string,
+    value: any
+}
+
+struct VariableData {
+    name: string,
+    index: i64,
+    type: string,
+    value: any
+}
+
+struct InstructionData {
+    op: string,
+    operand1: i64,
+    operand2: i64,
+    operand3: i64
+}
+
+struct Bytecode {
+    instructions: InstructionData[],
+    constants: ConstantData[],
+    variables: VariableData[],
+    functions: FunctionData[],
+    structs: StructData[],
+    globalScopes: ScopeData[]
+}
+
+fn get_self() -> Bytecode {
+    return phs__std_noimport("phs__get_self");
+}
+
+fn get_self_instructions() -> InstructionData[] {
+    return phs__std_noimport("phs__get_self").instructions;
+}
+
+fn get_self_constants() -> ConstantData[] {
+    return phs__std_noimport("phs__get_self").constants;
+}
+
+fn get_self_variables() -> VariableData[] {
+    return phs__std_noimport("phs__get_self").variables;
+}
+
+fn get_self_functions() -> FunctionData[] {
+    return phs__std_noimport("phs__get_self").functions;
+}
+
+fn get_self_structs() -> StructData[] {
+    return phs__std_noimport("phs__get_self").structs;
+}
+
+fn get_self_global_scopes() -> ScopeData[] {
+    return phs__std_noimport("phs__get_self").globalScopes;
+}
+
+fn run_program(program: Bytecode) -> int {
+    return phs__std_noimport("phs__run_program", program);
+}
+
+fn run_program_function(program: Bytecode, functionName: string, func_arguments: any[], cli_arguments: string[]) -> any {
+    return phs__std_noimport("phs__run_program_function", program, functionName, func_arguments, cli_arguments);
+}

@@ -1,0 +1,35 @@
+include "extra/conemu.phs";
+
+fn progressBarDone() {
+    conemu_progress_reset();
+}
+
+fn progressBarPercentage(percentage: int, borderLeft: string, borderRight: string, fill: string, size: int) {
+    assert(percentage >= 0 && percentage <= 100);
+    conemu_progress(1, percentage);
+    var lineEnding: string = "\r";
+    
+    if (percentage >= 100) {
+        lineEnding = "\n";
+    }
+    
+    var fillLength: int = size * percentage / 100;
+    
+    phs__std_noimport("printf", "%s%.*s%s %d%%%s", borderLeft, fillLength, fill, borderRight, percentage, lineEnding);
+    
+    if (percentage >= 100) {
+        progressBarDone();
+    }
+}
+
+fn progressBarUnits(done: int, total: int, borderLeft: string, borderRight: string, fill: string, size: int) -> int {
+    assert(done >= 0 && total >= 0 && done <= total);
+    var percentage: int = (done * 100) / total;
+
+    progressBarPercentage(percentage, borderLeft, borderRight, fill, size);
+    return percentage;
+}
+
+fn progressBarSimple(done: int, total: int) -> bool {
+    return progressBarUnits(done, total, "[", "]", "=", 15) == 100;
+}

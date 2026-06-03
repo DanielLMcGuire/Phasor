@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <filesystem>
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -21,7 +22,7 @@ namespace Phasor
 class ScriptingRuntime
 {
   public:
-	ScriptingRuntime(int argc, char *argv[]);
+	ScriptingRuntime(int argc, char *argv[], const std::vector<std::filesystem::path> &paths);
 	int run();
 
 	int runSource();
@@ -40,6 +41,7 @@ class ScriptingRuntime
 
 	void parseArguments(int argc, char *argv[]);
 	void showHelp(const std::string &programName);
+	std::vector<std::filesystem::path> m_includePaths = {""};
 };
 
 } // namespace Phasor
