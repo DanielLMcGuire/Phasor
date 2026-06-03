@@ -1,7 +1,16 @@
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp
     COMMAND $<TARGET_FILE:phasor_cxx_transpiler> "${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs" -o "${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp" -H -I "${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor"
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs phasor_cxx_transpiler
+    DEPENDS 
+        ${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs 
+        phasor_cxx_transpiler
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdio.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdsys.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdstr.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdtype.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdmeta.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdfile.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdmem.phs
     COMMENT "Building PHS bytecode phasor_help.hpp"
 )
 
