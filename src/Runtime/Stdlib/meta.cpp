@@ -24,7 +24,7 @@ void StdLib::registerMetaFunctions(VM *vm)
 	vm->registerNativeFunction("phs_stack_run", StdLib::meta_stack_run);
 #endif
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
-	vm->registerNativeFunction("phs_alloc_info", StdLib::meta_get_alloc_info);
+	// vm->registerNativeFunction("phs__phs_alloc_info", StdLib::meta_get_alloc_info);
 	vm->registerNativeFunction("get_elements", StdLib::meta_get_struct_elements);
 	vm->registerNativeFunction("get_elements_values", StdLib::meta_get_struct_elements_values);
 	// vm->registerNativeFunction("phs__get_self", StdLib::meta_get_self);
@@ -76,8 +76,14 @@ PhsString StdLib::meta_get_version(const std::vector<Value> &args, VM *)
 
 Value StdLib::meta_get_alloc_info(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 0, "phs_alloc_info");
+	checkArgCount(args, 0, "phs__phs_alloc_info");
 
+    // struct alloc_info {
+    //     heap_used: int,
+    //     stack_limit: int,
+    //     heap_used_kb: int,
+    //     stack_limit_kb: int
+    // }
 	Value result = {{
 		{"heap_used", phsnull},
 		{"stack_limit", phsnull},

@@ -90,3 +90,14 @@ fn run_program(program: Bytecode) -> int {
 fn run_program_function(program: Bytecode, functionName: string, func_arguments: any[], cli_arguments: string[]) -> any {
     return phs__std_noimport("phs__run_program_function", program, functionName, func_arguments, cli_arguments);
 }
+
+struct alloc_info {
+    heap_used: int,
+    stack_limit: int,
+    heap_used_kb: int,
+    stack_limit_kb: int
+}
+
+fn get_alloc_info() -> alloc_info {
+    return phs__std_noimport("phs__phs_alloc_info");
+}

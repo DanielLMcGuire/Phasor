@@ -126,7 +126,7 @@ std::unordered_map<PhsString, std::function<Value(const std::vector<Value> &args
 	{"math_tan", math_tan},
 	{"free", var_free},
 	{"phs_version", meta_get_version},
-	{"phs_alloc_info", meta_get_alloc_info},
+	{"phs__phs_alloc_info", meta_get_alloc_info},
 	{"get_elements", meta_get_struct_elements},
 	{"get_elements_values", meta_get_struct_elements_values},
 	{"phs__get_self", meta_get_self},
