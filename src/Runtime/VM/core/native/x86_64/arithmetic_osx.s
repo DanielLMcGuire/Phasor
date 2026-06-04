@@ -64,9 +64,16 @@ _asm_idiv:
 
 _asm_imod:
     mov rax, rdi
+    test rsi, rsi
+    jz .mod_zero
+
     cqo
     idiv rsi
     mov rax, rdx
+    ret
+
+.mod_zero:
+    xor rax, rax
     ret
 
 _asm_fladd:
@@ -93,10 +100,19 @@ _asm_fldiv:
 
 _asm_flmod:
     movapd xmm2, xmm0
+
+    xorpd xmm3, xmm3
+    ucomisd xmm1, xmm3
+    je .fmod_zero
+
     divsd xmm2, xmm1
     roundsd xmm2, xmm2, 3
     mulsd xmm2, xmm1
     subsd xmm0, xmm2
+    ret
+
+.fmod_zero:
+    xorpd xmm0, xmm0
     ret
 
 _asm_sqrt:
