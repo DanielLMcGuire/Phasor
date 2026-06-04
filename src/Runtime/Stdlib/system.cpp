@@ -125,8 +125,8 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
-	i64 ms = args[0].asInt();
-	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+	double ms = args[0].asFloat();
+	std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(ms));
 	return Value(" ");
 }
 
