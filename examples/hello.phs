@@ -1,5 +1,6 @@
 #!/usr/bin/env phasor
-using("stdsys", "stdio");
+include "stdsys.phs";
+include "stdio.phs";
 
 fn main() -> int 
 {

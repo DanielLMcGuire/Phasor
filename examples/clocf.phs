@@ -1,5 +1,11 @@
 #!/usr/bin/env phasor
-using("stdsys", "stdio", "stdstr", "stdfile", "stdtype", "stdarray", "stdmem");
+include "stdsys.phs";
+include "stdio.phs";
+include "stdstr.phs";
+include "stdfile.phs";
+include "stdtype.phs";
+include "stdarray.phs";
+include "stdmem.phs";
 
 struct LangEntry {
     name: string,

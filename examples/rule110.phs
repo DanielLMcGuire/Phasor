@@ -1,5 +1,10 @@
 #!/usr/bin/env phasor
-using("stdio", "stdstr", "stdtype", "stdsys", "stdfile", "stdarray");
+include "stdio.phs";
+include "stdstr.phs";
+include "stdtype.phs";
+include "stdsys.phs";
+include "stdfile.phs";
+include "stdarray.phs";
 
 var logfile: string = "outfile.txt";
 

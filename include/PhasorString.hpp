@@ -193,6 +193,18 @@ public:
             append(n - old_sz, c);
         }
     }
+
+    void reserve(std::size_t n) {
+        if (is_small()) {
+            if (n > SSO_CAPACITY) {
+                std::string promoted{sm().data, sm().len};
+                promoted.reserve(n);
+                m_store = std::move(promoted);
+            }
+        } else {
+            lg().reserve(n);
+        }
+    }
  
     std::size_t find(std::string_view sv, std::size_t pos = 0)     const noexcept { return view().find(sv, pos); }
     std::size_t find(char c, std::size_t pos = 0)                  const noexcept { return view().find(c, pos); }

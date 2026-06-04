@@ -201,9 +201,10 @@ class StdLib
 	static Value       str_ends_with(const std::vector<Value> &args, VM *vm);   ///< Check if string ends with
 	// StringBuilder functions
 	static i64     sb_new(const std::vector<Value> &args, VM *vm);       ///< Create new string builder
-	static Value       sb_append(const std::vector<Value> &args, VM *vm);    ///< Append to string builder
+	static i64     sb_prealloc(const std::vector<Value> &args, VM *vm); ///< Preallocate string builder
+	static i64       sb_append(const std::vector<Value> &args, VM *vm);    ///< Append to string builder
 	static PhsString sb_to_string(const std::vector<Value> &args, VM *vm); ///< Convert string builder to string
-	static Value       sb_clear(const std::vector<Value> &args, VM *vm);     ///< Clear string builder
+	static i64       sb_clear(const std::vector<Value> &args, VM *vm);     ///< Clear string builder
 	static PhsString sb_free(const std::vector<Value> &args, VM *vm);      ///< Free string builder
 #pragma endregion
 
@@ -212,9 +213,7 @@ class StdLib
 #ifndef SANDBOXED
 	static Value io_clear(const std::vector<Value> &args, VM *vm); ///< Clear the console
 #endif
-	static PhsString io_prints(const std::vector<Value> &args, VM *vm); ///< Print string without newline
 	static PhsString io_printf(const std::vector<Value> &args, VM *vm); ///< Print formatted string
-	static PhsString io_puts(const std::vector<Value> &args, VM *vm);   ///< Print string with newline
 	static PhsString io_putf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string with newline
 #ifndef SANDBOXED
 	static Value io_gets(const std::vector<Value> &args, VM *vm); ///< Get string

@@ -18,6 +18,7 @@ void StdLib::registerStringFunctions(VM *vm)
 	vm->registerNativeFunction("ends_with", StdLib::str_ends_with);
 
 	vm->registerNativeFunction("sb_new", StdLib::sb_new);
+	vm->registerNativeFunction("sb_prealloc", StdLib::sb_prealloc);
 	vm->registerNativeFunction("sb_append", StdLib::sb_append);
 	vm->registerNativeFunction("sb_to_string", StdLib::sb_to_string);
 	vm->registerNativeFunction("sb_free", StdLib::sb_free);
@@ -88,7 +89,7 @@ i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
 	return static_cast<i64>(idx);
 }
 
-Value StdLib::sb_append(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_append(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 2, "sb_append");
 	i64 idx = args[0].asInt();
@@ -96,7 +97,24 @@ Value StdLib::sb_append(const std::vector<Value> &args, VM *)
 		throw std::runtime_error("Invalid StringBuilder handle");
 
 	getSbPool()[idx] += args[1].toString();
-	return args[0]; // Return handle for chaining
+	return args[0].asInt(); // Return handle for chaining
+}
+
+i64 StdLib::sb_prealloc(const std::vector<Value> &args, VM *)
+{
+    StdLib::checkArgCount(args, 2, "sb_prealloc");
+    
+    i64 idx = args[0].asInt();
+    if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
+        throw std::runtime_error("Invalid StringBuilder handle");
+
+    i64 capacity = args[1].asInt();
+    if (capacity > 0)
+    {
+        getSbPool()[idx].reserve(static_cast<size_t>(capacity));
+    }
+
+    return args[0].asInt(); // Return handle for chaining
 }
 
 PhsString StdLib::sb_to_string(const std::vector<Value> &args, VM *)
@@ -118,14 +136,14 @@ PhsString StdLib::sb_free(const std::vector<Value> &args, VM *)
 	return value;
 }
 
-Value StdLib::sb_clear(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_clear(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_clear");
 	size_t idx = args[0].asInt();
 	if (idx >= getSbPool().size())
 		throw std::runtime_error("Invalid StringBuilder handle");
 	getSbPool()[idx].clear();
-	return args[0]; // Return handle for chaining
+	return args[0].asInt(); // Return handle for chaining
 }
 
 Value StdLib::str_char_at(const std::vector<Value> &args, VM *)

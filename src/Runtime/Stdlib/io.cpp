@@ -1,5 +1,10 @@
 #include "StdLib.hpp"
 #include <vformat.hpp>
+#include <thread>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
+#include <cstdlib>
 
 namespace Phasor
 {
@@ -7,9 +12,7 @@ namespace Phasor
 void StdLib::registerIOFunctions(VM *vm)
 {
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
-	vm->registerNativeFunction("prints", StdLib::io_prints);
 	vm->registerNativeFunction("printf", StdLib::io_printf);
-	vm->registerNativeFunction("puts", StdLib::io_puts);
 	vm->registerNativeFunction("putf", StdLib::io_putf);
 	vm->registerNativeFunction("puts_error", StdLib::io_puts_error);
 	vm->registerNativeFunction("putf_error", StdLib::io_putf_error);
@@ -44,26 +47,11 @@ PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
 	
 }
 
-PhsString StdLib::io_prints(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "prints");
-	vm->regRun(OpCode::PRINT_R, args[0]);
-	return "";
-}
-
 PhsString StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "printf", true);
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
-	return "";
-}
-
-PhsString StdLib::io_puts(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "puts", true);
-	PhsString input = args[0].toString();
-	vm->regRun(OpCode::PRINT_R, input.str() + "\n");
 	return "";
 }
 
