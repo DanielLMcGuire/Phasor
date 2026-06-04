@@ -833,8 +833,17 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 	}
 	else
 	{
-		int constIndex = bytecode.addConstant(Value());
-		bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		if (isArrayType)
+		{
+			// Automatically generate bytecode to instantiate default arrays
+			generateDefaultArray(varDecl->type->arrayDimensions, 0, varDecl->type->name);
+		}
+		else
+		{
+			// Keep standard default scalar initialization (null)
+			int constIndex = bytecode.addConstant(Value());
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		}
 		int varIndex = declareVar(varDecl->name);
 		bytecode.emit(OpCode::STORE_VAR, varIndex);
 	}
@@ -2107,6 +2116,48 @@ ValueType CodeGenerator::mapTypeNameToValueType(const std::string &typeName)
     if (typeName == "void")                       return ValueType::Null;
 
     return ValueType::Float;
+}
+
+void CodeGenerator::generateDefaultArray(const std::vector<int> &dims, size_t dimIdx, const std::string &baseTypeName)
+{
+	if (dimIdx >= dims.size()) return;
+
+	int count = dims[dimIdx];
+	if (count < 0) count = 0;
+
+	if (dimIdx == dims.size() - 1)
+	{
+		Value defaultValue;
+		if (baseTypeName == "int" || baseTypeName == "i64")
+			defaultValue = Value(static_cast<i64>(0));
+		else if (baseTypeName == "float" || baseTypeName == "f64")
+			defaultValue = Value(0.0);
+		else if (baseTypeName == "string")
+			defaultValue = Value(std::string(""));
+		else if (baseTypeName == "bool")
+			defaultValue = Value(false);
+		else
+			defaultValue = Value();
+
+		for (int i = 0; i < count; ++i)
+		{
+			int constIdx = bytecode.addConstant(defaultValue);
+			bytecode.emit(OpCode::PUSH_CONST, constIdx);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < count; ++i)
+		{
+			generateDefaultArray(dims, dimIdx + 1, baseTypeName);
+		}
+	}
+
+	int countIdx = bytecode.addConstant(Value(static_cast<i64>(count)));
+	bytecode.emit(OpCode::PUSH_CONST, countIdx);
+
+	int funcNameIdx = bytecode.addStringConstant("__array_literal");
+	bytecode.emit(OpCode::CALL_NATIVE, funcNameIdx);
 }
 
 } // namespace Phasor

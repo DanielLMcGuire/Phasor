@@ -232,6 +232,7 @@ class CodeGenerator
 	void generateBreakStmt();
 	void generateContinueStmt();
 	void generateSwitchStmt(const AST::SwitchStmt *switchStmt);
+	void generateDefaultArray(const std::vector<int> &dims, size_t dimIdx, const std::string &baseTypeName);
 	void generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded);
 	void generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded);
 
