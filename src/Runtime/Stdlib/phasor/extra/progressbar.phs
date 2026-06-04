@@ -1,9 +1,19 @@
+// Copyright 2026 Daniel McGuire -- progress bar extension for Phasor Standard Library
+// Licensed under the MIT License.
+
 include "extra/conemu.phs";
 
+// Hide progress indicator
 fn progressBarDone() {
     conemu_progress_reset();
 }
 
+// Show progress bar, with conemu GUI support
+// percentage: 0-100
+// borderLeft: Example: "["
+// borderRight: Example: "]"
+// fill: Example: "="
+// size: Positive integer, size in CLI chars
 fn progressBarPercentage(percentage: int, borderLeft: string, borderRight: string, fill: string, size: int) {
     assert(percentage >= 0 && percentage <= 100);
     conemu_progress(1, percentage);
@@ -22,6 +32,14 @@ fn progressBarPercentage(percentage: int, borderLeft: string, borderRight: strin
     }
 }
 
+// Show progress bar, with conemu GUI support from arbitrary units with custom style
+// done: how many things (e.g. files) have been processed? (positive)
+// total: how many things (e.g. files) are there in total? (positive, greater than `done`)
+// borderLeft: Example: "["
+// borderRight: Example: "]"
+// fill: Example: "="
+// size: Positive integer, size in CLI chars
+// returns: percentage
 fn progressBarUnits(done: int, total: int, borderLeft: string, borderRight: string, fill: string, size: int) -> int {
     assert(done >= 0 && total >= 0 && done <= total);
     var percentage: int = (done * 100) / total;
@@ -30,6 +48,10 @@ fn progressBarUnits(done: int, total: int, borderLeft: string, borderRight: stri
     return percentage;
 }
 
+// Show progress bar, with conemu GUI support from arbitrary units
+// done: how many things (e.g. files) have been processed? (positive)
+// total: how many things (e.g. files) are there in total? (positive, greater than `done`)
+// returns: True on 100%
 fn progressBarSimple(done: int, total: int) -> bool {
     return progressBarUnits(done, total, "[", "]", "=", 15) == 100;
 }
