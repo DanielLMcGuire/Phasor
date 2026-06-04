@@ -36,10 +36,3 @@ add_library(phasor_binary_runtime_lib STATIC
 )
 
 target_link_libraries(phasor_binary_runtime_lib PUBLIC PhasorRuntime PhasorCodegen)
-    
-add_library(pulsar_scripting_runtime_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Pulsar/ScriptingRuntime.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Pulsar/ScriptingRuntime.hpp
-)
-
-target_link_libraries(pulsar_scripting_runtime_lib PUBLIC PhasorRuntime PhasorCodegen pulsar_language)

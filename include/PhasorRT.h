@@ -118,17 +118,6 @@ extern "C"
 	                           bool verbose);
 
 	/**
-	 * @brief Executes a Pulsar Scripting Language script.
-	 *
-	 * @param state      A pointer to an state to execute the script within. If null, new state will be created and
-	 * managed for you.
-	 * @param script     A string containing the Pulsar source to compile and execute.
-	 * @param moduleName The name of the module, used for error reporting.
-	 * @return           The exit code of the program given from script (-1 might be an unhandled exception in VM).
-	 */
-	PHASOR_API int evaluatePUL(void *state, const char *script, const char *moduleName);
-
-	/**
 	 * @brief Compiles a Phasor Programming Language script into Phasor VM bytecode.
 	 *
 	 * @param[in] script      A string containing the Phasor source to compile.
@@ -147,24 +136,6 @@ extern "C"
 	 */
 	PHASOR_API bool compilePHS(const char *script, const char *moduleName, const char *modulePath,
 	                           unsigned char *buffer, size_t bufferSize, size_t *outSize);
-
-	/**
-	 * @brief Compiles a Pulsar Scripting Language script into Phasor VM bytecode.
-	 *
-	 * @param[in] script     A string containing the Pulsar source to compile.
-	 * @param[in] moduleName The name of the module, used for error reporting.
-	 * @param[out] buffer    A pointer to a buffer where the compiled bytecode will be written. If null, the function
-	 * will only calculate the required buffer size and return it via `outSize`.
-	 * @param[in] bufferSize The size of the provided buffer. This is ignored if `buffer` is null.
-	 * @param[out] outSize   If `buffer` is null, this will be set to the required buffer size to hold the compiled
-	 * bytecode. If `buffer` is not null, this will be set to the actual size of the compiled bytecode.
-	 * @returns              if buffer is null, returns true if compilation succeeded. if buffer is not null, returns
-	 * true if compilation succeeded and buffer was valid and large enough to hold the compiled bytecode.
-	 *
-	 * if bufferSize < data.size(), buffer will not be modified, however outSize will be set.
-	 */
-	PHASOR_API bool compilePUL(const char *script, const char *moduleName, unsigned char *buffer, size_t bufferSize,
-	                           size_t *outSize);
 
 	/**
 	 * @brief Creates a new state instance.

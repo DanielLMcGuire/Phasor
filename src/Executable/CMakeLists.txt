@@ -14,7 +14,7 @@ endif()
 add_library(phasor_native_runtime SHARED
     ${NATIVE_RUNTIME_SOURCES}
 )
-target_link_libraries(phasor_native_runtime phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
+target_link_libraries(phasor_native_runtime phasor_native_runtime_lib PhasorFrontend)
 target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
@@ -22,7 +22,7 @@ add_library(phasor_native_runtime_static STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
-target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib PhasorFrontend PulsarFrontend)
+target_link_libraries(phasor_native_runtime_static phasor_native_runtime_lib PhasorFrontend)
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)
 
 if(MSVC)
@@ -31,9 +31,7 @@ if(MSVC)
             $<TARGET_FILE:phasor_native_runtime_static>
             $<TARGET_FILE:phasor_native_runtime_lib>
             $<TARGET_FILE:PhasorFrontend>
-            $<TARGET_FILE:PulsarFrontend>
             $<TARGET_FILE:phasor_language>
-            $<TARGET_FILE:pulsar_language>
             $<TARGET_FILE:PhasorRuntime>
             $<TARGET_FILE:PhasorCodegen>
         COMMENT "Merging dependencies into phasorstaticrt.lib (MSVC)..."
@@ -44,9 +42,7 @@ elseif(APPLE)
             $<TARGET_FILE:phasor_native_runtime_static>
             $<TARGET_FILE:phasor_native_runtime_lib>
             $<TARGET_FILE:PhasorFrontend>
-            $<TARGET_FILE:PulsarFrontend>
             $<TARGET_FILE:phasor_language>
-            $<TARGET_FILE:pulsar_language>
             $<TARGET_FILE:PhasorRuntime>
             $<TARGET_FILE:PhasorCodegen>
         COMMENT "Merging dependencies into libphasorstaticrt.a (macOS)..."
@@ -58,9 +54,7 @@ else()
     set(mri_content "${mri_content}addlib $<TARGET_FILE:phasor_native_runtime_static>\n")
     set(mri_content "${mri_content}addlib $<TARGET_FILE:phasor_native_runtime_lib>\n")
     set(mri_content "${mri_content}addlib $<TARGET_FILE:PhasorFrontend>\n")
-    set(mri_content "${mri_content}addlib $<TARGET_FILE:PulsarFrontend>\n")
     set(mri_content "${mri_content}addlib $<TARGET_FILE:phasor_language>\n")
-    set(mri_content "${mri_content}addlib $<TARGET_FILE:pulsar_language>\n")
     set(mri_content "${mri_content}addlib $<TARGET_FILE:PhasorRuntime>\n")
     set(mri_content "${mri_content}addlib $<TARGET_FILE:PhasorCodegen>\n")
     set(mri_content "${mri_content}save\nend\n")
@@ -85,13 +79,6 @@ add_executable(phasor_main
 target_link_libraries(phasor_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
-add_executable(pulsar_main 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Pulsar/ScriptingRuntime_main.cpp
-)
-target_link_libraries(pulsar_main pulsar_scripting_runtime_lib PulsarFrontend)
-set_target_properties(pulsar_main PROPERTIES OUTPUT_NAME pulsar)
-
 if(NOT IS_XBOX AND NOT EMBEDDED)
 
 add_executable(phasor_compiler
@@ -100,13 +87,6 @@ add_executable(phasor_compiler
 )
 target_link_libraries(phasor_compiler phasor_compiler_lib)
 set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
-
-add_executable(pulsar_compiler
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Pulsar/Compiler.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Pulsar/Compiler_main.cpp
-)
-target_link_libraries(pulsar_compiler pulsar_compiler_lib)
-set_target_properties(pulsar_compiler PROPERTIES OUTPUT_NAME pulsarcompiler)
 
 add_executable(phasor_lsp
     ${CMAKE_CURRENT_SOURCE_DIR}/LSP/Phasor/LSP_main.cpp

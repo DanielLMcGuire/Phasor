@@ -11,7 +11,7 @@
 
 // README
 //
-// Provides types for the Phasor (and Pulsar) Programming Language.
+// Provides types for the Phasor Programming Language.
 // Wraps a std::variant over null, bool, int64_t, double, string, struct, and array,
 // with structs, arrays, and strings heap-allocated via std::shared_ptr. Provides arithmetic,
 // comparison, and logical operators, and isTruthy() and toString().

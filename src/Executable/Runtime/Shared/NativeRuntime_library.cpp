@@ -1,11 +1,8 @@
 #include "../../../Runtime/Stdlib/StdLib.hpp"
 #include "../../../Runtime/Shared/NativeRuntime.hpp"
-#include "../../../Frontend/Pulsar/Frontend.hpp"
 #include "../../../Frontend/Phasor/Frontend.hpp"
 #include "../../../Language/Phasor/Lexer/Lexer.hpp"
 #include "../../../Language/Phasor/Parser/Parser.hpp"
-#include "../../../Language/Pulsar/Lexer/Lexer.hpp"
-#include "../../../Language/Pulsar/Parser/Parser.hpp"
 #include "../../../Codegen/CodeGen.hpp"
 #include "../../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../../Codegen/Bytecode/BytecodeDeserializer.hpp"
@@ -160,20 +157,6 @@ extern "C"
 		return -1;
 	}
 
-	PHASOR_API int evaluatePUL(void *vmPtr, const char *script, const char *moduleName)
-	{
-		set_terminal_title(moduleName);
-		try
-		{
-			return pulsar::Frontend::runScript(script, static_cast<Phasor::VM *>(vmPtr));
-		}
-		catch (const std::exception &e)
-		{
-			msg(std::string(moduleName) + ": " + e.what());
-		}
-		return -1;
-	}
-
 	PHASOR_API bool compilePHS(const char *script, const char *moduleName, const char *modulePath,
 	                           unsigned char *buffer, size_t bufferSize, size_t *outSize)
 	{
@@ -189,41 +172,6 @@ extern "C"
 			{
 				parser.setSourcePath(modulePath);
 			}
-
-			auto                 ast = parser.parse();
-			auto                 bc = codegen.generate(*ast);
-			std::vector<Phasor::u8> data = serializer.serialize(bc);
-
-			if (outSize)
-				*outSize = data.size();
-
-			if (!buffer)
-				return true;
-
-			if (bufferSize < data.size())
-				return false;
-
-			std::memcpy(buffer, data.data(), data.size());
-
-			return true;
-		}
-		catch (const std::exception &e)
-		{
-			msg(std::string(moduleName) + ": " + e.what());
-		}
-		return false;
-	}
-
-	PHASOR_API bool compilePUL(const char *script, const char *moduleName, unsigned char *buffer, size_t bufferSize,
-	                           size_t *outSize)
-	{
-		set_terminal_title((std::string("Compiling ") + moduleName).c_str());
-		try
-		{
-			Phasor::CodeGenerator      codegen;
-			Phasor::BytecodeSerializer serializer;
-			pulsar::Lexer              lexer(script);
-			pulsar::Parser             parser(lexer.tokenize());
 
 			auto                 ast = parser.parse();
 			auto                 bc = codegen.generate(*ast);
@@ -328,52 +276,6 @@ extern "C"
 		fileStream.read(scriptText.data(), scriptText.size());
 
 		int exitCode = evaluatePHS(NULL, scriptText.c_str(), __func__, file.parent_path().string().c_str(), false);
-		if (exitCode != 0)
-		{
-			std::string message = std::format("\nFailed with code {}\n", exitCode);
-			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
-		}
-	}
-
-	PHASOR_API void CALLBACK PulsarSourceStringEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
-	{
-		setupConsole();
-		int exitCode = evaluatePUL(NULL, getCommandLine(lpszCmdLine).c_str(), __func__);
-		if (exitCode != 0)
-		{
-			std::string message = std::format("\nFailed with code {}\n", exitCode);
-			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
-		}
-	}
-
-	PHASOR_API void CALLBACK PulsarSourceFileEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
-	{
-		setupConsole();
-		std::filesystem::path file = getCommandLine(lpszCmdLine);
-		std::string scriptText;
-
-		if (!std::filesystem::exists(file))
-		{
-			std::string message = std::format("File \"{}\" does not exist\n", file.filename().string());
-			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
-			return;
-		}
-		
-		std::ifstream fileStream(file);
-		if (!fileStream)
-		{
-			std::string message = std::format("File \"{}\" could not be opened\n", file.filename().string());
-			MessageBoxA(hwnd, message.c_str(), __func__, MB_OK | MB_ICONERROR);
-			return;
-		}
-
-		fileStream.seekg(0, std::ios::end);
-		scriptText.resize(static_cast<size_t>(fileStream.tellg()));
-		fileStream.seekg(0, std::ios::beg);
-
-		fileStream.read(scriptText.data(), scriptText.size());
-
-		int exitCode = evaluatePUL(NULL, scriptText.c_str(), __func__);
 		if (exitCode != 0)
 		{
 			std::string message = std::format("\nFailed with code {}\n", exitCode);
