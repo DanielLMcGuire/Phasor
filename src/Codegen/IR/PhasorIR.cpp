@@ -67,6 +67,9 @@ int PhasorIR::getOperandCount(OpCode op)
     case OpCode::LEN:
     case OpCode::CHAR_AT:
     case OpCode::SUBSTR:
+    case OpCode::NEW_ARR:
+    case OpCode::LOAD_ARR:
+    case OpCode::STORE_ARR:
         return 0;
 
     // 1 operand

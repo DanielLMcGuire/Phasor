@@ -148,3 +148,7 @@ class OpCode(IntEnum):
     SYSTEM_OUT_R = 0x71
     SYSTEM_ERR_R = 0x72
     EXIT_SCOPE   = 0x73
+
+    NEW_ARR   = 0x74
+    LOAD_ARR  = 0x75
+    STORE_ARR = 0x76

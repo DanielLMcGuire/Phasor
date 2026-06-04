@@ -180,7 +180,11 @@ enum class OpCode : u8
 	SYSTEM_OUT_R, /// Run shell command and get output: system_out(R[rA], R[rB])
 	SYSTEM_ERR_R,  /// Run shell command and get error output: system_err(R[rA], R[rB])
 
-	EXIT_SCOPE
+	EXIT_SCOPE,
+
+	NEW_ARR,
+	LOAD_ARR,
+	STORE_ARR
 };
 
 /// @brief Instruction with up to 5 operands

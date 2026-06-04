@@ -238,11 +238,6 @@ class VM
 	}
 
   private:
-    void registerArrayFunctions();
-	static Value native_array_literal(const std::vector<Value> &args, VM *vm);
-	static Value native_get_elem(const std::vector<Value> &args, VM *vm);
-	static Value native_set_elem(const std::vector<Value> &args, VM *vm);
-
 	void setup(const Bytecode &bc, const size_t initialPC);
 	void evalLoop();
 

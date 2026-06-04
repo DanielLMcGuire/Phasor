@@ -164,6 +164,10 @@ void VM::evalLoop()
 
 		s_table[(unsigned)OpCode::EXIT_SCOPE]                 = &&LABEL_EXIT_SCOPE;
 
+		s_table[(unsigned)OpCode::NEW_ARR]                    = &&LABEL_NEW_ARR;
+		s_table[(unsigned)OpCode::LOAD_ARR]                   = &&LABEL_LOAD_ARR;
+		s_table[(unsigned)OpCode::STORE_ARR]                  = &&LABEL_STORE_ARR;
+
         s_ready = true;
     }
 
@@ -915,7 +919,70 @@ void VM::evalLoop()
 		}
 		NEXT();
 	}
-    
+
+	LABEL_NEW_ARR:
+    {
+        {
+            i64 count = pop().asInt();
+            if (count < 0) throw std::runtime_error("Array size cannot be negative");
+
+            std::vector<Value> elements;
+            elements.reserve(static_cast<size_t>(count));
+
+            for (int i = static_cast<int>(count) - 1; i >= 0; --i)
+            {
+                elements.push_back(pop());
+            }
+            
+            std::reverse(elements.begin(), elements.end());
+
+            push(Value::createArray(std::move(elements)));
+        }
+        NEXT();
+    }
+
+	LABEL_LOAD_ARR:
+    {
+        {
+            Value idxVal = pop();
+            Value arrVal = pop();
+
+            if (!arrVal.isArray())
+                throw std::runtime_error("LOAD_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+
+            auto arr = arrVal.asArray();
+            i64 idx = idxVal.asInt();
+
+            if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+                push(phsnull);
+
+            push((*arr)[static_cast<size_t>(idx)]);
+        }
+        NEXT();
+    }
+
+    LABEL_STORE_ARR:
+    {
+        {
+            Value val    = pop();
+            Value idxVal = pop();
+            Value arrVal = pop();
+
+            if (!arrVal.isArray())
+                throw std::runtime_error("STORE_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+
+            auto arr = std::const_pointer_cast<Value::ArrayInstance>(arrVal.asArray());
+            i64 idx = idxVal.asInt();
+
+            if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+                throw std::runtime_error("Array index out of bounds");
+
+            (*arr)[static_cast<size_t>(idx)] = val;
+            push(val);
+        }
+        NEXT();
+    }
+
     // UNKNOWN
     
     LABEL_UNKNOWN:
@@ -1609,6 +1676,68 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		push(obj.getField(fieldName));
 		break;
 	}
+
+#pragma endregion
+#pragma region STACK ARRAY
+
+	case OpCode::NEW_ARR: 
+	{
+		i64 count = pop().asInt();
+
+        if (count < 0) throw std::runtime_error("Array size cannot be negative");
+
+        std::vector<Value> elements;
+        elements.reserve(static_cast<size_t>(count));
+
+        for (int i = static_cast<int>(count) - 1; i >= 0; --i)
+        {
+            elements.push_back(pop());
+        }
+            
+        std::reverse(elements.begin(), elements.end());
+
+        push(Value::createArray(std::move(elements)));
+		break;
+	}
+
+    case OpCode::LOAD_ARR: 
+    {
+        Value idxVal = pop();
+        Value arrVal = pop();
+
+        if (!arrVal.isArray())
+            throw std::runtime_error("LOAD_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+
+        auto arr = arrVal.asArray();
+        i64 idx = idxVal.asInt();
+
+        if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+            throw std::runtime_error("Array index out of bounds");
+
+        push((*arr)[static_cast<size_t>(idx)]);
+        break;
+    }
+
+    case OpCode::STORE_ARR: 
+    {
+        Value val    = pop();
+        Value idxVal = pop();
+        Value arrVal = pop();
+
+        if (!arrVal.isArray())
+            throw std::runtime_error("STORE_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+
+        auto arr = std::const_pointer_cast<Value::ArrayInstance>(arrVal.asArray());
+        i64 idx = idxVal.asInt();
+
+        if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+            push(phsnull);
+
+        (*arr)[static_cast<size_t>(idx)] = val;
+        
+        push(val);
+        break;
+    }
 
 #pragma endregion
 #pragma region REGISTER CORE

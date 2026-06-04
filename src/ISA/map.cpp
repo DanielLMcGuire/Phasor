@@ -118,7 +118,10 @@ const std::unordered_map<OpCode, std::string> opCodeToStringMap = {{OpCode::PUSH
                                                                    {OpCode::NEW_STRUCT_INSTANCE_STATIC, "NEW_STRUCT_INSTANCE_STATIC"},
                                                                    {OpCode::GET_FIELD_STATIC, "GET_FIELD_STATIC"},
                                                                    {OpCode::SET_FIELD_STATIC, "SET_FIELD_STATIC"},
-                                                                   {OpCode::EXIT_SCOPE, "EXIT_SCOPE"}
+                                                                   {OpCode::EXIT_SCOPE, "EXIT_SCOPE"},
+                                                                   {OpCode::NEW_ARR, "NEW_ARR"},
+                                                                   {OpCode::LOAD_ARR, "LOAD_ARR"},
+                                                                   {OpCode::STORE_ARR, "STORE_ARR"}
                                                                 };
 
 const std::unordered_map<std::string, OpCode> stringToOpCodeMap = [] {

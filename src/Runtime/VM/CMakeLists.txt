@@ -8,7 +8,6 @@ set(VM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/VM.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/portable/IO.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../ISA/map.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Array.cpp
 )
 
 if(ASSEMBLY)

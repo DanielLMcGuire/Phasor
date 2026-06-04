@@ -1857,11 +1857,7 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
         generateExpression(arrayAccess->index.get());
         generateExpression(assignExpr->value.get());
 
-        int countIdx = bytecode.addConstant(Value(static_cast<i64>(3)));
-        bytecode.emit(OpCode::PUSH_CONST, countIdx);
-
-        int setIdx = bytecode.addStringConstant("__set_elem");
-        bytecode.emit(OpCode::CALL_NATIVE, setIdx);
+        bytecode.emit(OpCode::STORE_ARR);
     }
     else
     {
@@ -2030,8 +2026,7 @@ void CodeGenerator::generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayL
     int countIdx = bytecode.addConstant(Value(static_cast<i64>(count)));
     bytecode.emit(OpCode::PUSH_CONST, countIdx);
 
-    int funcNameIdx = bytecode.addStringConstant("__array_literal");
-    bytecode.emit(OpCode::CALL_NATIVE, funcNameIdx);
+    bytecode.emit(OpCode::NEW_ARR);
 
     if (!resultNeeded)
         bytecode.emit(OpCode::POP);
@@ -2096,10 +2091,9 @@ void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAcc
 
     generateExpression(arrayAccess->array.get());   
     generateExpression(arrayAccess->index.get());   
-    int countIdx = bytecode.addConstant(Value(static_cast<i64>(2)));
-    bytecode.emit(OpCode::PUSH_CONST, countIdx);    
-    int funcIdx = bytecode.addStringConstant("__get_elem");
-    bytecode.emit(OpCode::CALL_NATIVE, funcIdx);
+    
+    bytecode.emit(OpCode::LOAD_ARR);
+    
     if (!resultNeeded)
         bytecode.emit(OpCode::POP);
 }
@@ -2156,8 +2150,7 @@ void CodeGenerator::generateDefaultArray(const std::vector<int> &dims, size_t di
 	int countIdx = bytecode.addConstant(Value(static_cast<i64>(count)));
 	bytecode.emit(OpCode::PUSH_CONST, countIdx);
 
-	int funcNameIdx = bytecode.addStringConstant("__array_literal");
-	bytecode.emit(OpCode::CALL_NATIVE, funcNameIdx);
+	bytecode.emit(OpCode::NEW_ARR);
 }
 
 } // namespace Phasor
