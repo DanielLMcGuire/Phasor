@@ -64,4 +64,6 @@ jobs:
 
     - name: Test 
       shell: bash
+      env:
+        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/src/Runtime/Stdlib/phasor
       run: ./build/src/Executable/phasor ./scripts/unittest.phs
