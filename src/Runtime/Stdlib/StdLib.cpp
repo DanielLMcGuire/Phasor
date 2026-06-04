@@ -41,6 +41,8 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 
 std::unordered_map<PhsString, std::function<Value(const std::vector<Value> &args, VM *vm)>> StdLib::functions{
 #ifndef SANDBOXED
+	{"fopen", file_open},
+	{"fclose", file_close},
 	{"fabsolute", file_absolute},
 	{"fexists", file_exists},
 	{"fread", file_read},

@@ -115,11 +115,13 @@ class StdLib
 
 #pragma region stdfile
 #ifndef SANDBOXED
+	static Value file_open(const std::vector<Value> &args, VM *vm); ///< Get file descriptor
+	static bool file_close(const std::vector<Value> &args, VM *vm); ///< Close file descriptor
 	static PhsString file_absolute(const std::vector<Value> &args, VM *vm);   ///< Get full path to relative path
 	static Value       file_read(const std::vector<Value> &args, VM *vm);       ///< Read file
 	static bool        file_write(const std::vector<Value> &args, VM *vm);      ///< Write to file
 	static bool        file_exists(const std::vector<Value> &args, VM *vm);     ///< Check if file exists
-	static PhsString file_read_line(const std::vector<Value> &args, VM *vm);  ///< Read a line from file
+	static Value file_read_line(const std::vector<Value> &args, VM *vm);  ///< Read a line from file
 	static bool        file_write_line(const std::vector<Value> &args, VM *vm); ///< Write a line to file
 	static bool        file_append(const std::vector<Value> &args, VM *vm);     ///< Append to file
 	static bool        file_delete(const std::vector<Value> &args, VM *vm);     ///< Delete file

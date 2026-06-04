@@ -1,5 +1,9 @@
 #include <filesystem>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <memory>
+#include <stdexcept>
 #include <phsint.hpp>
 
 #include "StdLib.hpp"
@@ -8,8 +12,50 @@
 namespace Phasor
 {
 
+namespace
+{
+	struct FileHandle
+	{
+		std::unique_ptr<std::fstream> stream;
+	};
+
+	static std::vector<FileHandle>& getFilePool()
+	{
+		static std::vector<FileHandle> pool;
+		return pool;
+	}
+
+	static i64 allocFileDescriptor(std::unique_ptr<std::fstream> fs)
+	{
+		auto& pool = getFilePool();
+		for (size_t i = 0; i < pool.size(); ++i)
+		{
+			if (!pool[i].stream)
+			{
+				pool[i].stream = std::move(fs);
+				return static_cast<i64>(i);
+			}
+		}
+		pool.push_back({std::move(fs)});
+		return static_cast<i64>(pool.size() - 1);
+	}
+
+	static std::fstream* getFileDescriptor(i64 fd)
+	{
+		auto& pool = getFilePool();
+		if (fd >= 0 && fd < static_cast<i64>(pool.size()) && pool[fd].stream)
+		{
+			return pool[fd].stream.get();
+		}
+		return nullptr;
+	}
+}
+
 void StdLib::registerFileFunctions(VM *vm)
 {
+	vm->registerNativeFunction("fopen", StdLib::file_open);
+	vm->registerNativeFunction("fclose", StdLib::file_close);
+	
 	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
 	vm->registerNativeFunction("fstem", StdLib::file_stem);
 	vm->registerNativeFunction("fname", StdLib::file_filename);
@@ -35,6 +81,54 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);
 	vm->registerNativeFunction("fjoin", StdLib::file_join_path);
 	vm->registerNativeFunction("fsize", StdLib::file_get_size);
+}
+
+Value StdLib::file_open(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 2, "fopen");
+	std::string path = args[0].string();
+	std::string mode = args[1].string();
+
+	std::ios_base::openmode omode = (std::ios_base::openmode)0;
+	
+	if (mode == "r") omode = std::ios::in;
+	else if (mode == "w") omode = std::ios::out | std::ios::trunc;
+	else if (mode == "a") omode = std::ios::out | std::ios::app;
+	else if (mode == "r+") omode = std::ios::in | std::ios::out;
+	else if (mode == "w+") omode = std::ios::in | std::ios::out | std::ios::trunc;
+	else if (mode == "a+") omode = std::ios::in | std::ios::out | std::ios::app;
+	else 
+	{
+		if (mode.find('r') != std::string::npos) omode |= std::ios::in;
+		if (mode.find('w') != std::string::npos) omode |= std::ios::out | std::ios::trunc;
+		if (mode.find('a') != std::string::npos) omode |= std::ios::out | std::ios::app;
+		if (mode.find('+') != std::string::npos) {
+			omode |= std::ios::in | std::ios::out;
+			if (mode.find('w') == std::string::npos) omode &= ~std::ios::trunc;
+		}
+	}
+
+	auto fs = std::make_unique<std::fstream>(path, omode);
+	if (!fs->is_open())
+	{
+		return phsnull;
+	}
+	return allocFileDescriptor(std::move(fs));
+}
+
+bool StdLib::file_close(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fclose");
+	if (!args[0].isInt()) return false;
+	i64 fd = args[0].asInt();
+	auto& pool = getFilePool();
+	if (fd >= 0 && fd < static_cast<i64>(pool.size()) && pool[fd].stream)
+	{
+		pool[fd].stream->close();
+		pool[fd].stream.reset();
+		return true;
+	}
+	return false;
 }
 
 PhsString StdLib::file_absolute(const std::vector<Value> &args, VM *)
@@ -90,6 +184,16 @@ i64 StdLib::file_get_size(const std::vector<Value> &args, VM *)
 Value StdLib::file_read(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fread");
+
+	if (args[0].isInt())
+	{
+		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		if (!fs) return phsnull;
+		std::stringstream buffer;
+		buffer << fs->rdbuf();
+		return buffer.str();
+	}
+
 	std::filesystem::path path = args[0].string();
 	std::ifstream         file(path);
 	if (!file.is_open())
@@ -101,19 +205,51 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *)
 	return buffer.str();
 }
 
-PhsString StdLib::file_read_line(const std::vector<Value> &args, VM *)
+Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 2, "freadln");
-	std::filesystem::path path = args[0].string();
-	i64               lineNum = args[1].asInt();
-	std::ifstream         file(path);
-	if (!file.is_open())
+	if (args.empty() || args.size() > 2)
 	{
-		throw std::runtime_error("Could not open file: " + path.string());
+		throw std::runtime_error("freadln requires 1 or 2 arguments");
 	}
+
+	if (args.size() == 1)
+	{
+		if (!args[0].isInt()) throw std::runtime_error("freadln with 1 arg requires an FD");
+		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		if (!fs) return phsnull;
+		
+		std::string lineContent;
+		if (std::getline(*fs, lineContent))
+			return lineContent;
+		return phsnull;
+	}
+
+	i64 lineNum = args[1].asInt();
+	std::istream* is = nullptr;
+	std::ifstream tempFile;
+
+	if (args[0].isInt())
+	{
+		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		if (!fs) return phsnull;
+		fs->clear();
+		fs->seekg(0, std::ios::beg);
+		is = fs;
+	}
+	else
+	{
+		std::filesystem::path path = args[0].string();
+		tempFile.open(path);
+		if (!tempFile.is_open())
+		{
+			throw std::runtime_error("Could not open file: " + path.string());
+		}
+		is = &tempFile;
+	}
+
 	std::string lineContent;
 	int         currentLine = 0;
-	while (std::getline(file, lineContent) && currentLine < lineNum)
+	while (std::getline(*is, lineContent) && currentLine < lineNum)
 	{
 		currentLine++;
 	}
@@ -123,6 +259,12 @@ PhsString StdLib::file_read_line(const std::vector<Value> &args, VM *)
 bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 3, "fwriteln");
+
+	if (args[0].isInt())
+	{
+		throw std::runtime_error("fwriteln modifying arbitrary lines isn't supported for file descriptors; use a file path instead.");
+	}
+
 	std::filesystem::path path = args[0].string();
 	i64               lineNum = args[1].asInt();
 	PhsString           content = args[2].string();
@@ -175,6 +317,16 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 bool StdLib::file_write(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fwrite");
+
+	if (args[0].isInt())
+	{
+		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		if (!fs) return false;
+		(*fs) << args[1].string();
+		fs->flush();
+		return true;
+	}
+
 	std::filesystem::path path = args[0].string();
 	std::ofstream         file(path);
 	if (!file.is_open())
@@ -195,6 +347,17 @@ bool StdLib::file_exists(const std::vector<Value> &args, VM *)
 bool StdLib::file_append(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fappend");
+
+	if (args[0].isInt())
+	{
+		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		if (!fs) return false;
+		fs->seekp(0, std::ios::end); // Safe jumping to EOF for sequential appends 
+		(*fs) << args[1].string();
+		fs->flush();
+		return true;
+	}
+
 	std::filesystem::path path = args[0].string();
 	std::ofstream         file(path, std::ios::app);
 	if (!file.is_open())
@@ -356,17 +519,17 @@ bool StdLib::file_create(const std::vector<Value> &args, VM *)
 
 Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 {
-    checkArgCount(args, 1, "freaddir");
-    PhsString path = args[0].asString();
+	checkArgCount(args, 1, "freaddir");
+	PhsString path = args[0].asString();
 
-    std::vector<Value> entries;
+	std::vector<Value> entries;
 
-    for (const auto &entry : std::filesystem::directory_iterator(path.str()))
-    {
-        entries.emplace_back(PhsString(entry.path().filename().string()));
-    }
+	for (const auto &entry : std::filesystem::directory_iterator(path.str()))
+	{
+		entries.emplace_back(PhsString(entry.path().filename().string()));
+	}
 
-    return Value::createArray(std::move(entries));
+	return Value::createArray(std::move(entries));
 }
 
 bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
