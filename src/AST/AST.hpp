@@ -40,6 +40,7 @@ struct Node;
 struct Expression;
 struct Statement;
 struct Program;
+struct TypeNode;
 
 /// @brief AST Node
 struct Node
@@ -48,6 +49,12 @@ struct Node
 	virtual void print(int indent = 0) const = 0;
 	size_t       line = 0;
 	size_t       column = 0;
+};
+
+struct Param
+{
+	std::string               name;
+	std::unique_ptr<TypeNode> type;
 };
 
 /// @brief Expression Node
@@ -650,11 +657,6 @@ struct FunctionDecl : public Statement
 {
 	std::string name;
 	bool        keep = false; ///< If true, never eliminated by dead-code elimination
-	struct Param
-	{
-		std::string               name;
-		std::unique_ptr<TypeNode> type;
-	};
 	std::vector<Param>         params;
 	std::unique_ptr<TypeNode>  returnType;
 	std::unique_ptr<BlockStmt> body;
@@ -688,6 +690,24 @@ struct FunctionDecl : public Statement
 		{
 			body->print(indent + 2);
 		}
+	}
+};
+
+/// @brief Forward Declaration Node
+struct ForwardDecl : public Statement
+{
+	std::string name;
+	std::vector<Param>         params;
+	std::unique_ptr<TypeNode>  returnType;
+
+	ForwardDecl(std::string n, std::vector<Param> p, std::unique_ptr<TypeNode> rt)
+	    : name(std::move(n)), params(std::move(p)), returnType(std::move(rt))
+	{
+	}
+
+	void print(int indent = 0) const override
+	{
+		std::cout << std::string(indent, ' ') << "ForwardDecl: " << name << "\n";
 	}
 };
 

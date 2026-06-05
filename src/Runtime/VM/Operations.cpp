@@ -168,6 +168,8 @@ void VM::evalLoop()
 		s_table[(unsigned)OpCode::LOAD_ARR]                   = &&LABEL_LOAD_ARR;
 		s_table[(unsigned)OpCode::STORE_ARR]                  = &&LABEL_STORE_ARR;
 
+		s_table[(unsigned)OpCode::GET_FIELD_DYN]              = &&LABEL_GET_FIELD_DYN;
+
         s_ready = true;
     }
 
@@ -638,6 +640,20 @@ void VM::evalLoop()
         }
         NEXT();
     }
+
+	LABEL_GET_FIELD_DYN:
+	{
+		{
+			Value fieldName = pop();
+			Value obj       = pop();
+			if (!fieldName.isString())
+        		throw std::runtime_error("GET_FIELD_DYN: field name must be a string");
+			if (!obj.isStruct())
+				throw std::runtime_error("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
+			push(obj.getField(fieldName.asString()));
+		}
+		NEXT();
+	}
 
     LABEL_SET_FIELD_STATIC:
     {
@@ -1630,6 +1646,18 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		const std::string &fieldName = info.fieldNames[fieldOffset];
 		Value              obj       = pop();
 		push(obj.getField(fieldName));
+		break;
+	}
+
+	case OpCode::GET_FIELD_DYN:
+	{
+		Value fieldName = pop();
+		Value obj       = pop();
+		if (!fieldName.isString())
+			throw std::runtime_error("GET_FIELD_DYN: field name must be a string");
+		if (!obj.isStruct())
+			throw std::runtime_error("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
+		push(obj.getField(fieldName.asString()));
 		break;
 	}
 

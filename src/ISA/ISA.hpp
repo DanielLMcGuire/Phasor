@@ -162,7 +162,9 @@ enum class OpCode : u8
 
 	NEW_ARR,
 	LOAD_ARR,
-	STORE_ARR
+	STORE_ARR,
+
+	GET_FIELD_DYN
 };
 
 } // namespace Phasor

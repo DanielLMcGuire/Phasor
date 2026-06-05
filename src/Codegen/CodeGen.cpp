@@ -143,8 +143,8 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 	currentFunctionReturnType.clear();
 	currentFunctionReturnDims.clear();
 	currentFunctionHasReturn = false;
-
 	liveFunctions.clear();
+	forwardDecls.clear();
 
 	if (!isRepl)
 	{
@@ -226,6 +226,15 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 	{
 		generateStatement(stmt.get());
 	}
+
+	for (const auto &name : forwardDecls)
+	{
+		if (bytecode.functionEntries.find(name) == bytecode.functionEntries.end())
+		{
+			throw std::runtime_error("ERROR: Function '" + name + "' was declared but never defined.");
+		}
+	}
+
 	bytecode.emit(OpCode::HALT);
 	return bytecode;
 }
@@ -506,7 +515,12 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 
 void CodeGenerator::generateStatement(const AST::Statement *stmt)
 {
-	if (const auto *varDecl = dynamic_cast<const AST::VarDecl *>(stmt))
+	if (const auto *forwardDecl = dynamic_cast<const AST::ForwardDecl *>(stmt))
+	{
+		forwardDecls.insert(forwardDecl->name);
+		return;
+	}
+	else if (const auto *varDecl = dynamic_cast<const AST::VarDecl *>(stmt))
 	{
 		generateVarDecl(varDecl);
 	}
@@ -1009,8 +1023,10 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 	int constIndex = bytecode.addConstant(Value(static_cast<i64>(callExpr->arguments.size())));
 	bytecode.emit(OpCode::PUSH_CONST, constIndex);
 
-	auto entryIt = bytecode.functionEntries.find(callExpr->callee);
-	if (entryIt != bytecode.functionEntries.end())
+	bool isUserFunction = (bytecode.functionEntries.count(callExpr->callee) > 0) || 
+	                      (forwardDecls.count(callExpr->callee) > 0);
+
+	if (isUserFunction)
 	{
 		int nameIndex = bytecode.addStringConstant(callExpr->callee);
 		auto itParam = bytecode.functionParamCounts.find(callExpr->callee);
@@ -1075,8 +1091,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 						if (!expectedDims.empty())
 						{
 							throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
-							          + "' expects array, got scalar (line "
-							          + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
+							          + "' expects array, got scalar (line " + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
 						}
 					}
 				}
@@ -2041,8 +2056,8 @@ void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAcc
             if (isLiteralExpression(arrayAccess->index.get(), idxVal) && idxVal.isInt()) {
                 i64 idx = idxVal.asInt();
                 if (idx < 0 || idx >= dimsIt->second[0]) {
-                    throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) + 
-                                             " is out of bounds for array '" + identExpr->name + 
+                    throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) +
+                                             " is out of bounds for array '" + identExpr->name +
                                              "' of size " + std::to_string(dimsIt->second[0]));
                 }
             }
@@ -2077,8 +2092,8 @@ void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAcc
                                 i64 idx = idxVal.asInt();
                                 if (idx < 0 || idx >= dims[0])
                                 {
-                                    throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) + 
-                                                             " is out of bounds for field array '" + fieldExpr->fieldName + 
+                                    throw std::runtime_error("Compile-time bounds error: index " + std::to_string(idx) +
+                                                             " is out of bounds for field array '" + fieldExpr->fieldName +
                                                              "' of size " + std::to_string(dims[0]));
                                 }
                             }
@@ -2089,11 +2104,19 @@ void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAcc
         }
     }
 
-    generateExpression(arrayAccess->array.get());   
-    generateExpression(arrayAccess->index.get());   
-    
-    bytecode.emit(OpCode::LOAD_ARR);
-    
+    bool isStructAccess = false;
+    if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
+    {
+        auto it = inferredTypes.find(identExpr->name);
+        if (it != inferredTypes.end() && it->second == ValueType::Struct)
+            isStructAccess = true;
+    }
+
+    generateExpression(arrayAccess->array.get());
+    generateExpression(arrayAccess->index.get());
+
+    bytecode.emit(isStructAccess ? OpCode::GET_FIELD_DYN : OpCode::LOAD_ARR);
+
     if (!resultNeeded)
         bytecode.emit(OpCode::POP);
 }

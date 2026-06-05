@@ -143,6 +143,8 @@ class CodeGenerator
 	std::unordered_map<std::string, std::vector<int>> arrayDimensions;
 	std::unordered_map<std::string, std::string> arrayBaseTypes;
 
+	std::unordered_set<std::string> forwardDecls;
+
 	// Register allocation for v2.0
 	u8           nextRegister = 0; ///< Next available register
 	std::vector<bool> registerInUse;    ///< Track which registers are in use

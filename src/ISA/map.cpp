@@ -121,7 +121,8 @@ const std::unordered_map<OpCode, std::string> opCodeToStringMap = {{OpCode::PUSH
                                                                    {OpCode::EXIT_SCOPE, "EXIT_SCOPE"},
                                                                    {OpCode::NEW_ARR, "NEW_ARR"},
                                                                    {OpCode::LOAD_ARR, "LOAD_ARR"},
-                                                                   {OpCode::STORE_ARR, "STORE_ARR"}
+                                                                   {OpCode::STORE_ARR, "STORE_ARR"},
+                                                                   {OpCode::GET_FIELD_DYN, "GET_FIELD_DYN"}
                                                                 };
 
 const std::unordered_map<std::string, OpCode> stringToOpCodeMap = [] {

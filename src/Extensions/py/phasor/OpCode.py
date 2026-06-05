@@ -152,3 +152,5 @@ class OpCode(IntEnum):
     NEW_ARR   = 0x74
     LOAD_ARR  = 0x75
     STORE_ARR = 0x76
+
+    GET_FIELD_DYN = 0x77
