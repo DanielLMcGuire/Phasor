@@ -1,0 +1,10 @@
+struct LangEntry {
+    name: string,
+    code: int
+}
+
+struct ClocState {
+    entries:    LangEntry[],
+    totalCode:  int,
+    maxNameLen: int
+}
