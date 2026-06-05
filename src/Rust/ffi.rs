@@ -45,26 +45,10 @@ pub type EvaluatePHSFn = unsafe extern "C" fn(
 ) -> c_int;
 
 #[cfg(feature = "dynamic")]
-pub type EvaluatePULFn = unsafe extern "C" fn(
-    state: *mut c_void,
-    script: *const c_char,
-    module_name: *const c_char,
-) -> c_int;
-
-#[cfg(feature = "dynamic")]
 pub type CompilePHSFn = unsafe extern "C" fn(
     script: *const c_char,
     module_name: *const c_char,
     module_path: *const c_char,
-    buffer: *mut c_uchar,
-    buffer_size: size_t,
-    out_size: *mut size_t,
-) -> bool;
-
-#[cfg(feature = "dynamic")]
-pub type CompilePULFn = unsafe extern "C" fn(
-    script: *const c_char,
-    module_name: *const c_char,
     buffer: *mut c_uchar,
     buffer_size: size_t,
     out_size: *mut size_t,
@@ -108,13 +92,6 @@ unsafe extern "C" {
         buffer_size: size_t,
         out_size: *mut size_t,
     ) -> bool;
-    pub fn compilePUL(
-        script: *const c_char,
-        module_name: *const c_char,
-        buffer: *mut c_uchar,
-        buffer_size: size_t,
-        out_size: *mut size_t,
-    ) -> bool;
     pub fn exec(
         state: *mut c_void,
         bytecode: *const c_uchar,
@@ -147,11 +124,6 @@ unsafe extern "C" {
         module_name: *const c_char,
         module_path: *const c_char,
         verbose: bool,
-    ) -> c_int;
-    pub fn evaluatePUL(
-        state: *mut c_void,
-        script: *const c_char,
-        module_name: *const c_char,
     ) -> c_int;
     pub fn isErrorStatus(state: *mut c_void) -> bool;
 }

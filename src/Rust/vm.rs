@@ -249,27 +249,6 @@ impl PhasorVM {
             }
         }
     }
-
-    pub fn evaluate_pul(&mut self, script: &str, module: &str) -> Result<i32, PhasorError> {
-        let c_script = CString::new(script)?;
-        let c_module = CString::new(module)?;
-
-        unsafe {
-            #[cfg(feature = "dynamic")]
-            let res = {
-                let f: Symbol<EvaluatePULFn> = self._lib.get(b"evaluatePUL")?;
-                f(self.state, c_script.as_ptr(), c_module.as_ptr())
-            };
-            #[cfg(not(feature = "dynamic"))]
-            let res = evaluatePUL(self.state, c_script.as_ptr(), c_module.as_ptr());
-
-            if self.is_error_status()? {
-                Err(PhasorError::ExecutionException(res))
-            } else {
-                Ok(res)
-            }
-        }
-    }
 }
 
 impl Drop for PhasorVM {

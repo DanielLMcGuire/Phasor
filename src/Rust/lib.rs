@@ -77,39 +77,3 @@ pub fn compile_phs(script: &str, module: &str, path: Option<&str>) -> Result<Vec
         }
     }
 }
-
-pub fn compile_pul(script: &str, module: &str) -> Result<Vec<u8>, PhasorError> {
-    let c_script = CString::new(script)?;
-    let c_module = CString::new(module)?;
-
-    #[cfg(feature = "dynamic")]
-    unsafe {
-        let lib = Library::new(dll_path())?;
-        let compile_pul: Symbol<ffi::CompilePULFn> = lib.get(b"compilePUL")?;
-
-        let mut out_size: libc::size_t = 0;
-        if !compile_pul(c_script.as_ptr(), c_module.as_ptr(), ptr::null_mut(), 0, &mut out_size) {
-            return Err(PhasorError::CompileError);
-        }
-        let mut buffer = vec![0u8; out_size];
-        if compile_pul(c_script.as_ptr(), c_module.as_ptr(), buffer.as_mut_ptr(), buffer.len(), &mut out_size) {
-            Ok(buffer)
-        } else {
-            Err(PhasorError::CompileError)
-        }
-    }
-
-    #[cfg(not(feature = "dynamic"))]
-    unsafe {
-        let mut out_size: libc::size_t = 0;
-        if !ffi::compilePUL(c_script.as_ptr(), c_module.as_ptr(), ptr::null_mut(), 0, &mut out_size) {
-            return Err(PhasorError::CompileError);
-        }
-        let mut buffer = vec![0u8; out_size];
-        if ffi::compilePUL(c_script.as_ptr(), c_module.as_ptr(), buffer.as_mut_ptr(), buffer.len(), &mut out_size) {
-            Ok(buffer)
-        } else {
-            Err(PhasorError::CompileError)
-        }
-    }
-}

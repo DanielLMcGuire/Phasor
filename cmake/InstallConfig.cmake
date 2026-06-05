@@ -1,7 +1,6 @@
 if(IS_XBOX OR EMBEDDED)
     install(TARGETS
         phasor_main
-        pulsar_main
         phasor_native_runtime
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
@@ -19,9 +18,6 @@ elseif(WIN32)
         phasor_compiler
         phasor_cxx_transpiler
         phasor_lsp
-    
-        pulsar_main
-        pulsar_compiler
 
         phasor_asm
         phasor_disasm
@@ -68,9 +64,6 @@ elseif(APPLE)
         phasor_compiler
         phasor_cxx_transpiler
         phasor_lsp
-    
-        pulsar_main
-        pulsar_compiler
 
         phasor_asm
         phasor_disasm
@@ -105,9 +98,6 @@ else()
         phasor_compiler
         phasor_cxx_transpiler
         phasor_lsp
-    
-        pulsar_main
-        pulsar_compiler
 
         phasor_asm
         phasor_disasm
