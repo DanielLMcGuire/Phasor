@@ -91,7 +91,7 @@ _asm_flmul:
 _asm_flneg:
     xorpd xmm1, xmm1
     subsd xmm1, xmm0
-    movapd xmm0, xmm1
+    movsd xmm0, xmm1
     ret
 
 _asm_fldiv:

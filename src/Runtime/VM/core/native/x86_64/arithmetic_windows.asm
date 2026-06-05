@@ -96,7 +96,8 @@ asm_flmul ENDP
 
 asm_flneg PROC
     xorpd xmm1, xmm1
-    subsd xmm0, xmm1
+    subsd xmm1, xmm0
+    movsd xmm0, xmm1
     ret
 asm_flneg ENDP
 
