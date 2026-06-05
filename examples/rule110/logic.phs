@@ -215,7 +215,7 @@ fn rule110(width: int, generations: int, stdout: bool) -> int {
 }
 
 fn printHelp(programName: string) -> string {
-    return c_fmt(`phasor %s WIDTH GENERATIONS STDOUT
+    return c_fmt(`%s WIDTH GENERATIONS STDOUT
     WIDTH - Width of board
     GENERATIONS - Length of board
     STDOUT - Print out to stdout? (true/false)`, programName);

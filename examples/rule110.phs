@@ -5,7 +5,7 @@ include "stdmain.phs";
 
 fn main(args: string[]) -> int {
     if (args.len() < 4) {
-        printHelp(args[0].fname()).puts();
+        printHelp(args[0].fstem()).puts();
         return 1;
     }
     var width: int = args[1].to_int();

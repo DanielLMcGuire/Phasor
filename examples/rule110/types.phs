@@ -1,0 +1,24 @@
+struct ChunkStats {
+    chunk_time: float,
+    total_time: float,
+    eta: float,
+    generation_start: int,
+    generation_end: int
+}
+
+struct Rule110State {
+    width: int,
+    generations: int,
+    stdout: bool,
+
+    board: bool[],
+    next_board: bool[],
+
+    generation: int,
+
+    start_time: float,
+    last_chunk_start: float,
+
+    avg_chunk_time: float,
+    avg_chunk_count: float
+}
