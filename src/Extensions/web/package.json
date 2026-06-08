@@ -19,7 +19,7 @@
     "#phasorweb/routes": "./routes.mjs"
   },
   "dependencies": {
-    "zorvix": "^1.8.9"
+    "zorvix": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

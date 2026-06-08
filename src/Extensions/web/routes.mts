@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
-import type { IncomingMessage } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import type { ServerInstance } from 'zorvix';
 import { createBodyParser } from 'zorvix';
 
@@ -37,8 +37,10 @@ async function runViaPipe(
     });
 }
 
-export function registerRoutes(server: ServerInstance) {
-    server.use('/run', createBodyParser({ limit: 2 * 1048576 }));
+// In cluster mode with workers: true, zorvix dynamically imports this file
+// and passes the ServerInstance to the default export.
+export default async function setup(server: ServerInstance) {
+    server.use('/run', createBodyParser({ limit: 2 * 1048576 } as any));
     server.use("/run",  (req, res, next) => {
         const APIKEY =
         typeof req.query.apikey === 'string'
@@ -58,8 +60,12 @@ export function registerRoutes(server: ServerInstance) {
             res.json({ error: 'Code too large' }, 413);
             return;
         }
-        const code = await req.body as string;
-        if (!code.trim()) { res.json({ error: 'Request body must contain source code.' }, 400); return; }
+        
+        // In the new API, req.body is fully parsed by the middleware, so it does not need to be awaited.
+        const code = req.body as string;
+        if (!code || typeof code !== 'string' || !code.trim()) { 
+            res.json({ error: 'Request body must contain source code.' }, 400); 
+        }
 
         const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
         const exePath = resolve(process.cwd(), 'phasor', 'bin', exeName);
@@ -73,4 +79,11 @@ export function registerRoutes(server: ServerInstance) {
 
         res.json({ version: `${(await runViaPipe(exePath, 'using("stdmeta");print(phs_version());')).stdout.trim()}` });
     });
+
+    await server.start();
+    
+    // server.port reflects the configured port. 0 indicates testing environments
+    if (server.port !== 0) {
+        console.log(`Phasor is live at http://0.0.0.0:${(server.server.address() as AddressInfo).port}`);
+    }
 }
