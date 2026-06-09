@@ -32,8 +32,6 @@ BOOL      CloseHandle(HANDLE hObject);
 BOOL      IsWindow(HWND hWnd);
 BOOL      SetWindowTextA(HWND hWnd, LPCSTR lpString);
 BOOL      SetWindowTextW(HWND hWnd, LPCWSTR lpString);
-BOOL      GetWindowTextA(HWND hWnd, LPSTR lpString, int nMaxCount);
-BOOL      GetWindowTextW(HWND hWnd, LPWSTR lpString, int nMaxCount);
 BOOL      ShowCursor(BOOL bShow);
 UINT      GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize);
 UINT      GetWindowsDirectoryW(LPWSTR lpBuffer, UINT uSize);
