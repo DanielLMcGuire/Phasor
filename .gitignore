@@ -6,6 +6,7 @@
 /[Bb]in*
 ; Phasor Binary
 *.phsb
+!*.phs
 *.exe
 *.vsix
 /docs/html
@@ -22,7 +23,6 @@ RC[a-z][0-9][0-9][0-9][0-9][0-9]
 build/
 phasor.pem
 phasor.key
-!win32
 /archbuild
 /pkg
 *pkg.tar.zst
@@ -720,3 +720,6 @@ scripts/harvest.wxs
 *.bak
 examples/*.phir
 /trace
+/profdata
+phasor.profdata
+!src/Bindings/win32/
