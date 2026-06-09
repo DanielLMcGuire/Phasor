@@ -65,6 +65,7 @@ export default async function setup(server: ServerInstance) {
         const code = req.body as string;
         if (!code || typeof code !== 'string' || !code.trim()) { 
             res.json({ error: 'Request body must contain source code.' }, 400); 
+            return; 
         }
 
         const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
