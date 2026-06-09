@@ -719,3 +719,6 @@ scripts/harvest.wxs
 /.zig-cache
 *.bak
 examples/*.phir
+/trace
+/profdata
+phasor.profdata
