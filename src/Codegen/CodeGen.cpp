@@ -146,20 +146,20 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 	liveFunctions.clear();
 	forwardDecls.clear();
 
+	std::unordered_map<std::string, const AST::FunctionDecl *> allFunctions;
+	for (const auto &stmt : program.statements)
+	{
+		const AST::FunctionDecl *fd = dynamic_cast<const AST::FunctionDecl *>(stmt.get());
+		if (!fd)
+		{
+			if (const auto *es = dynamic_cast<const AST::ExportStmt *>(stmt.get()))
+				fd = dynamic_cast<const AST::FunctionDecl *>(es->declaration.get());
+		}
+		if (fd) allFunctions[fd->name] = fd;
+	}
+
 	if (!isRepl)
 	{
-		std::unordered_map<std::string, const AST::FunctionDecl *> allFunctions;
-		for (const auto &stmt : program.statements)
-		{
-			const AST::FunctionDecl *fd = dynamic_cast<const AST::FunctionDecl *>(stmt.get());
-			if (!fd)
-			{
-				if (const auto *es = dynamic_cast<const AST::ExportStmt *>(stmt.get()))
-					fd = dynamic_cast<const AST::FunctionDecl *>(es->declaration.get());
-			}
-			if (fd) allFunctions[fd->name] = fd;
-		}
-
 		std::unordered_map<std::string, std::unordered_set<std::string>> callGraph;
 		for (const auto &[name, fd] : allFunctions)
 		{
@@ -229,7 +229,7 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 
 	for (const auto &name : forwardDecls)
 	{
-		if (bytecode.functionEntries.find(name) == bytecode.functionEntries.end())
+		if (allFunctions.find(name) == allFunctions.end())
 		{
 			throw std::runtime_error("ERROR: Function '" + name + "' was declared but never defined.");
 		}
