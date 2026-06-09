@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2025-vs2026
+          - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
