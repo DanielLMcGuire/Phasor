@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
+          - os: windows-2025-vs2026
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
         persist-credentials: false
 
     - name: Set up MSVC
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2025-vs2026'
       uses: egor-tensin/vs-shell@54e4148eac794e4580591c2e0b7750f14b7891fc # v2
       with:
         arch: x64
