@@ -153,7 +153,7 @@ class StdLib
 	static Value       sys_crash(const std::vector<Value> &args, VM *vm);           ///< Crash the VM / Program
 	static Value       sys_reset(const std::vector<Value> &args, VM *vm);           ///< Reset the VM
 	static i64     sys_pid(const std::vector<Value> &args, VM *vm);             ///< Get the current process ID
-	static PhsString sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
+	static i64 sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
 	static Value sys_isatty(const std::vector<Value> &args, VM *vm); ///< Check if the current output is a terminal
 #endif
 	static Value sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables
@@ -201,6 +201,8 @@ class StdLib
 	static PhsString str_lower(const std::vector<Value> &args, VM *vm);       ///< Convert to lowercase
 	static Value       str_starts_with(const std::vector<Value> &args, VM *vm); ///< Check if string starts with
 	static Value       str_ends_with(const std::vector<Value> &args, VM *vm);   ///< Check if string ends with
+	static Value       str_split(const std::vector<Value> &args, VM *vm);      ///< Split string
+
 	// StringBuilder functions
 	static i64     sb_new(const std::vector<Value> &args, VM *vm);       ///< Create new string builder
 	static i64     sb_prealloc(const std::vector<Value> &args, VM *vm); ///< Preallocate string builder

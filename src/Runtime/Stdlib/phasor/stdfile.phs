@@ -18,7 +18,7 @@ include "extra/progressbar.phs";
 // dest: Destination directory path
 // returns: true on success, false on failure
 fn fcp_progress(files: string[], dest: string) -> bool {
-    for (var i: int = 0; i < files.length; i++) {
+    for (var i: i64 = 0; i < files.length; i++) {
         
         if (!fcp(files[i], fjoin(dest, fname(files[i])))) {
             return false;

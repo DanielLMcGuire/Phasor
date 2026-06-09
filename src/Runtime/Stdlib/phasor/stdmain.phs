@@ -10,6 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main(args: string[]) -> int;
+fn main(args: string[]) -> i64;
 
-phs__std_noimport("shutdown", main(phs__std_noimport("sys_args")));
+var args: string[] = phs__std_noimport("sys_args");
+phs__std_noimport("shutdown", main(args));

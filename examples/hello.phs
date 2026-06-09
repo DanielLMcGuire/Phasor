@@ -1,11 +1,9 @@
 #!/usr/bin/env phasor
 include "stdsys.phs";
 include "stdio.phs";
+include "stdsmain.phs";
 
-fn main() -> int 
+fn smain() 
 {
     puts("Hello World!");
-    return 0;
 }
-
-shutdown(main());

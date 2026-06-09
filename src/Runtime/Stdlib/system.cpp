@@ -50,7 +50,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 #else
 	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull; };
-	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return "sandbox"; });
+	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return 6; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
 	vm->registerNativeFunction("isatty", stub);
@@ -176,21 +176,21 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 
-PhsString StdLib::sys_os(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_os(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
-	return "win32";
+	return 0;
 #elif defined(__linux__)
-	return "Linux";
+	return 1;
 #elif defined(__APPLE__)
-	return "Darwin";
+	return 2;
 #elif defined(__FreeBSD__)
-	return "FreeBSD";
+	return 3;
 #elif defined(__unix__)
-	return "UNIX";
+	return 4;
 #else
-	return "Unknown";
+	return 5;
 #endif
 }
 

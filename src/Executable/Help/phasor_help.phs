@@ -8,14 +8,14 @@ include "stdmem.phs";
 
 struct ManPage {
     name: string,
-    section: int
+    section: i64
 }
 
 fn getDocCmd(page: ManPage) -> string {
-    var sb: int = sb_new();
+    var sb: i64 = sb_new();
     var os: string = sys_os();
 
-    if (os == "win32") {
+    if (os == sys_os.win32) {
         if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
             sb.sb_append("https://phasor-docs.pages.dev/man?f=");
             sb.sb_append(page.name);
@@ -56,7 +56,7 @@ fn showHelp(programName: string, error: bool) -> void {
     var osxStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
     var osStr: string;
     var os: string = sys_os();
-    if (os == "win32") {
+    if (os == sys_os.win32) {
         osStr = winStr;
     } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX") {  
         osStr = unixStr;

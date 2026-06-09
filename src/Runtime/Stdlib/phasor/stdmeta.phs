@@ -95,7 +95,7 @@ fn get_self_global_scopes() -> ScopeData[] {
     return phs__std_noimport("phs__get_self").globalScopes;
 }
 
-fn run_program(program: Bytecode) -> int {
+fn run_program(program: Bytecode) -> i64 {
     return phs__std_noimport("phs__run_program", program);
 }
 
@@ -104,10 +104,10 @@ fn run_program_function(program: Bytecode, functionName: string, func_arguments:
 }
 
 struct alloc_info {
-    heap_used: int,
-    stack_limit: int,
-    heap_used_kb: int,
-    stack_limit_kb: int
+    heap_used: i64,
+    stack_limit: i64,
+    heap_used_kb: i64,
+    stack_limit_kb: i64
 }
 
 fn get_alloc_info() -> alloc_info {

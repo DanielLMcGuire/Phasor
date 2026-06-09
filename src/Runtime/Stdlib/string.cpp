@@ -16,6 +16,7 @@ void StdLib::registerStringFunctions(VM *vm)
 	vm->registerNativeFunction("to_lower", StdLib::str_lower);
 	vm->registerNativeFunction("starts_with", StdLib::str_starts_with);
 	vm->registerNativeFunction("ends_with", StdLib::str_ends_with);
+	vm->registerNativeFunction("split", StdLib::str_split);
 
 	vm->registerNativeFunction("sb_new", StdLib::sb_new);
 	vm->registerNativeFunction("sb_prealloc", StdLib::sb_prealloc);
@@ -35,6 +36,31 @@ static std::vector<size_t>& getSbFreeIndices()
 {
 	static std::vector<size_t> freeIndices;
 	return freeIndices;
+}
+
+Value StdLib::str_split(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 2, "split");
+	PhsString s = args[0].asString();
+	PhsString delim = args[1].asString();
+
+	std::vector<Value> result;
+	if (delim.empty()) {
+		result.push_back(s);
+		return Value::createArray(std::move(result));
+	}
+
+	size_t start = 0;
+	size_t end = s.find(delim);
+	
+	while (end != PhsString::npos) {
+		result.push_back(s.substr(start, end - start));
+		start = end + delim.length();
+		end = s.find(delim, start);
+	}
+
+	result.push_back(s.substr(start));
+	return Value::createArray(std::move(result));
 }
 
 i64 StdLib::str_find(const std::vector<Value> &args, VM *)
