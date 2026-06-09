@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __cplusplus
+
 #if defined(_MSC_VER)
   #pragma warning(push)
   #pragma warning(disable: 4595)
@@ -137,3 +139,5 @@ inline void operator delete[](void* ptr, std::size_t) noexcept { track_delete(pt
 #if defined(_MSC_VER)
   #pragma warning(pop)
 #endif
+
+#endif // c++
