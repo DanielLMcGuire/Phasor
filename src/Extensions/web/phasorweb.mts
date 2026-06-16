@@ -2,7 +2,6 @@ import { serve } from 'zorvix';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import type { AddressInfo } from 'node:net';
 
 const exeName = process.platform === 'win32' ? 'phasor.exe' : 'phasor';
 const exePath = resolve(process.cwd(), 'phasor', 'bin', exeName);
@@ -19,12 +18,8 @@ if (!existsSync(exePath)) {
 }
 
 if (resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    serve({ port: 62811, logging: false, workers: true }, async (server) => {
-        const { resolve } = await import('node:path');
-        const { pathToFileURL } = await import('node:url');
-        const { registerRoutes } = await import(pathToFileURL(resolve(process.cwd(), 'dist', 'routes.min.mjs')).href);
-        registerRoutes(server);
-        await server.start();
-        console.log(`Phasor is live at http://0.0.0.0:${(server.server.address() as AddressInfo).port}`);
-    });
+    serve(
+        { port: 62811, logging: false, workers: true },
+        resolve(process.cwd(), 'dist', 'routes.min.mjs'),
+    );
 }

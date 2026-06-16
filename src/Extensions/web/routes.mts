@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import type { IncomingMessage } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import type { ServerInstance } from 'zorvix';
 import { createBodyParser } from 'zorvix';
 
@@ -15,7 +16,7 @@ async function runViaPipe(
         proc.stdout.setEncoding('utf8'); proc.stderr.setEncoding('utf8');
         proc.stdout.on('data', (chunk) => { stdout += chunk; });
         proc.stderr.on('data', (chunk) => { stderr += chunk; });
-        proc.on('close', (exitCode) => { 
+        proc.on('close', (exitCode) => {
             resolve({
                 stdout: stdout.replace(/\r\n/g, '\n'),
                 stderr: stderr.replace(/\r\n/g, '\n'),
@@ -37,7 +38,7 @@ async function runViaPipe(
     });
 }
 
-export function registerRoutes(server: ServerInstance) {
+export default async function (server: ServerInstance) {
     server.use('/run', createBodyParser({ limit: 2 * 1048576 }));
     server.use("/run",  (req, res, next) => {
         const APIKEY =
@@ -73,4 +74,7 @@ export function registerRoutes(server: ServerInstance) {
 
         res.json({ version: `${(await runViaPipe(exePath, 'using("stdmeta");print(phs_version());')).stdout.trim()}` });
     });
+
+    await server.start();
+    console.log(`Phasor is live at http://0.0.0.0:${(server.server.address() as AddressInfo).port}`);
 }
