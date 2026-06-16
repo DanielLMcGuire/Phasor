@@ -18,8 +18,8 @@ if (!existsSync(exePath)) {
 }
 
 if (resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    // When workers: true, serve() requires the absolute path to the setup module.
-    // The primary process will fork a worker which imports this path automatically.
-    const setupModulePath = resolve(process.cwd(), 'dist', 'routes.min.mjs');
-    serve({ port: 62811, logging: false, workers: true }, setupModulePath);
+    serve(
+        { port: 62811, logging: false, workers: true },
+        resolve(process.cwd(), 'dist', 'routes.min.mjs'),
+    );
 }

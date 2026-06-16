@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
+import type { IncomingMessage } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { ServerInstance } from 'zorvix';
 import { createBodyParser } from 'zorvix';
@@ -15,7 +16,7 @@ async function runViaPipe(
         proc.stdout.setEncoding('utf8'); proc.stderr.setEncoding('utf8');
         proc.stdout.on('data', (chunk) => { stdout += chunk; });
         proc.stderr.on('data', (chunk) => { stderr += chunk; });
-        proc.on('close', (exitCode) => { 
+        proc.on('close', (exitCode) => {
             resolve({
                 stdout: stdout.replace(/\r\n/g, '\n'),
                 stderr: stderr.replace(/\r\n/g, '\n'),
@@ -37,10 +38,8 @@ async function runViaPipe(
     });
 }
 
-// In cluster mode with workers: true, zorvix dynamically imports this file
-// and passes the ServerInstance to the default export.
-export default async function setup(server: ServerInstance) {
-    server.use('/run', createBodyParser({ limit: 2 * 1048576 } as any));
+export default async function (server: ServerInstance) {
+    server.use('/run', createBodyParser({ limit: 2 * 1048576 }));
     server.use("/run",  (req, res, next) => {
         const APIKEY =
         typeof req.query.apikey === 'string'
@@ -82,9 +81,5 @@ export default async function setup(server: ServerInstance) {
     });
 
     await server.start();
-    
-    // server.port reflects the configured port. 0 indicates testing environments
-    if (server.port !== 0) {
-        console.log(`Phasor is live at http://0.0.0.0:${(server.server.address() as AddressInfo).port}`);
-    }
+    console.log(`Phasor is live at http://0.0.0.0:${(server.server.address() as AddressInfo).port}`);
 }

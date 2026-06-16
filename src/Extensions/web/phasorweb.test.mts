@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
 import { test, before, after } from 'node:test';
 import { createServer } from 'zorvix';
-import setup from '#phasorweb/routes';
+import registerRoutes from '#phasorweb/routes';
 import type { ServerInstance } from 'zorvix';
 
-const SOURCE = "using(\"stdio\"); var x: int = 15; var y: int = 12; var z: int = x * y; putf(\"%d * %d = %d\", x, y, z);";
+const SOURCE = "include \"std/io.phs\"; var x: int = 15; var y: int = 12; var z: int = x * y; putf(\"%d * %d = %d\", x, y, z);";
 const EXPECTED = {"stdout":"15 * 12 = 180\n","stderr":"","exitCode":0};
 
 let server: ServerInstance;
@@ -13,8 +13,7 @@ let baseUrl: string;
 
 before(async () => {
     server = createServer({ port: 0, logging: false });
-    // The setup function now registers routes and calls `await server.start()`
-    await setup(server);
+    await registerRoutes(server);
     const { port } = server.server.address() as AddressInfo;
     baseUrl = `http://localhost:${port}`;
 });
