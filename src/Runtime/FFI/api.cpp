@@ -1,5 +1,6 @@
 #include "ffi.hpp"
 #include <PhasorFFI.h>
+#include <cstdlib>
 
 #ifndef CMAKE_PCH
 #include "../VM/VM.hpp"
@@ -13,7 +14,7 @@ namespace Phasor
  * @param c_value The C-style value from the plugin.
  * @return The equivalent C++ value for the VM.
  * @note This function is safe for strings, as it copies the C string into a
- *       new C++ std::string, taking ownership of the memory.
+ * new C++ std::string, taking ownership of the memory.
  */
 Phasor::Value from_c_value(const PhasorValue &c_value)
 {
@@ -69,8 +70,8 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
  * @brief Converts a C++ VM value to a C-style FFI value.
  * @param cpp_value The C++ value from the VM.
  * @param string_arena A vector of unique_ptrs to manage the lifetime of C strings.
- *                     Any strings converted will be allocated and their memory will be
- *                     managed by this arena.
+ * Any strings converted will be allocated and their memory will be
+ * managed by this arena.
  * @param array_arena A vector of unique_ptrs to manage the lifetime of C arrays.
  * @return The equivalent C-style value for the plugin.
  */
@@ -148,3 +149,93 @@ void register_native_c_func(PhasorVM *vm, const char *name, PhasorNativeFunction
 }
 
 } // namespace Phasor
+
+extern "C" {
+
+void api_log(PhasorVM* vm, PhasorValue msg)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	cpp_vm->log(Phasor::from_c_value(msg));
+}
+
+void api_logerr(PhasorVM* vm, PhasorValue msg)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	cpp_vm->logerr(Phasor::from_c_value(msg));
+}
+
+void api_flush(PhasorVM* vm)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	cpp_vm->flush();
+}
+
+void api_flusherr(PhasorVM* vm)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	cpp_vm->flusherr();
+}
+
+const char* api_getVersion(PhasorVM* vm)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
+	if (ffi)
+	{
+		return ffi->getVersionString();
+	}
+	return "";
+}
+
+bool api_loadPlugin(PhasorVM* vm, const char* libPath)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
+	if (ffi && libPath)
+	{
+		return ffi->addPlugin(libPath);
+	}
+	return false;
+}
+
+void api_onExitCall(PhasorVM* vm, void (*func)(void))
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
+	if (ffi)
+	{
+		ffi->registerExitCall(func);
+	}
+}
+
+void api_onExitFree(PhasorVM* vm, void* ptr)
+{
+	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
+	if (ffi)
+	{
+		ffi->registerExitFree(ptr);
+	}
+}
+
+void* api_malloc(size_t size)
+{
+	return std::malloc(size);
+}
+
+void* api_calloc(size_t num, size_t size)
+{
+	return std::calloc(num, size);
+}
+
+void* api_realloc(void* ptr, size_t size)
+{
+	return std::realloc(ptr, size);
+}
+
+void api_free(void* ptr)
+{
+	std::free(ptr);
+}
+
+} // extern "C"

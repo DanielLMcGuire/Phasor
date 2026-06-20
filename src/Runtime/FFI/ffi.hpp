@@ -88,6 +88,26 @@ class FFI
 	 */
 	bool addPlugin(const std::filesystem::path &pluginPath);
 
+	/**
+	 * @brief Retrieves FFI instance tied to a specific VM.
+	 */
+	static FFI* getFromVM(VM* vm);
+
+	/**
+	 * @brief Registers a function pointer to be called upon FFI unloading.
+	 */
+	void registerExitCall(void (*func)());
+
+	/**
+	 * @brief Registers a dynamically allocated pointer to be freed upon FFI unloading.
+	 */
+	void registerExitFree(void* ptr);
+
+	/**
+	 * @brief Safely returns cached version string without allocating a dangling pointer.
+	 */
+	const char* getVersionString() const { return cachedVersion_.c_str(); }
+
   private:
 	/**
 	 * @brief Native function to load a plugin at runtime.
@@ -117,6 +137,31 @@ class FFI
 	std::vector<Plugin>   plugins_;      ///< Loaded plugins
 	std::filesystem::path pluginFolder_; ///< Plugin search folder
 	VM                   *vm_;           ///< Pointer to the Phasor VM
+
+	std::string           cachedVersion_;///< Cached version string tied to the VM
+	std::vector<void (*)()> exitCalls_;  ///< Callbacks for onExit
+	std::vector<void*>      exitFrees_;  ///< Pointers mapped for onExit freeing
 };
 
 } // namespace Phasor
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void api_log(PhasorVM* vm, PhasorValue msg);
+void api_logerr(PhasorVM* vm, PhasorValue msg);
+void api_flush(PhasorVM* vm);
+void api_flusherr(PhasorVM* vm);
+const char* api_getVersion(PhasorVM* vm);
+bool api_loadPlugin(PhasorVM* vm, const char* libPath);
+void api_onExitCall(PhasorVM* vm, void (*func)(void));
+void api_onExitFree(PhasorVM* vm, void* ptr);
+void* api_malloc(size_t size);
+void* api_calloc(size_t num, size_t size);
+void* api_realloc(void* ptr, size_t size);
+void api_free(void* ptr);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,14 +1,23 @@
-include "stdio.phs";
-include "stdsys.phs";
-include "stdstr.phs";
-include "stdtype.phs";
-include "stdmeta.phs";
-include "stdfile.phs";
-include "stdmem.phs";
+include "std/io.phs";
+include "std/sys.phs";
+include "std/str.phs";
+include "std/type.phs";
+include "std/meta.phs";
+include "std/file.phs";
+include "std/mem.phs";
 
 struct ManPage {
     name: string,
     section: i64
+}
+
+fn getFallbackURL(page: ManPage) -> string {
+    var sb: i64 = sb_new();
+    sb.sb_append("https://phasor-docs.pages.dev/man?f=");
+    sb.sb_append(page.name);
+    sb.sb_append(".");
+    sb.sb_append(page.section);
+    return sb.sb_free();
 }
 
 fn getDocCmd(page: ManPage) -> string {
@@ -17,13 +26,7 @@ fn getDocCmd(page: ManPage) -> string {
 
     if (os == sys_os.win32) {
         if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
-            sb.sb_append("https://phasor-docs.pages.dev/man?f=");
-            sb.sb_append(page.name);
-            sb.sb_append(".");
-            sb.sb_append(page.section);
-            var path: string = sb_to_string(sb);
-            sb.sb_free();
-            return concat("\"start ", path, "\"");
+            return concat("\"start ", getFallbackURL(page), "\"");
         }
         sb.sb_append("C:/Program%20Files/Phasor%20Programming%20Language/man/man");
         sb.sb_append(page.section);
@@ -33,20 +36,18 @@ fn getDocCmd(page: ManPage) -> string {
         sb.sb_append(page.section);
         sb.sb_append(".");
         sb.sb_append("pdf");
-        var path: string = sb_to_string(sb);
-        sb.sb_free();
+        var path: string = sb.sb_free();
         return concat("\"start file:///", path, "\"");
-    } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX" || os == "Darwin") {
-        sb.sb_append(page.name);
-        sb.sb_append(" ");
+    } else if (os == sys_os.linux || os == sys_os.darwin || os == sys_os.freebsd || os == sys_os.unix) {
         sb.sb_append(page.section);
-        var args: string = sb_to_string(sb);
-        sb.sb_free();
+        sb.sb_append(" ");
+        sb.sb_append(page.name);
+        var args: string = sb.sb_free();
         return concat("man ", args);
     } else {
-        putf_error("Could not find documentation for %s(%d) on %s", part, type, os);
+        putf_error("Could not find documentation for %s(%d)", part, type);
+        putf("See %s", getFallbackURL(page));
         shutdown(-1);
-        return "cd ."; // noop if somehow reached
     }
 }
 

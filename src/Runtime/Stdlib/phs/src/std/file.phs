@@ -1,4 +1,3 @@
-// Phasor STDFILE
 // Copyright 2026 Daniel McGuire -- Phasor Standard Library
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,12 +10,8 @@
 // limitations under the License.
 
 using("stdfile");
-include "extra/progressbar.phs";
+include "../../include/std/extra/progressbar.phs";
 
-// Copy files with progress
-// files: File path array (source)
-// dest: Destination directory path
-// returns: true on success, false on failure
 fn fcp_progress(files: string[], dest: string) -> bool {
     for (var i: i64 = 0; i < files.length; i++) {
         

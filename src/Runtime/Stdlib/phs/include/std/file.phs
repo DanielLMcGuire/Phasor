@@ -1,4 +1,4 @@
-// Phasor STDMAIN
+// Phasor STDFILE
 // Copyright 2026 Daniel McGuire -- Phasor Standard Library
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -10,7 +10,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main(args: string[]) -> i64;
+using("stdfile");
 
-var args: string[] = phs__std_noimport("sys_args");
-phs__std_noimport("shutdown", main(args));
+// Copy files with progress
+// files: File path array (source)
+// dest: Destination directory path
+// returns: true on success, false on failure
+fn fcp_progress(files: string[], dest: string) -> bool;
+
+// ----
+include "../../src/std/file.phs";

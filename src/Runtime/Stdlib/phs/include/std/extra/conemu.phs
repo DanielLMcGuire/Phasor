@@ -6,20 +6,14 @@
 
 
 // ESC ] 9 ; 1 ; ms ST | Sleep. ms - number, milliseconds.
-fn conemu_sleep(ms: int) {
-    phs__std_noimport("printf", "\e]9;1;%d\a", ms);
-}
+fn conemu_sleep(ms: int);
 
 // ESC ] 9 ; 2 ; ”txt“ ST | Show GUI MessageBox ( txt ) for any purposes.
-fn conemu_messagebox(txt: string) {
-    phs__std_noimport("printf", "\e]9;2;%s\a", txt);
-}
+fn conemu_messagebox(txt: string);
 
 // ESC ] 9 ; 3 ; ”txt“ ST | Change ConEmu Tab to txt. 
 // Set empty string to return original Tab text.
-fn conemu_title(txt: string) {
-    phs__std_noimport("printf", "\e]9;3;%s\a", txt);
-}
+fn conemu_title(txt: string);
 
 // ESC ] 9 ; 4 ; st ; pr ST | Set progress state on Windows 7 taskbar and ConEmu title. 
 // When st is 0: remove progress. 
@@ -27,62 +21,41 @@ fn conemu_title(txt: string) {
 // When st is 2: set error state in progress on Windows 7 taskbar, pr is optional. 
 // When st is 3: set indeterminate state.
 // When st is 4: set paused state, pr is optional.
-fn conemu_progress(st: int, pr: int) {
-    phs__std_noimport("printf", "\e]9;4;%d;%d\a", st, pr);
-}
-fn conemu_progress_reset() {
-    phs__std_noimport("printf", "\e]9;4;0;0\a");
-}
+fn conemu_progress(st: int, pr: int);
+fn conemu_progress_reset();
 
 // ESC ] 9 ; 5 ST | Wait for Enter/Space/Esc. 
 // Set environment variable “ConEmuWaitKey” to “ENTER”/”SPACE”/”ESC” on exit.
-fn conemu_wait_for_input() {
-    phs__std_noimport("printf", "\e]9;5\a");
-}
+fn conemu_wait_for_input();
 
 // ESC ] 9 ; 6 ; ”txt“ ST | Execute GuiMacro ( txt ). 
 // returns: macro result from EnvVar “ConEmuMacroResult on exit.
-fn conemu_guimacro(txt: string) -> string {
-    phs__std_noimport("printf", "\e]9;6;%s\a", txt);
-    if (phs__std_noimport("sys_os") == "sandbox") return "";
-    return phs__std_noimport("sys_env", "ConEmuMacroResult");
-}
+fn conemu_guimacro(txt: string);
 
 // ESC ] 9 ; 7 ; ”cmd“ ST | Run some process with arguments.
-fn conemu_run(cmd: string) {
-    phs__std_noimport("printf", "\e]9;7;%s\a", cmd);
-}
+fn conemu_run(cmd: string);
 
 // ESC ] 9 ; 8 ; “env” ST | Output value of environment variable.
-fn conemu_print_envvar(env: string) {
-    phs__std_noimport("printf", "\e]9;8;%s\a", env);
-}
+fn conemu_print_envvar(env: string);
 
 // ESC ] 9 ; 9 ; “cwd” ST | Inform ConEmu about shell current working directory.
-fn conemu_inform_cwd(cwd: string) {
-    phs__std_noimport("printf", "\e]9;9;%s\a", cwd);
-}
+fn conemu_inform_cwd(cwd: string);
 
 // ESC ] 9 ; 10 ST | Request xterm keyboard and output emulation.
-fn conemu_request_xtermemulation() {
-    phs__std_noimport("printf", "\e]9;10\a");
-}
+fn conemu_request_xtermemulation();
 
 // ESC ] 9 ; 10 n ST | Specific output emulation options
 // When n is 0 turn off xterm keyboard and output emulation.
 // When n is 1 turn on xterm keyboard and output emulation.
 // When n is 2 turn off xterm output emulation.
 // When n is 3 turn on xterm output emulation.
-fn conemu_set_xtermemulation(n: int) {
-    phs__std_noimport("printf", "\e]9;10;%s\a", n);
-}
+fn conemu_set_xtermemulation(n: int);
 
 // ESC ] 9 ; 11; “txt” ST | Just a ‘comment’, skip it.
-fn conemu_comment(txt: string) {
-    phs__std_noimport("printf", "\e]9;11;%s\a", txt);
-}
+fn conemu_comment(txt: string);
 
 // ESC ] 9 ; 12 ST | Let ConEmu treat current cursor position as prompt start.
-fn conemu_set_prompt_start() {
-    phs__std_noimport("printf", "\e]9;12\a");
-}
+fn conemu_set_prompt_start();
+
+// ----
+include "../../../src/std/extra/conemu.phs";

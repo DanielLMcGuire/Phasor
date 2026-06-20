@@ -1,0 +1,22 @@
+fn main(args: string[]) -> i64;
+
+fn phs__init_exit(code: i64) {
+    phs__std_noimport("shutdown", code);
+}
+
+fn phs__init_getArgs() -> string[] {
+    return phs__std_noimport("sys_args");
+}
+
+fn phs__start_main(args: string[]) {
+    var ret: i64 = main(args);
+    if (ret == null) {
+        if (phs__std_noimport("sys_os") == 0) // win32 0
+            ret = 87; // 0x57 "The parameter is incorrect."
+        else
+            ret = 22; // EINVAL 22 "Invalid argument"
+    }
+    phs__init_exit(ret);
+}
+
+phs__start_main(phs__init_getArgs());

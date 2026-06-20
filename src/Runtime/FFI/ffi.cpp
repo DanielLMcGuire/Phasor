@@ -8,6 +8,10 @@
 #include <sstream>
 #include <filesystem>
 #include <format>
+#include <mutex>
+#include <unordered_map>
+#include <cstdlib>
+
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
 #elif defined(__linux__)
@@ -21,6 +25,37 @@
 
 namespace Phasor
 {
+
+// Global registry linking raw VM pointers back to their specific FFI managers
+static std::mutex g_ffi_map_mutex;
+static std::unordered_map<VM*, FFI*> g_ffi_map;
+
+FFI* FFI::getFromVM(VM* vm)
+{
+	std::lock_guard<std::mutex> lock(g_ffi_map_mutex);
+	auto it = g_ffi_map.find(vm);
+	if (it != g_ffi_map.end())
+	{
+		return it->second;
+	}
+	return nullptr;
+}
+
+void FFI::registerExitCall(void (*func)())
+{
+	if (func)
+	{
+		exitCalls_.push_back(func);
+	}
+}
+
+void FFI::registerExitFree(void* ptr)
+{
+	if (ptr)
+	{
+		exitFrees_.push_back(ptr);
+	}
+}
 
 /**
  * @brief Loads a plugin, finds its entry point, and initializes it.
@@ -69,6 +104,18 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 
 	PhasorAPI api;
 	api.register_function = &register_native_c_func;
+	api.log               = &api_log;
+	api.logerr            = &api_logerr;
+	api.flush             = &api_flush;
+	api.flusherr          = &api_flusherr;
+	api.getVersion        = &api_getVersion;
+	api.loadPlugin        = &api_loadPlugin;
+	api.onExitCall        = &api_onExitCall;
+	api.onExitFree        = &api_onExitFree;
+	api.malloc            = &api_malloc;
+	api.calloc            = &api_calloc;
+	api.realloc           = &api_realloc;
+	api.free              = &api_free;
 
 	entry_point(&api, reinterpret_cast<PhasorVM *>(vm));
 
@@ -166,6 +213,21 @@ void FFI::unloadAll()
 	vm_->log(std::format("FFI::{}()\n", __func__));
 	vm_->flush();
 #endif
+
+	// Resolve all API exit callbacks prior to unloading DLLs
+	// to ensure pointers to functions safely remain valid during invocation.
+	for (auto cb : exitCalls_)
+	{
+		if (cb) cb();
+	}
+	exitCalls_.clear();
+
+	for (auto ptr : exitFrees_)
+	{
+		if (ptr) std::free(ptr);
+	}
+	exitFrees_.clear();
+
 	for (auto &plugin : plugins_)
 	{
 #ifdef TRACING
@@ -183,6 +245,14 @@ void FFI::unloadAll()
 
 FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(pluginFolder), vm_(vm)
 {
+	{
+		std::lock_guard<std::mutex> lock(g_ffi_map_mutex);
+		g_ffi_map[vm_] = this;
+	}
+
+	// Cache the version string to prevent creating dangling pointers via C strings.
+	cachedVersion_ = vm_->getVersion();
+
 #ifdef TRACING
 	vm_->log(std::format("Phasor::FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();
@@ -205,6 +275,12 @@ FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(plug
 FFI::~FFI()
 {
 	unloadAll();
+
+	{
+		std::lock_guard<std::mutex> lock(g_ffi_map_mutex);
+		g_ffi_map.erase(vm_);
+	}
+
 #ifdef TRACING
 	vm_->log(std::format("Phasor::FFI::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
 	vm_->flush();

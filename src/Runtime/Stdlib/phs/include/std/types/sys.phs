@@ -1,0 +1,9 @@
+var sys_os: any = {
+    win32: 0,
+    linux: 1,
+    darwin: 2,
+    freebsd: 3,
+    unix: 4,
+    unknown: 5,
+    sandbox: 6
+};

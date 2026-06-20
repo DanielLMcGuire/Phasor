@@ -1,4 +1,3 @@
-// Phasor STDMETA
 // Copyright 2026 Daniel McGuire -- Phasor Standard Library
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,61 +10,7 @@
 // limitations under the License.
 
 using("stdmeta");
-
-struct ScopeVariableData {
-    index: i64,
-    name: string
-}
-
-struct ScopeData {
-    scopeIndex: i64,
-    variables: ScopeVariableData[]
-}
-
-struct StructData {
-    name: string,
-    firstConstIndex: i64,
-    fieldCount: i64,
-    fieldNames: string[]
-}
-
-struct FunctionData {
-    name: string,
-    entry: i64,
-    paramTypes: string[],
-    paramArrayDims: i64[][],
-    returnType: string,
-    returnArrayDims: i64[],
-    scopes: ScopeData[]
-}
-
-struct ConstantData {
-    type: string,
-    value: any
-}
-
-struct VariableData {
-    name: string,
-    index: i64,
-    type: string,
-    value: any
-}
-
-struct InstructionData {
-    op: string,
-    operand1: i64,
-    operand2: i64,
-    operand3: i64
-}
-
-struct Bytecode {
-    instructions: InstructionData[],
-    constants: ConstantData[],
-    variables: VariableData[],
-    functions: FunctionData[],
-    structs: StructData[],
-    globalScopes: ScopeData[]
-}
+include "../../include/std/types/meta.phs";
 
 fn get_self() -> Bytecode {
     return phs__std_noimport("phs__get_self");
@@ -101,13 +46,6 @@ fn run_program(program: Bytecode) -> i64 {
 
 fn run_program_function(program: Bytecode, functionName: string, func_arguments: any[], cli_arguments: string[]) -> any {
     return phs__std_noimport("phs__run_program_function", program, functionName, func_arguments, cli_arguments);
-}
-
-struct alloc_info {
-    heap_used: i64,
-    stack_limit: i64,
-    heap_used_kb: i64,
-    stack_limit_kb: i64
 }
 
 fn get_alloc_info() -> alloc_info {

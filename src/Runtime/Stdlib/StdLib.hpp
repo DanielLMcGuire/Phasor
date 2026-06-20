@@ -161,7 +161,9 @@ class StdLib
 	static i64 sys_argc(const std::vector<Value> &args, VM *vm); ///< Get the current number of command line arguments -- deprecated, use len(sys_args()) instead
 	static Value sys_args(const std::vector<Value> &args, VM *vm); ///< Get args array
 	static f64  sys_time(const std::vector<Value> &args, VM *vm);           ///< Current time
+	static f64  sys_time_local(const std::vector<Value> &args, VM *vm);    ///< Current local time 
 	static Value   sys_time_formatted(const std::vector<Value> &args, VM *vm); ///< Current time formatted
+	static Value   sys_time_formatted_local(const std::vector<Value> &args, VM *vm); ///< Current local time formatted
 	static Value   sys_sleep(const std::vector<Value> &args, VM *vm);          ///< Sleep for a specified amount of time
 	static Value   sys_shutdown(const std::vector<Value> &args, VM *vm);       ///< Shutdown the VM
 #pragma endregion
@@ -173,6 +175,7 @@ class StdLib
 	static bool        to_bool(const std::vector<Value> &args, VM *vm);   ///< Convert to boolean
 	static PhsString   to_json(const std::vector<Value> &args, VM *vm);   ///< Convert Value to JSON string
 	static Value       from_json(const std::vector<Value> &args, VM *vm); ///< Convert JSON string to Value
+	static PhsString ascii_to_string(const std::vector<Value> &args, VM *vm); ///< Convert ascii to string
 #pragma endregion
 
 #pragma region stdarray

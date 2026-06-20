@@ -1,0 +1,61 @@
+struct ScopeVariableData {
+    index: i64,
+    name: string
+}
+
+struct ScopeData {
+    scopeIndex: i64,
+    variables: ScopeVariableData[]
+}
+
+struct StructData {
+    name: string,
+    firstConstIndex: i64,
+    fieldCount: i64,
+    fieldNames: string[]
+}
+
+struct FunctionData {
+    name: string,
+    entry: i64,
+    paramTypes: string[],
+    paramArrayDims: i64[][],
+    returnType: string,
+    returnArrayDims: i64[],
+    scopes: ScopeData[]
+}
+
+struct ConstantData {
+    type: string,
+    value: any
+}
+
+struct VariableData {
+    name: string,
+    index: i64,
+    type: string,
+    value: any
+}
+
+struct InstructionData {
+    op: string,
+    operand1: i64,
+    operand2: i64,
+    operand3: i64
+}
+
+struct Bytecode {
+    instructions: InstructionData[],
+    constants: ConstantData[],
+    variables: VariableData[],
+    functions: FunctionData[],
+    structs: StructData[],
+    globalScopes: ScopeData[]
+}
+
+struct alloc_info {
+    heap_used: i64,
+    stack_limit: i64,
+    heap_used_kb: i64,
+    stack_limit_kb: i64
+}

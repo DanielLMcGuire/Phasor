@@ -80,7 +80,9 @@ void StdLib::registerSysFunctions(VM *vm)
 	}
 #endif
 	vm->registerNativeFunction("time", StdLib::sys_time);
+	vm->registerNativeFunction("localtime", StdLib::sys_time_local);
 	vm->registerNativeFunction("timef", StdLib::sys_time_formatted);
+	vm->registerNativeFunction("localtimef", StdLib::sys_time_formatted_local);
 	vm->registerNativeFunction("sleep", StdLib::sys_sleep);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
 }
@@ -89,6 +91,15 @@ void StdLib::registerSysFunctions(VM *vm)
 #pragma warning(pop)
 #endif
 
+f64 StdLib::sys_time_local(const std::vector<Value> &args, VM *)
+{
+    checkArgCount(args, 0, "time");
+    auto now   = std::chrono::system_clock::now();
+    auto zoned = std::chrono::zoned_time{std::chrono::current_zone(), now};
+    auto local = zoned.get_local_time();
+    f64 millis = std::chrono::duration<f64, std::milli>(local.time_since_epoch()).count();
+    return millis;
+}
 f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "time");
@@ -100,26 +111,27 @@ f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 
 Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 1, "timef");
-	PhsString format = args[0].asString();
+    checkArgCount(args, 1, "timef_utc");
+    std::string format = args[0].asString().c_str();
 
-	auto        now = std::chrono::system_clock::now();
-	std::time_t t = std::chrono::system_clock::to_time_t(now);
+    auto now = std::chrono::system_clock::now();
 
-	std::tm tm{};
-#if defined(_WIN32)
-	localtime_s(&tm, &t);
-#else
-	localtime_r(&t, &tm);
-#endif
+    try {
+        return PhsString(std::vformat("{:" + format + "}", std::make_format_args(now)));
+    } catch (const std::format_error &) {
+        return Value(" ");
+    }
+}
 
-	char buffer[256];
-	if (std::strftime(buffer, sizeof(buffer), format.c_str(), &tm) == 0)
-	{
-		return Value(" ");
-	}
+Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
+{
+    checkArgCount(args, 1, "timef_local");
+    std::string format = args[0].asString().c_str();
 
-	return PhsString(buffer);
+    auto now   = std::chrono::system_clock::now();
+    auto zoned = std::chrono::zoned_time{std::chrono::current_zone(), now};
+
+    return PhsString(std::vformat("{:" + format + "}", std::make_format_args(zoned)));
 }
 
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
