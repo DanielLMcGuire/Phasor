@@ -14,6 +14,9 @@
 #if defined(_WIN32)
 #include <windows.h>
 #else
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <unistd.h>
 #endif
 
@@ -128,10 +131,21 @@ Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
     checkArgCount(args, 1, "timef_local");
     std::string format = args[0].asString().c_str();
 
-    auto now   = std::chrono::system_clock::now();
-    auto zoned = std::chrono::zoned_time{std::chrono::current_zone(), now};
+    auto now = std::chrono::system_clock::now();
 
+#ifdef __APPLE__
+    std::time_t time_now = std::chrono::system_clock::to_time_t(now);
+    std::tm local_tm;
+    localtime_r(&time_now, &local_tm);
+
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, format.c_str());
+    
+    return PhsString(oss.str());
+#else
+    auto zoned = std::chrono::zoned_time{std::chrono::current_zone(), now};
     return PhsString(std::vformat("{:" + format + "}", std::make_format_args(zoned)));
+#endif
 }
 
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
