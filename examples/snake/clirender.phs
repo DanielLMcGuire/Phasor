@@ -1,0 +1,61 @@
+include "./clirender_types.phs";
+include "std/str.phs";
+include "std/io.phs";
+
+fn add_cell(fb: renderer_framebuffer, color: int) {
+    if (color == -1) {
+        fb.handle.sb_append(RENDERER_CONSOLE_RESET_COL.concat("  "));
+        renderer_has_color = false;
+    } else {
+        fb.handle.sb_append(cells[color]);
+        renderer_has_color = true;
+    }
+}
+
+fn reset_color(fb: renderer_framebuffer) -> renderer_framebuffer {
+    fb.handle.sb_append(RENDERER_CONSOLE_RESET_COL);
+    renderer_has_color = false;
+    return fb;
+}
+
+fn add_string(fb: renderer_framebuffer, str: string) -> renderer_framebuffer {
+    if (renderer_has_color) fb.reset_color();
+    fb.handle.sb_append(str);
+    return fb;
+}
+
+fn present_frame(fb: renderer_framebuffer) -> renderer_framebuffer {
+    print fb.handle.sb_to_string();
+    return fb;
+}
+
+fn frame_clear(fb: renderer_framebuffer) -> renderer_framebuffer {
+    fb.handle.sb_clear();
+    return fb;
+}
+
+fn clearScreen() {
+    print RENDERER_CONSOLE_CLEAR;
+}
+
+fn hideCursor() {
+    print RENDERER_CONSOLE_CURSOR_HIDE;
+}
+
+fn showCursor() {
+    print RENDERER_CONSOLE_CURSOR_SHOW;
+}
+
+fn renderer_init(initSize: int) -> renderer_framebuffer {
+    var fb: renderer_framebuffer = renderer_framebuffer{ data: sb_new().sb_prealloc(initSize) };
+    hideCursor();
+    clearScreen();
+    return fb;
+}
+
+fn renderer_cleanup(fb: renderer_framebuffer, msg: string) {
+    fb.handle.sb_free();
+    clearScreen();
+    print msg;
+    showCursor();
+} 

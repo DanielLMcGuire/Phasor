@@ -1,0 +1,8 @@
+include "./clirender_types.phs";
+
+var SIZE: int = 18;
+
+var COL_BORDER: int = renderer_palette.gray;
+var COL_HEAD: int = renderer_palette.bright_green;
+var COL_BODY: int = renderer_palette.green;
+var COL_APPLE: int = renderer_palette.red;

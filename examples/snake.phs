@@ -1,0 +1,183 @@
+#!/usr/bin/env phasor
+// include "./music/logic.phs";
+// include "./snake/music-gen.phs";
+include "./snake/clirender.phs";
+include "./snake/defs.phs";
+
+include "std/io.phs";
+include "std/sys.phs";
+include "std/array.phs";
+include "std/rand.phs";
+include "std/type.phs";
+include "std/file.phs";
+include "std/meta.phs";
+include "std/str.phs";
+include "std/main.phs";
+
+fn main(args: string[]) -> int {
+    var title: string = "Snake Demo";
+    print title;
+    rand_seed(time(), time() * 498615285);
+    var tickRate: int = rand_next_range(10, 80);
+
+    var axis: int = rand_next_range(0, 3);
+    var path_x: int[];
+    var path_y: int[];
+    
+    for (var y: int = 1; y < SIZE - 1; y++) {
+        if (y % 2 == 1) {
+            for (var x: int = 1; x < SIZE - 1; x++) {
+                path_x.arr_push(x);
+                path_y.arr_push(y);
+            }
+        } else {
+            for (var x: int = SIZE - 2; x >= 1; x--) {
+                path_x.arr_push(x);
+                path_y.arr_push(y);
+            }
+        }
+    }
+
+    var rot_x: int[];
+    var rot_y: int[];
+
+    for (var i: int = 0; i < path_x.len(); i++) {
+        var x: int = path_x[i];
+        var y: int = path_y[i];
+
+        var nx: int;
+        var ny: int;
+
+        if (axis == 0) {
+            nx = x;
+            ny = y;
+        } else if (axis == 1) {
+            nx = y;
+            ny = SIZE - 1 - x;
+        } else if (axis == 2) {
+            nx = SIZE - 1 - x;
+            ny = SIZE - 1 - y;
+        } else {
+            nx = SIZE - 1 - y;
+            ny = x;
+        }
+
+        rot_x.arr_push(nx);
+        rot_y.arr_push(ny);
+    }
+
+    var pos: renderer_int2arr = renderer_int2arr{ x: rot_x, y: rot_y };
+
+    var apple_x: int[] = [];
+    var apple_y: int[] = [];
+    for (var i: int = 0; i < pos.x.len(); i++) {
+        apple_x.arr_push(pos.x[i]);
+        apple_y.arr_push(pos.y[i]);
+    }
+    var apple_pos: renderer_int2arr = renderer_int2arr{ x: apple_x, y: apple_y };
+
+    var cur_apple: int = 0;
+    var snake_len: int = 1;
+
+    // var song: song = finalSong[rand_next_range(0, finalSong.len() - 1)];
+
+    var occupied: bool[18][18];
+
+    print "\r";
+    var framebuffer: renderer_framebuffer =
+        renderer_init(((SIZE + 1) * 2) + (SIZE + 2));
+
+    var lastTime: float = time();
+
+    for (var frame: int = 0; frame < pos.x.len(); frame++) {
+
+        if (cur_apple < apple_pos.x.len() &&
+            pos.x[frame] == apple_pos.x[cur_apple] &&
+            pos.y[frame] == apple_pos.y[cur_apple]) {
+            snake_len++;
+            cur_apple++;
+        }
+
+        framebuffer.add_string(RENDERER_CONSOLE_CURSOR_HOME);
+
+        for (var r: int = 0; r < SIZE; r++) {
+            for (var c: int = 0; c < SIZE; c++) {
+                occupied[r][c] = false;
+            }
+        }
+
+        for (var s: int = 0; s < snake_len; s++) {
+            var idx: int = frame - s;
+            if (idx >= 0) {
+                var sx: int = pos.x[idx];
+                var sy: int = pos.y[idx];
+                occupied[sx][sy] = true;
+            }
+        }
+
+        for (var r: int = 0; r < SIZE; r++) {
+            for (var c: int = 0; c < SIZE; c++) {
+
+                if (r == 0 || r == SIZE - 1 || c == 0 || c == SIZE - 1) {
+                    framebuffer.add_cell(COL_BORDER);
+
+                } else if (r == pos.x[frame] && c == pos.y[frame]) {
+                    framebuffer.add_cell(COL_HEAD);
+
+                } else if (occupied[r][c]) {
+                    framebuffer.add_cell(COL_BODY);
+
+                } else if (cur_apple < apple_pos.x.len() &&
+                           r == apple_pos.x[cur_apple] &&
+                           c == apple_pos.y[cur_apple]) {
+                    framebuffer.add_cell(COL_APPLE);
+
+                } else {
+                    framebuffer.add_cell(-1);
+                }
+            }
+            framebuffer.add_string("\n");
+        }
+
+        framebuffer.add_string(c_fmt(c_fmt("%%-%ds|%%%ds", SIZE - 1, SIZE), 
+            c_fmt("Score: %03d", snake_len - 1), 
+            c_fmt("Progress: %03d%%", (frame * 100) / pos.x.len())
+        ));
+
+        framebuffer.present_frame().frame_clear();
+
+        var afterWork: float = time();
+        var workDuration: float = afterWork - lastTime;
+
+        if (workDuration < tickRate) {
+            sleep(tickRate - workDuration);
+        }
+
+        var afterSleep: float = time();
+        lastTime = afterSleep;
+    }
+
+    var msg: string = c_fmt(
+        "  Final score: %d\n  Tick: %d\n",
+        snake_len - 1,
+        tickRate
+    );
+
+    //if (!playSong(song, false, 440.0, true)) {
+    //    var error: string = concat("Failed to play sound: ", playSong_lastError);
+    //    if (sys_os() == sys_os.win32)
+    //        win32_MessageBoxA(null, error, c_fmt("%s (%s)", title, args[0].fname()), 0 + 16 + 65536); // OK Button, Error Icon, Flash Taskbar
+    //     else
+    //        puts_error(error);
+    //    return 1;
+    //}
+
+    if (sys_os() == sys_os.win32) {
+        framebuffer.renderer_cleanup(title);
+        win32_MessageBoxA(null, msg, c_fmt("%s (%s)", title, args[0].fname()), 0 + 64 + 65536); // OK Button, Info Icon, Flash Taskbar
+    } else {
+        framebuffer.renderer_cleanup(title.concat("\n", msg));
+    }
+
+    return 0;
+}

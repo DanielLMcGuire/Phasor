@@ -1,0 +1,54 @@
+var RENDERER_CONSOLE_RESET_COL: string = "\e[0m";
+var RENDERER_CONSOLE_CLEAR: string = "\e[2J\e[H";
+var RENDERER_CONSOLE_CURSOR_HOME: string = "\e[H";
+var RENDERER_CONSOLE_CURSOR_HIDE: string = "\e[?25l";
+var RENDERER_CONSOLE_CURSOR_SHOW: string = "\e[?25h";
+
+var renderer_has_color: bool = false;
+
+var renderer_palette: any = {
+    black: 0,
+    red: 1,
+    green: 2,
+    yellow: 3,
+    blue: 4,
+    magenta: 5,
+    cyan: 6,
+    white: 7,
+    gray: 8,
+    bright_red: 9,
+    bright_green: 10,
+    bright_yellow: 11,
+    bright_blue: 12,
+    bright_magenta: 13,
+    bright_cyan: 14,
+    bright_white: 15,
+};
+
+var cells: string[16] = [
+    "\e[48;5;0m  ",
+    "\e[48;5;1m  ",
+    "\e[48;5;2m  ",
+    "\e[48;5;3m  ",
+    "\e[48;5;4m  ",
+    "\e[48;5;5m  ",
+    "\e[48;5;6m  ",
+    "\e[48;5;7m  ",
+    "\e[48;5;8m  ",
+    "\e[48;5;9m  ",
+    "\e[48;5;10m  ",
+    "\e[48;5;11m  ",
+    "\e[48;5;12m  ",
+    "\e[48;5;13m  ",
+    "\e[48;5;14m  ",
+    "\e[48;5;15m  "
+];
+
+struct renderer_framebuffer {
+    handle: int
+}
+
+struct renderer_int2arr {
+    x: int[],
+    y: int[]
+}
