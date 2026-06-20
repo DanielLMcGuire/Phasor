@@ -31,6 +31,10 @@
         {
           "name": "comment.line.double-slash.phasor",
           "match": "//.*$"
+        },
+        {
+          "name": "comment.shebang.phasor",
+          "match": "^#!.*"
         }
       ]
     },
@@ -62,6 +66,11 @@
               "match": "\\\\."
             }
           ]
+        },
+        {
+          "name": "string.raw.phasor",
+          "begin": "'",
+          "end": "'"
         }
       ]
     },
@@ -93,7 +102,7 @@
       "patterns": [
         {
           "name": "storage.type.phasor",
-          "match": "\\b(int|float|string|bool)\\b"
+          "match": "\\b(int|float|string|bool|any|void|null|i64|f64)\\b"
         }
       ]
     }

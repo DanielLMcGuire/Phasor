@@ -38,7 +38,7 @@
       "patterns": [
         {
           "name": "keyword.control.section.phasor-ir",
-          "match": "^\\.(PHIR|CONSTANTS|VARIABLES|FUNCTIONS|STRUCTS|INSTRUCTIONS)\\b"
+          "match": "^\\.(PHIR|CONSTANTS|VARIABLES|FUNCTIONS|FUNCTYPES|STRUCTS|SCOPES|INSTRUCTIONS)\\b"
         }
       ]
     },

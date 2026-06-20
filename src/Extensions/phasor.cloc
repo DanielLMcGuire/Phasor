@@ -1,20 +1,17 @@
 Phasor
-    filter remove_inline //.*$
+    filter remove_matches ^\s*//
     extension phs
     3rd_gen_scale 2.50
-Pulsar
-    filter remove_inline //.*$
-    extension pul
-    3rd_gen_scale 2.50
+
 Phasor IR
-    filter remove_inline ;.*$
+    filter remove_matches ^\s*;
     extension phir
     3rd_gen_scale 1.00
 
 Troff source
-    filter remove_matches  ^\.\\"
-    filter remove_matches  ^\\'\"
-    filter remove_matches  ^\\\"
+    filter remove_matches ^\.\\"
+    filter remove_matches ^\\'\"
+    filter remove_matches ^\\\"
     extension 1
     extension 1m
     extension 1p
