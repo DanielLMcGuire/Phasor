@@ -1,4 +1,4 @@
-# Phasor <kbd><img src="https://phasor.pages.dev/assets/logo.svg" width="250" height="130" alt="Phasor Logo"></kbd> Language
+# Phasor <kbd><img src="https://phasor.pages.dev/assets/pridelogo.png" width="250" height="130" alt="Phasor Logo"></kbd> Language
 
 [![Release](https://img.shields.io/github/v/release/DanielLMcGuire/Phasor.svg)](https://phasor.pages.dev/downloads?version=latest)
 [![AUR Version](https://img.shields.io/aur/version/phasor.svg)](https://aur.archlinux.org/packages/phasor)
@@ -8,10 +8,6 @@
 A statically/dynamically typed, compiled programming language with a fast bytecode virtual machine. Parameter and return types are static for user defined (non FFI / non STDLIB) functions.
 
 Phasor *does not* have a traditional garbage collector, the entire toolchain makes use of a unified type system, which provides C++ RAII support to the runtime, stdlib, and FFI interfaces.
-
-Memory management is deterministic, the compiler will compute usage, and destroy objects at end of scope, or outside a block the runtime clear them at shutdown.
-
-You can also use `free("varName");`.
 
 See [Language Features](#language-features) for more info on memory management.
 
