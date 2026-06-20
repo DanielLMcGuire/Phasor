@@ -312,13 +312,28 @@ See [Building Phasor](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Pha
 
 See [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/Building-Phasor-Extensions) for info on building Extensions/bindings.
 
-### FFI Plugin locations
+### Locations and paths
 
-Available in different locations based on your OS:
+#### Plugins
 
-- Unix - `/usr/lib/phasor/plugins/`
-- macOS - `/Library/Application Support/org.Phasor.Phasor/plugins/`
-- Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`
+- Unix - `/usr/lib/phasor/plugins/`, `./phasornative/`
+- macOS - `/Library/Application Support/org.Phasor.Phasor/plugins/`, `./phasornative/`
+- Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`, `.\phasornative\`
+
+#### Includes
+> [!NOTE]
+>
+> Place source at `$your_os_include_path/../src/` if needed.
+>
+>Includes should only contain forward declarations to source code, global variable/type declarations, or out of scope code. Includes are internally deduplicated by the compiler.
+>
+>See the stdlib, sdl2, and win32 bindings for more info.
+
+- Unix - `/opt/phasor/include`
+- macOS `/Library/Application Support/org.Phasor.Phasor/include`
+- Windows:
+  - Private (Runtime): `C:\Program Files\Phasor Programming Language\phasor\include`
+  - Public: `C:\ProgramData\Phasor Programming Language\include`
 
 ---
 

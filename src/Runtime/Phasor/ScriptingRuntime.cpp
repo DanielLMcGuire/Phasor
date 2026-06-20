@@ -90,11 +90,11 @@ std::unique_ptr<VM> ScriptingRuntime::createVm()
 	StdLib::argc = m_args.scriptArgc;
 
 #if defined(_WIN32)
-	vm->initFFI("plugins");
+	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #elif defined(__linux__)
-	vm->initFFI("/usr/lib/phasor/plugins/");
+	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
 	vm->setImportHandler([this, vm_ptr = vm.get()](const std::filesystem::path &path) {

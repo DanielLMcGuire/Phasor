@@ -56,13 +56,13 @@ elseif(WIN32)
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
-        DESTINATION phasor
+        DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
     install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
     install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Bindings/win32/phs/
-        DESTINATION phasor
+        DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
     if(MSYS)
         install(TARGETS phasor_posix_bindings
@@ -79,7 +79,7 @@ elseif(WIN32)
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
-            DESTINATION phasor
+            DESTINATION "${INCLUDE_INSTALL_DIR}"
         )
     endif()
 elseif(APPLE)
@@ -125,7 +125,7 @@ elseif(APPLE)
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
-            DESTINATION opt/phasor
+            DESTINATION "${INCLUDE_INSTALL_DIR}"
         )
     endif()
 else()
@@ -159,7 +159,7 @@ else()
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
-        DESTINATION opt/phasor
+        DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
     install(TARGETS phasor_posix_bindings
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
@@ -170,7 +170,7 @@ else()
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
-            DESTINATION opt/phasor
+            DESTINATION "${INCLUDE_INSTALL_DIR}"
         )
     endif()
 endif()

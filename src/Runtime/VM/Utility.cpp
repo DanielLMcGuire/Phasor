@@ -53,10 +53,10 @@ bool VM::isErrorStatus()
 	return isError;
 }
 
-void VM::initFFI(const std::filesystem::path &path)
+void VM::initFFI(const std::vector<std::filesystem::path> &paths)
 {
 #ifndef SANDBOXED
-	ffi = std::make_unique<FFI>(path, this);
+	ffi = std::make_unique<FFI>(paths, this);
 #endif
 }
 

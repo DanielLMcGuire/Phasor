@@ -41,7 +41,7 @@ class VM
 	~VM();
 
 	/// @brief Initialize the FFI plugins
-	void initFFI(const std::filesystem::path &path);
+	void initFFI(const std::vector<std::filesystem::path> &paths);
 
 	/// @brief Get Phasor VM version
 	std::string getVersion();

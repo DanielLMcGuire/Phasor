@@ -71,10 +71,10 @@ class FFI
   public:
 	/**
 	 * @brief Constructs the FFI manager and loads plugins.
-	 * @param pluginFolder Path to the folder containing plugins.
+	 * @param pluginFolders Vector of paths to folders containing plugins.
 	 * @param vm Pointer to the Phasor VM instance to register plugin functions with.
 	 */
-	explicit FFI(const std::filesystem::path &pluginFolder, VM *vm);
+	explicit FFI(const std::vector<std::filesystem::path> &pluginFolders, VM *vm);
 
 	/**
 	 * @brief Destructor. Unloads all loaded plugins.
@@ -123,11 +123,12 @@ class FFI
 	bool loadPlugin(const std::filesystem::path &library, VM *vm);
 
 	/**
-	 * @brief Scans a folder for plugin libraries.
-	 * @param folder Path to the folder to scan.
+	 * @brief Scans multiple folders for plugin libraries.
+	 * @param folders Vector of folder paths to scan.
 	 * @return A vector of plugin file paths.
 	 */
-	std::vector<std::string> scanPlugins(const std::filesystem::path &folder);
+	std::vector<std::string> scanPlugins(const std::vector<std::filesystem::path> &folders);
+
 
 	/**
 	 * @brief Unloads all currently loaded plugins and clears internal state.
@@ -135,7 +136,7 @@ class FFI
 	void unloadAll();
 
 	std::vector<Plugin>   plugins_;      ///< Loaded plugins
-	std::filesystem::path pluginFolder_; ///< Plugin search folder
+	std::vector<std::filesystem::path> pluginFolders_; ///< Plugin search folder
 	VM                   *vm_;           ///< Pointer to the Phasor VM
 
 	std::string           cachedVersion_;///< Cached version string tied to the VM

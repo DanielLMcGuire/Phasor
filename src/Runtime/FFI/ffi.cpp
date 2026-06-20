@@ -132,55 +132,68 @@ bool FFI::addPlugin(const std::filesystem::path &pluginPath)
 	return loadPlugin(pluginPath, vm_);
 }
 
-/**
- * @brief Scans configured plugin directories for shared libraries.
- */
-std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
+std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::path> &folders)
 {
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(\"{}\")\n", __func__, folder.string()));
+	std::string folderStrs;
+	for (size_t i = 0; i < folders.size(); ++i) {
+		folderStrs += folders[i].string();
+		if (i < folders.size() - 1) folderStrs += ", ";
+	}
+	vm_->log(std::format("FFI::{}([{}]\n", __func__, folderStrs));
 	vm_->flush();
 #endif
-	if (folder.empty())
+
+	if (folders.empty())
 		return {};
 
 	std::vector<std::string>           plugins;
 	std::filesystem::path              exeDir;
 	std::vector<std::filesystem::path> foldersToScan;
 
-	if (folder.is_absolute())
-	{
-		foldersToScan.push_back(folder);
-	}
-	else
-	{
+	// Resolve the executable directory once
 #if defined(_WIN32)
-		char path[MAX_PATH];
-		GetModuleFileNameA(nullptr, path, MAX_PATH);
-		exeDir = std::filesystem::path(path).parent_path();
+	char path[MAX_PATH];
+	GetModuleFileNameA(nullptr, path, MAX_PATH);
+	exeDir = std::filesystem::path(path).parent_path();
 #elif defined(__APPLE__)
-		char path[1024];
-		u32  size = sizeof(path);
-		if (_NSGetExecutablePath(path, &size) == 0)
-			exeDir = std::filesystem::path(path).parent_path();
-		else
-			exeDir = std::filesystem::current_path();
-#elif defined(__linux__)
-		char    path[1024];
-		ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
-		if (count != -1)
-			exeDir = std::filesystem::path(std::string(path, count)).parent_path();
-		else
-			exeDir = std::filesystem::current_path();
-#else
+	char path[1024];
+	u32  size = sizeof(path);
+	if (_NSGetExecutablePath(path, &size) == 0)
+		exeDir = std::filesystem::path(path).parent_path();
+	else
 		exeDir = std::filesystem::current_path();
+#elif defined(__linux__)
+	char    path[1024];
+	ssize_t count = readlink("/proc/self/exe", path, sizeof(path));
+	if (count != -1)
+		exeDir = std::filesystem::path(std::string(path, count)).parent_path();
+	else
+		exeDir = std::filesystem::current_path();
+#else
+	exeDir = std::filesystem::current_path();
 #endif
 
-		foldersToScan.push_back(exeDir / folder);
-		if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
-			foldersToScan.push_back(std::filesystem::current_path() / folder);
+	// Aggregate all valid absolute and relative folders to scan
+	for (const auto &folder : folders)
+	{
+		if (folder.empty()) continue;
+
+		if (folder.is_absolute())
+		{
+			foldersToScan.push_back(folder);
+		}
+		else
+		{
+			foldersToScan.push_back(exeDir / folder);
+			if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
+			{
+				foldersToScan.push_back(std::filesystem::current_path() / folder);
+			}
+		}
 	}
 
+	// Iterate through all aggregated directories
 	for (auto &folderPath : foldersToScan)
 	{
 		if (!std::filesystem::exists(folderPath) || !std::filesystem::is_directory(folderPath))
@@ -190,6 +203,7 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 		{
 			if (!p.is_regular_file())
 				continue;
+			
 			auto ext = p.path().extension().string();
 #if defined(_WIN32)
 			if (ext == ".dll" || ext == ".phsp")
@@ -198,7 +212,14 @@ std::vector<std::string> FFI::scanPlugins(const std::filesystem::path &folder)
 #else
 			if (ext == ".so" || ext == ".phsp")
 #endif
-				plugins.push_back(p.path().string());
+			{
+				// Prevent loading duplicates if overlapping directories resolve to the same files
+				std::string pluginStr = p.path().string();
+				if (std::find(plugins.begin(), plugins.end(), pluginStr) == plugins.end())
+				{
+					plugins.push_back(pluginStr);
+				}
+			}
 		}
 	}
 	return plugins;
@@ -243,7 +264,8 @@ void FFI::unloadAll()
 	plugins_.clear();
 }
 
-FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(pluginFolder), vm_(vm)
+FFI::FFI(const std::vector<std::filesystem::path> &pluginFolders, VM *vm) 
+    : pluginFolders_(pluginFolders), vm_(vm)
 {
 	{
 		std::lock_guard<std::mutex> lock(g_ffi_map_mutex);
@@ -258,7 +280,8 @@ FFI::FFI(const std::filesystem::path &pluginFolder, VM *vm) : pluginFolder_(plug
 	vm_->flush();
 #endif
 	vm_->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
-	auto plugins = scanPlugins(pluginFolder_);
+	
+	auto plugins = scanPlugins(pluginFolders_);
 	for (const auto &pluginPath : plugins)
 	{
 		try

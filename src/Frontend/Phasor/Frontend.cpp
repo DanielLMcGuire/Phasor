@@ -49,11 +49,11 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::ve
 	}
 
 #if defined(_WIN32)
-	vm->initFFI("plugins");
+	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #elif defined(__linux__)
-	vm->initFFI("/usr/lib/phasor/plugins/");
+	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
 	vm->setImportHandler([vm](const std::filesystem::path &path) {
@@ -107,11 +107,11 @@ int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> p
 	}
 
 #if defined(_WIN32)
-	vm->initFFI("plugins");
+	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-	vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #elif defined(__linux__)
-	vm->initFFI("/usr/lib/phasor/plugins/");
+	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
 	vm->setImportHandler([vm](const std::filesystem::path &path) {

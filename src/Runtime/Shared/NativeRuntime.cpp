@@ -103,11 +103,11 @@ int NativeRuntime::run()
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		m_vm->initFFI("plugins");
+		m_vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #elif defined(__linux__)
-		m_vm->initFFI("/usr/lib/phasor/plugins/");
+		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 		m_vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
@@ -138,11 +138,11 @@ int NativeRuntime::runFunctionInt(std::string functionName)
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		m_vm->initFFI("plugins");
+		m_vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #elif defined(__linux__)
-		m_vm->initFFI("/usr/lib/phasor/plugins/");
+		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 		m_vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
@@ -167,11 +167,11 @@ std::optional<std::string> NativeRuntime::runFunctionString(std::string function
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		m_vm->initFFI("plugins");
+		m_vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-		m_vm->initFFI("/Library/Application Support/org.Phasor.Phasor/plugins");
+		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #elif defined(__linux__)
-		m_vm->initFFI("/usr/lib/phasor/plugins/");
+		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 		m_vm->setImportHandler([](const std::filesystem::path &path) {
 			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
