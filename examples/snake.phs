@@ -1,4 +1,8 @@
 #!/usr/bin/env phasor
+
+// Snake animation demo
+// Until we get ASIO, this will have to do.
+
 // include "./music/logic.phs";
 // include "./snake/music-gen.phs";
 include "./snake/clirender.phs";
