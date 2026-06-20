@@ -97,11 +97,22 @@ void StdLib::registerSysFunctions(VM *vm)
 f64 StdLib::sys_time_local(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 0, "time");
-    auto now   = std::chrono::system_clock::now();
+    auto now = std::chrono::system_clock::now();
+
+#if defined(__APPLE__) || (defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 190000)
+	std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm local_tm;
+    localtime_r(&t, &local_tm);
+
+    f64 utc_millis = std::chrono::duration<f64, std::milli>(now.time_since_epoch()).count();
+    f64 offset_millis = local_tm.tm_gmtoff * 1000.0;
+
+    return utc_millis + offset_millis;
+#else
     auto zoned = std::chrono::zoned_time{std::chrono::current_zone(), now};
     auto local = zoned.get_local_time();
-    f64 millis = std::chrono::duration<f64, std::milli>(local.time_since_epoch()).count();
-    return millis;
+    return std::chrono::duration<f64, std::milli>(local.time_since_epoch()).count();
+#endif
 }
 f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 {
