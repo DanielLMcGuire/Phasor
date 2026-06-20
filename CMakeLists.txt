@@ -40,6 +40,11 @@ option(FORCE_PROJECT_VERSION "Force project version string to lock to cmake proj
 option(USE_PCH "Use PCH" ON)
 option(PGO_A "Instrument PGO data" OFF)
 option(PGO_B "Use PGO data" OFF)
+option(PHASOR_SDL2 "Build Phasor SDL2 Bindings" OFF)
+
+if (PHASOR_SDL2)
+    include(cmake/prepSDL2.cmake)
+endif()
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
