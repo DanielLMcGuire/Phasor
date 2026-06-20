@@ -1,0 +1,40 @@
+include "../../include/sdl2/sdl2.phs";
+
+fn get_sdl_constants() -> SDLConstants {
+    // Hardcoded SDL2 integer definitions
+    return SDLConstants {
+        INIT_VIDEO: 32,
+        WINDOWPOS_UNDEFINED: 536805376,
+        WINDOW_SHOWN: 4,
+        QUIT: 256
+    };
+}
+
+fn sdl_init(flags: i64) -> i64 {
+    return SDL_Init(flags); 
+}
+
+fn sdl_create_window(title: string, x: i64, y: i64, w: i64, h: i64, flags: i64) -> SDLWindow {
+    let handle: i64 = SDL_CreateWindow(title, x, y, w, h, flags);
+    
+    return SDLWindow { handle: handle };
+}
+
+fn sdl_destroy_window(window: SDLWindow) {
+    SDL_DestroyWindow(window.handle);
+}
+
+fn sdl_delay(ms: i64) {
+    SDL_Delay(ms);
+}
+
+fn sdl_poll_event() -> SDLEvent {
+    let evType: i64 = SDL_PollEvent();
+    return SDLEvent {
+        type: evType
+    };
+}
+
+fn sdl_quit() {
+    SDL_Quit();
+}

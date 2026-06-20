@@ -36,11 +36,16 @@ std::string readStdin()
 
 namespace fs = std::filesystem;
 
+#ifndef PHS_WINDOWED
 void showHelp(const fs::path &program = "phasor")
+#else
+void showHelp(const fs::path &program = "phasorw")
+#endif
 {
 	const std::string programName = program.stem().string();
 	std::println("Phasor Programming Language and Toolchain v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+				 "See more with phasor-help phasor\n"
 	             "Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
 	             "A. PIPE:    <text> | {}\n"
 	             "B. JIT/BYTECODE:     {} <file>\n"
@@ -102,7 +107,7 @@ int main(int argc, char *argv[])
 			{
 				return Phasor::Frontend::runScript(source, nullptr, fetchIncludeDirs());
 			}
-		}
+		} 
 		if (argc < 2)
 		{
 			return Phasor::Frontend::runRepl(nullptr, fetchIncludeDirs());
@@ -147,25 +152,33 @@ int main(int argc, char *argv[])
 		}
 
 		const std::string ext = file.extension().string();
+#ifndef PHS_WINDOWED
+		if (ext == ".phsw" || ext == ".phsbw")
+		{
+			std::println("Use phasorw for windowed scripts, or rename to .phs/.phsb");
+			return 1;
+		}
 
-		if (ext == ".phs")
+		else if (ext == ".phs")
+#else
+		if (ext == ".phsw" || ext == ".phs")
+#endif
 		{
 			Phasor::ScriptingRuntime ScriptRT(argc, argv, fetchIncludeDirs());
 			return ScriptRT.run();
 		}
+#ifndef PHS_WINDOWED
 		else if (ext == ".phsb")
+#else
+		else if (ext == ".phsbw" || ext == ".phsb")
+#endif
 		{
 			Phasor::BinaryRuntime BinRT(argc, argv);
 			return BinRT.run();
 		}
-		else if (ext == ".phir")
-		{
-			std::println("Phasor IR (.phir) compilation not yet implemented.");
-			return 0;
-		}
 		else
 		{
-			std::println(std::cerr, "Unknown extension: {}", ext);
+			std::println(std::cerr, "Unsupported extension: {}, see --help", ext);
 			return 1;
 		}
 	}

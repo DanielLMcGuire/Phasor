@@ -152,6 +152,13 @@ set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 endif() # NOT IS_XBOX AND NOT EMBEDDED
 
 if(NOT IS_SANDBOXED)
+    if(PHASOR_SDL2)
+        add_library(phasor_sdl2_bindings SHARED
+            ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/sdl2/sdl2_main.cpp
+        )
+        target_link_libraries(phasor_sdl2_bindings SDL2::SDL2-static)
+        set_target_properties(phasor_sdl2_bindings PROPERTIES OUTPUT_NAME sdl2_phs)
+    endif()
     if(WIN32)
         add_executable(phasor_winapi_gen
             ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/bindgen_main.cpp

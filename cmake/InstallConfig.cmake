@@ -14,6 +14,7 @@ if(IS_XBOX OR EMBEDDED)
 elseif(WIN32)
     set(NON_STATIC_TARGETS
         phasor_main
+        phasorw_main
         phasor_help
         phasor_compiler
         phasor_cxx_transpiler
@@ -69,6 +70,18 @@ elseif(WIN32)
             RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
     endif()
+    if(PHASOR_SDL2)
+        install(TARGETS phasor_sdl2_bindings
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+            RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
+        )
+        install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_sdl2_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
+
+        install(DIRECTORY
+            ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
+            DESTINATION phasor
+        )
+    endif()
 elseif(APPLE)
     install(TARGETS
         phasor_main
@@ -107,6 +120,14 @@ elseif(APPLE)
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
+    if(PHASOR_SDL2)
+        install(TARGETS phasor_sdl2_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
+
+        install(DIRECTORY
+            ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
+            DESTINATION opt/phasor
+        )
+    endif()
 else()
     install(TARGETS
         phasor_main
@@ -144,4 +165,12 @@ else()
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
+    if(PHASOR_SDL2)
+        install(TARGETS phasor_sdl2_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
+
+        install(DIRECTORY
+            ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
+            DESTINATION opt/phasor
+        )
+    endif()
 endif()

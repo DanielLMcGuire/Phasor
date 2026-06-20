@@ -1,0 +1,16 @@
+include "./types/sdl2.phs";
+
+fn get_sdl_constants() -> SDLConstants;
+
+fn sdl_init(flags: i64) -> i64;
+
+fn sdl_create_window(title: string, x: i64, y: i64, w: i64, h: i64, flags: i64) -> SDLWindow;
+fn sdl_destroy_window(window: SDLWindow);
+
+fn sdl_delay(ms: i64);
+fn sdl_poll_event() -> SDLEvent;
+
+fn sdl_quit();
+
+// ----
+include "../../src/sdl2/sdl2.phs";
