@@ -231,7 +231,7 @@ Bytecode CodeGenerator::generate(const AST::Program &program, const std::unorder
 	{
 		if (allFunctions.find(name) == allFunctions.end())
 		{
-			throw std::runtime_error("ERROR: Function '" + name + "' was declared but never defined.");
+			throw std::runtime_error("Function '" + name + "' was declared but never defined.");
 		}
 	}
 
@@ -797,19 +797,26 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 					for (size_t i = 0; i < arrayLit->elements.size(); ++i)
 					{
-						auto *anon = dynamic_cast<AST::StructInstanceExpr *>(arrayLit->elements[i].get());
-						if (!anon || anon->structName != "__anon")
-							throw std::runtime_error("Array element must be an anonymous struct literal");
+						auto *structExpr = dynamic_cast<AST::StructInstanceExpr *>(arrayLit->elements[i].get());
 
-						if (anon->fieldValues.size() != expectedInfo.fieldNames.size())
-							throw std::runtime_error("Field count mismatch for struct '" + expectedStruct + "'");
+						if (!structExpr) continue;
 
-						for (const auto &[fname, fval] : anon->fieldValues)
+						if (structExpr->structName != "__anon" && structExpr->structName != expectedStruct)
+							throw std::runtime_error("Array element has wrong struct type: expected '" +
+							                         expectedStruct + "', got '" + structExpr->structName + "'");
+
+						if (structExpr->structName == "__anon")
 						{
-							if (std::find(expectedInfo.fieldNames.begin(), expectedInfo.fieldNames.end(), fname) ==
-							    expectedInfo.fieldNames.end())
+							if (structExpr->fieldValues.size() != expectedInfo.fieldNames.size())
+								throw std::runtime_error("Field count mismatch for struct '" + expectedStruct + "'");
+
+							for (const auto &[fname, fval] : structExpr->fieldValues)
 							{
-								throw std::runtime_error("Unknown field '" + fname + "' in struct '" + expectedStruct + "'");
+								if (std::find(expectedInfo.fieldNames.begin(), expectedInfo.fieldNames.end(), fname) ==
+								    expectedInfo.fieldNames.end())
+								{
+									throw std::runtime_error("Unknown field '" + fname + "' in struct '" + expectedStruct + "'");
+								}
 							}
 						}
 					}
@@ -817,7 +824,11 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 
 				if (!bytecode.structEntries.contains(varDecl->type->name))
 				{
-					ValueType expectedElemType = mapTypeNameToValueType(varDecl->type->name);
+					bool isMultiDim = varDecl->type->arrayDimensions.size() > 1;
+					ValueType expectedElemType = isMultiDim
+						? ValueType::Array
+						: mapTypeNameToValueType(varDecl->type->name);
+
 					for (size_t i = 0; i < arrayLit->elements.size(); ++i)
 					{
 						bool known = false;
@@ -825,8 +836,8 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 						if (known && elemType != expectedElemType)
 						{
 							throw std::runtime_error("Type mismatch in array initialization: element at index " +
-							                         std::to_string(i) + " is not of expected type '" +
-							                         varDecl->type->name + "'.");
+													std::to_string(i) + " is not of expected type '" +
+													varDecl->type->name + "'.");
 						}
 					}
 				}
@@ -839,7 +850,7 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 		}
 		else
 		{
-			generateExpression(varDecl->initializer.get());
+			generateExpression(varDecl->initializer.get(), true);
 		}
 
 		int varIndex = declareVar(varDecl->name);
@@ -1036,7 +1047,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 			int got = static_cast<int>(callExpr->arguments.size());
 			if (expected != got)
 			{
-				throw std::runtime_error("ERROR: calling function '" + callExpr->callee + "' with " + std::to_string(got)
+				throw std::runtime_error("Calling function '" + callExpr->callee + "' with " + std::to_string(got)
 				          + " arguments but it expects " + std::to_string(expected) + "\n");
 			}
 		}
@@ -1062,7 +1073,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 						const auto &expectedDims = dimsIt->second[i];
 						if (expectedDims.empty())
 						{
-							throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+							throw std::runtime_error("Argument " + std::to_string(i + 1) + " to '" + callExpr->callee
 							          + "' expects scalar '" + expectedTypeName + "', got array (line "
 							          + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
 						}
@@ -1072,7 +1083,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 							{
 								if (arrayLit->elements.size() != static_cast<size_t>(expectedDims[0]))
 								{
-									throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+									throw std::runtime_error("Argument " + std::to_string(i + 1) + " to '" + callExpr->callee
 									          + "' has wrong size: expected " + std::to_string(expectedDims[0])
 									          + " elements, got " + std::to_string(arrayLit->elements.size())
 									          + " (line " + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
@@ -1090,7 +1101,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 						const auto &expectedDims = dimsIt->second[i];
 						if (!expectedDims.empty())
 						{
-							throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+							throw std::runtime_error("Argument " + std::to_string(i + 1) + " to '" + callExpr->callee
 							          + "' expects array, got scalar (line " + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
 						}
 					}
@@ -1099,7 +1110,7 @@ void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
 				ValueType expectedType = mapTypeNameToValueType(expectedTypeName);
 				if (argType != expectedType && expectedType != ValueType::Struct)
 				{
-					throw std::runtime_error("ERROR: argument " + std::to_string(i + 1) + " to '" + callExpr->callee
+					throw std::runtime_error("Argument " + std::to_string(i + 1) + " to '" + callExpr->callee
 					          + "' has wrong type: expected '" + expectedTypeName
 					          + "' (line " + std::to_string(callExpr->line) + ", column " + std::to_string(callExpr->column) + ").\n");
 				}
@@ -1578,13 +1589,13 @@ void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
 				bool expectedIsArray = !currentFunctionReturnDims.empty();
 				if (retType == ValueType::Array && !expectedIsArray)
 				{
-					throw std::runtime_error("ERROR: return type mismatch: function declared to return scalar '"
+					throw std::runtime_error("Return type mismatch: function declared to return scalar '"
 					          + currentFunctionReturnType + "' but returning array"
 					          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
 				}
 				else if (retType != ValueType::Array && expectedIsArray)
 				{
-					throw std::runtime_error("ERROR: return type mismatch: function declared to return array '"
+					throw std::runtime_error("Return type mismatch: function declared to return array '"
 					          + currentFunctionReturnType + "[]' but returning scalar"
 					          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
 				}
@@ -1593,7 +1604,7 @@ void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
 					ValueType expectedType = mapTypeNameToValueType(currentFunctionReturnType);
 					if (retType != expectedType && expectedType != ValueType::Struct)
 					{
-						throw std::runtime_error("ERROR: return type mismatch: function declared to return '"
+						throw std::runtime_error("Return type mismatch: function declared to return '"
 						          + currentFunctionReturnType + "' but returning a different type"
 						          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
 					}
@@ -1609,7 +1620,7 @@ void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
 		    currentFunctionReturnType != "any"  &&
 		    currentFunctionReturnType != "void")
 		{
-			throw std::runtime_error("ERROR: bare 'return' in function declared to return '"
+			throw std::runtime_error("Bare 'return' in function declared to return '"
 			          + currentFunctionReturnType + "'"
 			          + " (line " + std::to_string(returnStmt->line) + ", column " + std::to_string(returnStmt->column) + ").\n");
 		}
@@ -1692,7 +1703,7 @@ void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
 		    currentFunctionReturnType != "any"  &&
 		    currentFunctionReturnType != "void")
 		{
-			throw std::runtime_error("ERROR: function '" + funcDecl->name + "' is declared to return '"
+			throw std::runtime_error("Function '" + funcDecl->name + "' is declared to return '"
 			          + currentFunctionReturnType + "' but has no return statement.\n");
 		}
 	}
@@ -1749,32 +1760,36 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
                 }
                 
                 std::string expectedBaseType = arrayIt->second;
-                if (expectedBaseType != "any")
-                {
-                    ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
-                    if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
-                    {
-                        auto dimsIt = arrayDimensions.find(identExpr->name);
-                        if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1)
-                        {
-                            if (arrayLit->elements.size() != static_cast<size_t>(dimsIt->second[0]))
-                                throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) +
-                                                         " elements to array '" + identExpr->name + "' of size " + std::to_string(dimsIt->second[0]));
-                        }
+				if (expectedBaseType != "any")
+				{
+					if (const auto *arrayLit = dynamic_cast<const AST::ArrayLiteralExpr *>(assignExpr->value.get()))
+					{
+						auto dimsIt = arrayDimensions.find(identExpr->name);
+						if (dimsIt != arrayDimensions.end() && !dimsIt->second.empty() && dimsIt->second[0] != -1)
+						{
+							if (arrayLit->elements.size() != static_cast<size_t>(dimsIt->second[0]))
+								throw std::runtime_error("Array bounds error: assigning " + std::to_string(arrayLit->elements.size()) +
+								                         " elements to array '" + identExpr->name + "' of size " + std::to_string(dimsIt->second[0]));
+						}
 
-                        for (size_t i = 0; i < arrayLit->elements.size(); ++i)
-                        {
-                            bool elemKnown = false;
-                            ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), elemKnown);
-                            if (elemKnown && elemType != expectedElemType)
-                            {
-                                throw std::runtime_error("Type mismatch in array assignment: element at index " +
-                                                         std::to_string(i) + " does not match expected base type '" +
-                                                         expectedBaseType + "'.");
-                            }
-                        }
-                    }
-                }
+						bool isMultiDim = (dimsIt != arrayDimensions.end() && dimsIt->second.size() > 1);
+						ValueType expectedElemType = isMultiDim
+							? ValueType::Array
+							: mapTypeNameToValueType(expectedBaseType);
+
+						for (size_t i = 0; i < arrayLit->elements.size(); ++i)
+						{
+							bool elemKnown = false;
+							ValueType elemType = inferExpressionType(arrayLit->elements[i].get(), elemKnown);
+							if (elemKnown && elemType != expectedElemType)
+							{
+								throw std::runtime_error("Type mismatch in array assignment: element at index " +
+								                         std::to_string(i) + " does not match expected base type '" +
+								                         expectedBaseType + "'.");
+							}
+						}
+					}
+				}
             }
             else
             {
