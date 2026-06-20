@@ -1,0 +1,20 @@
+include "./types.phs";
+include "std/sys.phs";
+
+fn getTimeStruct() -> timeStruct {
+    var fmtFlags: string[2] = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %I:%M:%S"
+    ];
+
+    return timeStruct{
+        TwentyFourHour: timeBase{
+            UTC: timef(fmtFlags[0]), 
+            LOCAL: localtimef(fmtFlags[0])
+        },
+        TwelveHour: timeBase{
+            UTC: timef(fmtFlags[1]), 
+            LOCAL: localtimef(fmtFlags[1])
+        }
+    };
+}

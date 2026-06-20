@@ -1,0 +1,42 @@
+#!/usr/bin/env phasor
+include "./time/logic.phs";
+include "std/io.phs";
+include "std/type.phs";
+include "std/str.phs";
+include "std/file.phs";
+include "std/main.phs";
+
+fn main(args: string[]) -> int {
+    var helpStr: string = concat("Expected 1 or 2 optional args: ", args[0].fname(), " [-local] [FORMAT]");
+    var indent: int = 2;
+
+    if (args.len() >= 2) {
+        if (args[1] == "-local") {
+            if (args.len() != 3) {
+                puts_error(helpStr);
+                return 1;
+            }
+            puts(localtimef(args[2]));
+            return 0;
+        } else {
+            if (args.len() != 2) {
+                puts_error(helpStr);
+                return 1;
+            }
+            puts(timef(args[1]));
+            return 0;
+        }
+    } else {
+        if (args.len() != 1) {
+            puts_error(helpStr);
+            return 1;
+        }
+        var times: timeStruct = getTimeStruct();
+        putf("24:\n%*sUTC:%*s%s\n%*sLOCAL: %s", indent, "", indent + 1, "",
+            times.TwentyFourHour.UTC, indent, "", times.TwentyFourHour.LOCAL);
+        putf("12:\n%*sUTC:%*s%s\n%*sLOCAL: %s", indent, "", indent + 1, "",
+                times.TwelveHour.UTC, indent, "", times.TwelveHour.LOCAL);
+    }
+
+    return 0;
+}
