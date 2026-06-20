@@ -1,0 +1,56 @@
+// winuser.phs -- Win32 | winuser
+// https://learn.microsoft.com/en-us/windows/win32/api/winuser/
+include "./mb_def.phs";
+include "./wintypes.phs";
+
+fn IsWindow(hWnd: HWND) -> bool {
+    if (hWnd.data == null)
+        return false;
+    return win32_IsWindow(phs__noimport("to_int", hWnd.data));
+}
+
+fn GetForegroundWindow() -> HWND {
+    return HWND{ data: win32_GetForegroundWindow() };
+}
+
+fn GetDesktopWindow() -> HWND {
+    return HWND{ data: win32_GetDesktopWindow() };
+}
+
+fn SetWindowText(hWnd: HWND, String: string) -> bool {
+    if (hWnd.data == null)
+        return false;
+    return win32_SetWindowTextA(phs__noimport("to_int", hWnd.data), String);
+}
+
+fn MessageBox(hWnd: HWND, Text: string, Caption: string, Type: i64) -> i64 {
+    if (hWnd.data == null)
+        return win32_MessageBoxA(null, Text, Caption, Type);
+    return win32_MessageBoxA(phs__noimport("to_int", hWnd.data), Text, Caption, Type);
+}
+
+fn CreateWindowEx(
+    ExStyle: i64, 
+    ClassName: string, 
+    WindowName: string, 
+    Style: i64,
+    x: i64, 
+    y: i64, 
+    nWidth: i64, 
+    nHeight: i64, 
+    hWndParent: HWND, 
+    hMenu: HMENU, 
+    hInstance: HINSTANCE) -> HWND {
+    var hWndParentReal: any = null;
+    if (hWndParent.data != null) hWndParentReal = phs__noimport("to_int", hWndParent.data);
+    var hMenuReal: any = null;
+    if (hMenu.data != null) hMenuReal = phs__noimport("to_int", hMenu.data);
+    var hInstanceReal: any = null;
+    if (hInstance.data != null) hInstanceReal = phs__noimport("to_int", hInstance.data);
+
+    return HWND{ data: win32_CreateWindowExW(
+        ExStyle, ClassName, WindowName, Style, 
+        x, y, nWidth, nHeight, hWndParentReal, 
+        hMenuReal, hInstanceReal) 
+    };
+}

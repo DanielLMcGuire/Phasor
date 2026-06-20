@@ -1,0 +1,9 @@
+// utilapiset.phs -- Win32 | utilapiset
+// https://learn.microsoft.com/en-us/windows/win32/api/utilapiset/
+
+// Generates simple tones on the speaker. The function is synchronous; it performs an 
+// alertable wait and does not return control to its caller until the sound finishes.
+fn Beep(freq: i64, duration: i64) -> bool;
+
+// ----
+include "../../src/win32/utilapiset.phs";

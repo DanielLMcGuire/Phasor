@@ -9,6 +9,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// PHASOR RUNTIME FFI LIBRARY ABI V2
 // README
 //
 // See below:
@@ -36,9 +37,9 @@
  * 1. Define PHASOR_FFI_BUILD_DLL.
  * 2. Include this header in your C or C++ source file.
  * 3. Implement the entry point function:
- *    void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm);
+ * void phasor_plugin_entry(const PhasorAPI* api, PhasorVM* vm);
  * 4. Inside this function, use the provided `api` object to register
- *    your own native functions.
+ * your own native functions.
  * 5. Compile your code as a shared library (.dll, .so, .dylib).
  */
 
@@ -230,6 +231,24 @@ extern "C"
 	{
 		/// @brief Registers a native C function with the given name.
 		PhasorRegisterFunction register_function;
+
+		// VM Bindings
+		void (*log)(PhasorVM *vm, PhasorValue msg);
+		void (*logerr)(PhasorVM *vm, PhasorValue msg);
+		void (*flush)(PhasorVM *vm);
+		void (*flusherr)(PhasorVM *vm);
+		const char *(*getVersion)(PhasorVM *vm);
+
+		// FFI Management
+		bool (*loadPlugin)(PhasorVM *vm, const char *libPath);
+		void (*onExitCall)(PhasorVM *vm, void (*func)(void));
+		void (*onExitFree)(PhasorVM *vm, void *ptr);
+
+		// CRT Memory Management
+		void *(*malloc)(size_t size);
+		void *(*calloc)(size_t num, size_t size);
+		void *(*realloc)(void *ptr, size_t size);
+		void (*free)(void *ptr);
 	} PhasorAPI;
 
 	// -----------------------------------------------------------------------------
@@ -245,9 +264,9 @@ extern "C"
 	 * current VM instance.
 	 *
 	 * @param api A pointer to a struct containing function pointers that the plugin
-	 *            can use to interact with the host (e.g., register functions).
+	 * can use to interact with the host (e.g., register functions).
 	 * @param vm  An opaque pointer to the VM instance. This should be passed back
-	 *            to any API functions that require it.
+	 * to any API functions that require it.
 	 */
 	PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm);
 

@@ -1,0 +1,9 @@
+// errhandlingapi.phs -- Win32 | errhandlingapi
+// https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/
+
+// Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis. 
+// Multiple threads do not overwrite each other's last-error code.
+fn GetLastError() -> int;
+
+// ----
+include "../../src/win32/errhandlingapi.phs";

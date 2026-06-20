@@ -1,0 +1,11 @@
+// processthreadsapi.phs -- Win32 | processthreadsapi
+// https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/
+
+// Retrieves the process identifier of the calling process.
+fn GetCurrentProcessId() -> i64;
+
+// Retrieves the thread identifier of the calling thread.
+fn GetCurrentThreadId() -> i64;
+
+// ----
+include "../../src/win32/processthreadsapi.phs";

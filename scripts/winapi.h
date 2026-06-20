@@ -35,3 +35,4 @@ BOOL      SetWindowTextW(HWND hWnd, LPCWSTR lpString);
 BOOL      ShowCursor(BOOL bShow);
 UINT      GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize);
 UINT      GetWindowsDirectoryW(LPWSTR lpBuffer, UINT uSize);
+HWND CreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);

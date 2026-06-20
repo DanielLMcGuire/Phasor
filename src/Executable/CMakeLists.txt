@@ -72,12 +72,38 @@ endif()
 
 if(PROJECT_IS_TOP_LEVEL)
 
+set(BUILD_POSIX_BINDINGS OFF)
+
 add_executable(phasor_main 
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
 )
 target_link_libraries(phasor_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
+
+if(WIN32)
+    add_executable(phasorw_main
+        ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
+        ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
+    )
+    target_link_libraries(phasorw_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
+    set_target_properties(phasorw_main PROPERTIES OUTPUT_NAME phasorw)
+    target_compile_definitions(phasorw_main PRIVATE PHS_WINDOWED)
+    set_target_properties(phasorw_main PROPERTIES WIN32_EXECUTABLE TRUE)
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # MinGW/MSYS2 gcc: WIN32_EXECUTABLE + -mwindows is sufficient,
+        # main() works as entry point automatically
+        target_link_options(phasorw_main PRIVATE -mwindows)
+    elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+        # cl.exe or clang-cl: WIN32_EXECUTABLE sets /SUBSYSTEM:WINDOWS,
+        # need explicit entry point for main()
+        target_link_options(phasorw_main PRIVATE /ENTRY:mainCRTStartup)
+    else()
+        # plain clang, MSVC ABI, lld-link via GNU-style driver
+        target_link_options(phasorw_main PRIVATE -Xlinker -entry:mainCRTStartup)
+    endif()
+endif()
 
 if(NOT IS_XBOX AND NOT EMBEDDED)
 
@@ -146,8 +172,9 @@ if(NOT IS_SANDBOXED)
             ${CMAKE_SOURCE_DIR}/scripts/winapi.h
         )
         set_target_properties(phasor_winapi_bindings PROPERTIES OUTPUT_NAME winapi_phs)
-        install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
-        install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
+        if (MSYS)
+            set(BUILD_POSIX_BINDINGS ON)
+        endif()
     else()
         if(APPLE)
             enable_language(OBJC)
@@ -161,19 +188,19 @@ if(NOT IS_SANDBOXED)
             )
             set_target_properties(phasor_applescript_bindings PROPERTIES OUTPUT_NAME applescript_phs)
         endif()
-        add_library(phasor_posix_bindings SHARED
-            ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
-        )
-        set_target_properties(phasor_posix_bindings PROPERTIES OUTPUT_NAME posix_phs)
-        install(TARGETS phasor_posix_bindings
-            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
-            RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
-        )
+        set(BUILD_POSIX_BINDINGS ON)
     endif()
 endif() # NOT IS_SANDBOXED
 
 if(NOT IS_XBOX AND NOT EMBEDDED)
     add_subdirectory(Help)
+endif()
+
+if(BUILD_POSIX_BINDINGS)
+    add_library(phasor_posix_bindings SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/posix/main.c
+    )
+    set_target_properties(phasor_posix_bindings PROPERTIES OUTPUT_NAME posix_phs)
 endif()
 
 endif() # PROJECT_IS_TOP_LEVEL

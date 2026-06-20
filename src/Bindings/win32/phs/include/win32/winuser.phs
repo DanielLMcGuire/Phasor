@@ -1,0 +1,44 @@
+// winuser.phs -- Win32 | winuser
+// https://learn.microsoft.com/en-us/windows/win32/api/winuser/
+include "./types/handle.phs";
+include "./types/mb_def.phs";
+
+// Retrieves a handle to the foreground window (the window with which the user is currently working). 
+// The system assigns a slightly higher priority to the thread that creates the foreground window than it does to other threads.
+fn GetForegroundWindow() -> HWND;
+
+// Retrieves a handle to the desktop window. 
+// The desktop window covers the entire screen. 
+// The desktop window is the area on top of which other windows are painted.
+fn GetDesktopWindow() -> HWND;
+
+// Determines whether the specified window handle identifies an existing window.
+fn IsWindow(hWnd: HWND) -> bool;
+
+// Changes the text of the specified window's title bar (if it has one). 
+// If the specified window is a control, the text of the control is changed. 
+// However, SetWindowText cannot change the text of a control in another application.
+fn SetWindowText(hWnd: HWND, String: string) -> bool;
+
+// Displays a modal dialog box that contains a system icon, a set of buttons, and a brief application-specific message, 
+// such as status or error information. The message box returns an i64eger value that indicates which button the user clicked.
+fn MessageBox(hWnd: HWND, Text: string, Caption: string, Type: i64) -> i64;
+
+// Creates an overlapped, pop-up, or child window with an extended window style; It specifies the window class, window title, window style, 
+// and (optionally) the initial position and size of the window. The function also specifies the window's parent or owner, if any, and the 
+// window's menu.
+fn CreateWindowEx(
+    ExStyle: i64, 
+    ClassName: string, 
+    WindowName: string, 
+    Style: i64,
+    x: i64, 
+    y: i64, 
+    nWidth: i64, 
+    nHeight: i64, 
+    hWndParent: HWND, 
+    hMenu: HMENU, 
+    hInstance: HINSTANCE) -> HWND;
+
+// ----
+include "../../src/win32/winuser.phs";

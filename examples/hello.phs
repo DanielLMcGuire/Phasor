@@ -1,7 +1,7 @@
 #!/usr/bin/env phasor
-include "stdsys.phs";
-include "stdio.phs";
-include "stdsmain.phs";
+include "std/sys.phs";
+include "std/io.phs";
+include "std/smain.phs";
 
 fn smain() 
 {

@@ -1,0 +1,7 @@
+fn GetTickCount() -> i64 {
+    return win32_GetTickCount();
+}
+
+fn GetTickCount64() -> i64 {
+    return win32_GetTickCount64();
+}

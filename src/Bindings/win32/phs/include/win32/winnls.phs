@@ -1,0 +1,12 @@
+// winnls.phs -- Win32 | winnls
+// https://learn.microsoft.com/en-us/windows/win32/api/winnls/
+
+// Returns the current Windows ANSI code page (ACP) identifier for the operating system. 
+// See Code Page Identifiers for a list of identifiers for Windows ANSI code pages and other code pages.
+fn GetACP() -> i64;
+
+// Returns the current OEM code page identifier for the operating system.
+fn GetOEMCP() -> i64;
+
+// ----
+include "../../src/win32/winnls.phs";

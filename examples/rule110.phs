@@ -1,7 +1,7 @@
 #!/usr/bin/env phasor
 include "./rule110/logic.phs";
-include "stdtype.phs";
-include "stdmain.phs";
+include "std/type.phs";
+include "std/main.phs";
 
 fn main(args: string[]) -> int {
     if (args.len() < 4) {

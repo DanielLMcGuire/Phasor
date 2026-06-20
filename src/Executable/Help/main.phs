@@ -1,5 +1,5 @@
 include "./phasor_help.phs";
-include "stdmain.phs";
+include "std/main.phs";
 
 fn main(args: string[]) -> int {
     if (args.len() == 3) {

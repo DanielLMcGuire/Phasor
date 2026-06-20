@@ -1,0 +1,6 @@
+include "../../include/win32/types/handle.phs";
+
+fn CloseHandle(object: HANDLE) -> bool {
+    if (object.data == null) return win32_CloseHandle(null);
+    return win32_CloseHandle(phs__noimport("to_int", object.data));
+}

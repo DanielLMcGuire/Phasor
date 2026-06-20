@@ -723,3 +723,5 @@ examples/*.phir
 /profdata
 phasor.profdata
 !src/Bindings/win32/
+!src/Bindings/win32/phs/src/win32
+!src/Bindings/win32/phs/include/win32

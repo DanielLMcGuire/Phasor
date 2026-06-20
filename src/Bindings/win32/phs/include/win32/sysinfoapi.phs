@@ -1,0 +1,11 @@
+// sysinfoapi.phs -- Win32 | sysinfoapi
+// https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/
+
+// Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.
+fn GetTickCount() -> i64;
+
+// Retrieves the number of milliseconds that have elapsed since the system was started.
+fn GetTickCount64() -> i64;
+
+// ----
+include "../../src/win32/sysinfoapi.phs";

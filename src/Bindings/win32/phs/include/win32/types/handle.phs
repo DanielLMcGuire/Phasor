@@ -1,0 +1,25 @@
+struct HANDLE {
+    data: any // int / null
+}
+
+struct HWND {
+    data: any // int / null
+}
+
+struct HINSTANCE {
+    data: any // int / null
+}
+
+struct HMODULE {
+    data: any // int / null
+}
+
+struct HMENU {
+    data: any // int / null
+}
+
+var NULL_HANDLE: HANDLE = HANDLE{ data: null };
+var NULL_HWND: HWND = HWND{ data: null };
+var NULL_HINSTANCE: HINSTANCE = HINSTANCE{ data: null };
+var NULL_HWND: HMODULE = HMODULE{ data: null };
+var NULL_HMENU: HMENU = HMENU{ data: null };

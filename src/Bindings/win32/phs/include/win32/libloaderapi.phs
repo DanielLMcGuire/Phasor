@@ -1,0 +1,13 @@
+// libloaderapi.phs -- Win32 | libloaderapi
+// https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/
+include "./types/handle.phs";
+
+// Retrieves a module handle for the specified module. The module must have been loaded by the calling process.
+fn GetModuleHandle(ModuleName: string) -> HANDLE;
+
+// Loads the specified module i64o the address space of the calling process. 
+// The specified module may cause other modules to be loaded.
+fn LoadLibrary(LibFileName: string) -> HINSTANCE;
+
+// ----
+include "../../src/win32/libloaderapi.phs";

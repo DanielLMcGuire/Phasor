@@ -1,0 +1,7 @@
+include "./libloaderapi.phs";
+
+fn win_main(hInstance: HINSTANCE, args: string[]) -> int;
+
+var args: string[] = phs__std_noimport("sys_args");
+var hInstance: HINSTANCE = HINSTANCE{ data: GetModuleHandle(null).data };
+phs__std_noimport("shutdown", win_main(hInstance, args));

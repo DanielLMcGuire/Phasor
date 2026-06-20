@@ -1,0 +1,48 @@
+include "./winhandle.phs";
+
+struct LPVOID {
+    data: any
+}
+
+struct POINT {
+    x: i64,
+    y: i64
+}
+
+struct RECT {
+    left: i64,
+    top: i64,
+    right: i64,
+    bottom: i64
+}
+
+struct WNDCLASSEXW {
+    cbSize: i64,
+    style: i64, // can be 0
+    lpfnWndProc: i64, // can be 0
+    cbCIsExtra: i64, // can be 0
+    cbWndExtra: i64, // can be 0
+    hInstance: HINSTANCE,
+    hIcon: i64, // can be 0
+    hCursor: i64, // can be 0
+    hbrBackground: i64,
+    lpszMenuName: string, // can be ""
+    hIconSm: i64 // can be 0
+}
+
+var NULL_LPVOID: LPVOID = LPVOID{ data: null };
+var EMPTY_POINT: POINT = POINT{x: 0, y: 0};
+var EMPTY_RECT: RECT = RECT{left: 0, top: 0, right: 0, bottom: 0};
+var EMPTY_WNDCLASSEXW: WNDCLASSEXW = WNDCLASSEXW{
+    cbSize: 0,
+    style: 0,
+    lpfnWndProc: 0,
+    cbCIsExtra: 0,
+    cbWndExtra: 0,
+    hInstance: NULL_HINSTANCE,
+    hIcon: 0,
+    hCursor: 0,
+    hbrBackground: 0,
+    lpszMenuName: "",
+    hIconSm: 0
+};

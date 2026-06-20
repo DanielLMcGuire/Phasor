@@ -1,0 +1,14 @@
+// consoleapi2.phs -- Win32 | consoleapi2
+// https://learn.microsoft.com/en-us/windows/win32/api/consoleapi2/
+
+// Retrieves the input code page used by the console associated with the calling process. 
+// A console uses its input code page to translate keyboard input into the corresponding character value.
+fn GetConsoleCP() -> i64;
+
+// Retrieves the output code page used by the console associated with the calling process. 
+// A console uses its output code page to translate the character values written by the various 
+// output functions into the images displayed in the console window.
+fn GetConsoleOutputCP() -> i64;
+
+// ----
+include "../../src/win32/consoleapi2.phs";

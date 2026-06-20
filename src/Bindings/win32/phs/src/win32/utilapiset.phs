@@ -1,0 +1,3 @@
+fn Beep(freq: i64, duration: i64) -> bool {
+    return win32_Beep(freq, duration);
+}

@@ -1,0 +1,3 @@
+fn GetLastError() -> int {
+    return win32_GetLastError();
+}

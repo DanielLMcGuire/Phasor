@@ -1,9 +1,9 @@
 #!/usr/bin/env phasor
 include "./clocf/types.phs";
 include "./clocf/logic.phs";
-include "stdio.phs";
-include "stdtype.phs";
-include "stdmain.phs";
+include "std/io.phs";
+include "std/type.phs";
+include "std/main.phs";
 
 fn main(args: string[]) -> int {
     if (args.len() > 1 && (args[1] == "--help" || args[1] == "-h")) {

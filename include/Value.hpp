@@ -16,7 +16,9 @@
 // with structs, arrays, and strings heap-allocated via std::shared_ptr. Provides arithmetic,
 // comparison, and logical operators, and isTruthy() and toString().
 //
-// Also includes a std::formatter<Phasor::Value> implementation for use with std::format (or std::print).
+// Includes full JSON serialization/deserialization logic as well via jsonSerialize() and from_json().
+// 
+// Includes a std::formatter<Phasor::Value> implementation for use with std::format (or std::print).
 // Supports four format specifiers: default (value as-is), t (type name only),
 // T (type and value), ? (debug repr with quoted strings and recursive expansion), and
 // q (quoted strings, default otherwise).
@@ -232,7 +234,19 @@ class Value
 		{
 			return static_cast<i64>(std::get<f64>(data));
 		}
+        if (isString()) {
+			if (std::get<PhsString>(data).length() == 1)
+				return static_cast<i64>(std::get<PhsString>(data).c_str()[0]);
+		}
+		
 		return 0;
+	}
+	/// @brief Get an int value as a ASCII char
+	[[nodiscard]] PhsString intToAscii() const noexcept 
+	{
+		if (!isInt()) return "";
+		char output[2] = { static_cast<char>(std::get<i64>(data)), '\0'};
+		return output;
 	}
 	/// @brief Get the value as a f64
 	[[nodiscard]] f64 asFloat() const noexcept

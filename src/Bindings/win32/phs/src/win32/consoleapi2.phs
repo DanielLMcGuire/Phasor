@@ -1,0 +1,7 @@
+fn win32_GetConsoleCP() -> int {
+    return win32_GetConsoleCP();
+}
+
+fn GetConsoleOutputCP() -> int {
+    return win32_GetConsoleOutputCP();
+}

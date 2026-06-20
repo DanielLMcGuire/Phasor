@@ -1,0 +1,7 @@
+fn GetCurrentProcessId() -> i64 {
+    return win32_GetCurrentProcessId();
+}
+
+fn GetCurrentThreadId() -> i64 {
+    return win32_GetCurrentThreadId();
+}

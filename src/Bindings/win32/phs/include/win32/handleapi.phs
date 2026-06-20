@@ -1,0 +1,10 @@
+// handleapi.phs -- Win32 | handleapi
+// https://learn.microsoft.com/en-us/windows/win32/api/handleapi/
+
+include "./types/handle.phs";
+
+// Closes an open object handle.
+fn CloseHandle(object: HANDLE) -> bool;
+
+// ----
+include "../../src/win32/handleapi.phs";

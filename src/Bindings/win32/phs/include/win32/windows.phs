@@ -1,0 +1,7 @@
+// windows.phs -- Win32
+// https://learn.microsoft.com/en-us/windows/win32/
+include "./types/wintypes.phs";
+
+include "./winbase.phs";
+include "./winnt.phs";
+include "./winuser.phs";

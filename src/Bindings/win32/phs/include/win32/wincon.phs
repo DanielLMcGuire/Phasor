@@ -1,0 +1,3 @@
+// wincon.phs -- Win32
+
+include "./consoleapi2.phs";

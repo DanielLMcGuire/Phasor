@@ -1,17 +1,21 @@
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp
-    COMMAND $<TARGET_FILE:phasor_cxx_transpiler> "${CMAKE_CURRENT_SOURCE_DIR}/main.phs" -o "${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp" -H -I "${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor"
+    COMMAND $<TARGET_FILE:phasor_cxx_transpiler> "${CMAKE_CURRENT_SOURCE_DIR}/main.phs" -o "${CMAKE_CURRENT_BINARY_DIR}/phasor_help.hpp" -H -I "${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include"
     DEPENDS 
         ${CMAKE_CURRENT_SOURCE_DIR}/phasor_help.phs 
         phasor_cxx_transpiler
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdio.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdsys.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdstr.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdtype.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdmeta.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdfile.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdmem.phs
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/stdmain.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/io.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/src/std/io.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/sys.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/src/std/sys.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/str.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/type.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/meta.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/src/std/meta.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/file.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/src/std/file.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/mem.phs
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include/std/main.phs
     COMMENT "Building PHS bytecode phasor_help.hpp"
 )
 

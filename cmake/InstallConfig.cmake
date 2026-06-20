@@ -54,9 +54,21 @@ elseif(WIN32)
         PATTERN "*.md5" EXCLUDE
     )
     install(DIRECTORY
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/
-        DESTINATION phsinclude
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
+        DESTINATION phasor
     )
+    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
+    install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/Bindings/win32/phs/
+        DESTINATION phasor
+    )
+    if(MSYS)
+        install(TARGETS phasor_posix_bindings
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+            RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
+        )
+    endif()
 elseif(APPLE)
     install(TARGETS
         phasor_main
@@ -88,8 +100,12 @@ elseif(APPLE)
         PATTERN "*.md5" EXCLUDE
     )
     install(DIRECTORY
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/
-        DESTINATION opt/phasor/include
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
+        DESTINATION opt/phasor
+    )
+    install(TARGETS phasor_posix_bindings
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+        RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
 else()
     install(TARGETS
@@ -121,7 +137,11 @@ else()
         PATTERN "*.md5" EXCLUDE
     )
     install(DIRECTORY
-        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phasor/
-        DESTINATION opt/phasor/include
+        ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
+        DESTINATION opt/phasor
+    )
+    install(TARGETS phasor_posix_bindings
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+        RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
 endif()

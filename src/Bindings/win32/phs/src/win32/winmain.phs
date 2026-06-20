@@ -1,0 +1,32 @@
+include "../../include/win32/types/handle.phs";
+include "../../include/win32/winuser.phs"
+
+fn win__pre() -> HINSTANCE {
+    assert(phs__std_noimport("sys_os") == 0);
+    var handle: HANDLE = HANDLE{ data: GetModuleHandle(null) };
+    if (!handle || !handle.data) {
+        var err: int = GetLastError();
+        var msg: string = "GetModuleHandle() returned null";
+        if (err == null) {
+            MessageBox(NULL_HWND, concat(msg, " , unknown error (GetLastError() returned null)."), "Phasor Windows API Bindings", MB.OK + MB.ICONERROR + MB.SETFOREGROUND);
+        } else {
+            MessageBox(NULL_HWND, phs__std_noimport("c_fmt", "%s error: %d", msg, err), "Phasor Windows API Bindings", MB.OK + MB.ICONERROR + MB.SETFOREGROUND);
+            return err;
+        }
+        return -2147467259;
+    }
+    return HINSTANCE{ data: handle.data };
+}
+
+fn win__post(ret: i64) -> i64 {
+    if (ret == null) return 87; // 0x57 "The parameter is incorrect."
+    return ret;
+}
+
+fn win__init() {
+    var hInstance: HINSTANCE = win_pre();
+    var args: string[] = phs__std_noimport("sys_args")
+    phs__std_noimport("shutdown", win_post(WinMain(hInstance, args)));
+}
+
+win__init();

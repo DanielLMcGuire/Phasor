@@ -1,0 +1,17 @@
+// winbase.phs -- Win32 winbase
+// https://learn.microsoft.com/en-us/windows/win32/api/winbase/
+
+include "./errhandlingapi.phs";
+include "./sysinfoapi.phs";
+include "./processthreadsapi.phs";
+include "./utilapiset.phs";
+include "./processenv.phs";
+include "./libloaderapi.phs";
+include "./handleapi.phs";
+
+// Multiplies two 32-bit values and then divides the 64-bit result by a third 32-bit value.
+// If either an overflow occurred or nDenominator was 0, the return value is -1.
+fn MulDiv(number: i64, numerator: i64, denominator: i64) -> i64;
+
+// ----
+include "../../src/win32/winbase.phs";
