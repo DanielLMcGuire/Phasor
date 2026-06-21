@@ -19,6 +19,8 @@ You can check out the [website](https://phasor.pages.dev/) as well.
 
 [Download Latest Stable](https://github.com/DanielLMcGuire/Phasor/releases/latest)
 
+[Download Latest Beta](https://github.com/DanielLMcGuire/Phasor/releases/tag/4.0.0-beta.1)
+
 [Download Latest Nightly](https://github.com/DanielLMcGuire/Phasor/actions/workflows/nightly.yml?query=is%3Asuccess+branch%3Amaster)
 
 ```bash
