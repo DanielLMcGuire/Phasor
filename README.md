@@ -170,9 +170,16 @@ This repo contains:
   - [Phasor Compiler Infrastructure](src/Codegen) (C++)
   - [FFI API](include/PhasorFFI.h) (C)
   - [Runtime API](include/PhasorRT.h) (C)
-- Extensions:
+- FFI Bindings:
+  - SDL2 [Bindings](src/Executable/Bindings/sdl2/sdl2_main.cpp) (C++), [Type-safe wrapper](src/Bindings/sdl2/phs) (Phasor)
+  - POSIX [Bindings](src/Executable/Bindings/posix) (C)
+  - win32 [Binding Generator](src/Executable/Bindings/win32/bindgen_main.cpp) (C++), [template](scripts/winapi.h), [Type-safe wrapper](src/Bindings/win32/phs) (Phasor)
+  - AppleScript [C Bindings](src/Bindings/macOS) (Objective-C),  [Bindings](src/Executable/Bindings/macOS/main.c) (C)
+- Extensions/Support:
   - [Phasor](src/Extensions/Phasor.tmLanguage) & [Phasor IR](src/Extensions/phasor-ir.tmLanguage) TextMate Grammar
-  - [Phasor Visual Studio Code Extension](src/Extensions/vscode) (Typescript)
+  - [Language Definition](src/Extensions/phasor.cloc) for [CLOC](https://github.com/aldanial/cloc)
+  - [FILE Magic](src/Extensions/unix/phasor.magic)
+  - [Phasor Visual Studio Code Extension](src/Extensions/vscode) (TypeScript)
   - [Python Module](https://phasor-docs.pages.dev/man?f=phasor-py.3) `src/Extensions/py/phasor`
 
     ```python
@@ -203,9 +210,9 @@ This repo contains:
     # stdlib is already registered if not using your own state
     Register-PhasorStdlib -State $vm 
 
-    Start-PhasorEval -State $vm -Script 'var x = 42; var y = 53;'
+    Start-PhasorEval -State $vm -Script 'var x: int = 42; var y: int = 53;'
     # x and y still in scope
-    Start-PhasorEval -State $vm -Script 'print(x + y);' 
+    Start-PhasorEval -State $vm -Script 'print(x + y);'
     
     # all states are cleared at powershell shutdown, but to clear them early:
     Remove-PhasorState $vm
@@ -218,7 +225,7 @@ This repo contains:
   - [phasor-web REST API](src/Extensions/web) `src/Extensions/web` (Typescript, Node 22)
 
     ```bash
-    $ curl -d 'using("stdio"); puts("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
+    $ curl -d 'include "std/io.phs"; puts("Hi!");' -H "x-api-key: API_KEY" http://0.0.0.0:62811/run
     {stdout: "Hi!\n", stderr: "", exitCode = 0}
     ```
 
@@ -300,6 +307,7 @@ This repo contains:
     - [GCC 14 or later](https://gcc.gnu.org/install/)
     - [Clang 17 or later](https://releases.llvm.org/)
 - Optional:
+  - [SDL2] (fetched automatically if enabled during build via FetchContent)
   - [Rust Toolchain (latest stable)](https://rust-lang.org/tools/install/) for the `phasorrt-rs` lib
   - [CPython 3.9 or later](https://www.python.org/downloads/) (or another Python compliant interpreter) for the Python API
   - [PowerShell latest](https://github.com/PowerShell/PowerShell/releases/) for the PowerShell module
@@ -321,6 +329,7 @@ See [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/B
 - Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`, `.\phasornative\`
 
 #### Includes
+
 > [!NOTE]
 >
 > Place source at `$your_os_include_path/../src/` if needed.
