@@ -17,7 +17,7 @@ Phasor is not considered entirely stable yet, as I wish for a **smooth, stable e
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
-[Download Latest Stable](https://github.com/DanielLMcGuire/Phasor/releases/latest)
+[Download Latest Stable](https://github.com/DanielLMcGuire/Phasor/releases/tag/3.3.0)
 
 [Download Latest Beta](https://github.com/DanielLMcGuire/Phasor/releases/tag/4.0.0-beta.1)
 
