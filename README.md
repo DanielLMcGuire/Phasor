@@ -13,7 +13,7 @@ See [Language Features](#language-features) for more info on memory management.
 
 See [Building](#building) for info on building from source.
 
-Phasor is stable, but still in beta, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs ***some* work**. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
+Phasor is not considered entirely stable yet, as I wish for a **smooth, stable experience** for the final language. The existing implementation still needs ***some* work**. The ABI is not stable, but conforms to semver most of the time (thus why this is `3.X.X` and still in beta.)
 
 You can check out the [website](https://phasor.pages.dev/) as well.
 
