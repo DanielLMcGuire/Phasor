@@ -2,11 +2,9 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| >= 3.1.X   | :white_check_mark: |
-| = 3.0.X | :eight_spoked_asterisk: |
-| < 3.1.X | :x:                |
+Only the latest version is actively supported for security updates.
+
+Help can be inquired for any version, although the answer is most likely to update to latest.
 
 :eight_spoked_asterisk: - Partial support
 
