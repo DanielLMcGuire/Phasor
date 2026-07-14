@@ -334,7 +334,7 @@ See [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/B
 
 > [!NOTE]
 >
-> Place source at `$your_os_include_path/../src/` if needed.
+> Place source at `$your_include_path/../src/`, for reference, see the stdlib.
 >
 >Includes should only contain forward declarations to source code, global variable/type declarations, or out of scope code. Includes are internally deduplicated by the compiler.
 >
@@ -343,8 +343,10 @@ See [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/B
 - Unix - `/opt/phasor/include`
 - macOS `/Library/Application Support/org.Phasor.Phasor/include`
 - Windows:
-  - Private (Runtime): `C:\Program Files\Phasor Programming Language\phasor\include`
+  - Private (Runtime): `C:\Program Files\Phasor Programming Language\opt\include`
   - Public: `C:\ProgramData\Phasor Programming Language\include`
+
+Adding additional include directories can be done by setting the PHASOR_INCLUDE_PATH enviroment variable (you can use the ; delimiter.)
 
 ---
 
