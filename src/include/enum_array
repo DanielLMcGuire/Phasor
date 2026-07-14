@@ -7,6 +7,7 @@
 #include <meta> // C++26 Static reflection
 #include <ranges>
 #include <stdexcept>
+#include <utility>
 
 /**
  * @brief Enumerated array
@@ -15,9 +16,11 @@
  */
 template<typename Enum, typename T>
 struct enum_array : std::array<T, std::meta::enumerators_of(^^Enum).size()> {
-    using Base::operator[];
     static constexpr auto _info = std::define_static_array(std::meta::enumerators_of(^^Enum));
     static constexpr std::size_t N = _info.size();
+
+    using Base = std::array<T, N>;
+    using Base::operator[];
 
     static_assert([] {
         auto vals = _info | std::views::transform([](auto e) {
@@ -29,8 +32,6 @@ struct enum_array : std::array<T, std::meta::enumerators_of(^^Enum).size()> {
                 if (vals[i] == vals[j]) return false;
         return true;
     }(), "enum_array: enum contains duplicate values");
-
-    using Base = std::array<T, N>;
 
     constexpr const T& operator[](Enum e) const {
         return Base::operator[](to_index(e));
