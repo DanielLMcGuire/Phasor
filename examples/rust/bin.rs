@@ -30,13 +30,10 @@ fn run_disassembly_command(bytecode_path: &Path) -> Result<(), Box<dyn std::erro
 
     let disassembly_path = bytecode_path.with_extension("phir");
 
-    match fs::read_to_string(&disassembly_path) {
-        Ok(disassembly) => {
-            println!("Disassembly Output:\n{}", disassembly);
-        }
-        Err(err) => {
-            eprintln!("Failed to read disassembly file: {}", err);
-        }
+    if disassembly_path.exists() {
+        println!("Disassembly file exists");
+    } else {
+        println!("Disassembly file does not exist");
     }
 
     Ok(())
@@ -49,14 +46,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     vm.init_stdlib()?;
 
     let script = "
-using(\"stdsys\");
+include \"std/io.phs\";
+include \"std/sys.phs\";
 fn main() -> int {
-    using(\"stdio\", \"stdfile\");
-    puts(fcd());
     var x: int = 15;
     var y: int = 22;
     var z: int = x + y;
-    putf(\"Hello, World! %d + %d = %d\", x, y, z);
     return z;
 }
 shutdown(main());";
