@@ -26,7 +26,7 @@ fn conemu_wait_for_input() {
 
 fn conemu_guimacro(txt: string) -> string {
     phs__std_noimport("printf", "\e]9;6;%s\a", txt);
-    if (phs__std_noimport("sys_os") == "sandbox") return "";
+    if (phs__std_noimport("sys_os") == 6) return "";
     return phs__std_noimport("sys_env", "ConEmuMacroResult");
 }
 

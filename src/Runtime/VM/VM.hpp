@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Codegen/CodeGen.hpp"
+#include "../../Codegen/Bytecode.hpp"
 #ifndef CMAKE_PCH
 #include <Value.hpp>
 #endif

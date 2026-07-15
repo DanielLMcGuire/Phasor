@@ -134,7 +134,7 @@ static const char *parse(const char *f, Spec &s, va_list &ap)
     return f;
 }
 
-static std::string build_fmt(const Spec &s, const char *len_override, char conv)
+static std::string build_fmt_stl(const Spec &s, const char *len_override, char conv)
 {
     std::string f = "%";
     if (s.minus) f += '-';
@@ -145,6 +145,22 @@ static std::string build_fmt(const Spec &s, const char *len_override, char conv)
     if (s.quote) f += '\'';
     if (s.width > 0) f += std::to_string(s.width);
     if (s.prec  >= 0) { f += '.'; f += std::to_string(s.prec); }
+    f += len_override;
+    f += conv;
+    return f;
+}
+
+static Phasor::PhsString build_fmt_phs(const Spec &s, const char *len_override, char conv)
+{
+    Phasor::PhsString f = "%";
+    if (s.minus) f += '-';
+    if (s.plus) f += '+';
+    if (s.space) f += ' ';
+    if (s.hash) f += '#';
+    if (s.zero) f += '0';
+    if (s.quote) f += '\'';
+    if (s.width > 0) f += Phasor::Value(s.width).asString();
+    if (s.prec  >= 0) { f += '.'; f += Phasor::Value(s.prec).asString(); }
     f += len_override;
     f += conv;
     return f;
@@ -197,7 +213,7 @@ static std::string fmt_signed(const Spec &s, va_list &ap)
             val = va_arg(ap, int);
             break;
     }
-    std::string f = build_fmt(s, "ll", s.conv);
+    std::string f = build_fmt_stl(s, "ll", s.conv);
     return snprintf_into(hint(s), [&](char *b, int n){
         return std::snprintf(b, n, f.c_str(), val);
     });
@@ -232,7 +248,7 @@ static std::string fmt_unsigned(const Spec &s, va_list &ap)
             val = va_arg(ap, unsigned int);
             break;
     }
-    std::string f = build_fmt(s, "ll", s.conv);
+    std::string f = build_fmt_stl(s, "ll", s.conv);
     return snprintf_into(hint(s), [&](char *b, int n){
         return std::snprintf(b, n, f.c_str(), val);
     });
@@ -242,13 +258,13 @@ static std::string fmt_float(const Spec &s, va_list &ap)
 {
     if (s.length == Length::L) {
         long double val = va_arg(ap, long double);
-        std::string f = build_fmt(s, "L", s.conv);
+        std::string f = build_fmt_stl(s, "L", s.conv);
         return snprintf_into(hint(s), [&](char *b, int n){
             return std::snprintf(b, n, f.c_str(), val);
         });
     } else {
         double val = va_arg(ap, double);
-        std::string f = build_fmt(s, "", s.conv);
+        std::string f = build_fmt_stl(s, "", s.conv);
         return snprintf_into(hint(s), [&](char *b, int n){
             return std::snprintf(b, n, f.c_str(), val);
         });
@@ -416,9 +432,9 @@ inline int printf(const char *fmt, ...)
     return r;
 }
 
-inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value> &args)
+inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor::Value> &args)
 {
-    std::string result;
+    Phasor::PhsString result;
     result.reserve(128);
 
     const char *f = fmt;
@@ -439,8 +455,6 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
         }
 
         detail::Spec s;
-
-        // ---- SAFE MANUAL PARSER (NO va_list) ----
 
         while (true) {
             switch (*f) {
@@ -520,7 +534,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 else if (type == Phasor::ValueType::Float)
                     v = (long long)val.asFloat();
 
-                std::string fmtStr = detail::build_fmt(s, "ll", s.conv);
+                Phasor::PhsString fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -538,7 +552,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 else if (type == Phasor::ValueType::Float)
                     v = (unsigned long long)val.asFloat();
 
-                std::string fmtStr = detail::build_fmt(s, "ll", s.conv);
+                Phasor::PhsString fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -559,7 +573,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 else if (type == Phasor::ValueType::Bool)
                     v = val.asBool() ? 1.0 : 0.0;
 
-                std::string fmtStr = detail::build_fmt(s, "", s.conv);
+                Phasor::PhsString fmtStr = detail::build_fmt_phs(s, "", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -568,7 +582,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
             }
 
             case 's': {
-                std::string str;
+                Phasor::PhsString str;
 
                 if (type == Phasor::ValueType::String)
                     str = val.asString();
@@ -577,7 +591,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 else if (type == Phasor::ValueType::Null)
                     str = "(null)";
                 else
-                    str = val.jsonSerialize().str();
+                    str = val.jsonSerialize();
 
                 std::size_t len = (s.prec >= 0)
                     ? std::min((std::size_t)s.prec, str.size())
@@ -615,7 +629,7 @@ inline std::string str_format_v(const char *fmt, const std::vector<Phasor::Value
                 else
                     ptr = nullptr;
 
-                std::string fmtStr = "%";
+                Phasor::PhsString fmtStr = "%";
                 if (s.minus) fmtStr += '-';
                 if (s.width > 0) fmtStr += std::to_string(s.width);
                 fmtStr += 'p';

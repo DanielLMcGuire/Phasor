@@ -296,7 +296,7 @@ i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "error", true);
+	checkArgCount(args, 0, "error");
 	vm->reset();
 	vm->setStatus(-1);
 	throw std::runtime_error(args[0].asString());

@@ -121,7 +121,7 @@ inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volitio
 		return false;
 #endif
 	}
-	std::println("");
+	std::puts("");
 	while (true) {
 		std::string line;
 		std::print("{} {} ", prompt, default_val ? "[Y/n]" : "[y/N]");

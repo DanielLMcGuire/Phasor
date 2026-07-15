@@ -168,10 +168,13 @@ extern "C"
 			Phasor::Lexer              lexer(script);
 			Phasor::Parser             parser(lexer.tokenize());
 
+			auto includeDirs = fetchIncludeDirs();
 			if (modulePath && std::filesystem::exists(modulePath))
 			{
 				parser.setSourcePath(modulePath);
+				includeDirs.push_back(modulePath);
 			}
+			parser.setIncludePaths(includeDirs);
 
 			auto                 ast = parser.parse();
 			auto                 bc = codegen.generate(*ast);

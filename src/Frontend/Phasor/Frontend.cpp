@@ -1,5 +1,6 @@
 #include "../../Language/Phasor/Lexer/Lexer.hpp"
 #include "../../Language/Phasor/Parser/Parser.hpp"
+#include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"

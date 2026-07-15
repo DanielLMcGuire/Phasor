@@ -51,3 +51,19 @@ fn run_program_function(program: Bytecode, functionName: string, func_arguments:
 fn get_alloc_info() -> alloc_info {
     return phs__std_noimport("phs__phs_alloc_info");
 }
+
+fn load_bytecode(file_path: string) -> Bytecode {
+    return phs__std_noimport("phs__load_bytecode", file_path);
+}
+
+fn save_bytecode(program: Bytecode, file_path: string) -> bool {
+    return phs__std_noimport("phs__save_bytecode", program, file_path);
+}
+
+fn vm_push(value: any) -> void {
+    phs__std_noimport("phs_push", value);
+}
+
+fn vm_pop() -> any {
+    return phs__std_noimport("phs_pop");
+}

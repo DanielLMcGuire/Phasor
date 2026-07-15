@@ -1,0 +1,12 @@
+var phs_type: any = {
+    int: "int",
+    i64: "int",
+    float: "float",
+    f64: "float",
+    object: "struct",
+    array: "array",
+    string: "string",
+    bool: "bool",
+    void: "null",
+    unknown: "unknown"
+};

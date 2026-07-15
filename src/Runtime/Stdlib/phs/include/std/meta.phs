@@ -37,5 +37,13 @@ fn run_program_function(
 
 fn get_alloc_info() -> alloc_info;
 
+fn load_bytecode(file_path: string) -> Bytecode;
+
+fn save_bytecode(program: Bytecode, file_path: string) -> bool;
+
+fn vm_push(value: any) -> void;
+
+fn vm_pop() -> any;
+
 // ----
 include "../../src/std/meta.phs";

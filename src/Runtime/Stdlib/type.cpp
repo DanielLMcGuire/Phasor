@@ -13,6 +13,9 @@ void StdLib::registerTypeConvFunctions(VM *vm)
 	vm->registerNativeFunction("to_json", StdLib::to_json);
 	vm->registerNativeFunction("from_json", StdLib::from_json);
 	vm->registerNativeFunction("ascii_to_string", StdLib::ascii_to_string);
+	vm->registerNativeFunction("get_elements", StdLib::get_struct_elements);
+	vm->registerNativeFunction("get_elements_values", StdLib::get_struct_elements_values);
+	vm->registerNativeFunction("get_type", StdLib::get_type);
 }
 
 i64 StdLib::to_int(const std::vector<Value> &args, VM *)
@@ -78,6 +81,67 @@ PhsString StdLib::ascii_to_string(const std::vector<Value> &args, VM *) {
 	if (!args[0].isInt())
 		throw std::runtime_error("ascii_to_string expects an integer argument");
 	return args[0].intToAscii();
+}
+
+Value StdLib::get_struct_elements(const std::vector<Value> &args, VM *)
+{
+    checkArgCount(args, 1, "get_elements");
+
+    const auto &structVal = args[0];
+    if (!structVal.isStruct())
+    {
+        throw std::runtime_error("meta_get_struct_elements: argument is not a struct");
+    }
+
+    const auto structPtr = structVal.asStruct();
+    if (!structPtr)
+    {
+        throw std::runtime_error("meta_get_struct_elements: struct instance is null");
+    }
+
+    std::vector<Value> keys;
+    keys.reserve(structPtr->fields.size());
+
+    for (const auto &[key, _] : structPtr->fields)
+    {
+        keys.push_back(key);
+    }
+
+    return Value::createArray(std::move(keys));
+}
+
+Value StdLib::get_struct_elements_values(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "get_elements_values");
+
+	const auto &structVal = args[0];
+	if (!structVal.isStruct())
+	{
+		throw std::runtime_error("get_elements_values: argument is not a struct");
+	}
+
+	const auto structPtr = structVal.asStruct();
+	if (!structPtr)
+	{
+		throw std::runtime_error("get_elements_values: struct instance is null");
+	}
+
+	std::vector<Value> values;
+	values.reserve(structPtr->fields.size());
+
+	for (const auto &[key, value] : structPtr->fields)
+	{
+		values.push_back(value);
+	}
+
+	return Value::createArray(std::move(values));
+}
+
+PhsString StdLib::get_type(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "get_type");
+	auto type = args[0].getType();
+	return Value::typeToString(type).asString();
 }
 
 } // namespace Phasor

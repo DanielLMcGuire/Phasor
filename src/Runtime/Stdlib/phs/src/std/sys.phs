@@ -12,5 +12,5 @@
 using("stdsys");
 
 fn is_sandboxed() -> bool {
-    return phs__std_noimport("sys_os") == "sandbox";
+    return phs__std_noimport("sys_os") == 6;
 }

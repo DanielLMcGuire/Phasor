@@ -1,6 +1,5 @@
 #pragma once
-#include "../CodeGen.hpp"
-#include <cstdint>
+#include "../Bytecode.hpp"
 #include <fstream>
 #include <string>
 #include <vector>

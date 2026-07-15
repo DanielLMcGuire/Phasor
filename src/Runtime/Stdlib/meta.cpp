@@ -3,6 +3,8 @@
 #include <phsint.hpp>
 #include <../ISA/map.hpp>
 #include <../Codegen/PhasorStruct/PhasorStruct.hpp>
+#include <../Codegen/Bytecode/BytecodeDeserializer.hpp>
+#include <../Codegen/Bytecode/BytecodeSerializer.hpp>
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -22,16 +24,17 @@ void StdLib::registerMetaFunctions(VM *vm)
 #ifndef SANDBOXED
 	vm->registerNativeFunction("phs_op", StdLib::meta_operation);
 	vm->registerNativeFunction("phs_stack_run", StdLib::meta_stack_run);
+	// vm->registerNativeFunction("phs__phs_push", StdLib::meta_push);
+	// vm->registerNativeFunction("phs__phs_pop", StdLib::meta_pop);
 #endif
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
 	// vm->registerNativeFunction("phs__phs_alloc_info", StdLib::meta_get_alloc_info);
-	vm->registerNativeFunction("get_elements", StdLib::meta_get_struct_elements);
-	vm->registerNativeFunction("get_elements_values", StdLib::meta_get_struct_elements_values);
 	// vm->registerNativeFunction("phs__get_self", StdLib::meta_get_self);
     // vm->registerNativeFunction("phs__run_program", StdLib::meta_run_program);
     // vm->registerNativeFunction("phs__run_program_function", StdLib::meta_run_program_function);
 	vm->registerNativeFunction("get_registers", StdLib::meta_get_registers);
-	vm->registerNativeFunction("get_type", StdLib::meta_get_type);
+	// vm->registerNativeFunction("phs__load_bytecode", StdLib::meta_load_bytecode_from_file);
+	// vm->registerNativeFunction("phs__save_bytecode", StdLib::meta_save_bytecode_to_file);
 }
 
 #ifndef SANDBOXED
@@ -119,60 +122,6 @@ Value StdLib::meta_get_alloc_info(const std::vector<Value> &args, VM *)
 	return result;
 }
 
-Value StdLib::meta_get_struct_elements(const std::vector<Value> &args, VM *)
-{
-    checkArgCount(args, 1, "get_elements");
-
-    const auto &structVal = args[0];
-    if (!structVal.isStruct())
-    {
-        throw std::runtime_error("meta_get_struct_elements: argument is not a struct");
-    }
-
-    const auto structPtr = structVal.asStruct();
-    if (!structPtr)
-    {
-        throw std::runtime_error("meta_get_struct_elements: struct instance is null");
-    }
-
-    std::vector<Value> keys;
-    keys.reserve(structPtr->fields.size());
-
-    for (const auto &[key, _] : structPtr->fields)
-    {
-        keys.push_back(key);
-    }
-
-    return Value::createArray(std::move(keys));
-}
-
-Value StdLib::meta_get_struct_elements_values(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 1, "get_elements_values");
-
-	const auto &structVal = args[0];
-	if (!structVal.isStruct())
-	{
-		throw std::runtime_error("get_elements_values: argument is not a struct");
-	}
-
-	const auto structPtr = structVal.asStruct();
-	if (!structPtr)
-	{
-		throw std::runtime_error("get_elements_values: struct instance is null");
-	}
-
-	std::vector<Value> values;
-	values.reserve(structPtr->fields.size());
-
-	for (const auto &[key, value] : structPtr->fields)
-	{
-		values.push_back(value);
-	}
-
-	return Value::createArray(std::move(values));
-}
-
 Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm) 
 {
 	checkArgCount(args, 0, "get_registers");
@@ -185,19 +134,32 @@ Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm)
 	return reg_array;
 }
 
-Value StdLib::meta_get_type(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 1, "get_type");
-	auto type = args[0].getType();
-	return Value::typeToString(type);
-}
-
 Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
 {
     checkArgCount(args, 0, "phs__get_self");
     auto bc = vm->getBytecode();
 
     return bytecodeToValue(bc, vm);
+}
+
+Value StdLib::meta_load_bytecode_from_file(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "phs__load_bytecode");
+	std::filesystem::path bcFile = args[0].string();
+	BytecodeDeserializer deserializer;
+	if (!std::filesystem::exists(bcFile))
+		throw std::runtime_error("Bytecode file \"" + bcFile.string() + "\" does not exist!");
+	auto bc = deserializer.loadFromFile(bcFile);
+	return bytecodeToValue(bc);
+}
+
+bool StdLib::meta_save_bytecode_to_file(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 2, "phs__save_bytecode");
+	std::filesystem::path outFile = args[1].string();
+	BytecodeSerializer serializer;
+	auto bc = bytecodeFromValue(args[0]);
+	return serializer.saveToFile(bc, outFile);
 }
 
 i64 StdLib::meta_run_program(const std::vector<Value> &args, VM *)
@@ -256,6 +218,19 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
 
     auto ret = vm.runFunction(functionName, bc, true);
     return ret;
+}
+
+Value StdLib::meta_push(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "phs_push");
+	vm->push(args[0]);
+	return phsnull;
+}
+
+Value StdLib::meta_pop(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 0, "phs_pop");
+	return vm->pop();
 }
 
 } // namespace Phasor

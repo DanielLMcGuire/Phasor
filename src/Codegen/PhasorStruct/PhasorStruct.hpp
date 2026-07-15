@@ -85,7 +85,7 @@ inline Bytecode bytecodeFromValue(Value program) {
             if (funcVal.hasField("returnType"))
                 bc.functionReturnTypeNames[name] = funcVal["returnType"].asString();
             else
-                bc.functionReturnTypeNames[name] = "<unknown>";
+                bc.functionReturnTypeNames[name] = "unknown";
 
             std::vector<int> returnDims;
             if (funcVal.hasField("returnArrayDims"))
@@ -142,7 +142,7 @@ inline Bytecode bytecodeFromValue(Value program) {
     return bc;
 }
 
-inline Value bytecodeToValue(Bytecode &bc, VM *vm) {
+inline Value bytecodeToValue(Bytecode &bc, VM *vm = nullptr) {
     std::vector<std::pair<int, std::string>> sortedFuncs;
     sortedFuncs.reserve(bc.functionEntries.size());
     for (const auto& [name, entry] : bc.functionEntries)
@@ -207,12 +207,17 @@ inline Value bytecodeToValue(Bytecode &bc, VM *vm) {
     auto vars_array = Value::createArray();
     auto& vars_vec = *vars_array.asArray();
     for (const auto& [name, idx] : bc.variables) {
-        auto var      = vm->getVariable(idx);
         auto var_info = Value::createStruct("VariableData");
         var_info["name"]  = name;
         var_info["index"] = static_cast<i64>(idx);
-        var_info["type"]  = Value::typeToString(var.getType());
-        var_info["value"] = var;
+        if (vm) {
+            auto var = vm->getVariable(idx);
+            var_info["type"]  = Value::typeToString(var.getType());
+            var_info["value"] = var;
+        } else {
+            var_info["type"]  = Value("unknown");
+            var_info["value"] = Value("unknown");
+        }
         vars_vec.push_back(var_info);
     }
     bytecode_struct["variables"] = vars_array;
@@ -239,7 +244,7 @@ inline Value bytecodeToValue(Bytecode &bc, VM *vm) {
             ptv.push_back(
                 (param_names_it != bc.functionParamTypeNames.end() && i < (int)param_names_it->second.size())
                 ? Value(param_names_it->second[i])
-                : Value("<unknown>")
+                : Value("unknown")
             );
 
             auto dim_arr = Value::createArray();
@@ -255,7 +260,7 @@ inline Value bytecodeToValue(Bytecode &bc, VM *vm) {
         auto ret_name_it = bc.functionReturnTypeNames.find(name);
         func_info["returnType"] = (ret_name_it != bc.functionReturnTypeNames.end())
                                 ? Value(ret_name_it->second)
-                                : Value("<unknown>");
+                                : Value("unknown");
 
         auto ret_dims_arr = Value::createArray();
         auto& rdv = *ret_dims_arr.asArray();

@@ -8,7 +8,7 @@ set(STDLIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/string.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/random.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/typeconv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/type.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/array.cpp
 )
 

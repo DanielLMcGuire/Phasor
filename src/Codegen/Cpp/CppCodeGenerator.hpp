@@ -1,5 +1,5 @@
 #pragma once
-#include "../CodeGen.hpp"
+#include "../Bytecode.hpp"
 #include <filesystem>
 #include <sstream>
 #include <string>

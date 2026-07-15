@@ -9,6 +9,7 @@ set(CODEGEN_SOURCES
 
 set(CODEGEN_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/CodeGen.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeSerializer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.hpp
