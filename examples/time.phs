@@ -27,10 +27,6 @@ fn main(args: string[]) -> int {
             return 0;
         }
     } else {
-        if (args.len() != 1) {
-            puts_error(helpStr);
-            return 1;
-        }
         var times: timeStruct = getTimeStruct();
         putf("24:\n%*sUTC:%*s%s\n%*sLOCAL: %s", indent, "", indent + 1, "",
             times.TwentyFourHour.UTC, indent, "", times.TwentyFourHour.LOCAL);
