@@ -1,9 +1,9 @@
-.TH PHASORSTD_MATH 3 "January 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_MATH 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_math \- Phasor mathematical functions
 .SH SYNOPSIS
 .nf
-.B using("stdmath");
+.B include "std/math.phs";
 .PP
 .B math_sqrt(x)
 .B math_pow(base, exponent)
@@ -81,7 +81,7 @@ Number (converted to float)
 .RE
 .PP
 .B Returns:
-Largest integer less than or equal to x (as int64)
+Largest value less than or equal to x, returned as a float (e.g.\& \fB3.0\fR, not \fB3\fR)
 .RE
 .PP
 .TP
@@ -96,7 +96,7 @@ Number (converted to float)
 .RE
 .PP
 .B Returns:
-Smallest integer greater than or equal to x (as int64)
+Smallest value greater than or equal to x, returned as a float (e.g.\& \fB4.0\fR, not \fB4\fR)
 .RE
 .PP
 .TP
@@ -111,7 +111,7 @@ Number (converted to float)
 .RE
 .PP
 .B Returns:
-Nearest integer to x (as int64)
+Nearest value to x, returned as a float. Halfway values round away from zero (e.g.\& \fB2.5\fR rounds to \fB3.0\fR, \fB\-2.5\fR rounds to \fB\-3.0\fR)
 .RE
 .PP
 .SS Comparison Functions
@@ -230,7 +230,7 @@ Tangent of x as a float
 .PP
 .nf
 .RS
-include_stdmath();
+include "std/math.phs";
 
 var x = 16.0;
 puts(math_sqrt(x));        // 4.0
@@ -249,7 +249,7 @@ puts(math_floor(pi));      // 3
 puts(math_ceil(pi));       // 4
 puts(math_round(pi));      // 3
 
-puts(math_round(2.5));     // 2 or 3 (banker's rounding)
+puts(math_round(2.5));     // 3.0 (halfway values round away from zero)
 .RE
 .fi
 .PP
@@ -272,7 +272,7 @@ puts(math_min(3.14, 2.71)); // 2.71
 .PP
 .nf
 .RS
-puts(math_exp(1));         // e ≈ 2.71828
+puts(math_exp(1));         // e ~= 2.71828
 puts(math_log(math_exp(1))); // 1.0
 
 var x = 100;
@@ -288,14 +288,14 @@ var pi = 3.14159265;
 
 puts(math_sin(0));         // 0.0
 puts(math_cos(0));         // 1.0
-puts(math_tan(pi / 4));    // ≈ 1.0 (45 degrees)
+puts(math_tan(pi / 4));    // ~= 1.0 (45 degrees)
 
 // Convert degrees to radians
 fn deg_to_rad(degrees) {
     return degrees * pi / 180;
 }
 
-puts(math_sin(deg_to_rad(90))); // ≈ 1.0
+puts(math_sin(deg_to_rad(90))); // ~= 1.0
 .RE
 .fi
 .PP
@@ -328,8 +328,8 @@ fn circle_circumference(radius) {
     return 2 * pi * radius;
 }
 
-puts(circle_area(5));           // ≈ 78.54
-puts(circle_circumference(5));  // ≈ 31.42
+puts(circle_area(5));           // ~= 78.54
+puts(circle_circumference(5));  // ~= 31.42
 .RE
 .fi
 .SH NOTES

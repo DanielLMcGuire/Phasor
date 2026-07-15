@@ -1,9 +1,9 @@
-.TH PHASORSTD_STR 3 "January 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_STR 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_str \- Phasor string manipulation functions
 .SH SYNOPSIS
 .nf
-.B using("stdstr");
+.B include "std/str.phs";
 .PP
 .B find(string, substr[, start[, end]])
 .B len(string)
@@ -14,9 +14,11 @@ phasorstd_str \- Phasor string manipulation functions
 .B to_lower(string)
 .B starts_with(string, prefix)
 .B ends_with(string, suffix)
+.B split(string, delimiter)
 .PP
 .B sb_new()
 .B sb_append(handle, string)
+.B sb_prealloc(handle, capacity)
 .B sb_to_string(handle)
 .B sb_clear(handle)
 .B sb_free(handle)
@@ -154,6 +156,25 @@ Suffix to match
 .B Returns:
 Boolean true if string ends with suffix, false otherwise
 .RE
+.PP
+.TP
+.BR split (string, delimiter)
+Split a string into an array of substrings on every occurrence of a delimiter.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+String to split
+.IP \fBdelimiter\fR 12
+Delimiter string to split on
+.RE
+.PP
+.B Returns:
+Array of strings. If \fBdelimiter\fR is an empty string, the array contains the original
+string unchanged, as a single element. Consecutive delimiters produce empty-string elements
+in the result.
+.RE
 .SH STRINGBUILDER FUNCTIONS
 StringBuilder provides efficient string concatenation for building large strings incrementally.
 .TP
@@ -180,6 +201,35 @@ String to append
 .PP
 .B Returns:
 The handle (for method chaining)
+.PP
+.B Throws:
+Runtime error if
+.B handle
+is not a valid, currently-allocated StringBuilder handle
+.RE
+.PP
+.TP
+.BR sb_prealloc (handle, capacity)
+Reserve internal storage capacity for a StringBuilder ahead of time, to reduce reallocations
+during subsequent appends. This is a performance hint; it does not change the StringBuilder's
+current contents.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+StringBuilder handle from sb_new()
+.IP \fBcapacity\fR 12
+Number of characters to reserve space for. Values less than or equal to 0 are ignored.
+.RE
+.PP
+.B Returns:
+The handle (for method chaining)
+.PP
+.B Throws:
+Runtime error if
+.B handle
+is not a valid, currently-allocated StringBuilder handle
 .RE
 .PP
 .TP
@@ -231,7 +281,7 @@ The final string value
 .PP
 .nf
 .RS
-include_stdstr();
+include "std/str.phs";
 
 var text = "Hello, World!";
 puts(len(text));              // 13
@@ -269,6 +319,19 @@ puts(result);  // "Hello, World!"
 .RE
 .fi
 .PP
+.B Splitting Strings
+.PP
+.nf
+.RS
+var csv = "one,two,,four";
+var parts = split(csv, ",");
+// parts == ["one", "two", "", "four"]
+for (var i: i64 = 0; i < parts.length; i++) {
+    puts(parts[i]);
+}
+.RE
+.fi
+.PP
 .B StringBuilder Usage
 .PP
 .nf
@@ -299,7 +362,12 @@ sb_free(sb);
 .PP
 .nf
 .RS
+include "std/str.phs";
+include "std/type.phs";
+include "std/file.phs";
+
 var sb = sb_new();
+sb_prealloc(sb, 8192); // reserve space up front to avoid reallocations
 for (var i = 0; i < 1000; i++) {
     sb_append(sb, to_string(i));
     sb_append(sb, "\\n");

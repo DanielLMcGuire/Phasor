@@ -1,9 +1,9 @@
-.TH PHASORSTD_RAND 3 "January 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_RAND 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_rand \- Phasor pseudo-random number generation (xorshift+) functions
 .SH SYNOPSIS
 .nf
-.B using("stdrand");
+.B include "std/rand.phs";
 .PP
 .B rand_seed(s1, s2)
 .B rand_next_range(min, max)
@@ -74,7 +74,7 @@ float in the range [0.0, 1.0)
 .PP
 .nf
 .RS
-using("stdrand");
+include "std/rand.phs";
 
 // Seed the generator
 rand_seed(123456, 789012);

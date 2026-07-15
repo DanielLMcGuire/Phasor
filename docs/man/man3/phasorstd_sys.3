@@ -1,18 +1,23 @@
-.TH PHASORSTD_SYS 3 "January 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_SYS 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_sys \- Phasor system and runtime functions
 .SH SYNOPSIS
 .nf
-.B using("stdsys");
+.B include "std/sys.phs";
 .PP
 .B time()
+.B localtime()
 .B timef(format)
+.B localtimef(format)
 .B sleep(milliseconds)
 .B sys_os()
+.B is_sandboxed()
 .B sys_env(name)
-.B sys_argv([index])
+.B sys_args()
+.B sys_argv(index)
 .B sys_argc()
 .B sys_get_memory()
+.B isatty()
 .B wait_for_input()
 .B sys_shell(command)
 .B sys_fork(executable, ...)
@@ -25,26 +30,43 @@ phasorstd_sys \- Phasor system and runtime functions
 .SH TIME FUNCTIONS
 .TP
 .BR time ()
-Get the current time in milliseconds since an arbitrary epoch.
+Get a monotonic timestamp in milliseconds since an arbitrary, unspecified reference point
+(backed by a steady/monotonic clock). This is
+.B not
+wall-clock or calendar time \(em it is only meaningful for measuring elapsed durations by
+subtracting two calls to \fBtime()\fR. For the current wall-clock time, use \fBlocaltime()\fR
+or \fBtimef()\fR/\fBlocaltimef()\fR instead.
 .RS
 .PP
 .B Returns:
-Float representing milliseconds
+Float representing milliseconds since the clock's reference point
+.RE
+.PP
+.TP
+.BR localtime ()
+Get the current wall-clock time, adjusted for the local timezone, as milliseconds since the
+Unix epoch.
+.RS
+.PP
+.B Returns:
+Float representing local milliseconds since 1970-01-01 00:00:00 UTC, shifted by the local
+timezone offset
 .RE
 .PP
 .TP
 .BR timef (format)
-Get the current time formatted according to a format string.
+Get the current UTC time formatted according to a format string.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBformat\fR 12
-Format string using strftime specifiers
+Format string using strftime-style specifiers
 .RE
 .PP
 .B Returns:
-Formatted time string
+Formatted time string in UTC (not local time; see \fBlocaltimef()\fR for local time), or a
+single-space string \fB" "\fR if \fBformat\fR is not a valid format specifier
 .PP
 .B Format Specifiers:
 .RS
@@ -68,6 +90,22 @@ Full month name
 .RE
 .PP
 .TP
+.BR localtimef (format)
+Get the current local time formatted according to a format string. Accepts the same format
+specifiers as \fBtimef()\fR, but reflects the local timezone rather than UTC.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBformat\fR 12
+Format string using strftime-style specifiers
+.RE
+.PP
+.B Returns:
+Formatted local time string
+.RE
+.PP
+.TP
 .BR sleep (milliseconds)
 Pause execution for a specified duration.
 .RS
@@ -75,20 +113,49 @@ Pause execution for a specified duration.
 .B Arguments:
 .RS
 .IP \fBmilliseconds\fR 12
-Number of milliseconds to sleep
+Number of milliseconds to sleep (fractional values are allowed)
 .RE
 .PP
 .B Returns:
-Space character string
+A single-space string \fB" "\fR (not an empty string)
 .RE
 .SH SYSTEM INFORMATION
 .TP
 .BR sys_os ()
-Get the current operating system name.
+Get an integer identifying the current operating system.
 .RS
 .PP
 .B Returns:
-String: "win32", "Linux", "Darwin", "FreeBSD", "UNIX", or "Unknown"
+Integer:
+.B 0
+= Windows,
+.B 1
+= Linux,
+.B 2
+= Darwin (macOS),
+.B 3
+= FreeBSD,
+.B 4
+= other UNIX-like,
+.B 5
+= unknown,
+.B 6
+= running in a sandboxed build.
+.PP
+The named constants
+.BR win32 ", " linux ", " darwin ", " freebsd ", " unix ", " unknown ", and " sandbox
+are available as fields on the
+.B sys_os
+struct once \fBphs/sys.phs\fR (or \fBphs/types/sys.phs\fR) is included..
+.RE
+.PP
+.TP
+.BR is_sandboxed ()
+Check whether the runtime was built as a sandboxed build.
+.RS
+.PP
+.B Returns:
+Boolean, true if running in a sandboxed build, false otherwise
 .RE
 .PP
 .TP
@@ -98,6 +165,15 @@ Get the available system memory in bytes.
 .PP
 .B Returns:
 Integer bytes of available memory
+.RE
+.PP
+.TP
+.BR isatty ()
+Check whether standard input is connected to an interactive terminal.
+.RS
+.PP
+.B Returns:
+Non-zero integer if stdin is a terminal, 0 otherwise
 .RE
 .SH ENVIRONMENT AND ARGUMENTS
 .TP
@@ -112,23 +188,39 @@ Environment variable name
 .RE
 .PP
 .B Returns:
-String value of the environment variable, null on error, false if not found.
+String value of the environment variable, null on error, false if not found
 .RE
 .PP
 .TP
-.BR sys_argv ([index])
-Get command-line arguments.
+.BR sys_args ()
+Get all command-line arguments as an array.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+Array of strings, one per command-line argument, including the program name at index 0.
+This is the preferred way to access all arguments; prefer it over calling \fBsys_argv()\fR
+in a loop.
+.RE
+.PP
+.TP
+.BR sys_argv (index)
+Get a single command-line argument by index.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBindex\fR 12
-Argument index (optional)
+Argument index (required; there is no zero-argument form of this function)
 .RE
 .PP
 .B Returns:
-If no index provided, returns a struct with fields "arg0", "arg1", etc.
-If index provided, returns the argument at that index
+String argument at \fBindex\fR, or null if \fBindex\fR is out of range
+.PP
+.B Throws:
+Runtime error if called with zero arguments
 .RE
 .PP
 .TP
@@ -161,7 +253,7 @@ Shell command to execute
 .RE
 .PP
 .B Returns:
-Command exit code
+Result of the underlying system call, typically the command's exit code
 .RE
 .PP
 .TP
@@ -174,11 +266,12 @@ Run a native executable as a child process and wait for it to exit.
 .IP \fBexecutable\fR 12
 Path to the executable
 .IP \fB...\fR 12
-Additional arguments passed to the process (variadic)
+Additional arguments passed to the process. Either a single array of strings, or a variadic
+list of individual string arguments.
 .RE
 .PP
 .B Returns:
-Exit code of the child process
+Integer exit code of the child process
 .RE
 .PP
 .TP
@@ -191,11 +284,13 @@ Run a native executable as a detached (background) process.
 .IP \fBexecutable\fR 12
 Path to the executable
 .IP \fB...\fR 12
-Additional arguments passed to the process (variadic)
+Additional arguments passed to the process, given individually (variadic). Unlike
+\fBsys_fork()\fR, this function does not accept a single array of arguments.
 .RE
 .PP
 .B Returns:
-Result of the detached launch
+Integer result of launching the detached process (implementation-defined; not necessarily an
+exit code, since the function does not wait for the process to finish)
 .RE
 .PP
 .TP
@@ -250,17 +345,21 @@ Does not return (exits program)
 .PP
 .nf
 .RS
-include_stdsys();
+include "std/sys.phs";
 
-// Get timestamp
+// Measure elapsed time (time() is a monotonic clock, not wall-clock time)
 var start = time();
 // ... do work ...
 var elapsed = time() - start;
 putf("Elapsed: %f ms", elapsed);
 
+// Current wall-clock time
+var now_local_ms = localtime();
+
 // Formatted time
-var timestamp = timef("%Y-%m-%d %H:%M:%S");
-puts(timestamp);  // "2026-01-16 14:30:45"
+var utc_stamp = timef("%Y-%m-%d %H:%M:%S");       // UTC
+var local_stamp = localtimef("%Y-%m-%d %H:%M:%S"); // local timezone
+puts(utc_stamp);
 
 // Sleep
 puts("Waiting...");
@@ -273,7 +372,13 @@ puts("Done!");
 .PP
 .nf
 .RS
-puts(sys_os());  // "Linux" or "win32" etc.
+include "std/sys.phs";
+
+if (sys_os() == sys_os.linux) {
+    puts("Running on Linux");
+} else if (sys_os() == sys_os.win32) {
+    puts("Running on Windows");
+}
 
 var mem = sys_get_memory();
 putf("Available memory: %d bytes", mem);
@@ -284,6 +389,9 @@ putf("Available memory: %d bytes", mem);
 .PP
 .nf
 .RS
+include "std/sys.phs";
+include "std/str.phs";
+
 var home = sys_env("HOME");
 putf("Home directory: %s", home);
 
@@ -298,17 +406,18 @@ if (len(path) > 0) {
 .PP
 .nf
 .RS
+include "std/sys.phs";
+
 var argc = sys_argc();
 putf("Argument count: %d", argc);
 
-// Access all arguments
-var args = sys_argv();
-for (var i = 0; i < argc; i++) {
-    var key = concat("arg", to_string(i));
-    puts(args.(key));
+// Preferred: get every argument as an array
+var args = sys_args();
+for (var i: i64 = 0; i < args.length; i++) {
+    puts(args[i]);
 }
 
-// Access specific argument
+// Access a single argument by index
 if (argc > 1) {
     var first_arg = sys_argv(1);
     putf("First argument: %s", first_arg);
@@ -320,6 +429,9 @@ if (argc > 1) {
 .PP
 .nf
 .RS
+include "std/sys.phs";
+include "std/io.phs"; // clear() lives in the stdio module
+
 clear();  // Clear screen
 puts("Screen cleared!");
 
@@ -332,15 +444,20 @@ wait_for_input();
 .PP
 .nf
 .RS
+include "std/sys.phs";
+
 // Execute shell command
 var result = sys_shell("ls -la");
 putf("Command exit code: %d", result);
 
-// Launch a child process and wait
+// Launch a child process and wait (variadic args)
 var code = sys_fork("/usr/bin/gzip", "file.txt");
 putf("gzip exited with: %d", code);
 
-// Launch a background process
+// Launch a child process and wait (array of args)
+var code2 = sys_fork("/usr/bin/gzip", ["-k", "file.txt"]);
+
+// Launch a background process (variadic args only)
 sys_fork_detached("/usr/bin/myservice", "--daemon");
 
 // Get current PID
@@ -358,36 +475,49 @@ if (should_exit) {
 }
 .RE
 .fi
-.PP
-.B Benchmarking
-.PP
-.nf
-.RS
-fn benchmark(name, func) {
-    var start = time();
-    func();
-    var elapsed = time() - start;
-    putf("%s took %f ms", name, elapsed);
-}
-
-benchmark("sorting", fn() {
-    // ... sorting code ...
-});
-.RE
-.fi
 .SH NOTES
 .IP \(bu 2
 .B time()
-returns milliseconds as a float for precision
+returns milliseconds from a monotonic clock with an unspecified reference point, as a float;
+it is for measuring elapsed durations, not for getting the current date or time
 .IP \(bu 2
 .B timef()
-uses system localtime for formatting
+formats the current time in UTC.
+.B localtime()
+and
+.B localtimef()
+use the local system timezone instead
+.IP \(bu 2
+.B timef()
+and
+.B localtimef()
+return a single-space string \fB" "\fR (on \fBtimef()\fR) or may behave differently (on
+\fBlocaltimef()\fR) if given an invalid format specifier; always test format strings during
+development
 .IP \(bu 2
 .B sleep()
-is not guaranteed to be precise on all systems
+returns a single-space string, not an empty string, and is not guaranteed to be precise on
+all systems
+.IP \(bu 2
+.B sys_os()
+returns an integer, not a string; compare it against the fields of the \fBsys_os\fR struct
+(from \fBphs/types/sys.phs\fR) rather than hardcoding numbers
+.IP \(bu 2
+.B sys_argv()
+requires an explicit index argument and always returns a single value; prefer
+.B sys_args()
+to retrieve every argument at once
+.IP \(bu 2
+In sandboxed builds,
+.B sys_env()
+and
+.B sys_args()
+may prompt the user for consent before returning a value, and can return null until consent
+is granted
 .IP \(bu 2
 .B clear()
-uses ANSI escape codes (may not work in all terminals)
+uses ANSI escape codes (may not work in all terminals) and is part of the \fBstdio\fR module
+(\fBphs/io.phs\fR), not \fBstdsys\fR
 .IP \(bu 2
 .B sys_shell()
 runs commands through the system shell

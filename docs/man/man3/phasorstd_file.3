@@ -1,10 +1,12 @@
-.TH PHASORSTD_FILE 3 "January 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_FILE 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_file \- Phasor file system functions
 .SH SYNOPSIS
 .nf
-.B using("stdfile");
+.B include "std/file.phs";
 .PP
+.B fopen(path, mode)
+.B fclose(fd)
 .B fabsolute(path)
 .B fstem(path)
 .B fname(path)
@@ -12,12 +14,12 @@ phasorstd_file \- Phasor file system functions
 .B fparent(path)
 .B fjoin(path1, path2)
 .B fisdir(path)
-.B fread(path)
-.B fwrite(path, content)
+.B fread(path_or_fd)
+.B fwrite(path_or_fd, content)
 .B fexists(path)
-.B freadln(path, line_number)
+.B freadln(path_or_fd[, line_number])
 .B fwriteln(path, line_number, content)
-.B fappend(path, content)
+.B fappend(path_or_fd, content)
 .B frm(path)
 .B frn(old_path, new_path)
 .B fcd([path])
@@ -30,7 +32,44 @@ phasorstd_file \- Phasor file system functions
 .B frmdir(path, recurse)
 .B freaddir(path)
 .B fsize(path)
+.B fcp_progress(files, dest)
 .fi
+.SH FILE DESCRIPTORS
+.TP
+.BR fopen (path, mode)
+Open a file and return a reusable file descriptor. This is the only way to obtain a descriptor
+that can be passed to \fBfread()\fR, \fBfwrite()\fR, \fBfreadln()\fR, and \fBfappend()\fR instead of a path.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBpath\fR 12
+Path to the file to open
+.IP \fBmode\fR 12
+Mode string. Recognized modes: \fB"r"\fR (read), \fB"w"\fR (write, truncating), \fB"a"\fR (append),
+\fB"r+"\fR (read/write, no truncation), \fB"w+"\fR (read/write, truncating), \fB"a+"\fR (read/append).
+Any other combination of the characters \fBr\fR, \fBw\fR, \fBa\fR, and \fB+\fR is also accepted and
+interpreted using the same rules.
+.RE
+.PP
+.B Returns:
+Integer file descriptor on success, or null if the file could not be opened
+.RE
+.PP
+.TP
+.BR fclose (fd)
+Close a file descriptor previously returned by \fBfopen()\fR.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+Integer file descriptor
+.RE
+.PP
+.B Returns:
+Boolean true if the descriptor was valid and closed, false otherwise
+.RE
 .SH PATH UTILITIES
 .TP
 .BR fabsolute (path)
@@ -125,89 +164,107 @@ String containing the joined path, using the platform's native path separator.
 .RE
 .SH FILE I/O FUNCTIONS
 .TP
-.BR fread (path)
-Read the entire contents of a file.
+.BR fread (path_or_fd)
+Read the entire contents of a file, either by path or from an open file descriptor.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBpath\fR 12
-Path to the file
+.IP \fBpath_or_fd\fR 12
+File path, or an integer file descriptor returned by \fBfopen()\fR. When a descriptor is given,
+the remaining unread contents of the stream are read from its current position.
 .RE
 .PP
 .B Returns:
-String containing file contents, or null if file cannot be opened
+String containing the file (or remaining stream) contents, or null if the path cannot be opened
+or the descriptor is invalid
 .RE
 .PP
 .TP
-.BR fwrite (path, content)
-Write content to a file, overwriting existing content.
+.BR fwrite (path_or_fd, content)
+Write content to a file, overwriting existing content, or write to an open file descriptor.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBpath\fR 12
-Path to the file
+.IP \fBpath_or_fd\fR 12
+File path (opened fresh and truncated), or an integer file descriptor from \fBfopen()\fR
+(written at its current position)
 .IP \fBcontent\fR 12
 String to write
 .RE
 .PP
 .B Returns:
-Boolean true on success
+Boolean true on success, false if the descriptor is invalid
 .PP
 .B Throws:
-Runtime error if file cannot be opened
+Runtime error if a path (not a descriptor) cannot be opened
 .RE
 .PP
 .TP
-.BR fappend (path, content)
-Append content to the end of a file.
+.BR fappend (path_or_fd, content)
+Append content to the end of a file, or to an open file descriptor.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBpath\fR 12
-Path to the file
+.IP \fBpath_or_fd\fR 12
+File path, or an integer file descriptor from \fBfopen()\fR. When a descriptor is given, the
+write position is moved to the end of the stream before appending.
 .IP \fBcontent\fR 12
 String to append
 .RE
 .PP
 .B Returns:
-Boolean true on success
+Boolean true on success, false if the descriptor is invalid
 .PP
 .B Throws:
-Runtime error if file cannot be opened
+Runtime error if a path (not a descriptor) cannot be opened
 .RE
 .PP
 .TP
-.BR freadln (path, line_number)
-Read a specific line from a file.
+.BR freadln (path_or_fd[, line_number])
+Read a line from a file, either sequentially from an open descriptor or by line index.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBpath\fR 12
-Path to the file
+.IP \fBpath_or_fd\fR 12
+File path, or an integer file descriptor from \fBfopen()\fR
 .IP \fBline_number\fR 12
-Zero-based line index
+Zero-based line index. Optional, but only when \fBpath_or_fd\fR is a file descriptor.
 .RE
 .PP
+.B Description:
+Two calling conventions are supported. Called with a single file descriptor argument,
+.B freadln()
+reads the next line sequentially from the descriptor's current position (useful for looping
+over a file line by line). Called with a \fBline_number\fR, it seeks a descriptor back to the
+start of the stream (or opens \fBpath_or_fd\fR fresh if it is a path) and reads forward to the
+requested line.
+.PP
 .B Returns:
-String containing the line content
+String containing the line content without its trailing newline; null if the file descriptor
+is invalid or already at end of stream; empty string if \fBline_number\fR is beyond the last
+line in the file
 .PP
 .B Throws:
-Runtime error if file cannot be opened
+Runtime error if called with zero arguments or more than two; if called with a single argument
+that is not a file descriptor (a bare path with no \fBline_number\fR is not valid); or if a path
+(not a descriptor) cannot be opened for the two-argument form
 .RE
 .PP
 .TP
 .BR fwriteln (path, line_number, content)
-Write content to a specific line in a file, expanding the file if necessary.
+Write content to a specific line in a file, expanding the file with empty lines if necessary.
+Unlike \fBfread()\fR, \fBfwrite()\fR, \fBfreadln()\fR, and \fBfappend()\fR, this function only
+accepts a file path; it does not accept a file descriptor.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBpath\fR 12
-Path to the file
+Path to the file (must be a path, not a file descriptor)
 .IP \fBline_number\fR 12
 Zero-based line index
 .IP \fBcontent\fR 12
@@ -218,7 +275,8 @@ New line content
 Boolean true on success
 .PP
 .B Throws:
-Runtime error if file cannot be opened
+Runtime error if \fBpath\fR is a file descriptor instead of a path, or if the file cannot be
+opened for reading or writing
 .RE
 .SH FILE OPERATIONS
 .TP
@@ -334,7 +392,9 @@ Destination file path
 .RE
 .PP
 .B Returns:
-Boolean true on success, false if the copy step fails
+Boolean true only if both the copy and the subsequent removal of \fBsource\fR succeed. Returns
+false if the copy step fails (\fBdest\fR is left untouched), or if the copy succeeds but
+\fBsource\fR could not be removed afterward (in which case both files remain on disk).
 .RE
 .SH DIRECTORY OPERATIONS
 .TP
@@ -369,7 +429,7 @@ Boolean true if created, false if directory already exists
 .PP
 .TP
 .BR frmdir (path, recurse)
-Remove an empty directory.
+Remove a directory.
 .RS
 .PP
 .B Arguments:
@@ -377,12 +437,14 @@ Remove an empty directory.
 .IP \fBpath\fR 12
 Directory path
 .IP \fBrecurse\fR 12
-Boolean to remove subdirectories (optional, default false)
+Boolean; if true, removes the directory and all of its contents. If false, removes the
+directory only if it is empty. This argument is required, not optional.
 .RE
-.RS
 .PP
 .B Returns:
-Boolean true on success
+Boolean true if the directory (and, when \fBrecurse\fR is true, its contents) was removed, or
+if \fBpath\fR did not exist to begin with. Returns false if \fBrecurse\fR is false and the
+directory is not empty, or if a recursive removal fails partway through.
 .RE
 .PP
 .TP
@@ -397,7 +459,11 @@ Path to the directory to list
 .RE
 .PP
 .B Returns:
-String with filenames separated by newlines, or error message on failure
+Array of strings, one per entry in the directory (filenames only, not full paths; both files
+and subdirectories are included)
+.PP
+.B Throws:
+An underlying filesystem error if \fBpath\fR does not exist or is not a directory
 .RE
 .SH FILE METADATA
 .TP
@@ -431,10 +497,10 @@ Unix timestamp (epoch seconds)
 .RE
 .PP
 .B Returns:
-Result of property set operation
+Boolean true on success, false on failure
 .PP
 .B Throws:
-Runtime error if epoch is negative
+Runtime error if \fBvalue\fR is a negative integer
 .RE
 .PP
 .TP
@@ -451,17 +517,38 @@ Property character ('a'=access, 'm'=modify)
 .RE
 .PP
 .B Returns:
-Property value
+Integer Unix timestamp (epoch seconds). This function always returns an integer; it does not
+return null. Consult the runtime's platform-specific behavior for the sentinel value used on
+failure (e.g.\& a negative number)
+.RE
+.SH PHASOR-LEVEL HELPERS
+.TP
+.BR fcp_progress (files, dest)
+Copy a list of files into a destination directory, printing a progress bar to the console as
+each file completes. This is a Phasor-level convenience function defined in \fBphs/file.phs\fR
+itself (built on top of \fBfcp()\fR, \fBfjoin()\fR, and \fBfname()\fR); it is not a native
+function, and is only available once \fBphs/file.phs\fR has been included, since it also pulls
+in the progress-bar extra.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfiles\fR 12
+Array of source file paths
+.IP \fBdest\fR 12
+Destination directory path
 .RE
 .PP
-Returns null on error
+.B Returns:
+Boolean true if every file copied successfully, false as soon as any single copy fails (the
+function stops at the first failure and does not attempt the remaining files)
 .RE
 .SH EXAMPLES
 .B Basic File I/O
 .PP
 .nf
 .RS
-using("stdfile");
+include "std/file.phs";
 
 // Write to file
 fwrite("data.txt", "Hello, World!");
@@ -475,14 +562,28 @@ fappend("data.txt", "\nNew line");
 .RE
 .fi
 .PP
+.B File Descriptors
+.PP
+.nf
+.RS
+// Open once, read/write multiple times without reopening the path
+var fd = fopen("data.txt", "r+");
+if (fd != null) {
+    var line = freadln(fd);       // read the next line sequentially
+    fappend(fd, "\nAppended via fd");
+    fclose(fd);
+}
+.RE
+.fi
+.PP
 .B Line-Based Operations
 .PP
 .nf
 .RS
-// Read specific line
+// Read a specific line by index
 var line = freadln("config.txt", 0);
 
-// Update specific line
+// Update a specific line (path only; fwriteln does not accept a descriptor)
 fwriteln("config.txt", 2, "new_setting=value");
 .RE
 .fi
@@ -503,7 +604,10 @@ puts(fabsolute("../project"));
 
 // Check before operating
 if (fisdir("/home/user/docs")) {
-    puts(freaddir("/home/user/docs"));
+    var entries = freaddir("/home/user/docs");
+    for (var i: i64 = 0; i < entries.length; i++) {
+        puts(entries[i]);
+    }
 }
 .RE
 .fi
@@ -543,31 +647,23 @@ fcd("/home/user/projects");
 // Create directory
 fmkdir("new_folder");
 
-// List directory
-var files = freaddir(".");
-puts(files);
+// List directory (returns an array of filenames)
+var entries = freaddir(".");
+for (var i: i64 = 0; i < entries.length; i++) {
+    puts(entries[i]);
+}
 
-// Remove directory recursively
+// Remove directory recursively (recurse argument is required)
 frmdir("old_folder", true);
 .RE
 .fi
 .PP
-.B File Size and Statistics
+.B File Size
 .PP
 .nf
 .RS
-// Get file size
 var bytes = fsize("document.txt");
 putf("Size: %d bytes\n", bytes);
-
-// Get full stat struct
-var stat = fstat("document.txt");
-if (stat != null) {
-    putf("Size: %d bytes", stat.size);
-    putf("Owner UID: %d", stat.uid);
-    putf("Permissions: %d", stat.mode);
-    putf("Hard links: %d", stat.nlink);
-}
 .RE
 .fi
 .PP
@@ -584,9 +680,25 @@ var now = time();
 fpropset("file.txt", 'a', now);
 .RE
 .fi
+.PP
+.B Copying Files With a Progress Bar
+.PP
+.nf
+.RS
+var files = ["a.txt", "b.txt", "c.txt"];
+var ok = fcp_progress(files, "/backup/destination");
+if (!ok) {
+    puts("One or more files failed to copy");
+}
+.RE
+.fi
 .SH NOTES
 .IP \(bu 2
 File paths can be relative or absolute
+.IP \(bu 2
+.B fread()\fR,\fB fwrite()\fR,\fB freadln()\fR,\fB and fappend()
+accept either a path string or an integer file descriptor from \fBfopen()\fR as their first
+argument; \fBfwriteln()\fR only accepts a path
 .IP \(bu 2
 Line numbers in
 .B freadln()
@@ -600,11 +712,9 @@ expands the file with empty lines if necessary
 .B fmv()
 is implemented as copy + delete, not an atomic move
 .IP \(bu 2
-Directory removal only works on empty directories unless
-.B recurse
-is true
-.IP \(bu 2
-File statistics struct uses Unix-style permissions
+.B frmdir()
+requires its \fBrecurse\fR argument; it is not optional, and removal only affects an empty
+directory unless \fBrecurse\fR is true
 .IP \(bu 2
 Property characters: 'a' for access time, 'm' for modification time
 .IP \(bu 2

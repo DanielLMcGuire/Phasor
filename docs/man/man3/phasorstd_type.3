@@ -1,15 +1,17 @@
-.TH PHASORSTD_TYPE 3 "January 2026" "Phasor 4.0.0" "Phasor Standard Library 2.0.0"
+.TH PHASORSTD_TYPE 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_type \- Phasor type conversion and JSON functions
 .SH SYNOPSIS
 .nf
-.B using("stdtype");
+.B include "std/type.phs";
 .PP
 .B to_int(value)
 .B to_float(value)
 .B to_string(value)
 .B to_bool(value)
+.B to_json(value[, indent[, flags]])
 .B from_json(json_string)
+.B ascii_to_string(code)
 .fi
 .SH FUNCTIONS
 .TP
@@ -135,6 +137,31 @@ Boolean true or false
 .RE
 .PP
 .TP
+.BR to_json (value[, indent[, flags]])
+Serialize a value to a JSON string. Unlike \fBto_string()\fR (which also produces JSON for
+structs and arrays), this function accepts extra formatting options.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Value to serialize (any type)
+.IP \fBindent\fR 12
+Optional integer controlling pretty-printing. Defaults to \fB-1\fR, which produces compact
+output with no extra whitespace. A non-negative value requests indentation (implementation-
+defined spacing).
+.IP \fBflags\fR 12
+Optional integer of implementation-defined serialization flags. Defaults to \fB0\fR.
+.RE
+.PP
+.B Returns:
+String containing the JSON representation of \fBvalue\fR
+.PP
+.B Throws:
+Runtime error if more than 3 arguments are given
+.RE
+.PP
+.TP
 .BR from_json (json_string)
 Parse a JSON string into a Phasor value.
 .RS
@@ -155,12 +182,30 @@ A Phasor value (struct, array, or primitive) representing the parsed JSON data.
 .B Errors:
 Throws a runtime error if the argument is not a string or if the JSON is malformed.
 .RE
+.PP
+.TP
+.BR ascii_to_string (code)
+Convert an integer ASCII/character code into a one-character string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcode\fR 12
+Integer character code
+.RE
+.PP
+.B Returns:
+Single-character string corresponding to \fBcode\fR
+.PP
+.B Throws:
+Runtime error if the argument is not an integer
+.RE
 .SH EXAMPLES
 .B Integer Conversion
 .PP
 .nf
 .RS
-include_stdtype();
+include "std/type.phs";
 
 puts(to_int(42));        // 42
 puts(to_int(3.14));      // 3
@@ -224,9 +269,9 @@ puts(to_bool("0"));      // true (non-empty string)
 .PP
 .nf
 .RS
-include_stdtype();
+include "std/type.phs";
 
-var json_str = "{"name":"John","age":30,"tags":["dev","ops"]}";
+var json_str = "{\"name\":\"John\",\"age\":30,\"tags\":[\"dev\",\"ops\"]}";
 var data = from_json(json_str);
 
 puts(data.name);   // "John"
@@ -247,8 +292,8 @@ puts(restored.b.1);      // 3
 .PP
 .nf
 .RS
-include_stdio();
-include_stdtype();
+include "std/io.phs";
+include "std/type.phs";
 
 puts("Enter a number:");
 var input = gets();
@@ -282,18 +327,45 @@ puts(result);  // 3.333...
 .RE
 .fi
 .PP
-.B Configuration Parsing with JSON
+.B Parsing with JSON
 .PP
 .nf
 .RS
+include "std/type.phs";
+include "std/file.phs";
+
 // Assume config.json contains: { "timeout": 30, "debug": true }
-var config_str = read_file("config.json");
+var config_str = fread("config.json");
 var config = from_json(config_str);
 
-if (to_bool(config.debug)) {
+if (config.debug) {
     puts("Debug mode enabled");
 }
-var timeout_ms = to_int(config.timeout) * 1000;
+var timeout_ms: int = config.timeout * 1000;
+.RE
+.fi
+.PP
+.B Serializing With to_json
+.PP
+.nf
+.RS
+include "std/type.phs";
+
+var person = { name: "Alice", age: 30 };
+
+puts(to_json(person));        // compact: {"name":"Alice","age":30}
+puts(to_json(person, 2));     // pretty-printed with indentation
+.RE
+.fi
+.PP
+.B Character Codes
+.PP
+.nf
+.RS
+include "std/type.phs";
+
+puts(ascii_to_string(65));   // "A"
+puts(ascii_to_string(97));   // "a"
 .RE
 .fi
 .SH NOTES

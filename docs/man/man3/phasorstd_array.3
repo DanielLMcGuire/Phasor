@@ -1,0 +1,152 @@
+.TH PHASORSTD_ARRAY 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.SH NAME
+phasorstd_array \- Phasor array manipulation functions
+.SH SYNOPSIS
+.nf
+.B include "std/array.phs";
+.PP
+.B arr_push(array, value)
+.B arr_pop(array)
+.B arr_insert(array, index, value)
+.B arr_resize(array, new_size)
+.fi
+.SH FUNCTIONS
+.TP
+.BR arr_push (array, value)
+Append a value to the end of an array, mutating it in place.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to modify
+.IP \fBvalue\fR 12
+Value to append
+.RE
+.PP
+.B Returns:
+The same array (for chaining)
+.PP
+.B Throws:
+Runtime error if the first argument is not an array
+.RE
+.PP
+.TP
+.BR arr_pop (array)
+Remove and return the last element of an array, mutating it in place.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to modify
+.RE
+.PP
+.B Returns:
+The removed element (not the array)
+.PP
+.B Throws:
+Runtime error if the argument is not an array, or if the array is empty
+.RE
+.PP
+.TP
+.BR arr_insert (array, index, value)
+Insert a value at a specific position in an array, mutating it in place and shifting later
+elements back.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to modify
+.IP \fBindex\fR 12
+Zero-based position to insert at. May equal the array's current length to insert at the end.
+.IP \fBvalue\fR 12
+Value to insert
+.RE
+.PP
+.B Returns:
+The same array (for chaining)
+.PP
+.B Throws:
+Runtime error if the first argument is not an array, or if \fBindex\fR is negative or greater
+than the array's current length
+.RE
+.PP
+.TP
+.BR arr_resize (array, new_size)
+Resize an array in place, mutating it directly. Growing the array fills new slots with a
+default (zero/empty/null-like) value for the array's element type; shrinking the array
+discards trailing elements.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to modify
+.IP \fBnew_size\fR 12
+New length for the array
+.RE
+.PP
+.B Returns:
+The same array (for chaining)
+.PP
+.B Throws:
+Runtime error if the first argument is not an array, or if \fBnew_size\fR is negative
+.RE
+.SH EXAMPLES
+.B Basic Array Operations
+.PP
+.nf
+.RS
+include "std/array.phs";
+
+var items = ["a", "b", "c"];
+putf("Length: %d\n", arr_length(items));  // 3
+
+arr_push(items, "d");
+puts(items[items.len() - 1]);  // "d"
+
+var last = arr_pop(items);
+puts(last);  // "d"
+.RE
+.fi
+.PP
+.B Inserting and Resizing
+.PP
+.nf
+.RS
+include "std/array.phs";
+
+var nums = [1, 2, 4, 5];
+arr_insert(nums, 2, 3);  // nums is now [1, 2, 3, 4, 5]
+
+arr_resize(nums, 3);     // nums is now [1, 2, 3]
+arr_resize(nums, 5);     // nums grows back to 5 elements, new slots default-initialized
+.RE
+.fi
+.PP
+.B Chaining
+.PP
+.nf
+.RS
+include "std/array.phs";
+
+var stack = [];
+arr_push(arr_push(arr_push(stack, 1), 2), 3);
+// stack is now [1, 2, 3]
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+All functions in this module mutate the array argument in place rather than returning a copy
+.IP \(bu 2
+.BR arr_push() ", " arr_insert() ", and " arr_resize()
+return the array itself so calls can be chained; \fBarr_pop()\fR is the exception and returns
+the removed element instead
+.IP \(bu 2
+Array indices are zero-based
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

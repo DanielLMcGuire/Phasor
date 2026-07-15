@@ -1,13 +1,27 @@
-.TH PHASORSTD_META 3 "April 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_META 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_meta \- Phasor VM introspection and meta-programming functions
 .SH SYNOPSIS
 .nf
-.B using("stdmeta");
+.B include "std/meta.phs";
 .PP
 .B phs_version()
 .B phs_op(opcode[, a, b, c])
 .B phs_stack_run(opcode, ...)
+.B get_elements(struct_value)
+.B get_elements_values(struct_value)
+.B get_registers()
+.B get_type(value)
+.B get_self()
+.B get_self_instructions()
+.B get_self_constants()
+.B get_self_variables()
+.B get_self_functions()
+.B get_self_structs()
+.B get_self_global_scopes()
+.B get_alloc_info()
+.B run_program(program)
+.B run_program_function(program, functionName, func_arguments, cli_arguments)
 .fi
 .PP
 .B Note:
@@ -15,6 +29,12 @@ phasorstd_meta \- Phasor VM introspection and meta-programming functions
 and
 .B phs_stack_run()
 are only available in non-sandboxed builds.
+.B get_self*(), run_program*(),
+and
+.B get_alloc_info()
+are Phasor-level helper functions defined in \fBphs/meta.phs\fR itself, layered on top of
+lower-level native introspection; they require \fBinclude "std/meta.phs"\fR and are also
+unavailable in sandboxed builds.
 .SH FUNCTIONS
 .TP
 .BR phs_version ()
@@ -36,7 +56,7 @@ Execute a VM opcode directly with three optional operands as per the ISA spec.
 .B Arguments:
 .RS
 .IP \fBopcode\fR 12
-Integer OpCode to execute
+Integer or string OpCode to execute
 .IP \fBa\fR 12
 First integer operand (optional, default 0)
 .IP \fBb\fR 12
@@ -46,12 +66,12 @@ Third integer operand (optional, default 0)
 .RE
 .PP
 .B Returns:
-Integer result of the operation, or 0 if the operation does not produce an integer value
+Integer result of the operation
 .PP
 .B Throws:
 Runtime error if
 .B opcode
-is not an integer, or if more than 4 arguments are provided
+is not an integer or string, or if more than 4 arguments are provided
 .RE
 .PP
 .TP
@@ -64,7 +84,7 @@ executes. Only available in non-sandboxed builds.
 .B Arguments:
 .RS
 .IP \fBopcode\fR 12
-Integer OpCode to execute
+Integer or string OpCode to execute
 .IP \fB...\fR 12
 Operands to push onto the stack before execution (variadic)
 .RE
@@ -75,14 +95,301 @@ The value on top of the VM stack after execution
 .B Throws:
 Runtime error if
 .B opcode
-is not an integer
+is not an integer or string
 .RE
+.PP
+.TP
+.BR get_elements (struct_value)
+Get the field names of a struct instance.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstruct_value\fR 12
+A struct instance
+.RE
+.PP
+.B Returns:
+Array of strings, the field names of the struct (order matches the struct's internal field
+storage, not necessarily declaration order)
+.PP
+.B Throws:
+Runtime error if the argument is not a struct, or is a null struct instance
+.RE
+.PP
+.TP
+.BR get_elements_values (struct_value)
+Get the field values of a struct instance.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstruct_value\fR 12
+A struct instance
+.RE
+.PP
+.B Returns:
+Array of values, the field values of the struct, in the same order as the names returned by
+.BR get_elements()
+.PP
+.B Throws:
+Runtime error if the argument is not a struct, or is a null struct instance
+.RE
+.PP
+.TP
+.BR get_registers ()
+Get a snapshot of the current values held in every VM register.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+Array containing the current value of each VM register, in register index order
+.RE
+.PP
+.TP
+.BR get_type (value)
+Get the runtime type name of a value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Any value
+.RE
+.PP
+.B Returns:
+String naming the value's type (e.g.\& \fB"i64"\fR, \fB"string"\fR, \fB"array"\fR,
+\fB"struct"\fR, \fB"null"\fR)
+.RE
+.PP
+.TP
+.BR get_self ()
+Get the full bytecode representation of the currently-running program as a \fBBytecode\fR
+struct.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B Bytecode
+struct (see \fBTYPES\fR below), containing the current program's instructions, constants,
+variables, functions, structs, and global scopes
+.RE
+.PP
+.TP
+.BR get_self_instructions ()
+Shorthand for \fBget_self().instructions\fR.
+.RS
+.PP
+.B Returns:
+Array of
+.B InstructionData
+structs
+.RE
+.PP
+.TP
+.BR get_self_constants ()
+Shorthand for \fBget_self().constants\fR.
+.RS
+.PP
+.B Returns:
+Array of
+.B ConstantData
+structs
+.RE
+.PP
+.TP
+.BR get_self_variables ()
+Shorthand for \fBget_self().variables\fR.
+.RS
+.PP
+.B Returns:
+Array of
+.B VariableData
+structs
+.RE
+.PP
+.TP
+.BR get_self_functions ()
+Shorthand for \fBget_self().functions\fR.
+.RS
+.PP
+.B Returns:
+Array of
+.B FunctionData
+structs
+.RE
+.PP
+.TP
+.BR get_self_structs ()
+Shorthand for \fBget_self().structs\fR.
+.RS
+.PP
+.B Returns:
+Array of
+.B StructData
+structs
+.RE
+.PP
+.TP
+.BR get_self_global_scopes ()
+Shorthand for \fBget_self().globalScopes\fR.
+.RS
+.PP
+.B Returns:
+Array of
+.B ScopeData
+structs
+.RE
+.PP
+.TP
+.BR get_alloc_info ()
+Get a snapshot of the runtime's current memory usage.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+.B alloc_info
+struct (see \fBTYPES\fR below) with the process's current heap usage and stack limit, in both
+bytes and kilobytes. Field values may be null on platforms where a given statistic could not
+be read.
+.RE
+.PP
+.TP
+.BR run_program (program)
+Run a
+.B Bytecode
+struct (as obtained from \fBget_self()\fR, or built independently) to completion in a fresh,
+isolated VM instance.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBprogram\fR 12
+A
+.B Bytecode
+struct
+.RE
+.PP
+.B Returns:
+Integer exit status of the executed program
+.PP
+.B Throws:
+Runtime error if
+.B program
+is not a struct
+.RE
+.PP
+.TP
+.BR run_program_function (program, functionName, func_arguments, cli_arguments)
+Run a single function from a
+.B Bytecode
+struct in a fresh, isolated VM instance, and return its result.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBprogram\fR 12
+A
+.B Bytecode
+struct
+.IP \fBfunctionName\fR 12
+Name of the function to invoke
+.IP \fBfunc_arguments\fR 12
+Array of arguments to pass to the function
+.IP \fBcli_arguments\fR 12
+Array of strings used as the simulated command-line arguments for the isolated VM instance
+(available to the invoked program via \fBsys_args()\fR / \fBsys_argv()\fR)
+.RE
+.PP
+.B Returns:
+The value returned by the invoked function
+.PP
+.B Throws:
+Runtime error if
+.B func_arguments
+or
+.B cli_arguments
+are not arrays, or if
+.B cli_arguments
+contains a non-string element
+.RE
+.SH TYPES
+.PP
+.nf
+struct ScopeVariableData {
+    index: i64,
+    name: string
+}
+
+struct ScopeData {
+    scopeIndex: i64,
+    variables: ScopeVariableData[]
+}
+
+struct StructData {
+    name: string,
+    firstConstIndex: i64,
+    fieldCount: i64,
+    fieldNames: string[]
+}
+
+struct FunctionData {
+    name: string,
+    entry: i64,
+    paramTypes: string[],
+    paramArrayDims: i64[][],
+    returnType: string,
+    returnArrayDims: i64[],
+    scopes: ScopeData[]
+}
+
+struct ConstantData {
+    type: string,
+    value: any
+}
+
+struct VariableData {
+    name: string,
+    index: i64,
+    type: string,
+    value: any
+}
+
+struct InstructionData {
+    op: string,
+    operand1: i64,
+    operand2: i64,
+    operand3: i64
+}
+
+struct Bytecode {
+    instructions: InstructionData[],
+    constants: ConstantData[],
+    variables: VariableData[],
+    functions: FunctionData[],
+    structs: StructData[],
+    globalScopes: ScopeData[]
+}
+
+struct alloc_info {
+    heap_used: i64,
+    stack_limit: i64,
+    heap_used_kb: i64,
+    stack_limit_kb: i64
+}
+.fi
 .SH EXAMPLES
 .B Getting the Runtime Version
 .PP
 .nf
 .RS
-using("stdmeta");
+include "std/meta.phs";
 
 var ver = phs_version();
 .RE
@@ -106,11 +413,51 @@ var result = phs_stack_run(OP_ADD, 10, 20);
 .RE
 .fi
 .PP
+.B Inspecting a Struct
+.PP
+.nf
+.RS
+struct Point { x: i64, y: i64 }
+
+var p: Point = { x: 3, y: 4 };
+var names = get_elements(p);        // ["x", "y"]
+var values = get_elements_values(p); // [3, 4]
+puts(get_type(p));                  // "struct"
+.RE
+.fi
+.PP
+.B Inspecting the Running Program
+.PP
+.nf
+.RS
+include "std/meta.phs";
+
+var bc = get_self();
+putf("Function count: %d\n", bc.functions.length);
+
+var info = get_alloc_info();
+putf("Heap used: %d KB\n", info.heap_used_kb);
+.RE
+.fi
+.PP
+.B Running a Program Fragment in Isolation
+.PP
+.nf
+.RS
+include "std/meta.phs";
+
+var bc = get_self();
+var status = run_program(bc);
+
+var result = run_program_function(bc, "add", [1, 2], []);
+.RE
+.fi
+.PP
 .B Version-Gated Behaviour
 .PP
 .nf
 .RS
-using("stdmeta");
+include "std/meta.phs";
 
 var ver = phs_version();
 if (ver == "4.0.0") {
@@ -126,9 +473,11 @@ and
 are unavailable in sandboxed builds; attempting to call them will result in an
 undefined function error
 .IP \(bu 2
-Operands passed to
-.B phs_op()
-that are not integers are silently treated as 0
+.B run_program()
+and
+.B run_program_function()
+execute the given bytecode in a brand-new, isolated VM instance with the full standard
+library registered; they do not share state (variables, registers, etc.) with the caller
 .IP \(bu 2
 .B phs_stack_run()
 pushes arguments in reverse order to preserve natural argument ordering for the opcode
@@ -139,6 +488,10 @@ use can corrupt VM state
 .B phs_version()
 reflects the version of the running runtime, which may differ from the version used to
 compile the script
+.IP \(bu 2
+Fields in
+.B alloc_info
+may be null if the corresponding statistic is unavailable on the current platform
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT
