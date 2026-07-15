@@ -1,5 +1,6 @@
 #!/usr/bin/env phasor
 include "./rule110/logic.phs";
+include "std/io.phs";
 include "std/type.phs";
 include "std/main.phs";
 
