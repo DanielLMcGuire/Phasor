@@ -1,7 +1,7 @@
 // Copyright 2026 Daniel McGuire -- conemu extensions for Phasor Standard Library
 // Licensed under the MIT License.
 
-include "../../include/std/types/sys.phs";
+include "../../../include/std/types/sys.phs";
 
 fn conemu_sleep(ms: int) {
     phs__std_noimport("printf", "\e]9;1;%d\a", ms);
