@@ -421,16 +421,29 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 
 	if (const auto *arrayAccess = dynamic_cast<const AST::ArrayAccessExpr *>(expr))
 	{
-		if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
+		const AST::Expression *cursor = arrayAccess;
+		size_t accessDepth = 0;
+		while (const auto *currentAccess = dynamic_cast<const AST::ArrayAccessExpr *>(cursor))
+		{
+			++accessDepth;
+			cursor = currentAccess->array.get();
+		}
+
+		if (const auto *ident = dynamic_cast<const AST::IdentifierExpr *>(cursor))
 		{
 			auto arrayIt = arrayBaseTypes.find(ident->name);
+			auto dimIt = arrayDimensions.find(ident->name);
 			if (arrayIt != arrayBaseTypes.end() && arrayIt->second != "any")
 			{
 				known = true;
+				if (dimIt != arrayDimensions.end() && accessDepth < dimIt->second.size())
+				{
+					return ValueType::Array;
+				}
 				return mapTypeNameToValueType(arrayIt->second);
 			}
 		}
-		else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(arrayAccess->array.get()))
+		else if (const auto *fieldExpr = dynamic_cast<const AST::FieldAccessExpr *>(cursor))
 		{
 			if (const auto *objIdent = dynamic_cast<const AST::IdentifierExpr *>(fieldExpr->object.get()))
 			{
@@ -1274,8 +1287,42 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType
 
 	bool leftKnownInt  = exprIsKnownInt(binExpr->left.get(), leftIsLiteral, leftLiteral);
 	bool rightKnownInt = exprIsKnownInt(binExpr->right.get(), rightIsLiteral, rightLiteral);
+	bool leftKnownArray = false;
+	bool rightKnownArray = false;
+	if (!leftIsLiteral)
+	{
+		bool leftKnown = false;
+		ValueType leftType = inferExpressionType(binExpr->left.get(), leftKnown);
+		leftKnownArray = leftKnown && leftType == ValueType::Array;
+	}
+	if (!rightIsLiteral)
+	{
+		bool rightKnown = false;
+		ValueType rightType = inferExpressionType(binExpr->right.get(), rightKnown);
+		rightKnownArray = rightKnown && rightType == ValueType::Array;
+	}
 
-	if (leftKnownInt && rightKnownInt && hint != ValueType::Float)
+	if (leftKnownArray && rightKnownArray)
+	{
+		switch (binExpr->op)
+		{
+		case AST::BinaryOp::Add:
+			bytecode.emit(OpCode::MADD_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Subtract:
+			bytecode.emit(OpCode::MSUB_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Multiply:
+			bytecode.emit(OpCode::MMUL_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Divide:
+			bytecode.emit(OpCode::MDIV_R, rResult, rLeft, rRight);
+			break;
+		default:
+			throw std::runtime_error("Unsupported array operation");
+		}
+	}
+	else if (leftKnownInt && rightKnownInt && hint != ValueType::Float)
 	{
 		switch (binExpr->op)
 		{

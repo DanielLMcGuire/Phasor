@@ -366,6 +366,40 @@ class Value
 		{
 			return Value(asString() + other.asString());
 		}
+		if (isArray() && other.isArray())
+		{
+			const auto &leftArr = *asArray();
+			const auto &rightArr = *other.asArray();
+			if (leftArr.size() != rightArr.size())
+			{
+				throw std::runtime_error("Array sizes must match");
+			}
+
+			auto result = std::make_shared<ArrayInstance>();
+			result->reserve(leftArr.size());
+			for (size_t i = 0; i < leftArr.size(); ++i)
+			{
+				const Value &lhsElem = leftArr[i];
+				const Value &rhsElem = rightArr[i];
+				if (lhsElem.isArray() || rhsElem.isArray())
+				{
+					if (!lhsElem.isArray() || !rhsElem.isArray())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem + rhsElem);
+				}
+				else
+				{
+					if (lhsElem.getType() != rhsElem.getType())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem + rhsElem);
+				}
+			}
+			return Value(std::move(result));
+		}
 		throw std::runtime_error("Cannot add these value types");
 	}
 
@@ -379,6 +413,40 @@ class Value
 		if (isNumber() && other.isNumber())
 		{
 			return {asFloat() - other.asFloat()};
+		}
+		if (isArray() && other.isArray())
+		{
+			const auto &leftArr = *asArray();
+			const auto &rightArr = *other.asArray();
+			if (leftArr.size() != rightArr.size())
+			{
+				throw std::runtime_error("Array sizes must match");
+			}
+
+			auto result = std::make_shared<ArrayInstance>();
+			result->reserve(leftArr.size());
+			for (size_t i = 0; i < leftArr.size(); ++i)
+			{
+				const Value &lhsElem = leftArr[i];
+				const Value &rhsElem = rightArr[i];
+				if (lhsElem.isArray() || rhsElem.isArray())
+				{
+					if (!lhsElem.isArray() || !rhsElem.isArray())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem - rhsElem);
+				}
+				else
+				{
+					if (lhsElem.getType() != rhsElem.getType())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem - rhsElem);
+				}
+			}
+			return Value(std::move(result));
 		}
 		throw std::runtime_error("Cannot subtract these value types");
 	}
@@ -424,6 +492,40 @@ class Value
 		{
 			return {asFloat() * other.asFloat()};
 		}
+		if (isArray() && other.isArray())
+		{
+			const auto &leftArr = *asArray();
+			const auto &rightArr = *other.asArray();
+			if (leftArr.size() != rightArr.size())
+			{
+				throw std::runtime_error("Array sizes must match");
+			}
+
+			auto result = std::make_shared<ArrayInstance>();
+			result->reserve(leftArr.size());
+			for (size_t i = 0; i < leftArr.size(); ++i)
+			{
+				const Value &lhsElem = leftArr[i];
+				const Value &rhsElem = rightArr[i];
+				if (lhsElem.isArray() || rhsElem.isArray())
+				{
+					if (!lhsElem.isArray() || !rhsElem.isArray())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem * rhsElem);
+				}
+				else
+				{
+					if (lhsElem.getType() != rhsElem.getType())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem * rhsElem);
+				}
+			}
+			return Value(std::move(result));
+		}
 		throw std::runtime_error("Cannot multiply these value types");
 	}
 
@@ -446,6 +548,40 @@ class Value
 			}
 			return {asFloat() / other.asFloat()};
 		}
+		if (isArray() && other.isArray())
+		{
+			const auto &leftArr = *asArray();
+			const auto &rightArr = *other.asArray();
+			if (leftArr.size() != rightArr.size())
+			{
+				throw std::runtime_error("Array sizes must match");
+			}
+
+			auto result = std::make_shared<ArrayInstance>();
+			result->reserve(leftArr.size());
+			for (size_t i = 0; i < leftArr.size(); ++i)
+			{
+				const Value &lhsElem = leftArr[i];
+				const Value &rhsElem = rightArr[i];
+				if (lhsElem.isArray() || rhsElem.isArray())
+				{
+					if (!lhsElem.isArray() || !rhsElem.isArray())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem / rhsElem);
+				}
+				else
+				{
+					if (lhsElem.getType() != rhsElem.getType())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem / rhsElem);
+				}
+			}
+			return Value(std::move(result));
+		}
 		throw std::runtime_error("Cannot divide these value types");
 	}
 
@@ -459,6 +595,40 @@ class Value
 				throw std::runtime_error("Modulo by zero");
 			}
 			return {asInt() % other.asInt()};
+		}
+		if (isArray() && other.isArray())
+		{
+			const auto &leftArr = *asArray();
+			const auto &rightArr = *other.asArray();
+			if (leftArr.size() != rightArr.size())
+			{
+				throw std::runtime_error("Array sizes must match");
+			}
+
+			auto result = std::make_shared<ArrayInstance>();
+			result->reserve(leftArr.size());
+			for (size_t i = 0; i < leftArr.size(); ++i)
+			{
+				const Value &lhsElem = leftArr[i];
+				const Value &rhsElem = rightArr[i];
+				if (lhsElem.isArray() || rhsElem.isArray())
+				{
+					if (!lhsElem.isArray() || !rhsElem.isArray())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem % rhsElem);
+				}
+				else
+				{
+					if (lhsElem.getType() != rhsElem.getType())
+					{
+						throw std::runtime_error("Array element types must match");
+					}
+					result->push_back(lhsElem % rhsElem);
+				}
+			}
+			return Value(std::move(result));
 		}
 		throw std::runtime_error("Modulo requires integer operands");
 	}

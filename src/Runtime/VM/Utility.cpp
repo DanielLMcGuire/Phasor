@@ -144,7 +144,7 @@ Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const b
     catch (const VM::Halt &) {
 		if (isDirectCall) {
 			Value ret = pop();
-			if (ret.isInt()) status = ret.asInt();
+			if (ret.isInt()) status = static_cast<int>(ret.asInt());
 			else status = 0;
 			reset(true, false, true);
 			return ret;

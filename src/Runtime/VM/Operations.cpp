@@ -62,6 +62,10 @@ void VM::evalLoop()
         s_table[(unsigned)OpCode::FLMULTIPLY]                 = &&LABEL_FLMULTIPLY;
         s_table[(unsigned)OpCode::FLDIVIDE]                   = &&LABEL_FLDIVIDE;
         s_table[(unsigned)OpCode::FLMODULO]                   = &&LABEL_FLMODULO;
+        s_table[(unsigned)OpCode::MADD]                       = &&LABEL_MADD;
+        s_table[(unsigned)OpCode::MSUBTRACT]                  = &&LABEL_MSUBTRACT;
+        s_table[(unsigned)OpCode::MMULTIPLY]                  = &&LABEL_MMULTIPLY;
+        s_table[(unsigned)OpCode::MDIVIDE]                    = &&LABEL_MDIVIDE;
         s_table[(unsigned)OpCode::SQRT]                       = &&LABEL_SQRT;
         s_table[(unsigned)OpCode::POW]                        = &&LABEL_POW;
         s_table[(unsigned)OpCode::LOG]                        = &&LABEL_LOG;
@@ -127,6 +131,10 @@ void VM::evalLoop()
         s_table[(unsigned)OpCode::FLMUL_R]                    = &&LABEL_FLMUL_R;
         s_table[(unsigned)OpCode::FLDIV_R]                    = &&LABEL_FLDIV_R;
         s_table[(unsigned)OpCode::FLMOD_R]                    = &&LABEL_FLMOD_R;
+        s_table[(unsigned)OpCode::MADD_R]                     = &&LABEL_MADD_R;
+        s_table[(unsigned)OpCode::MSUB_R]                     = &&LABEL_MSUB_R;
+        s_table[(unsigned)OpCode::MMUL_R]                     = &&LABEL_MMUL_R;
+        s_table[(unsigned)OpCode::MDIV_R]                     = &&LABEL_MDIV_R;
         s_table[(unsigned)OpCode::SQRT_R]                     = &&LABEL_SQRT_R;
         s_table[(unsigned)OpCode::POW_R]                      = &&LABEL_POW_R;
         s_table[(unsigned)OpCode::LOG_R]                      = &&LABEL_LOG_R;
@@ -371,6 +379,10 @@ void VM::evalLoop()
     LABEL_FLMULTIPLY:{ { Value b = pop(), a = pop(); push(asm_flmul(a.asFloat(),  b.asFloat()));   } NEXT(); }
     LABEL_FLDIVIDE:  { { Value b = pop(), a = pop(); push(asm_fldiv(a.asFloat(),  b.asFloat()));   } NEXT(); }
     LABEL_FLMODULO:  { { Value b = pop(), a = pop(); push(asm_flmod(a.asFloat(),  b.asFloat()));   } NEXT(); }
+    LABEL_MADD:      { { Value b = pop(), a = pop(); push(a + b); } NEXT(); }
+    LABEL_MSUBTRACT: { { Value b = pop(), a = pop(); push(a - b); } NEXT(); }
+    LABEL_MMULTIPLY: { { Value b = pop(), a = pop(); push(a * b); } NEXT(); }
+    LABEL_MDIVIDE:   { { Value b = pop(), a = pop(); push(a / b); } NEXT(); }
     LABEL_SQRT:      { push(asm_sqrt(pop().asFloat()));                                              NEXT(); }
     LABEL_POW:       { { Value b = pop(), a = pop(); push(asm_pow(a.asFloat(),    b.asFloat()));   } NEXT(); }
     LABEL_LOG:       { push(asm_log(pop().asFloat()));                                               NEXT(); }
@@ -757,6 +769,10 @@ void VM::evalLoop()
     LABEL_FLMUL_R: { registers[rA] = Value(asm_flmul(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
     LABEL_FLDIV_R: { registers[rA] = Value(asm_fldiv(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
     LABEL_FLMOD_R: { registers[rA] = Value(asm_flmod(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
+    LABEL_MADD_R:  { registers[rA] = registers[rB] + registers[rC]; NEXT(); }
+    LABEL_MSUB_R:  { registers[rA] = registers[rB] - registers[rC]; NEXT(); }
+    LABEL_MMUL_R:  { registers[rA] = registers[rB] * registers[rC]; NEXT(); }
+    LABEL_MDIV_R:  { registers[rA] = registers[rB] / registers[rC]; NEXT(); }
     LABEL_SQRT_R:  { registers[rA] = Value(asm_sqrt (registers[rB].asFloat()));                            NEXT(); }
     LABEL_POW_R:   { registers[rA] = Value(asm_pow  (registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
     LABEL_LOG_R:   { registers[rA] = Value(asm_log  (registers[rB].asFloat()));                              NEXT(); }
@@ -1272,6 +1288,34 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
+	case OpCode::MADD: {
+		Value b = pop();
+		Value a = pop();
+		push(a + b);
+		break;
+	}
+
+	case OpCode::MSUBTRACT: {
+		Value b = pop();
+		Value a = pop();
+		push(a - b);
+		break;
+	}
+
+	case OpCode::MMULTIPLY: {
+		Value b = pop();
+		Value a = pop();
+		push(a * b);
+		break;
+	}
+
+	case OpCode::MDIVIDE: {
+		Value b = pop();
+		Value a = pop();
+		push(a / b);
+		break;
+	}
+
 	case OpCode::SQRT: {
 		Value a = pop();
 		push(asm_sqrt(a.asFloat()));
@@ -1491,7 +1535,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 #ifdef TRACING
 		Value cmd = pop();
-		int   ret = c_system(cmd.c_str());
+		int64_t   ret = c_system(cmd.c_str());
 		log(std::format("SYSTEM: {:T} -> {}\n", cmd, ret));
 		push(ret);
 #else
@@ -1870,6 +1914,26 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::FLMOD_R: {
 		registers[rA] = Value(asm_flmod(registers[rB].asFloat(), registers[rC].asFloat()));
+		break;
+	}
+
+	case OpCode::MADD_R: {
+		registers[rA] = registers[rB] + registers[rC];
+		break;
+	}
+
+	case OpCode::MSUB_R: {
+		registers[rA] = registers[rB] - registers[rC];
+		break;
+	}
+
+	case OpCode::MMUL_R: {
+		registers[rA] = registers[rB] * registers[rC];
+		break;
+	}
+
+	case OpCode::MDIV_R: {
+		registers[rA] = registers[rB] / registers[rC];
 		break;
 	}
 

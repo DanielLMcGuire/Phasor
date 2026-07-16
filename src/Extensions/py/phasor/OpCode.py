@@ -28,129 +28,138 @@ class OpCode(IntEnum):
     FLDIVIDE   = 0x0A
     FLMODULO   = 0x0B
 
-    SQRT = 0x0C
-    POW  = 0x0D
-    LOG  = 0x0E
-    EXP  = 0x0F
-    SIN  = 0x10
-    COS  = 0x11
-    TAN  = 0x12
+    MADD       = 0x0C
+    MSUBTRACT  = 0x0D
+    MMULTIPLY  = 0x0E
+    MDIVIDE    = 0x0F
 
-    NEGATE = 0x13   # pop a → push -a
-    NOT    = 0x14   # pop a → push !a
+    SQRT = 0x10
+    POW  = 0x11
+    LOG  = 0x12
+    EXP  = 0x13
+    SIN  = 0x14
+    COS  = 0x15
+    TAN  = 0x16
 
-    IAND  = 0x15
-    IOR   = 0x16
-    FLAND = 0x17
-    FLOR  = 0x18
+    NEGATE = 0x17   # pop a → push -a
+    NOT    = 0x18   # pop a → push !a
 
-    IEQUAL         = 0x19
-    INOT_EQUAL     = 0x1A
-    ILESS_THAN     = 0x1B
-    IGREATER_THAN  = 0x1C
-    ILESS_EQUAL    = 0x1D
-    IGREATER_EQUAL = 0x1E
+    IAND  = 0x19
+    IOR   = 0x1A
+    FLAND = 0x1B
+    FLOR  = 0x1C
 
-    FLEQUAL         = 0x1F
-    FLNOT_EQUAL     = 0x20
-    FLLESS_THAN     = 0x21
-    FLGREATER_THAN  = 0x22
-    FLLESS_EQUAL    = 0x23
-    FLGREATER_EQUAL = 0x24
+    IEQUAL         = 0x1D
+    INOT_EQUAL     = 0x1E
+    ILESS_THAN     = 0x1F
+    IGREATER_THAN  = 0x20
+    ILESS_EQUAL    = 0x21
+    IGREATER_EQUAL = 0x22
 
-    JUMP          = 0x25   # unconditional jump to offset
-    JUMP_IF_FALSE = 0x26   # jump if TOS is false (pops value)
-    JUMP_IF_TRUE  = 0x27   # jump if TOS is true  (pops value)
-    JUMP_BACK     = 0x28   # backward jump (loops)
+    FLEQUAL         = 0x23
+    FLNOT_EQUAL     = 0x24
+    FLLESS_THAN     = 0x25
+    FLGREATER_THAN  = 0x26
+    FLLESS_EQUAL    = 0x27
+    FLGREATER_EQUAL = 0x28
 
-    STORE_VAR = 0x29   # pop TOS → variable slot
-    LOAD_VAR  = 0x2A   # push variable value
+    JUMP          = 0x29   # unconditional jump to offset
+    JUMP_IF_FALSE = 0x2A   # jump if TOS is false (pops value)
+    JUMP_IF_TRUE  = 0x2B   # jump if TOS is true  (pops value)
+    JUMP_BACK     = 0x2C   # backward jump (loops)
 
-    PRINT       = 0x2B
-    PRINTERROR  = 0x2C
-    READLINE    = 0x2D
-    IMPORT      = 0x2E
-    HALT        = 0x2F
-    CALL_NATIVE = 0x30
-    CALL        = 0x31
-    SYSTEM      = 0x32
-    SYSTEM_OUT  = 0x33
-    SYSTEM_ERR  = 0x34
-    RETURN      = 0x35
+    STORE_VAR = 0x2D   # pop TOS → variable slot
+    LOAD_VAR  = 0x2E   # push variable value
 
-    TRUE_P   = 0x36
-    FALSE_P  = 0x37
-    NULL_VAL = 0x38
+    PRINT       = 0x2F
+    PRINTERROR  = 0x30
+    READLINE    = 0x31
+    IMPORT      = 0x32
+    HALT        = 0x33
+    CALL_NATIVE = 0x34
+    CALL        = 0x35
+    SYSTEM      = 0x36
+    SYSTEM_OUT  = 0x37
+    SYSTEM_ERR  = 0x38
+    RETURN      = 0x39
 
-    LEN     = 0x39   # pop s → push len(s)
-    CHAR_AT = 0x3A   # pop index, pop s → push s[index]
-    SUBSTR  = 0x3B   # pop len, pop start, pop s → push s[start:start+len]
+    TRUE_P   = 0x3A
+    FALSE_P  = 0x3B
+    NULL_VAL = 0x3C
 
-    NEW_STRUCT = 0x3C
-    GET_FIELD  = 0x3D
-    SET_FIELD  = 0x3E
+    LEN     = 0x3D   # pop s → push len(s)
+    CHAR_AT = 0x3E   # pop index, pop s → push s[index]
+    SUBSTR  = 0x3F   # pop len, pop start, pop s → push s[start:start+len]
 
-    NEW_STRUCT_INSTANCE_STATIC = 0x3F
-    GET_FIELD_STATIC           = 0x40
-    SET_FIELD_STATIC           = 0x41
+    NEW_STRUCT = 0x40
+    GET_FIELD  = 0x41
+    SET_FIELD  = 0x42
 
-    MOV          = 0x42   # R[rA] = R[rB]
-    LOAD_CONST_R = 0x43   # R[rA] = constants[imm]
-    LOAD_VAR_R   = 0x44   # R[rA] = variables[imm]
-    STORE_VAR_R  = 0x45   # variables[imm] = R[rA]
-    PUSH_R       = 0x46   # push(R[rA])
-    PUSH2_R      = 0x47   # push(R[rA]); push(R[rB])
-    POP_R        = 0x48   # R[rA] = pop()
-    POP2_R       = 0x49   # R[rA], R[rB] = pop2()
+    NEW_STRUCT_INSTANCE_STATIC = 0x43
+    GET_FIELD_STATIC           = 0x44
+    SET_FIELD_STATIC           = 0x45
 
-    IADD_R  = 0x4A   # R[rA] = R[rB] + R[rC]
-    ISUB_R  = 0x4B
-    IMUL_R  = 0x4C
-    IDIV_R  = 0x4D
-    IMOD_R  = 0x4E
-    FLADD_R = 0x4F
-    FLSUB_R = 0x50
-    FLMUL_R = 0x51
-    FLDIV_R = 0x52
-    FLMOD_R = 0x53
-    SQRT_R  = 0x54   # R[rA] = sqrt(R[rB])
-    POW_R   = 0x55   # R[rA] = pow(R[rB], R[rC])
-    LOG_R   = 0x56
-    EXP_R   = 0x57
-    SIN_R   = 0x58
-    COS_R   = 0x59
-    TAN_R   = 0x5A
+    MOV          = 0x46   # R[rA] = R[rB]
+    LOAD_CONST_R = 0x47   # R[rA] = constants[imm]
+    LOAD_VAR_R   = 0x48   # R[rA] = variables[imm]
+    STORE_VAR_R  = 0x49   # variables[imm] = R[rA]
+    PUSH_R       = 0x4A   # push(R[rA])
+    PUSH2_R      = 0x4B   # push(R[rA]); push(R[rB])
+    POP_R        = 0x4C   # R[rA] = pop()
+    POP2_R       = 0x4D   # R[rA], R[rB] = pop2()
 
-    IAND_R  = 0x5B
-    IOR_R   = 0x5C
-    IEQ_R   = 0x5D
-    INE_R   = 0x5E
-    ILT_R   = 0x5F
-    IGT_R   = 0x60
-    ILE_R   = 0x61
-    IGE_R   = 0x62
-    FLAND_R = 0x63
-    FLOR_R  = 0x64
-    FLEQ_R  = 0x65
-    FLNE_R  = 0x66
-    FLLT_R  = 0x67
-    FLGT_R  = 0x68
-    FLLE_R  = 0x69
-    FLGE_R  = 0x6A
+    IADD_R  = 0x4E   # R[rA] = R[rB] + R[rC]
+    ISUB_R  = 0x4F
+    IMUL_R  = 0x50
+    IDIV_R  = 0x51
+    IMOD_R  = 0x52
+    FLADD_R = 0x53
+    FLSUB_R = 0x54
+    FLMUL_R = 0x55
+    FLDIV_R = 0x56
+    FLMOD_R = 0x57
+    MADD_R  = 0x58
+    MSUB_R  = 0x59
+    MMUL_R  = 0x5A
+    MDIV_R  = 0x5B
+    SQRT_R  = 0x5C   # R[rA] = sqrt(R[rB])
+    POW_R   = 0x5D   # R[rA] = pow(R[rB], R[rC])
+    LOG_R   = 0x5E
+    EXP_R   = 0x5F
+    SIN_R   = 0x60
+    COS_R   = 0x61
+    TAN_R   = 0x62
 
-    NEG_R = 0x6B   # R[rA] = -R[rB]
-    NOT_R = 0x6C   # R[rA] = !R[rB]
+    IAND_R  = 0x63
+    IOR_R   = 0x64
+    IEQ_R   = 0x65
+    INE_R   = 0x66
+    ILT_R   = 0x67
+    IGT_R   = 0x68
+    ILE_R   = 0x69
+    IGE_R   = 0x6A
+    FLAND_R = 0x6B
+    FLOR_R  = 0x6C
+    FLEQ_R  = 0x6D
+    FLNE_R  = 0x6E
+    FLLT_R  = 0x6F
+    FLGT_R  = 0x70
+    FLLE_R  = 0x71
+    FLGE_R  = 0x72
 
-    PRINT_R      = 0x6D
-    PRINTERROR_R = 0x6E
-    READLINE_R   = 0x6F
-    SYSTEM_R     = 0x70
-    SYSTEM_OUT_R = 0x71
-    SYSTEM_ERR_R = 0x72
-    EXIT_SCOPE   = 0x73
+    NEG_R = 0x73   # R[rA] = -R[rB]
+    NOT_R = 0x74   # R[rA] = !R[rB]
 
-    NEW_ARR   = 0x74
-    LOAD_ARR  = 0x75
-    STORE_ARR = 0x76
+    PRINT_R      = 0x75
+    PRINTERROR_R = 0x76
+    READLINE_R   = 0x77
+    SYSTEM_R     = 0x78
+    SYSTEM_OUT_R = 0x79
+    SYSTEM_ERR_R = 0x7A
+    EXIT_SCOPE   = 0x7B
 
-    GET_FIELD_DYN = 0x77
+    NEW_ARR   = 0x7C
+    LOAD_ARR  = 0x7D
+    STORE_ARR = 0x7E
+
+    GET_FIELD_DYN = 0x7F

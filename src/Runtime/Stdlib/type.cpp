@@ -59,7 +59,7 @@ PhsString StdLib::to_json(const std::vector<Value> &args, VM *)
 	if (args.size() > 4) {
 		throw std::runtime_error("to_json expects at most 4 arguments");
 	}
-	return args[0].jsonSerialize(args.size() > 1 ? args[1].asInt() : -1, args.size() > 2 ? args[2].asInt() : 0);
+	return args[0].jsonSerialize(args.size() > 1 ? static_cast<int>(args[1].asInt()) : -1, args.size() > 2 ? static_cast<int>(args[2].asInt()) : 0);
 }
 
 bool StdLib::to_bool(const std::vector<Value> &args, VM *)

@@ -640,6 +640,33 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
                 break;
             }
 
+            case 'O': case 'M': {
+                Phasor::PhsString str;
+
+                if (type == Phasor::ValueType::Null) {
+                    str = "null";
+                } else {
+                    int indent = -1;
+                    if (s.prec >= 0) {
+                        indent = s.prec;
+                    } else if (s.hash) {
+                        indent = 4;
+                    }
+
+                    int depth = 0;
+
+                    str = val.jsonSerialize(indent, depth);
+                }
+
+                int pad = s.width - (int)str.size();
+
+                if (!s.minus && pad > 0) result.append(pad, ' ');
+                result.append(str);
+                if (s.minus && pad > 0) result.append(pad, ' ');
+                
+                break;
+            } 
+
             default:
                 result += '%';
                 result += s.conv;

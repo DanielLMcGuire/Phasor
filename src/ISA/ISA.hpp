@@ -25,6 +25,10 @@ enum class OpCode : u8
 	FLMULTIPLY, ///< Pop b, pop a, push a * b
 	FLDIVIDE,   ///< Pop b, pop a, push a / b
 	FLMODULO,   ///< Pop b, pop a, push a % b
+	MADD,       ///< Pop b, pop a, push a + b (array/matrix element-wise)
+	MSUBTRACT,  ///< Pop b, pop a, push a - b (array/matrix element-wise)
+	MMULTIPLY,  ///< Pop b, pop a, push a * b (array/matrix element-wise)
+	MDIVIDE,    ///< Pop b, pop a, push a / b (array/matrix element-wise)
 	SQRT,       ///< sqrt()
 	POW,        ///< pow()
 	LOG,        ///< log()
@@ -120,6 +124,10 @@ enum class OpCode : u8
 	FLMUL_R, ///< R[rA] = R[rB] * R[rC]
 	FLDIV_R, ///< R[rA] = R[rB] / R[rC]
 	FLMOD_R, ///< R[rA] = R[rB] % R[rC]
+	MADD_R,  ///< R[rA] = R[rB] + R[rC] (array/matrix element-wise)
+	MSUB_R,  ///< R[rA] = R[rB] - R[rC] (array/matrix element-wise)
+	MMUL_R,  ///< R[rA] = R[rB] * R[rC] (array/matrix element-wise)
+	MDIV_R,  ///< R[rA] = R[rB] / R[rC] (array/matrix element-wise)
 	SQRT_R,  ///< R[rA] = sqrt(R[rB])
 	POW_R,   ///< R[rA] = pow(R[rB], R[rC])
 	LOG_R,   ///< R[rA] = log(R[rB])
