@@ -67,7 +67,7 @@ namespace PhsJson {
         }
         if (it == end) throw std::runtime_error("Unterminated string");
         ++it;
-        return PhsString(result);
+        return result;
     }
 
     inline Value parse_value(json_iterator& it, json_iterator end);
