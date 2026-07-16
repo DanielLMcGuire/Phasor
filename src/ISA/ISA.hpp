@@ -75,7 +75,6 @@ enum class OpCode : u8
 	PRINT,       ///< Pop top of stack and print
 	PRINTERROR,  ///< Pop top of stack and print to stderr
 	READLINE,    ///< Read line from input and push onto stack
-	IMPORT,      ///< Import a module: operand is index of module path in constants
 	HALT,        ///< Stop execution
 	CALL_NATIVE, ///< Call a native function: operand is index of function name in constants
 	CALL,        ///< Call a user function: operand is index of function name in constants

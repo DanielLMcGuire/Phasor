@@ -23,13 +23,6 @@ add_library(phasor_native_runtime_lib STATIC
 
 target_link_libraries(phasor_native_runtime_lib PUBLIC PhasorRuntime PhasorCodegen phasor_language)
 
-add_library(phasor_scripting_runtime_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/ScriptingRuntime.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/ScriptingRuntime.hpp
-)
-
-target_link_libraries(phasor_scripting_runtime_lib PUBLIC PhasorRuntime PhasorCodegen phasor_language)
-
 add_library(phasor_binary_runtime_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Shared/BinaryRuntime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Shared/BinaryRuntime.hpp

@@ -67,7 +67,6 @@
 * `PRINT` – Pop top of stack and print
 * `PRINTERROR` – Pop top of stack and print to stderr
 * `READLINE` – Read line from input and push onto stack
-* `IMPORT` – Import module (operand: index in constants)
 * `HALT` – Stop execution
 * `CALL_NATIVE` – Call native function (operand: index in constants)
 * `CALL` – Call user function (operand: index in constants)

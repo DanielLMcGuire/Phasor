@@ -109,10 +109,6 @@ int NativeRuntime::run()
 #elif defined(__linux__)
 		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
-		m_vm->setImportHandler([](const std::filesystem::path &path) {
-			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
-		});
-
 		int status = m_vm->run(m_bytecode);
 
 		if (status != 0)
@@ -144,9 +140,6 @@ int NativeRuntime::runFunctionInt(std::string functionName)
 #elif defined(__linux__)
 		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
-		m_vm->setImportHandler([](const std::filesystem::path &path) {
-			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
-		});
 
 		Value ret = m_vm->runFunction(functionName, m_bytecode);
 
@@ -173,9 +166,6 @@ std::optional<std::string> NativeRuntime::runFunctionString(std::string function
 #elif defined(__linux__)
 		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
-		m_vm->setImportHandler([](const std::filesystem::path &path) {
-			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
-		});
 
 		Value ret = m_vm->runFunction(functionName, m_bytecode);
 

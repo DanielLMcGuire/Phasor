@@ -51,10 +51,6 @@ int BinaryRuntime::run()
 		vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
-		vm->setImportHandler([](const std::filesystem::path &path) {
-			throw std::runtime_error("Imports not supported in pure binary runtime yet: " + path.string());
-		});
-
 		if (m_args.verbose)
 			std::cerr << "DEBUG: About to run bytecode" << std::endl;
 

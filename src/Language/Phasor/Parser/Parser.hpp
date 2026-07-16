@@ -69,8 +69,6 @@ class Parser
 	std::unique_ptr<AST::Statement>          returnStatement();
 	std::unique_ptr<AST::Statement>          unsafeStatement();
 	std::unique_ptr<AST::BlockStmt>          block();
-	std::unique_ptr<AST::Statement>          importStatement();
-	std::unique_ptr<AST::Statement>          exportStatement();
 	std::unique_ptr<AST::Statement>          expressionStatement();
 	std::unique_ptr<AST::TypeNode>           parseType();
 	std::unique_ptr<AST::Expression>         expression();

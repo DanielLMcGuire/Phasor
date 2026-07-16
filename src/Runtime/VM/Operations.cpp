@@ -41,7 +41,6 @@ void VM::evalLoop()
         s_table[(unsigned)OpCode::JUMP_IF_FALSE]              = &&LABEL_JUMP_IF_FALSE;
         s_table[(unsigned)OpCode::JUMP_IF_TRUE]               = &&LABEL_JUMP_IF_TRUE;
         s_table[(unsigned)OpCode::JUMP_BACK]                  = &&LABEL_JUMP_BACK;
-        s_table[(unsigned)OpCode::IMPORT]                     = &&LABEL_IMPORT;
         s_table[(unsigned)OpCode::HALT]                       = &&LABEL_HALT;
 
         s_table[(unsigned)OpCode::PUSH_CONST]                 = &&LABEL_PUSH_CONST;
@@ -311,19 +310,6 @@ void VM::evalLoop()
         flush();
 #endif
         pc = operand1;
-        NEXT();
-    }
-
-    LABEL_IMPORT:
-    {
-        {
-            Value       pathVal = m_bytecode->constants[operand1];
-            std::string path    = pathVal.string();
-            if (importHandler)
-                importHandler(path);
-            else
-                throw std::runtime_error("Import handler not set");
-        }
         NEXT();
     }
 
@@ -1152,16 +1138,6 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		flush();
 #endif
 		pc = operand1;
-		break;
-	}
-
-	[[unlikely]] case OpCode::IMPORT: {
-		Value       pathVal = m_bytecode->constants[operand1];
-		std::string path = pathVal.string();
-		if (importHandler)
-			importHandler(path);
-		else
-			throw std::runtime_error("Import handler not set");
 		break;
 	}
 

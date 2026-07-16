@@ -81,7 +81,6 @@ int PhasorIR::getOperandCount(OpCode op)
     case OpCode::JUMP_BACK:
     case OpCode::STORE_VAR:
     case OpCode::LOAD_VAR:
-    case OpCode::IMPORT:
     case OpCode::CALL_NATIVE:
     case OpCode::CALL:
     case OpCode::SYSTEM:
@@ -165,8 +164,6 @@ PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
         return OperandType::VARIABLE_IDX;
     if (op == OpCode::LOAD_VAR && operandIndex == 0)
         return OperandType::VARIABLE_IDX;
-    if (op == OpCode::IMPORT && operandIndex == 0)
-        return OperandType::CONSTANT_IDX;
     if (op == OpCode::CALL_NATIVE && operandIndex == 0)
         return OperandType::CONSTANT_IDX;
     if (op == OpCode::CALL && operandIndex == 0)

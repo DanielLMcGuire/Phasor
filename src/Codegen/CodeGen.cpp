@@ -117,14 +117,9 @@ static void collectCallsStmt(const AST::Statement *stmt, std::unordered_set<std:
 	}
 	else if (const auto *s = dynamic_cast<const AST::ExportStmt *>(stmt))
 	{
-		// Only scan the inner declaration if it isn't itself a function —
-		// function bodies are handled via the call-graph, not by scanning
-		// them as top-level code.
 		if (!dynamic_cast<const AST::FunctionDecl *>(s->declaration.get()))
 			collectCallsStmt(s->declaration.get(), out);
 	}
-	// BreakStmt, ContinueStmt, ImportStmt, IncludeStmt, StructDecl,
-	// FunctionDecl (body handled separately) — nothing to traverse here.
 }
 
 Bytecode CodeGenerator::generate(const AST::Program &program, const std::unordered_map<std::string, int> &existingVars,
@@ -549,14 +544,6 @@ void CodeGenerator::generateStatement(const AST::Statement *stmt)
 	{
 		// preprocessor include
 	}
-	else if (const auto *importStmt = dynamic_cast<const AST::ImportStmt *>(stmt))
-	{
-		generateImportStmt(importStmt);
-	}
-	else if (const auto *exportStmt = dynamic_cast<const AST::ExportStmt *>(stmt))
-	{
-		generateExportStmt(exportStmt);
-	}
 	else if (const auto *blockStmt = dynamic_cast<const AST::BlockStmt *>(stmt))
 	{
 		generateBlockStmt(blockStmt);
@@ -910,12 +897,6 @@ void CodeGenerator::generatePrintStmt(const AST::PrintStmt *printStmt)
 {
 	generateExpression(printStmt->expression.get());
 	bytecode.emit(OpCode::PRINT);
-}
-
-void CodeGenerator::generateImportStmt(const AST::ImportStmt *importStmt)
-{
-	int constIndex = bytecode.addStringConstant(importStmt->modulePath);
-	bytecode.emit(OpCode::IMPORT, constIndex);
 }
 
 void CodeGenerator::generateExportStmt(const AST::ExportStmt *exportStmt)

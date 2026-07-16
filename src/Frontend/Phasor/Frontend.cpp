@@ -57,17 +57,6 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::ve
 	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
-	vm->setImportHandler([vm](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-		{
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runScript(buffer.str(), vm, {path});
-	});
-
 	try
 	{
 		status = vm->run(bytecode);
@@ -114,17 +103,6 @@ int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> p
 #elif defined(__linux__)
 	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
-
-	vm->setImportHandler([vm](const std::filesystem::path &path) {
-		std::ifstream file(path);
-		if (!file.is_open())
-		{
-			throw std::runtime_error("Could not open imported file: " + path.string());
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		runScript(buffer.str(), vm, {path});
-	});
 
 	if (status != 0)
 	{

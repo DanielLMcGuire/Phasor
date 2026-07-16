@@ -55,12 +55,11 @@ export default async function (server: ServerInstance) {
     });
 
     server.post('/run', async (req, res) => {
-        if (parseInt(req.headers['content-length'] || '0', 10) > 1024 * 128) { // 128KB max
+        if (parseInt(req.headers['content-length'] || '0', 10) > 1024 * 128) {
             res.json({ error: 'Code too large' }, 413);
             return;
         }
-        
-        // In the new API, req.body is fully parsed by the middleware, so it does not need to be awaited.
+        .
         const code = req.body as string;
         if (!code || typeof code !== 'string' || !code.trim()) { 
             res.json({ error: 'Request body must contain source code.' }, 400); 

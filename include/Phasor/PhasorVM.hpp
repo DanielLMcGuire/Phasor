@@ -90,10 +90,6 @@ class VM
 	/// @brief Register a native function
 	void registerNativeFunction(const std::string &name, NativeFunction fn);
 
-	using ImportHandler = std::function<void(const std::filesystem::path &path)>;
-	/// @brief Set the import handler for importing modules
-	void setImportHandler(const ImportHandler &handler);
-
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
 
@@ -272,9 +268,6 @@ class VM
 
 	/// @brief Is status an error code
 	bool isError = false;
-
-	/// @brief Import handler for loading modules
-	ImportHandler importHandler;
 
 	/// @brief Virtual registers for register-based operations (v2.0)
 	std::array<Value, MAX_REGISTERS> registers;

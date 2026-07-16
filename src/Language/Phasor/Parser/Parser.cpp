@@ -204,24 +204,6 @@ std::unique_ptr<Statement> Parser::declaration()
 		node->column = start.column;
 		return node;
 	}
-	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "import")
-	{
-		Token start = peek();
-		advance();
-		auto node = importStatement();
-		node->line = start.line;
-		node->column = start.column;
-		return node;
-	}
-	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "export")
-	{
-		Token start = peek();
-		advance();
-		auto node = exportStatement();
-		node->line = start.line;
-		node->column = start.column;
-		return node;
-	}
 	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "struct")
 	{
 		return structDecl();
@@ -576,22 +558,6 @@ std::unique_ptr<Statement> Parser::printStatement()
 	auto expr = expression();
 	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after print statement.");
 	return std::make_unique<PrintStmt>(std::move(expr));
-}
-
-std::unique_ptr<Statement> Parser::importStatement()
-{
-	Token path = consume(Phasor::TokenType::String, "Expect string after 'import'.");
-	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after import statement.");
-	auto node = std::make_unique<ImportStmt>(path.lexeme);
-	node->line = path.line;
-	node->column = path.column;
-	return node;
-}
-
-std::unique_ptr<Statement> Parser::exportStatement()
-{
-	auto node = std::make_unique<ExportStmt>(declaration());
-	return node;
 }
 
 std::unique_ptr<Statement> Parser::expressionStatement()

@@ -1,15 +1,24 @@
-#include "../../../Runtime/Phasor/ScriptingRuntime.hpp"
-#include "../../../Runtime/Shared/BinaryRuntime.hpp"
-#include "../../../Frontend/Phasor/Frontend.hpp"
+#include "../../../Runtime/VM/VM.hpp"
+#include "../../../Runtime/Stdlib/StdLib.hpp"
+#include "../../../Language/Phasor/Lexer/Lexer.hpp"
+#include "../../../Language/Phasor/Parser/Parser.hpp"
+#include "../../../Codegen/CodeGen.hpp"
+#include "../../../Codegen/Bytecode/BytecodeDeserializer.hpp"
+
 #include <print>
+#include <format>
 #include <string>
 #include <vector>
 #include <filesystem>
 #include <sstream>
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <unordered_map>
+
 #include <PhasorString.hpp>
 #include <phs_dupenv.hpp>
-
+#include <nativeerror.h>
 #include <version.h>
 
 #ifdef _WIN32
@@ -23,9 +32,9 @@
 /**
  * @brief Reads all content from stdin until EOF (piped input)
  */
-std::string readStdin()
+Phasor::PhsString readStdin()
 {
-	std::string content;
+	Phasor::PhsString content;
 	std::string line;
 	while (std::getline(std::cin, line))
 	{
@@ -34,45 +43,8 @@ std::string readStdin()
 	return content;
 }
 
-namespace fs = std::filesystem;
-
-#ifndef PHS_WINDOWED
-void showHelp(const fs::path &program = "phasor")
-#else
-void showHelp(const fs::path &program = "phasorw")
-#endif
+std::vector<std::filesystem::path> fetchIncludeDirs()
 {
-	const std::string programName = program.stem().string();
-	std::println("Phasor Programming Language and Toolchain v{}\n"
-	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
-				 "See more with phasor-help phasor\n"
-	             "Usage: [RAWSCRIPT] | {} [SCRIPT, BYTECODE]\n"
-	             "A. PIPE:    <text> | {}\n"
-	             "B. JIT/BYTECODE:     {} <file>\n"
-	             "C. REPL:             {}\n\n"
-	             "Example:",
-	             PHASOR_VERSION_STRING, programName, programName, programName, programName);
-
-#ifdef _WIN32
-	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^\");\" | {}\n"
-	             "A. PWSH: \"print(`\"Hi\\!\\n`\");\" | {}\n"
-	             "B.       {} hello.phs\n"
-	             "B.       {} hello.phsb",
-	             programName, programName, programName, programName);
-#else
-	std::println("A. echo \"print(\\\"Hi\\!\\\\\\\\n\\\");\" | {}\n"
-	             "B. {} hello.phs\n"
-	             "B. {} hello.phsb",
-	             programName, programName, programName);
-#endif
-	std::println(R"(
-Options:
-    -h, --help     Show this help message and exit
-    -v, --version  Show the version number and exit
-    -c, --command  Run a raw script string)");
-}
-
-std::vector<std::filesystem::path> fetchIncludeDirs() {
 	std::vector<std::filesystem::path> finalPaths;
 
 #ifdef PHASOR_DEFAULT_FIRST_PATH
@@ -96,90 +68,383 @@ std::vector<std::filesystem::path> fetchIncludeDirs() {
 	return finalPaths;
 }
 
+#ifndef PHS_WINDOWED
+void showHelp(const std::filesystem::path &program = "phasor")
+#else
+void showHelp(const std::filesystem::path &program = "phasorw")
+#endif
+{
+	const Phasor::PhsString programName = program.stem().string();
+	std::println("Phasor Programming Language and Toolchain v{}\n"
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+				 "See more with phasor-help phasor\n"
+	             "Usage: [SCRIPT] | {} [OPTIONS...] [FILE] [--] [SCRIPTARGS...]\n"
+	             "A. PIPE:    <text> | {} [--] [SCRIPTARGS...]\n"
+	             "B. COMMAND: {} -c \"script\" [--] [SCRIPTARGS...]\n"
+	             "C. FILE:    {} <file> [--] [SCRIPTARGS...]\n"
+	             "D. REPL:    {}\n\n"
+	             "Example:",
+	             PHASOR_VERSION_STRING, programName, programName, programName, programName, programName);
+
+#ifdef _WIN32
+	std::println("A. CMD:  echo \"print(^\"Hi\\!\\n^\");\" | {}\n"
+	             "A. PWSH: \"print(`\"Hi\\!\\n`\");\" | {}\n"
+	             "B.       {} hello.phs\n"
+	             "B.       {} hello.phsb\n"
+                 "B.       {} hello.phs -- -myScriptFlag",
+	             programName, programName, programName, programName, programName);
+#else
+	std::println("A. echo \"print(\\\"Hi\\!\\\\\\\\n\\\");\" | {}\n"
+	             "B. {} hello.phs\n"
+	             "B. {} hello.phsb\n"
+                 "B. {} hello.phs -- -myScriptFlag",
+	             programName, programName, programName, programName);
+#endif
+	std::println(R"(
+Options:
+    -h, --help     Show this help message and exit
+    -v, --version  Show the version number and exit
+    -c, --command  Run a raw script string
+    --verbose      Print the parsed AST before running)");
+}
+
+std::unique_ptr<Phasor::VM> createVm(int scriptArgc, char **scriptArgv)
+{
+	auto vm = std::make_unique<Phasor::VM>();
+	Phasor::StdLib::registerFunctions(*vm);
+	Phasor::StdLib::argc = scriptArgc;
+	Phasor::StdLib::argv = scriptArgv;
+
+#if defined(_WIN32)
+	vm->initFFI({"phasornative", "plugins"});
+#elif defined(__APPLE__)
+	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+#elif defined(__linux__)
+	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+#endif
+
+	return vm;
+}
+
+int runSourceString(const Phasor::PhsString &source, Phasor::VM &vm, const std::vector<std::filesystem::path> &includePaths,
+                     const Phasor::PhsString &sourceName, bool verbose)
+{
+	Phasor::Lexer  lexer(source);
+	auto           tokens = lexer.tokenize();
+	Phasor::Parser parser(tokens, sourceName.str());
+	if (!includePaths.empty())
+	{
+		parser.setIncludePaths(includePaths);
+	}
+	auto program = parser.parse();
+
+	if (verbose)
+	{
+		std::println("AST:");
+		program->print();
+		std::println();
+	}
+
+	Phasor::CodeGenerator codegen;
+	auto                  bytecode = codegen.generate(*program);
+
+	return vm.run(bytecode);
+}
+
+int runScriptFile(const std::filesystem::path &file, int scriptArgc, char **scriptArgv, const std::vector<std::filesystem::path> &includePaths,
+                   bool verbose)
+{
+	std::ifstream fileStream(file);
+	if (!fileStream.is_open())
+	{
+		std::println(std::cerr, "Could not open file: {}", file.string());
+		return 1;
+	}
+
+	std::stringstream buffer;
+	buffer << fileStream.rdbuf();
+	const Phasor::PhsString source = buffer.str();
+
+	auto vm = createVm(scriptArgc, scriptArgv);
+
+	try
+	{
+		return runSourceString(source, *vm, includePaths, file.string(), verbose);
+	}
+	catch (const std::exception &e)
+	{
+		Phasor::PhsString errorMsg = Phasor::PhsString(e.what()) + "\n";
+		error(errorMsg);
+		return 1;
+	}
+}
+
+int runBytecodeFile(const std::filesystem::path &file, int scriptArgc, char **scriptArgv, bool verbose)
+{
+	try
+	{
+		if (verbose)
+			std::println(std::cerr, "DEBUG: Loading bytecode from: {}", file.string());
+
+		Phasor::BytecodeDeserializer deserializer;
+		Phasor::Bytecode            bytecode = deserializer.loadFromFile(file.string());
+
+		if (verbose)
+		{
+			std::println(std::cerr, "DEBUG: Bytecode loaded successfully");
+			std::println(std::cerr, "DEBUG: Instructions: {}", bytecode.instructions.size());
+			std::println(std::cerr, "DEBUG: Constants: {}", bytecode.constants.size());
+		}
+
+		auto vm = createVm(scriptArgc, scriptArgv);
+
+		if (verbose)
+			std::println(std::cerr, "DEBUG: About to run bytecode");
+
+		int status = vm->run(bytecode);
+
+		if (verbose)
+			std::println(std::cerr, "DEBUG: Bytecode execution complete with return {}", status);
+
+		return status;
+	}
+	catch (const std::exception &e)
+	{
+		error(e.what());
+		return 1;
+	}
+}
+
+int runRepl(const std::vector<std::filesystem::path> &includePaths, bool verbose)
+{
+	auto vm = createVm(0, nullptr);
+
+	std::unordered_map<std::string, int> globalVars;
+	int                                  nextVarIdx = 0;
+	std::string                          line;
+	int                                  status = 0;
+	bool                                 cleanExit = false;
+
+	std::println("Phasor REPL (using Phasor VM v{})\n"
+	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
+	             "Type 'exit();' to quit. Function declarations will not work.",
+	             PHASOR_VERSION_STRING);
+
+	while (true)
+	{
+		try
+		{
+			std::print("\n> ");
+			if (!std::getline(std::cin, line))
+				break;
+
+			if (line.starts_with("exit"))
+			{
+				cleanExit = true;
+				break;
+			}
+			if (line.empty())
+			{
+				std::println(std::cerr, "Empty line");
+				continue;
+			}
+
+			Phasor::Lexer  lexer(line);
+			Phasor::Parser parser(lexer.tokenize());
+			parser.setIncludePaths(includePaths);
+
+			auto program = parser.parse();
+
+			if (verbose)
+			{
+				std::println("AST:");
+				program->print();
+				std::println();
+			}
+
+			Phasor::CodeGenerator codegen;
+			auto                  bytecode = codegen.generate(*program, globalVars, nextVarIdx, true);
+
+			globalVars = bytecode.variables;
+			nextVarIdx = bytecode.nextVarIndex;
+
+			status = vm->run(bytecode);
+		}
+		catch (const std::exception &e)
+		{
+			error(std::format("{}\n", e.what()));
+		}
+	}
+
+	return cleanExit ? 0 : status;
+}
+
 int main(int argc, char *argv[])
 {
 	try
 	{
-		if (!IS_TERMINAL)
+		const std::filesystem::path              programPath = argv[0];
+		const std::vector<std::filesystem::path> includePaths = fetchIncludeDirs();
+
+		bool                     verbose = false;
+		bool                     is_parsing_options = true;
+		bool                     has_command = false;
+		Phasor::PhsString              command_script;
+		Phasor::PhsString              file_script;
+		std::vector<Phasor::PhsString> script_args_storage;
+
+		for (int i = 1; i < argc; ++i)
 		{
-			const std::string source = readStdin();
-			if (!source.empty())
+			Phasor::PhsString arg = argv[i];
+			if (!is_parsing_options)
 			{
-				return Phasor::Frontend::runScript(source, nullptr, fetchIncludeDirs());
+				script_args_storage.push_back(arg);
+				continue;
 			}
-		} 
-		if (argc < 2)
-		{
-			return Phasor::Frontend::runRepl(nullptr, fetchIncludeDirs());
-		}
 
-		const fs::path programPath = argv[0];
-		const fs::path file = argv[1];
-
-		if (!fs::exists(file))
-		{
-			const std::string raw = file.string();
-			if (!raw.empty() && (raw.front() == '-' || raw.front() == '/'))
+			if (arg == "--")
 			{
-				std::string m_path = raw;
-				m_path.erase(0, m_path.find_first_not_of("-/"));
-				if (m_path == "help" || m_path == "h" || m_path == "?" || m_path == "h" || m_path == "help")
+				is_parsing_options = false;
+				continue;
+			}
+			if (arg.starts_with("-"))
+			{
+				if (arg == "-h" || arg == "--help")
 				{
 					showHelp(programPath);
 					return 0;
 				}
-				else if (m_path == "version" || m_path == "v")
+				else if (arg == "-v" || arg == "--version")
 				{
 					std::println(PHASOR_VERSION_STRING);
 					return 0;
 				}
-				else if (m_path == "command" || m_path == "c")
+				else if (arg == "--verbose")
 				{
-					Phasor::ScriptingRuntime ScriptRT(argc, argv, fetchIncludeDirs());
-					auto                     vm = ScriptRT.createVm();
-					return ScriptRT.runSourceString(argv[2], *vm);
+					verbose = true;
+				}
+				else if (arg == "-c" || arg == "--command")
+				{
+					if (i + 1 >= argc)
+					{
+						std::println(std::cerr, "Error: -c/--command requires a script string argument");
+						return 1;
+					}
+					command_script = argv[++i];
+					has_command = true;
 				}
 				else
 				{
-					std::println(std::cerr, "Invalid argument: {}", m_path);
+					std::println(std::cerr, "Error: Unknown runtime option '{}'. Use -- to separate script arguments.", arg);
+					return 1;
 				}
 			}
 			else
 			{
-				std::println(std::cerr, "File not found: {}", raw);
+				if (!has_command && file_script.empty())
+				{
+					file_script = arg;
+				}
+				else
+				{
+					script_args_storage.push_back(arg);
+				}
 			}
+		}
+
+		bool        has_pipe = false;
+		Phasor::PhsString piped_script;
+		if (!IS_TERMINAL)
+		{
+			piped_script = readStdin();
+			if (!piped_script.empty())
+			{
+				has_pipe = true;
+			}
+		}
+
+		bool has_file = !file_script.empty();
+
+		int sources_count = (has_command ? 1 : 0) + (has_pipe ? 1 : 0) + (has_file ? 1 : 0);
+		if (sources_count > 1)
+		{
+			std::println(std::cerr, "Error: Conflicting inputs. Cannot combine -c, piped input, and file input together.");
 			return 1;
 		}
 
-		const std::string ext = file.extension().string();
-#ifndef PHS_WINDOWED
-		if (ext == ".phsw" || ext == ".phsbw")
+		Phasor::PhsString arg0 = "default.phs";
+		if (has_file)
 		{
-			std::println("Use phasorw for windowed scripts, or rename to .phs/.phsb");
-			return 1;
+			arg0 = file_script;
 		}
 
-		else if (ext == ".phs")
-#else
-		if (ext == ".phsw" || ext == ".phs")
-#endif
+		std::vector<Phasor::PhsString> script_args_strings;
+		script_args_strings.push_back(arg0);
+		for (const auto &arg : script_args_storage)
 		{
-			Phasor::ScriptingRuntime ScriptRT(argc, argv, fetchIncludeDirs());
-			return ScriptRT.run();
+			script_args_strings.push_back(arg);
 		}
-#ifndef PHS_WINDOWED
-		else if (ext == ".phsb")
-#else
-		else if (ext == ".phsbw" || ext == ".phsb")
-#endif
+
+		std::vector<char *> scriptArgv;
+		scriptArgv.reserve(script_args_strings.size());
+		for (auto &s : script_args_strings)
 		{
-			Phasor::BinaryRuntime BinRT(argc, argv);
-			return BinRT.run();
+			scriptArgv.push_back(s.data());
+		}
+
+		int    scriptArgc = static_cast<int>(scriptArgv.size());
+		char **scriptArgvPtr = scriptArgv.data();
+
+		if (has_command)
+		{
+			auto vm = createVm(scriptArgc, scriptArgvPtr);
+			return runSourceString(command_script, *vm, includePaths, "", verbose);
+		}
+		else if (has_pipe)
+		{
+			auto vm = createVm(scriptArgc, scriptArgvPtr);
+			return runSourceString(piped_script, *vm, includePaths, "", verbose);
+		}
+		else if (has_file)
+		{
+			const std::filesystem::path file = file_script.str();
+			if (!std::filesystem::exists(file))
+			{
+				std::println(std::cerr, "File not found: {}", file.string());
+				return 1;
+			}
+
+			const Phasor::PhsString ext = file.extension().string();
+#ifndef PHS_WINDOWED
+			if (ext == ".phsw" || ext == ".phsbw")
+			{
+				std::println("Use phasorw for windowed scripts, or rename to .phs/.phsb");
+				return 1;
+			}
+			else if (ext == ".phs")
+#else
+			if (ext == ".phsw" || ext == ".phs")
+#endif
+			{
+				return runScriptFile(file, scriptArgc, scriptArgvPtr, includePaths, verbose);
+			}
+#ifndef PHS_WINDOWED
+			else if (ext == ".phsb")
+#else
+			else if (ext == ".phsbw" || ext == ".phsb")
+#endif
+			{
+				return runBytecodeFile(file, scriptArgc, scriptArgvPtr, verbose);
+			}
+			else
+			{
+				std::println(std::cerr, "Unsupported extension: {}, see --help", ext);
+				return 1;
+			}
 		}
 		else
 		{
-			std::println(std::cerr, "Unsupported extension: {}, see --help", ext);
-			return 1;
+			return runRepl(includePaths, verbose);
 		}
 	}
 	catch (const std::exception &e)

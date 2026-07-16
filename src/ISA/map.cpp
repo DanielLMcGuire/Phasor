@@ -54,7 +54,6 @@ const std::unordered_map<OpCode, std::string> opCodeToStringMap = {{OpCode::PUSH
                                                                    {OpCode::PRINT, "PRINT"},
                                                                    {OpCode::PRINTERROR, "PRINTERROR"},
                                                                    {OpCode::READLINE, "READLINE"},
-                                                                   {OpCode::IMPORT, "IMPORT"},
                                                                    {OpCode::HALT, "HALT"},
                                                                    {OpCode::CALL_NATIVE, "CALL_NATIVE"},
                                                                    {OpCode::CALL, "CALL"},

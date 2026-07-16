@@ -158,15 +158,6 @@ Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const b
 	return Value();
 }
 
-void VM::setImportHandler(const ImportHandler &handler)
-{
-#ifdef TRACING
-	log(std::format("VM::{}()\n", __func__));
-	flush();
-#endif
-	importHandler = handler;
-}
-
 void VM::cleanup()
 {
 #ifdef TRACING

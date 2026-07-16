@@ -78,7 +78,7 @@ add_executable(phasor_main
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
 )
-target_link_libraries(phasor_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
+target_link_libraries(phasor_main phasor_binary_runtime_lib phasor_language PhasorCodegen PhasorRuntime)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
 if(WIN32)
@@ -86,7 +86,7 @@ if(WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
         ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
     )
-    target_link_libraries(phasorw_main phasor_scripting_runtime_lib phasor_binary_runtime_lib PhasorFrontend)
+    target_link_libraries(phasorw_main phasor_binary_runtime_lib phasor_language PhasorCodegen PhasorRuntime)
     set_target_properties(phasorw_main PROPERTIES OUTPUT_NAME phasorw)
     target_compile_definitions(phasorw_main PRIVATE PHS_WINDOWED)
     set_target_properties(phasorw_main PROPERTIES WIN32_EXECUTABLE TRUE)
