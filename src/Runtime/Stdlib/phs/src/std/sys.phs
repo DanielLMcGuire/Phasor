@@ -10,7 +10,8 @@
 // limitations under the License.
 
 using("stdsys");
+include "../../include/std/types/sys.phs";
 
 fn is_sandboxed() -> bool {
-    return phs__std_noimport("sys_os") == 6;
+    return sys_os() == sys_os.sandbox;
 }

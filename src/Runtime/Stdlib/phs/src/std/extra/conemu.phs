@@ -1,6 +1,8 @@
 // Copyright 2026 Daniel McGuire -- conemu extensions for Phasor Standard Library
 // Licensed under the MIT License.
 
+include "../../include/std/types/sys.phs";
+
 fn conemu_sleep(ms: int) {
     phs__std_noimport("printf", "\e]9;1;%d\a", ms);
 }
@@ -26,7 +28,7 @@ fn conemu_wait_for_input() {
 
 fn conemu_guimacro(txt: string) -> string {
     phs__std_noimport("printf", "\e]9;6;%s\a", txt);
-    if (phs__std_noimport("sys_os") == 6) return "";
+    if (phs__std_noimport("sys_os") == sys_os.sandbox) return "";
     return phs__std_noimport("sys_env", "ConEmuMacroResult");
 }
 

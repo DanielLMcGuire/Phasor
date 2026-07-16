@@ -18,10 +18,10 @@ phasorstd_io \- Phasor standard I/O functions
 .SH FUNCTIONS
 .TP
 .BR c_fmt (format, ...)
-Format a string using C-style format specifiers. Returns the formatted string without printing.
+Format a string using format specifiers. Returns the formatted string without printing.
 .RS
 .PP
-.B Format Specifiers:
+.B Format Specifiers (including but not limited to:)
 .RS
 .IP \fB%s\fR 8
 String
@@ -35,6 +35,12 @@ Literal percent sign
 Character
 .IP \fB%x\fR 8
 Hexadecimal (lowercase)
+.IP \fB%X\fR 8
+Hexadecimal (uppercase)
+.IP \fB%O\fR 8
+Object (JSON)
+.IP \fB%M\fR 8
+Array/Matrix (JSON)
 .RE
 .PP
 .B Arguments:
