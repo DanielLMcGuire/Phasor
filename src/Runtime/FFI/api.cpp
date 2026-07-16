@@ -89,7 +89,7 @@ PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_p
 	case ValueType::Float:
 		return phasor_make_float(cpp_value.asFloat());
 	case ValueType::String: {
-		const auto &str = cpp_value.asString();
+		const auto &str = cpp_value.string();
 		auto        c_str = std::make_unique<char[]>(str.length() + 1);
 		std::copy(str.begin(), str.end(), c_str.get());
 		c_str[str.length()] = '\0';

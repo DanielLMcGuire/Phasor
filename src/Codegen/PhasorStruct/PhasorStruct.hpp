@@ -13,7 +13,7 @@ inline Bytecode bytecodeFromValue(Value program) {
         if (!v.isArray())
             return out;
         for (const auto& item : *v.asArray())
-            out.push_back(item.asString());
+            out.push_back(item.string());
         return out;
     };
 
@@ -38,7 +38,7 @@ inline Bytecode bytecodeFromValue(Value program) {
     if (program.hasField("instructions") && program["instructions"].isArray()) {
         for (const auto& instVal : *program["instructions"].asArray()) {
             Instruction inst;
-            inst.op       = stringToOpCode(instVal["op"].asString());
+            inst.op       = stringToOpCode(instVal["op"].string());
             inst.operand1 = static_cast<int>(instVal["operand1"].asInt());
             inst.operand2 = static_cast<int>(instVal["operand2"].asInt());
             inst.operand3 = static_cast<int>(instVal["operand3"].asInt());
@@ -57,7 +57,7 @@ inline Bytecode bytecodeFromValue(Value program) {
 
     if (program.hasField("variables") && program["variables"].isArray()) {
         for (const auto& varVal : *program["variables"].asArray()) {
-            const std::string name = varVal["name"].asString();
+            const std::string name = varVal["name"].string();
             const int index        = static_cast<int>(varVal["index"].asInt());
             bc.variables[name] = index;
         }
@@ -65,7 +65,7 @@ inline Bytecode bytecodeFromValue(Value program) {
 
     if (program.hasField("functions") && program["functions"].isArray()) {
         for (const auto& funcVal : *program["functions"].asArray()) {
-            const std::string name  = funcVal["name"].asString();
+            const std::string name  = funcVal["name"].string();
             const int entry         = static_cast<int>(funcVal["entry"].asInt());
 
             bc.functionEntries[name] = entry;
@@ -83,7 +83,7 @@ inline Bytecode bytecodeFromValue(Value program) {
             bc.functionParamArrayDims[name] = paramDims;
 
             if (funcVal.hasField("returnType"))
-                bc.functionReturnTypeNames[name] = funcVal["returnType"].asString();
+                bc.functionReturnTypeNames[name] = funcVal["returnType"].string();
             else
                 bc.functionReturnTypeNames[name] = "unknown";
 
@@ -97,7 +97,7 @@ inline Bytecode bytecodeFromValue(Value program) {
     if (program.hasField("structs") && program["structs"].isArray()) {
         for (const auto& structVal : *program["structs"].asArray()) {
             StructInfo sinfo;
-            sinfo.name = structVal["name"].asString();
+            sinfo.name = structVal["name"].string();
             sinfo.firstConstIndex = static_cast<int>(structVal["firstConstIndex"].asInt());
             sinfo.fieldCount = static_cast<int>(structVal["fieldCount"].asInt());
 
@@ -124,7 +124,7 @@ inline Bytecode bytecodeFromValue(Value program) {
 
             for (const auto& varVal : *scopeVal["variables"].asArray()) {
                 const int varIndex = static_cast<int>(varVal["index"].asInt());
-                const std::string varName = varVal["name"].asString();
+                const PhsString varName = varVal["name"].string();
                 bc.scopeVarLists[scopeIndex].push_back({varIndex, varName});
             }
         }

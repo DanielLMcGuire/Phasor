@@ -17,7 +17,7 @@ Value StdLib::var_free(const std::vector<Value> &args, VM *vm)
 	if (!arg.isString())
 		throw std::runtime_error("free(): argument must be a string");
 
-	vm->freeVariableByName(arg.asString());
+	vm->freeVariableByName(arg.string());
 	return phsnull;
 }
 

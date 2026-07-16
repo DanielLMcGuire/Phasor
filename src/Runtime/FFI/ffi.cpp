@@ -316,7 +316,7 @@ bool FFI::native_add_plugin(const std::vector<Value> &args, VM *)
 	{
 		throw std::runtime_error("load_plugin expects exactly 1 argument: the plugin path.");
 	}
-	std::filesystem::path pluginPath = args[0].string();
+	std::filesystem::path pluginPath = args[0].stl_string();
 	if (!std::filesystem::exists(pluginPath))
 	{
 		throw std::runtime_error("Plugin file does not exist: " + pluginPath.string());

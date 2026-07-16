@@ -198,7 +198,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::run_internal(const std::vector<Value> &args, VM *vm)
 {
-	PhsString name = args[0].asString();
+	PhsString name = args[0].string();
 	std::vector<Value> fnArgs(args.begin() + 1, args.end());
 
 	auto it = functions.find(name);

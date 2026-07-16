@@ -126,7 +126,7 @@ f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 1, "timef_utc");
-    std::string format = args[0].asString().c_str();
+    std::string format = args[0].string();
 
     auto now = std::chrono::system_clock::now();
 
@@ -140,7 +140,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 1, "timef_local");
-    std::string format = args[0].asString().c_str();
+    std::string format = args[0].string();
 
     auto now = std::chrono::system_clock::now();
 
@@ -170,7 +170,7 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
-	PhsString key = args[0].asString();
+	PhsString key = args[0].string();
 	PhsString value;
 	dupenv_ret result = dupenv(value, key.c_str());
 	if (result == dupenv_ret::NotFound) return false;
@@ -299,7 +299,7 @@ Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 0, "error");
 	vm->reset();
 	vm->setStatus(-1);
-	throw std::runtime_error(args[0].asString());
+	throw std::runtime_error(args[0].string());
 }
 
 Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)

@@ -31,10 +31,10 @@ class PhasorIR
 	static Bytecode loadFromFile(const std::filesystem::path &filename);
 
 	/// @brief Helper to escape strings for text format
-	static std::string escapeString(const std::string &str);
+	static PhsString escapeString(const PhsString &str);
 
 	/// @brief Helper to unescape strings from text format
-	static std::string unescapeString(const std::string &str);
+	static PhsString unescapeString(const PhsString &str);
 
   private:
 	/// @brief Operand types for instructions
@@ -51,8 +51,8 @@ class PhasorIR
 	static int         getOperandCount(OpCode op);
 	static OperandType getOperandType(OpCode op, int operandIndex);
 
-	static const std::unordered_map<OpCode, std::string> opCodeToStringMap;
-	static const std::unordered_map<std::string, OpCode> stringToOpCodeMap;
+	static const std::unordered_map<OpCode, PhsString> opCodeToStringMap;
+	static const std::unordered_map<PhsString, OpCode> stringToOpCodeMap;
 };
 
 } // namespace Phasor

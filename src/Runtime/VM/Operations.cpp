@@ -218,7 +218,7 @@ void VM::evalLoop()
     {
         {
             Value       funcNameVal = m_bytecode->constants[operand1];
-            std::string funcName    = funcNameVal.asString();
+            std::string funcName    = funcNameVal.string();
             auto        it          = m_bytecode->functionEntries.find(funcName);
             if (it == m_bytecode->functionEntries.end())
                 throw std::runtime_error("Unknown function: " + funcName);
@@ -257,7 +257,7 @@ void VM::evalLoop()
     {
         {
             Value       funcNameVal = m_bytecode->constants[operand1];
-            std::string funcName    = funcNameVal.asString();
+            std::string funcName    = funcNameVal.string();
             auto        it          = nativeFunctions.find(funcName);
             if (it == nativeFunctions.end())
                 throw std::runtime_error("Unknown native function: " + funcName);
@@ -318,7 +318,7 @@ void VM::evalLoop()
     {
         {
             Value       pathVal = m_bytecode->constants[operand1];
-            std::string path    = pathVal.asString();
+            std::string path    = pathVal.string();
             if (importHandler)
                 importHandler(path);
             else
@@ -558,7 +558,7 @@ void VM::evalLoop()
             }
             else
             {
-                push(Value(static_cast<i64>(v.asString().length())));
+                push(Value(static_cast<i64>(v.string().length())));
             }
         }
         NEXT();
@@ -570,7 +570,7 @@ void VM::evalLoop()
             Value       idxVal = pop();
             Value       strVal = pop();
             std::string s;
-            if (strVal.isString()) s = strVal.asString();
+            if (strVal.isString()) s = strVal.string();
             else                   s = strVal.toString();
 
             i64 idx = 0;
@@ -578,7 +578,7 @@ void VM::evalLoop()
             else if (idxVal.isFloat())  idx = static_cast<i64>(idxVal.asFloat());
             else if (idxVal.isString())
             {
-                try { idx = std::stoll(idxVal.asString()); }
+                try { idx = std::stoll(idxVal.string()); }
                 catch (...) { throw std::runtime_error("char_at() expects index convertible to integer"); }
             }
             else throw std::runtime_error("char_at() expects string and integer");
@@ -599,7 +599,7 @@ void VM::evalLoop()
             Value strVal   = pop();
             if (strVal.isString() && startVal.isInt() && lenVal.isInt())
             {
-                const std::string& s     = strVal.asString();
+                const std::string& s     = strVal.string();
                 i64                start = startVal.asInt();
                 i64                len   = lenVal.asInt();
                 if (start < 0 || start >= static_cast<i64>(s.length()))
@@ -662,7 +662,7 @@ void VM::evalLoop()
         		throw std::runtime_error("GET_FIELD_DYN: field name must be a string");
 			if (!obj.isStruct())
 				throw std::runtime_error("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
-			push(obj.getField(fieldName.asString()));
+			push(obj.getField(fieldName.string()));
 		}
 		NEXT();
 	}
@@ -688,7 +688,7 @@ void VM::evalLoop()
     {
         if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
             throw std::runtime_error("Invalid constant index for NEW_STRUCT");
-        push(Value::createStruct(m_bytecode->constants[operand1].asString()));
+        push(Value::createStruct(m_bytecode->constants[operand1].string()));
         NEXT();
     }
 
@@ -697,7 +697,7 @@ void VM::evalLoop()
         {
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
                 throw std::runtime_error("Invalid constant index for SET_FIELD");
-            std::string fieldName = m_bytecode->constants[operand1].asString();
+            std::string fieldName = m_bytecode->constants[operand1].string();
             Value       value     = pop();
             Value       obj       = pop();
             obj.setField(fieldName, value);
@@ -712,7 +712,7 @@ void VM::evalLoop()
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
                 throw std::runtime_error("Invalid constant index for GET_FIELD");
             Value obj = pop();
-            push(obj.getField(m_bytecode->constants[operand1].asString()));
+            push(obj.getField(m_bytecode->constants[operand1].string()));
         }
         NEXT();
     }
@@ -1063,7 +1063,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::CALL: {
 		Value       funcNameVal = m_bytecode->constants[operand1];
-		std::string funcName = funcNameVal.asString();
+		std::string funcName = funcNameVal.string();
 		auto        it = m_bytecode->functionEntries.find(funcName);
 		if (it == m_bytecode->functionEntries.end())
 			throw std::runtime_error("Unknown function: " + funcName);
@@ -1099,7 +1099,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::CALL_NATIVE: {
 		Value       funcNameVal = m_bytecode->constants[operand1];
-		std::string funcName = funcNameVal.asString();
+		std::string funcName = funcNameVal.string();
 		auto        it = nativeFunctions.find(funcName);
 		if (it == nativeFunctions.end())
 			throw std::runtime_error("Unknown native function: " + funcName);
@@ -1157,7 +1157,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[unlikely]] case OpCode::IMPORT: {
 		Value       pathVal = m_bytecode->constants[operand1];
-		std::string path = pathVal.asString();
+		std::string path = pathVal.string();
 		if (importHandler)
 			importHandler(path);
 		else
@@ -1590,7 +1590,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		}
 		else
 		{
-			push(Value(static_cast<i64>(v.asString().length())));
+			push(Value(static_cast<i64>(v.string().length())));
 		}
 		break;
 	}
@@ -1601,7 +1601,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 		std::string s;
 		if (strVal.isString())
-			s = strVal.asString();
+			s = strVal.string();
 		else
 			s = strVal.toString();
 
@@ -1614,7 +1614,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		{
 			try
 			{
-				idx = std::stoll(idxVal.asString());
+				idx = std::stoll(idxVal.string());
 			}
 			catch (...)
 			{
@@ -1638,7 +1638,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 		if (strVal.isString() && startVal.isInt() && lenVal.isInt())
 		{
-			const std::string &s     = strVal.asString();
+			const std::string &s     = strVal.string();
 			i64                start = startVal.asInt();
 			i64                len   = lenVal.asInt();
 
@@ -1701,7 +1701,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			throw std::runtime_error("GET_FIELD_DYN: field name must be a string");
 		if (!obj.isStruct())
 			throw std::runtime_error("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
-		push(obj.getField(fieldName.asString()));
+		push(obj.getField(fieldName.string()));
 		break;
 	}
 
@@ -1724,7 +1724,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for NEW_STRUCT");
 		Value       nameVal    = m_bytecode->constants[operand1];
-		std::string structName = nameVal.asString();
+		std::string structName = nameVal.string();
 		push(Value::createStruct(structName));
 		break;
 	}
@@ -1732,7 +1732,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SET_FIELD: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for SET_FIELD");
-		std::string fieldName = m_bytecode->constants[operand1].asString();
+		std::string fieldName = m_bytecode->constants[operand1].string();
 		Value       value     = pop();
 		Value       obj       = pop();
 		obj.setField(fieldName, value);
@@ -1743,7 +1743,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::GET_FIELD: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
 			throw std::runtime_error("Invalid constant index for GET_FIELD");
-		std::string fieldName = m_bytecode->constants[operand1].asString();
+		std::string fieldName = m_bytecode->constants[operand1].string();
 		Value       obj       = pop();
 		push(obj.getField(fieldName));
 		break;

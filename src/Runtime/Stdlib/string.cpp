@@ -41,8 +41,8 @@ static std::vector<size_t>& getSbFreeIndices()
 Value StdLib::str_split(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "split");
-	PhsString s = args[0].asString();
-	PhsString delim = args[1].asString();
+	PhsString s = args[0].string();
+	PhsString delim = args[1].string();
 
 	std::vector<Value> result;
 	if (delim.empty()) {
@@ -66,8 +66,8 @@ Value StdLib::str_split(const std::vector<Value> &args, VM *)
 i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "find", true);
-	PhsString s = args[0].asString();
-	PhsString sub = args[1].asString();
+	PhsString s = args[0].string();
+	PhsString sub = args[1].string();
 	size_t      pos;
 	if (args.size() == 3)
 	{
@@ -177,7 +177,7 @@ Value StdLib::str_char_at(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 2, "char_at");
 	if (args[0].isString())
 	{
-		const PhsString &s = args[0].asString();
+		const PhsString &s = args[0].string();
 		i64            idx = args[1].asInt();
 		if (idx < 0 || idx >= static_cast<i64>(s.length()))
 			return Value("");
@@ -193,7 +193,7 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 	{
 		throw std::runtime_error("substr() expects 2 or 3 arguments");
 	}
-	PhsString s = args[0].asString();
+	PhsString s = args[0].string();
 	i64     start = args[1].asInt();
 	i64     len = (i64)args.size() == 3 ? args[2].asInt() : (i64)s.length() - start;
 
@@ -226,7 +226,7 @@ i64 StdLib::str_len(const std::vector<Value> &args, VM *)
 PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_upper");
-	PhsString s = args[0].asString();
+	PhsString s = args[0].string();
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
 	return s;
 }
@@ -234,7 +234,7 @@ PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
 PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_lower");
-	PhsString s = args[0].asString();
+	PhsString s = args[0].string();
 	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 	return s;
 }
@@ -242,7 +242,7 @@ PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "starts_with");
-	std::string s = args[0].asString();
+	std::string s = args[0].string();
 	std::string prefix = args[1].string();
 	if (s.length() >= prefix.length())
 	{

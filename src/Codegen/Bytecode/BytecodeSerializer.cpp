@@ -91,7 +91,7 @@ void BytecodeSerializer::writeDouble(f64 value)
 		buffer.push_back(static_cast<u8>((bits >> (i * 8)) & 0xFF));
 }
 
-void BytecodeSerializer::writeString(const std::string &str)
+void BytecodeSerializer::writeString(const PhsString &str)
 {
 	writeUInt16(static_cast<u16>(str.length()));
 	for (char c : str)
@@ -135,7 +135,7 @@ void BytecodeSerializer::writeValue(const Value &val)
 
 	case ValueType::String:
 		writeUInt8(4);
-		writeString(val.asString().str());
+		writeString(val.string());
 		break;
 
 	case ValueType::Struct:

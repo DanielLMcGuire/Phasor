@@ -38,7 +38,7 @@ PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
 		return ""; // Return empty string if no arguments
 	}
 
-	const PhsString &fmt = args[0].asString();
+	const PhsString &fmt = args[0].string();
 
 	// Make vector of format args
 	std::vector<Value> formatArgs(args.begin() + 1, args.end());

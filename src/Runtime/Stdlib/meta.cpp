@@ -145,7 +145,7 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
 Value StdLib::meta_load_bytecode_from_file(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "phs__load_bytecode");
-	std::filesystem::path bcFile = args[0].string();
+	std::filesystem::path bcFile = args[0].stl_string();
 	BytecodeDeserializer deserializer;
 	if (!std::filesystem::exists(bcFile))
 		throw std::runtime_error("Bytecode file \"" + bcFile.string() + "\" does not exist!");
@@ -156,7 +156,7 @@ Value StdLib::meta_load_bytecode_from_file(const std::vector<Value> &args, VM *)
 bool StdLib::meta_save_bytecode_to_file(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "phs__save_bytecode");
-	std::filesystem::path outFile = args[1].string();
+	std::filesystem::path outFile = args[1].stl_string();
 	BytecodeSerializer serializer;
 	auto bc = bytecodeFromValue(args[0]);
 	return serializer.saveToFile(bc, outFile);
@@ -183,7 +183,7 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
     checkArgCount(args, 4, "phs__run_program_function");
 
     Phasor::Value program = args[0];
-    PhsString functionName = args[1].asString();
+    PhsString functionName = args[1].string();
     if (!args[2].isArray())
         throw std::runtime_error("run_program_function expects func_arguments to be an array");
     auto func_arguments = args[2].asArray();
@@ -197,7 +197,7 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
     for (const auto &arg : *cli_arguments) {
         if (!arg.isString())
             throw std::runtime_error("run_program_function expects cli_arguments to contain only strings");
-        arg_strings.push_back(arg.asString());
+        arg_strings.push_back(arg.string());
     }
 
     std::vector<char *> argv_data;

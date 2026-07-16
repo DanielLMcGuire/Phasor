@@ -8,6 +8,8 @@
 #include <string_view>
 #include <variant>
 #include <format>
+#include <compare>
+#include <type_traits>
 
 inline constexpr std::size_t kSSOCapacity = 23;
 
@@ -69,7 +71,7 @@ public:
     PhsString(PhsString&&) noexcept            = default;
     PhsString& operator=(const PhsString&)     = default;
     PhsString& operator=(PhsString&&) noexcept = default;
-    ~PhsString()                                 = default;
+    ~PhsString()                               = default;
  
     PhsString& operator=(const char* s)      { return *this = PhsString{s}; }
     PhsString& operator=(std::string_view sv){ return *this = PhsString{sv}; }
@@ -142,7 +144,9 @@ public:
                 sm().len          = static_cast<u8>(new_sz);
                 return *this;
             }
-            std::string promoted{sm().data, old_sz};
+            std::string promoted;
+            promoted.reserve(new_sz);
+            promoted.append(sm().data, old_sz);
             promoted.append(s, n);
             m_store = std::move(promoted);
         } else {
@@ -163,7 +167,9 @@ public:
                 sm().len          = static_cast<u8>(new_sz);
                 return *this;
             }
-            std::string promoted{sm().data, old_sz};
+            std::string promoted;
+            promoted.reserve(new_sz);
+            promoted.append(sm().data, old_sz);
             promoted.append(n, c);
             m_store = std::move(promoted);
         } else {
@@ -197,14 +203,17 @@ public:
     void reserve(std::size_t n) {
         if (is_small()) {
             if (n > SSO_CAPACITY) {
-                std::string promoted{sm().data, sm().len};
+                std::string promoted;
                 promoted.reserve(n);
+                promoted.append(sm().data, sm().len);
                 m_store = std::move(promoted);
             }
         } else {
             lg().reserve(n);
         }
     }
+
+    void swap(PhsString& other) noexcept { m_store.swap(other.m_store); }
  
     std::size_t find(std::string_view sv, std::size_t pos = 0)     const noexcept { return view().find(sv, pos); }
     std::size_t find(char c, std::size_t pos = 0)                  const noexcept { return view().find(c, pos); }
@@ -233,19 +242,25 @@ public:
     }
     operator std::string()          const { return str(); }
     operator std::string_view()     const noexcept { return view(); }
- 
-    [[nodiscard]] std::strong_ordering operator<=>(const PhsString& o) const noexcept {
-        return view() <=> o.view();
+
+    [[nodiscard]] friend std::strong_ordering operator<=>(const PhsString& lhs, const PhsString& rhs) noexcept {
+        return lhs.view() <=> rhs.view();
     }
-    [[nodiscard]] bool operator==(const PhsString& o) const noexcept {
-        return view() == o.view();
+
+    template <typename T>
+        requires std::is_convertible_v<const T&, std::string_view> && (!std::is_same_v<std::remove_cvref_t<T>, PhsString>)
+    [[nodiscard]] friend std::strong_ordering operator<=>(const PhsString& lhs, const T& rhs) noexcept {
+        return lhs.view() <=> std::string_view(rhs);
     }
- 
-    [[nodiscard]] std::strong_ordering operator<=>(std::string_view sv) const noexcept {
-        return view() <=> sv;
+
+    [[nodiscard]] friend bool operator==(const PhsString& lhs, const PhsString& rhs) noexcept {
+        return lhs.view() == rhs.view();
     }
-    [[nodiscard]] bool operator==(std::string_view sv) const noexcept {
-        return view() == sv;
+
+    template <typename T>
+        requires std::is_convertible_v<const T&, std::string_view> && (!std::is_same_v<std::remove_cvref_t<T>, PhsString>)
+    [[nodiscard]] friend bool operator==(const PhsString& lhs, const T& rhs) noexcept {
+        return lhs.view() == std::string_view(rhs);
     }
  
     friend std::ostream& operator<<(std::ostream& os, const PhsString& s) {
@@ -275,14 +290,13 @@ private:
     const std::string& lg() const noexcept { return std::get<std::string>(m_store); }
 };
  
-inline PhsString operator+(PhsString lhs, std::string_view rhs) { return lhs += rhs; }
+inline PhsString operator+(PhsString lhs, const PhsString& rhs) { return lhs += rhs.view(); }
+inline PhsString operator+(PhsString lhs, const char* rhs)      { return lhs += rhs; }
 inline PhsString operator+(PhsString lhs, char rhs)             { return lhs += rhs; }
-inline PhsString operator+(std::string_view lhs, PhsString rhs) {
-    return PhsString{lhs} += rhs;
-}
-inline PhsString operator+(PhsString lhs, const PhsString& rhs) {
-    return lhs += rhs.view();
-}
+inline PhsString operator+(const char* lhs, const PhsString& rhs) { return PhsString{lhs} += rhs.view(); }
+inline PhsString operator+(char lhs, const PhsString& rhs)        { return PhsString(1, lhs) += rhs.view(); }
+
+inline void swap(PhsString& lhs, PhsString& rhs) noexcept { lhs.swap(rhs); }
 
 } // namespace Phasor
 

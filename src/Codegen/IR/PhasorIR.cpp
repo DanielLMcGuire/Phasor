@@ -203,7 +203,7 @@ PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
     return OperandType::INT;
 }
 
-std::string PhasorIR::escapeString(const std::string &str)
+PhsString PhasorIR::escapeString(const PhsString &str)
 {
     std::stringstream ss;
     for (unsigned char c : str)
@@ -237,9 +237,9 @@ std::string PhasorIR::escapeString(const std::string &str)
     return ss.str();
 }
 
-std::string PhasorIR::unescapeString(const std::string &str)
+PhsString PhasorIR::unescapeString(const PhsString &str)
 {
-    std::string result;
+    PhsString result;
     size_t      len = str.length();
 
     auto hexVal = [](char c) -> int {
@@ -356,7 +356,7 @@ static void writeIRValue(std::stringstream &ss, const Value &val,
         ss << "FLOAT " << val.asFloat() << "\n";
         break;
     case ValueType::String:
-        ss << "STRING \"" << escape(val.asString()) << "\"\n";
+        ss << "STRING \"" << escape(val.string()) << "\"\n";
         break;
 
     case ValueType::Struct:
@@ -574,7 +574,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
                     const Value &v = bytecode.constants[operands[i]];
                     if (v.getType() == ValueType::String)
                     {
-                        std::string str = v.asString();
+                        PhsString str = v.string();
                         if (str.length() > 20) str = str.substr(0, 20) + "...";
                         comment = "const[" + std::to_string(operands[i]) + "]=\"" + escapeString(str) + "\"";
                     }

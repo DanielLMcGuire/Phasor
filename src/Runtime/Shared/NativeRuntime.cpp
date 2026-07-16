@@ -179,7 +179,7 @@ std::optional<std::string> NativeRuntime::runFunctionString(std::string function
 
 		Value ret = m_vm->runFunction(functionName, m_bytecode);
 
-		return ret.asString();
+		return ret.string();
 	}
 	catch (const std::exception &)
 	{

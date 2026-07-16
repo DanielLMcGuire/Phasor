@@ -159,8 +159,8 @@ static Phasor::PhsString build_fmt_phs(const Spec &s, const char *len_override, 
     if (s.hash) f += '#';
     if (s.zero) f += '0';
     if (s.quote) f += '\'';
-    if (s.width > 0) f += Phasor::Value(s.width).asString();
-    if (s.prec  >= 0) { f += '.'; f += Phasor::Value(s.prec).asString(); }
+    if (s.width > 0) f += Phasor::Value(s.width).string();
+    if (s.prec  >= 0) { f += '.'; f += Phasor::Value(s.prec).string(); }
     f += len_override;
     f += conv;
     return f;
@@ -585,7 +585,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
                 Phasor::PhsString str;
 
                 if (type == Phasor::ValueType::String)
-                    str = val.asString();
+                    str = val.string();
                 else if (type == Phasor::ValueType::Bool)
                     str = val.asBool() ? "true" : "false";
                 else if (type == Phasor::ValueType::Null)
@@ -643,21 +643,13 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
             case 'O': case 'M': {
                 Phasor::PhsString str;
 
-                if (type == Phasor::ValueType::Null) {
-                    str = "null";
-                } else {
-                    int indent = -1;
-                    if (s.prec >= 0) {
-                        indent = s.prec;
-                    } else if (s.hash) {
-                        indent = 4;
-                    }
+                int indent = -1;
+                if (s.prec >= 0)
+                    indent = s.prec;
+                else if (s.hash)
+                    indent = 4;
 
-                    int depth = 0;
-
-                    str = val.jsonSerialize(indent, depth);
-                }
-
+                str = val.jsonSerialize(indent, 0);
                 int pad = s.width - (int)str.size();
 
                 if (!s.minus && pad > 0) result.append(pad, ' ');

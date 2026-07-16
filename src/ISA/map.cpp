@@ -1,4 +1,5 @@
 #include "map.hpp"
+#include "PhasorString.hpp"
 
 namespace Phasor
 {
@@ -153,6 +154,16 @@ std::string opCodeToString(OpCode op)
 }
 
 OpCode stringToOpCode(const std::string &str)
+{
+	auto it = stringToOpCodeMap.find(str);
+	if (it != stringToOpCodeMap.end())
+	{
+		return it->second;
+	}
+	throw std::runtime_error("Unknown opcode string: " + str);
+}
+
+OpCode stringToOpCode(const PhsString &str)
 {
 	auto it = stringToOpCodeMap.find(str);
 	if (it != stringToOpCodeMap.end())
