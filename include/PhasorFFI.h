@@ -244,7 +244,7 @@ extern "C"
 		void (*onExitCall)(PhasorVM *vm, void (*func)(void));
 		void (*onExitFree)(PhasorVM *vm, void *ptr);
 
-		// CRT Memory Management
+		// Runtime Memory Management
 		void *(*malloc)(size_t size);
 		void *(*calloc)(size_t num, size_t size);
 		void *(*realloc)(void *ptr, size_t size);

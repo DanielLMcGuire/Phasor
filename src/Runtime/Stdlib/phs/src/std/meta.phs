@@ -9,61 +9,61 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using("stdmeta");
+ffiload("stdmeta");
 include "../../include/std/types/meta.phs";
 
 fn get_self() -> Bytecode {
-    return phs__std_noimport("phs__get_self");
+    return phs__get_self();
 }
 
 fn get_self_instructions() -> InstructionData[] {
-    return phs__std_noimport("phs__get_self").instructions;
+    return phs__get_self().instructions;
 }
 
 fn get_self_constants() -> ConstantData[] {
-    return phs__std_noimport("phs__get_self").constants;
+    return phs__get_self().constants;
 }
 
 fn get_self_variables() -> VariableData[] {
-    return phs__std_noimport("phs__get_self").variables;
+    return phs__get_self().variables;
 }
 
 fn get_self_functions() -> FunctionData[] {
-    return phs__std_noimport("phs__get_self").functions;
+    return phs__get_self().functions;
 }
 
 fn get_self_structs() -> StructData[] {
-    return phs__std_noimport("phs__get_self").structs;
+    return phs__get_self().structs;
 }
 
 fn get_self_global_scopes() -> ScopeData[] {
-    return phs__std_noimport("phs__get_self").globalScopes;
+    return phs__get_self().globalScopes;
 }
 
 fn run_program(program: Bytecode) -> i64 {
-    return phs__std_noimport("phs__run_program", program);
+    return phs__run_program(program);
 }
 
 fn run_program_function(program: Bytecode, functionName: string, func_arguments: any[], cli_arguments: string[]) -> any {
-    return phs__std_noimport("phs__run_program_function", program, functionName, func_arguments, cli_arguments);
+    return phs__run_program_function(program, functionName, func_arguments, cli_arguments);
 }
 
-fn get_alloc_info() -> alloc_info {
-    return phs__std_noimport("phs__phs_alloc_info");
+fn get_alloc_info() -> AllocInfo {
+    return phs__phs_alloc_info();
 }
 
 fn load_bytecode(file_path: string) -> Bytecode {
-    return phs__std_noimport("phs__load_bytecode", file_path);
+    return phs__load_bytecode(file_path);
 }
 
 fn save_bytecode(program: Bytecode, file_path: string) -> bool {
-    return phs__std_noimport("phs__save_bytecode", program, file_path);
+    return phs__save_bytecode(program, file_path);
 }
 
 fn vm_push(value: any) -> void {
-    phs__std_noimport("phs_push", value);
+    phs_push(value);
 }
 
 fn vm_pop() -> any {
-    return phs__std_noimport("phs_pop");
+    return phs_pop();
 }

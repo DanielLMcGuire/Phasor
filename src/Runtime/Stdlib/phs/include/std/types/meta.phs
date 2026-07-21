@@ -53,9 +53,6 @@ struct Bytecode {
     globalScopes: ScopeData[]
 }
 
-struct alloc_info {
-    heap_used: i64,
-    stack_limit: i64,
-    heap_used_kb: i64,
-    stack_limit_kb: i64
+struct AllocInfo {
+    heap_used_kb: i64
 }

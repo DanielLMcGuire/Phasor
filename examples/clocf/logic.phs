@@ -1,8 +1,8 @@
-include "std/io.phs";
-include "std/str.phs";
-include "std/type.phs";
-include "std/mem.phs";
-include "std/array.phs";
+include "std/io";
+include "std/str";
+include "std/type";
+include "std/mem";
+include "std/array";
 
 fn print_help() -> void {
     puts("clocf - cloc formatter\n");

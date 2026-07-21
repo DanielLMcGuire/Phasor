@@ -18,6 +18,16 @@
 #include <Value.hpp>
 #endif
 
+#ifdef PHASOR_USES_BOOST
+	#include <boost/assert/source_location.hpp>
+	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
+#else
+	#define PHS_SRC_LOC() (std::format("StdLib::{}()", __func__))
+#endif
+
+#define PHS_ERROR(x) throw std::runtime_error(std::format("\"{}\" thrown in {}", x, PHS_SRC_LOC()));
+
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -37,13 +47,12 @@ class StdLib
 	inline static void registerFunctions(VM &vm)
 	{
 #ifdef TRACING
-		vm.log(std::format("StdLib::{}(&VM@{:#x})\n", __func__, reinterpret_cast<std::uintptr_t>(&vm)));
+		vm.log(std::format("({})(&VM@{:#x})\n", PHS_SRC_LOC(), reinterpret_cast<std::uintptr_t>(&vm)));
 		vm.flush();
 #endif
-		vm.registerNativeFunction("using", std_import);
+		vm.registerNativeFunction("ffiload", std_import);
 #ifndef SANDBOXED
 		vm.registerNativeFunction("assert", std_assert);
-		vm.registerNativeFunction("phs__std_noimport", run_internal);
 #endif
 	}
 
@@ -58,7 +67,6 @@ class StdLib
 	static std::unordered_map<PhsString, std::function<Value(const std::vector<Value> &args, VM *vm)>> functions;
 
 	static bool  std_import(const std::vector<Value> &args, VM *vm);
-	static Value run_internal(const std::vector<Value> &args, VM *vm);
 #ifndef SANDBOXED
 	static Value std_assert(const std::vector<Value> &args, VM *vm);
 #endif
@@ -75,6 +83,8 @@ class StdLib
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
 	static void registerArrayFunctions(VM *vm);
+	static void registerObjectFunctions(VM *vm);
+	static void registerInternalFunctions(VM *vm);
 
 #pragma region stdmeta
 #ifndef SANDBOXED
@@ -96,6 +106,22 @@ class StdLib
 
 #pragma region stdmemory
 	static Value var_free(const std::vector<Value> &args, VM *vm); ///< Free a variable
+	static i64 native_memory_malloc(const std::vector<Value> &args, VM *vm);
+	static i64 native_memory_calloc(const std::vector<Value> &args, VM *vm);
+	static i64 native_memory_realloc(const std::vector<Value> & args, VM *vm);
+	static Value native_memory_write(const std::vector<Value> &args, VM *vm);
+	static Value native_memory_write_offset(const std::vector<Value> &args, VM *vm);
+	static Value native_memory_free(const std::vector<Value> &args, VM *vm);
+	static Value native_memory_write_string(const std::vector<Value> &args, VM *vm);
+	static Value native_memory_write_string_offset(const std::vector<Value> &args, VM *vm);
+	static i64 native_memory_read(const std::vector<Value> &args, VM *vm);
+	static PhsString native_memory_read_string(const std::vector<Value> &args, VM *vm);
+	static i64 native_memory_read_offset(const std::vector<Value> &args, VM *vm);
+	static PhsString native_memory_read_string_offset(const std::vector<Value> &args, VM *vm);
+	static Value native_memory_strcpy(const std::vector<Value> &args, VM *vm);
+	static Value native_memory_stralloc(const std::vector<Value> &args, VM *vm);
+	static i64 native_memory_argv(const std::vector<Value> &args, VM *vm);
+	static i64 native_memory_argc(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 #pragma region stdmath
@@ -179,23 +205,30 @@ class StdLib
 	static PhsString   ascii_to_string(const std::vector<Value> &args, VM *vm); ///< Convert ascii to string
 	static Value       get_struct_elements(const std::vector<Value> &args, VM *);
 	static Value       get_struct_elements_values(const std::vector<Value> &args, VM *);
-	static PhsString   get_type(const std::vector<Value> &args, VM *vm);
+	static i64         get_type(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 #pragma region stdarray
-	static i64  array_length(const std::vector<Value> &args, VM *vm); ///< Get array length
+	static i64   array_length(const std::vector<Value> &args, VM *vm); ///< Get array length
 	static Value array_push(const std::vector<Value> &args, VM *vm);   ///< Push to array
 	static Value array_pop(const std::vector<Value> &args, VM *vm);    ///< Pop from array
 	static Value array_insert(const std::vector<Value> &args, VM *vm); ///< Insert into array
 	static Value array_resize(const std::vector<Value> &args, VM *vm); ///< Resize array
+#pragma endregion
+
+#pragma region stdobject
+	static Value object_has(const std::vector<Value> &args, VM *); ///< Check if struct has item
+	static Value object_find(const std::vector<Value> &args, VM *); ///< Check if array has struct
+	static Value object_filter(const std::vector<Value> &args, VM *); ///< Check if array has struct(s)
+#pragma endregion
 
 #pragma region stdrand
-
 	static Value rand_seed(const std::vector<Value> &args, VM *vm);       ///< Seed the random number generator
 	static i64   rand_next_range(const std::vector<Value> &args, VM *vm); ///< Get a random number in range
 	static f64   rand_next_float(const std::vector<Value> &args,
-	                               VM *vm); ///< Get a random float (technically a f64 at a low level)
-
+	                               VM *vm); ///< Get a random float
+	static Value rand_get_crypto_int(const std::vector<Value> &args, VM *);
+	static Value rand_get_crypto_float(const std::vector<Value> &args, VM *);
 #pragma endregion
 
 #pragma region stdstr

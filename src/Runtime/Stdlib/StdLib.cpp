@@ -5,9 +5,43 @@
 #else
 #include <cstdlib>
 #endif
+#include <platform.h>
 
 namespace Phasor
 {
+void StdLib::registerInternalFunctions(VM *vm)
+{
+	vm->registerNativeFunction("phs__is_32", [](const std::vector<Value> &, VM *) {
+#if defined(PHS_IS_32)
+		return true
+#else
+		return false;
+#endif		
+	});
+	vm->registerNativeFunction("phs__trace", [](const std::vector<Value> &, VM *){
+#if defined(TRACING)
+		return true;
+#else
+		return false;
+#endif
+	});
+	vm->registerNativeFunction("rand_crypto_int", StdLib::rand_get_crypto_int);
+	vm->registerNativeFunction("phs__argc_ptr", StdLib::native_memory_argc);
+	vm->registerNativeFunction("phs__argv_ptr", StdLib::native_memory_argv);
+	vm->registerNativeFunction("phs__memory_malloc_native", StdLib::native_memory_malloc);
+	vm->registerNativeFunction("phs__memory_write_native", StdLib::native_memory_write);
+	vm->registerNativeFunction("phs__memory_read_native", StdLib::native_memory_read);
+	vm->registerNativeFunction("phs__memory_read_offset_native", StdLib::native_memory_read_offset);
+	vm->registerNativeFunction("phs__memory_read_string_native", StdLib::native_memory_read_string);
+	vm->registerNativeFunction("phs__memory_free_native", StdLib::native_memory_free);
+	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
+	vm->registerNativeFunction("phs_push", StdLib::meta_push);
+	vm->registerNativeFunction("arr_push", StdLib::array_push);
+	vm->registerNativeFunction("phs_pop", StdLib::meta_pop);
+	vm->registerNativeFunction("get_type", StdLib::get_type);
+	vm->registerNativeFunction("error", StdLib::sys_crash);
+	vm->registerNativeFunction("sys_os", StdLib::sys_os);
+}
 
 std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules{
 	    {"stdio", registerIOFunctions},
@@ -19,6 +53,7 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 	    {"stdmem", registerMemoryFunctions},
 	    {"stdrand", registerRandomFunctions},
 		{"stdarray", registerArrayFunctions},
+		{"stdstruct", registerObjectFunctions},
 #ifndef SANDBOXED
 	    {"stdfile", registerFileFunctions},
 #endif
@@ -33,131 +68,13 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 		     registerMemoryFunctions(vm);
 		     registerRandomFunctions(vm);
 			 registerArrayFunctions(vm);
+			 registerObjectFunctions(vm);
 #ifndef SANDBOXED
 		     registerFileFunctions(vm);
 #endif
 	     }},
+		 {"__phs_init", registerInternalFunctions},
 	};
-
-std::unordered_map<PhsString, std::function<Value(const std::vector<Value> &args, VM *vm)>> StdLib::functions{
-#ifndef SANDBOXED
-	{"fopen", file_open},
-	{"fclose", file_close},
-	{"fabsolute", file_absolute},
-	{"fexists", file_exists},
-	{"fread", file_read},
-	{"fwrite", file_write},
-	{"fdelete", file_delete},
-	{"fread", file_read},
-	{"fwrite", file_write},
-	{"fexists", file_exists},
-	{"freadln", file_read_line},
-	{"fwriteln", file_write_line},
-	{"fappend", file_append},
-	{"fmkdir", file_create_directory},
-	{"frmdir", file_remove_directory},
-	{"frm", file_delete},
-	{"frn", file_rename},
-	{"fcd", file_current_directory},
-	{"fcp", file_copy},
-	{"fmv", file_move},
-	{"fpropset", file_property_edit},
-	{"fproget", file_property_get},
-	{"fmk", file_create},
-	{"fjoin", file_join_path},
-	{"fparent", file_parent},
-	{"fexists", file_exists},
-	{"fread", file_read},
-	{"fwrite", file_write},
-	{"fdelete", file_delete},
-	{"gets", io_gets},
-	{"clear", io_clear},
-	{"sys_env", sys_env},
-	{"sys_argv", sys_argv},
-	{"sys_argc", sys_argc},
-	{"sys_args", sys_args},
-	{"sys_shell", sys_shell},
-	{"sys_fork", sys_fork},
-	{"sys_fork_detached", sys_fork_detached},
-	{"sys_crash", sys_crash},
-	{"sys_reset", sys_reset},
-	{"sys_pid", sys_pid},
-	{"sys_os", sys_os},
-	{"isatty", sys_isatty},
-	{"error", sys_crash},
-	{"reset", sys_reset},
-	{"wait_for_input", sys_wait_for_input},
-	{"sys_get_memory", sys_get_free_memory},
-	{"phs_op", meta_operation},
-	{"phs_stack_run", meta_stack_run},
-	{"phs_push", meta_push},
-	{"phs_pop", meta_pop},
-#endif
-	{"arr_resize", array_resize},
-	{"arr_length", array_length},
-	{"arr_push", array_push},
-	{"arr_pop", array_pop},
-	{"arr_insert", array_insert},
-	{"c_fmt", io_c_format},
-	{"printf", io_printf},
-	{"putf", io_putf},
-	{"puts_error", io_puts_error},
-	{"putf_error", io_putf_error},
-	{"localtime", sys_time_local},
-	{"localtimef", sys_time_formatted_local},
-	{"time", sys_time},
-	{"timef", sys_time_formatted},
-	{"sleep", sys_sleep},
-	{"shutdown", sys_shutdown},
-	{"to_int", to_int},
-	{"to_float", to_float},
-	{"to_string", to_string},
-	{"to_bool", to_bool},
-	{"to_json", to_json},
-	{"from_json", from_json},
-	{"math_sqrt", math_sqrt},
-	{"math_pow", math_pow},
-	{"math_abs", math_abs},
-	{"math_floor", math_floor},
-	{"math_ceil", math_ceil},
-	{"math_round", math_round},
-	{"math_min", math_min},
-	{"math_max", math_max},
-	{"math_log", math_log},
-	{"math_exp", math_exp},
-	{"math_sin", math_sin},
-	{"math_cos", math_cos},
-	{"math_tan", math_tan},
-	{"free", var_free},
-	{"phs_version", meta_get_version},
-	{"phs__phs_alloc_info", meta_get_alloc_info},
-	{"get_elements", get_struct_elements},
-	{"get_elements_values", get_struct_elements_values},
-	{"phs__get_self", meta_get_self},
-	{"phs__run_program", meta_run_program},
-	{"phs__run_program_function", meta_run_program_function},
-	{"phs__load_bytecode", meta_load_bytecode_from_file},
-	{"phs__save_bytecode", meta_save_bytecode_to_file},
-	{"get_registers", meta_get_registers},
-	{"get_type", get_type},
-	{"rand_seed", rand_seed},
-	{"rand_next_range", rand_next_range},
-	{"rand_next_float", rand_next_float},
-	{"find", str_find},
-	{"len", str_len},
-	{"char_at", str_char_at},
-	{"substr", str_substr},
-	{"concat", str_concat},
-	{"to_upper", str_upper},
-	{"to_lower", str_lower},
-	{"starts_with", str_starts_with},
-	{"ends_with", str_ends_with},
-	{"sb_new", sb_new},
-	{"sb_append", sb_append},
-	{"sb_to_string", sb_to_string},
-	{"sb_clear", sb_clear},
-	{"sb_free", sb_free},
-};
 
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
@@ -167,19 +84,19 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 {
 	if (args.size() < minimumArguments)
 	{
-		throw std::runtime_error("Function '" + name + "' expects at least " + std::to_string(minimumArguments) +
+		PHS_ERROR("Function '" + name + "' expects at least " + std::to_string(minimumArguments) +
 		                         " arguments, but got " + std::to_string(args.size()));
 	}
 	if (!allowMoreArguments && args.size() > minimumArguments)
 	{
-		throw std::runtime_error("Function '" + name + "' expects exactly " + std::to_string(minimumArguments) +
+		PHS_ERROR("Function '" + name + "' expects exactly " + std::to_string(minimumArguments) +
 		                         " arguments, but got " + std::to_string(args.size()));
 	}
 }
 
 bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "using", true);
+	checkArgCount(args, 1, "ffiload", true);
 
 	for (const auto &arg : args)
 	{
@@ -190,24 +107,10 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		}
 		else
 		{
-			throw std::runtime_error("Unknown module: " + arg.string());
+			PHS_ERROR("Unknown module: " + arg.string());
 		}
 	}
 	return true;
-}
-
-Value StdLib::run_internal(const std::vector<Value> &args, VM *vm)
-{
-	PhsString name = args[0].string();
-	std::vector<Value> fnArgs(args.begin() + 1, args.end());
-
-	auto it = functions.find(name);
-	if (it != functions.end())
-	{
-		return it->second(fnArgs, vm);
-	}
-
-	throw std::runtime_error("Unknown function: " + name.str());
 }
 
 #ifndef SANDBOXED
@@ -221,7 +124,7 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *)
 
 	if (args.size() > 2)
 	{ [[unlikely]]
-		throw std::runtime_error("Assert expects 1 or 2 arguments, but got " + std::to_string(args.size()));
+		PHS_ERROR("Assert expects 1 or 2 arguments, but got " + std::to_string(args.size()));
 	}
 
 #ifdef _DEBUG
@@ -236,9 +139,9 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *)
 
 #ifdef TRACING
 #ifdef _DEBUG
-	vm->log(std::format("StdLib::{}({:T})\n", __func__, args[0]));
+	vm->log(std::format("({})({:T})\n", PHS_SRC_LOC(), args[0]));
 #else
-	vm->log(std::format("StdLib::{}({:T}): Assertion skipped (NDEBUG)\n", __func__, args[0]));
+	vm->log(std::format("({})({:T}): Assertion skipped (NDEBUG)\n", PHS_SRC_LOC(), args[0]));
 #endif
 	vm->flush();
 #endif
@@ -246,7 +149,7 @@ Value StdLib::std_assert(const std::vector<Value> &args, VM *)
 #ifdef _DEBUG
 	if (!args[0].isTruthy())
 	{ [[unlikely]]
-		vm->logerr(std::format("StdLib::{}({:T}): Assertion failed!\n", __func__, args[0]));
+		vm->logerr(std::format("({})({:T}): Assertion failed!\n", PHS_SRC_LOC(), args[0]));
 		if (haveMessage) vm->logerr(std::format("{}\n", message));
 		vm->flusherr();
 	}

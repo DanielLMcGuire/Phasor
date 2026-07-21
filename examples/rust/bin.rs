@@ -46,8 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     vm.init_stdlib()?;
 
     let script = "
-include \"std/io.phs\";
-include \"std/sys.phs\";
+include \"std/sys\";
 fn main() -> int {
     var x: int = 15;
     var y: int = 22;

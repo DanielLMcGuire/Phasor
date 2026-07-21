@@ -1,9 +1,9 @@
 include "./types.phs";
-include "std/file.phs";
-include "std/array.phs";
-include "std/sys.phs";
-include "std/io.phs";
-include "std/str.phs";
+include "std/file";
+include "std/array";
+include "std/sys";
+include "std/io";
+include "std/str";
 
 var logfile: string = "outfile.txt";
 

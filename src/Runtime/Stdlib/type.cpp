@@ -57,8 +57,12 @@ PhsString StdLib::to_json(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_json", true);
 	if (args.size() > 4) {
-		throw std::runtime_error("to_json expects at most 4 arguments");
+		PHS_ERROR("to_json() expects at most 4 arguments");
 	}
+	if (args.size() > 1 && !args[1].isInt())
+		PHS_ERROR("to_json() expects an integer as its second argument (indent)");
+	if (args.size() > 2 && !args[2].isInt())
+		PHS_ERROR("to_json() expects an integer as its third argument (depth)");
 	return args[0].jsonSerialize(args.size() > 1 ? static_cast<int>(args[1].asInt()) : -1, args.size() > 2 ? static_cast<int>(args[2].asInt()) : 0);
 }
 
@@ -72,14 +76,14 @@ Value StdLib::from_json(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "from_json");
 	if (!args[0].isString())
-		throw std::runtime_error("from_json expects a string argument");
+		PHS_ERROR("from_json expects a string argument");
 	return Value::from_json(args[0].string());
 }
 
 PhsString StdLib::ascii_to_string(const std::vector<Value> &args, VM *) {
 	checkArgCount(args, 1, "ascii_to_string");
 	if (!args[0].isInt())
-		throw std::runtime_error("ascii_to_string expects an integer argument");
+		PHS_ERROR("ascii_to_string expects an integer argument");
 	return args[0].intToAscii();
 }
 
@@ -90,13 +94,13 @@ Value StdLib::get_struct_elements(const std::vector<Value> &args, VM *)
     const auto &structVal = args[0];
     if (!structVal.isStruct())
     {
-        throw std::runtime_error("meta_get_struct_elements: argument is not a struct");
+        PHS_ERROR("meta_get_struct_elements: argument is not a struct");
     }
 
     const auto structPtr = structVal.asStruct();
     if (!structPtr)
     {
-        throw std::runtime_error("meta_get_struct_elements: struct instance is null");
+        PHS_ERROR("meta_get_struct_elements: struct instance is null");
     }
 
     std::vector<Value> keys;
@@ -117,13 +121,13 @@ Value StdLib::get_struct_elements_values(const std::vector<Value> &args, VM *)
 	const auto &structVal = args[0];
 	if (!structVal.isStruct())
 	{
-		throw std::runtime_error("get_elements_values: argument is not a struct");
+		PHS_ERROR("get_elements_values: argument is not a struct");
 	}
 
 	const auto structPtr = structVal.asStruct();
 	if (!structPtr)
 	{
-		throw std::runtime_error("get_elements_values: struct instance is null");
+		PHS_ERROR("get_elements_values: struct instance is null");
 	}
 
 	std::vector<Value> values;
@@ -137,11 +141,11 @@ Value StdLib::get_struct_elements_values(const std::vector<Value> &args, VM *)
 	return Value::createArray(std::move(values));
 }
 
-PhsString StdLib::get_type(const std::vector<Value> &args, VM *)
+i64 StdLib::get_type(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "get_type");
 	auto type = args[0].getType();
-	return Value::typeToString(type).string();
+	return static_cast<i64>(type);
 }
 
 } // namespace Phasor

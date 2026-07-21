@@ -125,7 +125,9 @@ f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 
 Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 {
-    checkArgCount(args, 1, "timef_utc");
+    checkArgCount(args, 1, "timef");
+    if (!args[0].isString())
+        PHS_ERROR("timef() expects a string as its argument (format)");
     std::string format = args[0].string();
 
     auto now = std::chrono::system_clock::now();
@@ -139,7 +141,9 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
 
 Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
 {
-    checkArgCount(args, 1, "timef_local");
+    checkArgCount(args, 1, "localtimef");
+    if (!args[0].isString())
+        PHS_ERROR("localtimef() expects a string as its argument (format)");
     std::string format = args[0].string();
 
     auto now = std::chrono::system_clock::now();
@@ -162,6 +166,8 @@ Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
 Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
+	if (!args[0].isNumber())
+		PHS_ERROR("sleep() expects a number as its argument (milliseconds)");
 	double ms = args[0].asFloat();
 	std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(ms));
 	return Value(" ");
@@ -170,6 +176,8 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
+	if (!args[0].isString())
+		PHS_ERROR("sys_env() expects a string as its argument (key)");
 	PhsString key = args[0].string();
 	PhsString value;
 	dupenv_ret result = dupenv(value, key.c_str());
@@ -180,13 +188,15 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 
 i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 0, "sys_args");
+	checkArgCount(args, 0, "sys_argc");
 	return static_cast<i64>(argc);
 }
 
 Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
+	if (!args[0].isInt())
+		PHS_ERROR("sys_argv() expects an integer as its argument (index)");
 	i64 index = args[0].asInt();
 	if (index < 0 || index >= argc) return phsnull;
 	return argv[index];
@@ -206,6 +216,8 @@ Value StdLib::sys_args(const std::vector<Value> &args, VM *)
 Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "shutdown");
+	if (!args[0].isInt())
+		PHS_ERROR("shutdown() expects an integer as its argument (exit code)");
 	int ret = static_cast<int>(args[0].asInt());
 	vm->setStatus(ret);
 	throw VM::Halt();
@@ -247,13 +259,18 @@ Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
 Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "sys_shell");
+	if (!args[0].isString())
+		PHS_ERROR("sys_shell() expects a string as its argument (command)");
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
 i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 1, "sys_fork", true);
-    
+
+    if (!args[0].isString())
+        PHS_ERROR("sys_fork() expects a string as its first argument (executable)");
+
     const char *executable = args[0].c_str();
     std::vector<char *> v_argv;
 
@@ -265,6 +282,8 @@ i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
         
         for (const auto& val : arr) 
         {
+            if (!val.isString())
+                PHS_ERROR("sys_fork() expects its argument array to contain only strings");
             v_argv.push_back(const_cast<char *>(val.c_str()));
         }
     }
@@ -274,6 +293,8 @@ i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
         v_argv.reserve(argc);
         for (int i = 0; i < argc; ++i)
         {
+            if (!args[i + 1].isString())
+                PHS_ERROR("sys_fork() expects all of its arguments to be strings");
             v_argv.push_back(const_cast<char *>(args[i + 1].c_str()));
         }
     }
@@ -284,11 +305,17 @@ i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
 i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork_detached", true);
+
+	if (!args[0].isString())
+		PHS_ERROR("sys_fork_detached() expects a string as its first argument (executable)");
+
 	const char         *executable = args[0].c_str();
 	int                 argc = (int)args.size() - 1;
 	std::vector<char *> v_argv(argc);
 	for (int i = 0; i < argc; ++i)
 	{
+		if (!args[i + 1].isString())
+			PHS_ERROR("sys_fork_detached() expects all of its arguments to be strings");
 		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
 	}
 	return static_cast<i64>(PHASORstd_sys_run_detached(executable, argc, v_argv.data()));
@@ -296,10 +323,12 @@ i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 0, "error");
+	checkArgCount(args, 1, "error");
+	if (!args[0].isString())
+		PHS_ERROR("error() expects a string as its argument (message)");
 	vm->reset();
 	vm->setStatus(-1);
-	throw std::runtime_error(args[0].string());
+	PHS_ERROR(args[0].string());
 }
 
 Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)

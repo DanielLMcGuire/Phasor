@@ -42,7 +42,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 	m_args.program = std::filesystem::path(argv[0]);
 	for (int i = 1; i < argc; i++)
 	{
-		std::string arg = argv[i];
+		PhsString arg = argv[i];
 
 		if (arg == "-h" || arg == "--help")
 		{
@@ -75,7 +75,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 		else
 		{
 			if (m_args.inputFile.empty())
-				m_args.inputFile = arg;
+				m_args.inputFile = arg.str();
 			else
 			{
 				std::println(std::cerr, "Error: Multiple input files specified");

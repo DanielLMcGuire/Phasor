@@ -2,13 +2,22 @@
 #include "VM.hpp"
 #endif
 
+#ifdef TRACING
+#ifdef PHASOR_USES_BOOST
+	#include <boost/assert/source_location.hpp>
+	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
+#else
+	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
+#endif
+#endif
+
 namespace Phasor
 {
 
 size_t VM::addVariable(const Value &value)
 {
 #ifdef TRACING
-	log(std::format("VM::{}({:T})\n", __func__, value));
+	log(std::format("({})({:T})\n", PHS_SRC_LOC(), value));
 	flush();
 #endif
 	variables.push_back(value);
@@ -18,7 +27,7 @@ size_t VM::addVariable(const Value &value)
 void VM::freeVariable(const size_t index)
 {
 #ifdef TRACING
-	log(std::format("VM::{}({})\n", __func__, index));
+	log(std::format("({})({})\n", PHS_SRC_LOC(), index));
 	flush();
 #endif
 	if (index < variables.size())
@@ -27,10 +36,10 @@ void VM::freeVariable(const size_t index)
 	}
 }
 
-void VM::freeVariableByName(const std::string &name)
+void VM::freeVariableByName(const PhsString &name)
 {
 #ifdef TRACING
-	log(std::format("VM::{}(\"{}\")\n", __func__, name));
+	log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), name));
 	flush();
 #endif
 	if (!m_bytecode)
@@ -45,7 +54,7 @@ void VM::freeVariableByName(const std::string &name)
 void VM::setVariable(const size_t index, const Value &value)
 {
 #ifdef TRACING
-	log(std::format("VM::{}({}, {:T})\n", __func__, index, value));
+	log(std::format("({})({}, {:T})\n", PHS_SRC_LOC(), index, value));
 	flush();
 #endif
 	if (index >= variables.size())
@@ -60,13 +69,13 @@ Value VM::getVariable(const size_t index)
 	if (index >= variables.size())
 	{
 #ifdef TRACING
-		log(std::format("VM::{}({}) -> <invalid index>\n", __func__, index));
+		log(std::format("({})({}) -> <invalid index>\n", PHS_SRC_LOC(), index));
 		flush();
 #endif
 		throw std::runtime_error("Invalid variable index");
 	}
 #ifdef TRACING
-	log(std::format("VM::{}({}) -> {:T}\n", __func__, index, variables[index]));
+	log(std::format("({})({}) -> {:T}\n", PHS_SRC_LOC(), index, variables[index]));
 	flush();
 #endif
 	return variables[index];
@@ -75,7 +84,7 @@ Value VM::getVariable(const size_t index)
 size_t VM::getVariableCount()
 {
 #ifdef TRACING
-	log(std::format("VM::{}()\n", __func__));
+	log(std::format("{}\n", PHS_SRC_LOC()));
 	flush();
 #endif
 	return variables.size();

@@ -38,9 +38,28 @@ static std::vector<size_t>& getSbFreeIndices()
 	return freeIndices;
 }
 
+/// @brief Validate a StringBuilder handle and return its index, throwing a descriptive error otherwise.
+static size_t checkSbHandle(const Value &handle, const char *fnName)
+{
+	if (!handle.isInt())
+		PHS_ERROR(std::string(fnName) + "() expects an integer StringBuilder handle as its first argument");
+
+	i64 idx = handle.asInt();
+	if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
+		PHS_ERROR(std::string(fnName) + "(): invalid StringBuilder handle");
+
+	return static_cast<size_t>(idx);
+}
+
 Value StdLib::str_split(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "split");
+
+	if (!args[0].isString())
+		PHS_ERROR("split() expects a string as its first argument");
+	if (!args[1].isString())
+		PHS_ERROR("split() expects a string as its second argument (delimiter)");
+
 	PhsString s = args[0].string();
 	PhsString delim = args[1].string();
 
@@ -66,11 +85,22 @@ Value StdLib::str_split(const std::vector<Value> &args, VM *)
 i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "find", true);
+
+	if (args.size() > 4)
+		PHS_ERROR("find() expects at most 4 arguments");
+
+	if (!args[0].isString())
+		PHS_ERROR("find() expects a string as its first argument");
+	if (!args[1].isString())
+		PHS_ERROR("find() expects a string as its second argument (substring)");
+
 	PhsString s = args[0].string();
 	PhsString sub = args[1].string();
 	size_t      pos;
 	if (args.size() == 3)
 	{
+		if (!args[2].isInt())
+			PHS_ERROR("find() expects an integer as its third argument (start)");
 		i64 start = args[2].asInt();
 		pos = s.find(sub, start);
 		if (pos != PhsString::npos)
@@ -81,6 +111,10 @@ i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 	}
 	else if (args.size() == 4)
 	{
+		if (!args[2].isInt())
+			PHS_ERROR("find() expects an integer as its third argument (start)");
+		if (!args[3].isInt())
+			PHS_ERROR("find() expects an integer as its fourth argument (end)");
 		i64 start = args[2].asInt();
 		i64 end = args[3].asInt();
 		pos = s.find(sub, start);
@@ -118,9 +152,7 @@ i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
 i64 StdLib::sb_append(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 2, "sb_append");
-	i64 idx = args[0].asInt();
-	if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
-		throw std::runtime_error("Invalid StringBuilder handle");
+	size_t idx = checkSbHandle(args[0], "sb_append");
 
 	getSbPool()[idx] += args[1].toString();
 	return args[0].asInt(); // Return handle for chaining
@@ -129,10 +161,11 @@ i64 StdLib::sb_append(const std::vector<Value> &args, VM *)
 i64 StdLib::sb_prealloc(const std::vector<Value> &args, VM *)
 {
     StdLib::checkArgCount(args, 2, "sb_prealloc");
-    
-    i64 idx = args[0].asInt();
-    if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
-        throw std::runtime_error("Invalid StringBuilder handle");
+
+    size_t idx = checkSbHandle(args[0], "sb_prealloc");
+
+    if (!args[1].isInt())
+        PHS_ERROR("sb_prealloc() expects an integer as its second argument (capacity)");
 
     i64 capacity = args[1].asInt();
     if (capacity > 0)
@@ -146,9 +179,7 @@ i64 StdLib::sb_prealloc(const std::vector<Value> &args, VM *)
 PhsString StdLib::sb_to_string(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_to_string");
-	i64 idx = args[0].asInt();
-	if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
-		throw std::runtime_error("Invalid StringBuilder handle");
+	size_t idx = checkSbHandle(args[0], "sb_to_string");
 
 	return getSbPool()[idx];
 }
@@ -156,7 +187,8 @@ PhsString StdLib::sb_to_string(const std::vector<Value> &args, VM *)
 PhsString StdLib::sb_free(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_free");
-	size_t      idx = args[0].asInt();
+	size_t idx = checkSbHandle(args[0], "sb_free");
+
 	PhsString value = getSbPool()[idx];
 	getSbFreeIndices().push_back(idx);
 	return value;
@@ -165,9 +197,8 @@ PhsString StdLib::sb_free(const std::vector<Value> &args, VM *)
 i64 StdLib::sb_clear(const std::vector<Value> &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_clear");
-	size_t idx = args[0].asInt();
-	if (idx >= getSbPool().size())
-		throw std::runtime_error("Invalid StringBuilder handle");
+	size_t idx = checkSbHandle(args[0], "sb_clear");
+
 	getSbPool()[idx].clear();
 	return args[0].asInt(); // Return handle for chaining
 }
@@ -175,15 +206,16 @@ i64 StdLib::sb_clear(const std::vector<Value> &args, VM *)
 Value StdLib::str_char_at(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "char_at");
-	if (args[0].isString())
-	{
-		const PhsString &s = args[0].string();
-		i64            idx = args[1].asInt();
-		if (idx < 0 || idx >= static_cast<i64>(s.length()))
-			return Value("");
-		return Value(PhsString(1, s[idx]));
-	}
-	throw std::runtime_error("char_at() expects a string");
+	if (!args[0].isString())
+		PHS_ERROR("char_at() expects a string as its first argument");
+	if (!args[1].isInt())
+		PHS_ERROR("char_at() expects an integer as its second argument (index)");
+
+	const PhsString &s = args[0].string();
+	i64            idx = args[1].asInt();
+	if (idx < 0 || idx >= static_cast<i64>(s.length()))
+		return Value("");
+	return Value(PhsString(1, s[idx]));
 }
 
 Value StdLib::str_substr(const std::vector<Value> &args, VM *)
@@ -191,8 +223,16 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 2, "substr", true);
 	if (args.size() > 3)
 	{
-		throw std::runtime_error("substr() expects 2 or 3 arguments");
+		PHS_ERROR("substr() expects 2 or 3 arguments");
 	}
+
+	if (!args[0].isString())
+		PHS_ERROR("substr() expects a string as its first argument");
+	if (!args[1].isInt())
+		PHS_ERROR("substr() expects an integer as its second argument (start)");
+	if (args.size() == 3 && !args[2].isInt())
+		PHS_ERROR("substr() expects an integer as its third argument (length)");
+
 	PhsString s = args[0].string();
 	i64     start = args[1].asInt();
 	i64     len = (i64)args.size() == 3 ? args[2].asInt() : (i64)s.length() - start;
@@ -226,6 +266,8 @@ i64 StdLib::str_len(const std::vector<Value> &args, VM *)
 PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_upper");
+	if (!args[0].isString())
+		PHS_ERROR("to_upper() expects a string as its argument");
 	PhsString s = args[0].string();
 	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
 	return s;
@@ -234,6 +276,8 @@ PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
 PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "to_lower");
+	if (!args[0].isString())
+		PHS_ERROR("to_lower() expects a string as its argument");
 	PhsString s = args[0].string();
 	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 	return s;
@@ -242,6 +286,11 @@ PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "starts_with");
+	if (!args[0].isString())
+		PHS_ERROR("starts_with() expects a string as its first argument");
+	if (!args[1].isString())
+		PHS_ERROR("starts_with() expects a string as its second argument (prefix)");
+
 	std::string s = args[0].string();
 	std::string prefix = args[1].string();
 	if (s.length() >= prefix.length())
@@ -254,6 +303,11 @@ Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
 Value StdLib::str_ends_with(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "ends_with");
+	if (!args[0].isString())
+		PHS_ERROR("ends_with() expects a string as its first argument");
+	if (!args[1].isString())
+		PHS_ERROR("ends_with() expects a string as its second argument (suffix)");
+
 	std::string s = args[0].string();
 	std::string suffix = args[1].string();
 	if (s.length() >= suffix.length())

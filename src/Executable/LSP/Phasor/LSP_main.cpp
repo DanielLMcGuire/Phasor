@@ -1,6 +1,6 @@
 #include "../../../LSP/Phasor/LSP.hpp"
 #include <json.hpp>
-#include <string>
+#include <PhasorString.hpp>
 #include <stdexcept>
 #include <nativeerror.h>
 #ifdef _WIN32
@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-static std::string readMessage()
+static Phasor::PhsString readMessage()
 {
 	size_t contentLength = 0;
 
@@ -32,7 +32,7 @@ static std::string readMessage()
 			break;
 		}
 
-		const std::string prefix = "Content-Length: ";
+		const Phasor::PhsString prefix = "Content-Length: ";
 		if (line.starts_with(prefix))
 		{
 			contentLength = std::stoull(line.substr(prefix.size()));
@@ -44,14 +44,14 @@ static std::string readMessage()
 		return "";
 	}
 
-	std::string body(contentLength, '\0');
+	Phasor::PhsString body(contentLength, '\0');
 	std::cin.read(body.data(), static_cast<std::streamsize>(contentLength));
 	return body;
 }
 
 static void writeMessage(const json &msg)
 {
-	const std::string body = msg.dump();
+	const Phasor::PhsString body = msg.dump();
 	std::print("Content-Length: {}\r\n\r\n{}", body.size(), body);
 	std::fflush(stdout);
 }
@@ -61,17 +61,17 @@ static json makeResponse(const json &id, json result)
 	return {{"jsonrpc", "2.0"}, {"id", id}, {"result", std::move(result)}};
 }
 
-static json makeError(const json &id, int code, const std::string &message)
+static json makeError(const json &id, int code, const Phasor::PhsString &message)
 {
 	return {{"jsonrpc", "2.0"}, {"id", id}, {"error", {{"code", code}, {"message", message}}}};
 }
 
-static json makeNotification(const std::string &method, json params)
+static json makeNotification(const Phasor::PhsString &method, json params)
 {
 	return {{"jsonrpc", "2.0"}, {"method", method}, {"params", std::move(params)}};
 }
 
-static void publishDiagnostics(const std::string &uri, const std::vector<Phasor::LSP::Diagnostic> &diags)
+static void publishDiagnostics(const Phasor::PhsString &uri, const std::vector<Phasor::LSP::Diagnostic> &diags)
 {
 	json arr = json::array();
 	for (const auto &d : diags)
@@ -98,7 +98,7 @@ static json handleInitialize(const json &)
 
 static json handleHover(Phasor::LSP &lsp, const json &params)
 {
-	const std::string uri = params["textDocument"]["uri"];
+	const Phasor::PhsString uri = Phasor::PhsString(std::string(params["textDocument"]["uri"]));
 	const size_t      line = params["position"]["line"];
 	const size_t      col = params["position"]["character"];
 
@@ -114,7 +114,7 @@ static json handleHover(Phasor::LSP &lsp, const json &params)
 
 static json handleDefinition(Phasor::LSP &lsp, const json &params)
 {
-	const std::string uri = params["textDocument"]["uri"];
+	const Phasor::PhsString uri = Phasor::PhsString(std::string(params["textDocument"]["uri"]));
 	const size_t      line = params["position"]["line"];
 	const size_t      col = params["position"]["character"];
 
@@ -140,7 +140,7 @@ int main()
 
 	while (running)
 	{
-		const std::string raw = readMessage();
+		const Phasor::PhsString raw = readMessage();
 		if (raw.empty())
 		{
 			break;
@@ -153,13 +153,13 @@ int main()
 		}
 		catch (const json::parse_error &e)
 		{
-			writeMessage(makeError(nullptr, -32700, "JSON parse error: " + std::string(e.what())));
+			writeMessage(makeError(nullptr, -32700, "JSON parse error: " + Phasor::PhsString(e.what())));
 			continue;
 		}
 
 		const bool        isRequest = msg.contains("id");
 		const json        id = isRequest ? msg["id"] : json(nullptr);
-		const std::string method = msg.value("method", "");
+		const Phasor::PhsString method = msg.value("method", "");
 		const json       &params = msg.contains("params") ? msg["params"] : json(nullptr);
 
 		if (method == "initialize")
@@ -181,24 +181,24 @@ int main()
 
 		else if (method == "textDocument/didOpen")
 		{
-			const std::string uri = params["textDocument"]["uri"];
-			const std::string text = params["textDocument"]["text"];
+			const Phasor::PhsString uri = Phasor::PhsString(std::string(params["textDocument"]["uri"]));
+			const Phasor::PhsString text = Phasor::PhsString(std::string(params["textDocument"]["text"]));
 			lsp.openDocument(uri, text);
 			publishDiagnostics(uri, lsp.getDiagnostics(uri));
 		}
 		else if (method == "textDocument/didChange")
 		{
-			const std::string uri = params["textDocument"]["uri"];
+			const Phasor::PhsString uri = Phasor::PhsString(std::string(params["textDocument"]["uri"]));
 			if (params.contains("contentChanges") && !params["contentChanges"].empty())
 			{
-				const std::string text = params["contentChanges"][0]["text"];
+				const Phasor::PhsString text = Phasor::PhsString(std::string(params["contentChanges"][0]["text"]));
 				lsp.changeDocument(uri, text);
 				publishDiagnostics(uri, lsp.getDiagnostics(uri));
 			}
 		}
 		else if (method == "textDocument/didClose")
 		{
-			const std::string uri = params["textDocument"]["uri"];
+			const Phasor::PhsString uri = Phasor::PhsString(std::string(params["textDocument"]["uri"]));
 			lsp.closeDocument(uri);
 			publishDiagnostics(uri, {});
 		}

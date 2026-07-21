@@ -19,7 +19,15 @@
 #endif
 #include <phsint.hpp>
 
-/// Keeps FFI reference intact
+#ifdef TRACING
+#ifdef PHASOR_USES_BOOST
+	#include <boost/assert/source_location.hpp>
+	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
+#else
+	#define PHS_SRC_LOC() (std::format("FFI::{}()", __func__))
+#endif
+#endif
+
 /// @param fn Local member to register
 #define INSTANCED_FFI(fn) [this](const std::vector<Value> &args, VM *vm) { return this->fn(args, vm); }
 
@@ -63,7 +71,7 @@ void FFI::registerExitFree(void* ptr)
 bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 {
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(\"{}\")\n", __func__, library.string()));
+	vm_->log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), library.string()));
 	vm_->flush();
 #endif
 	using PluginEntryFunc = void (*)(const PhasorAPI *, PhasorVM *);
@@ -126,7 +134,7 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 bool FFI::addPlugin(const std::filesystem::path &pluginPath)
 {
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}(\"{}\")\n", __func__, pluginPath.string()));
+	vm_->log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), pluginPath.string()));
 	vm_->flush();
 #endif
 	return loadPlugin(pluginPath, vm_);
@@ -140,7 +148,7 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 		folderStrs += folders[i].string();
 		if (i < folders.size() - 1) folderStrs += ", ";
 	}
-	vm_->log(std::format("FFI::{}([{}]\n", __func__, folderStrs));
+	vm_->log(std::format("({})([{}])\n", PHS_SRC_LOC(), folderStrs));
 	vm_->flush();
 #endif
 
@@ -231,7 +239,7 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 void FFI::unloadAll()
 {
 #ifdef TRACING
-	vm_->log(std::format("FFI::{}()\n", __func__));
+	vm_->log(std::format("{}\n", PHS_SRC_LOC()));
 	vm_->flush();
 #endif
 
@@ -252,7 +260,7 @@ void FFI::unloadAll()
 	for (auto &plugin : plugins_)
 	{
 #ifdef TRACING
-		vm_->log(std::format("FFI::{}(): \"{}\"\n", __func__, plugin.path));
+		vm_->log(std::format("{}: Killing child: \"{}\"\n", PHS_SRC_LOC(), plugin.path));
 		vm_->flush();
 #endif
 #if defined(_WIN32)
@@ -276,7 +284,7 @@ FFI::FFI(const std::vector<std::filesystem::path> &pluginFolders, VM *vm)
 	cachedVersion_ = vm_->getVersion();
 
 #ifdef TRACING
-	vm_->log(std::format("Phasor::FFI::{}(): created {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("{}: created {:#x}\n", PHS_SRC_LOC(), (uintptr_t)this));
 	vm_->flush();
 #endif
 	vm_->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
@@ -305,7 +313,7 @@ FFI::~FFI()
 	}
 
 #ifdef TRACING
-	vm_->log(std::format("Phasor::FFI::{}(): deconstructed {:#x}\n", __func__, (uintptr_t)this));
+	vm_->log(std::format("{}: killed {:#x}\n", PHS_SRC_LOC(), (uintptr_t)this));
 	vm_->flush();
 #endif
 }

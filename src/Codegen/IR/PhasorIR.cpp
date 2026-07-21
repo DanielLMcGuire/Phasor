@@ -170,6 +170,8 @@ PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
         return OperandType::FUNCTION_IDX;
     if (op == OpCode::SYSTEM && operandIndex == 0)
         return OperandType::CONSTANT_IDX;
+    if (op == OpCode::EXIT_SCOPE && operandIndex == 0)
+        return OperandType::SCOPE_IDX;
 
     // Register operations with mixed types
     if (op == OpCode::LOAD_CONST_R)
@@ -550,7 +552,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
 
         int     operandCount       = getOperandCount(instr.op);
         i32     operands[3]        = {instr.operand1, instr.operand2, instr.operand3};
-        std::string comment;
+        PhsString comment;
 
         for (int i = 0; i < operandCount; ++i)
         {
@@ -576,20 +578,23 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
                         comment = "const[" + std::to_string(operands[i]) + "]=\"" + escapeString(str) + "\"";
                     }
                     else if (v.getType() == ValueType::Int)
-                        comment = "const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asInt());
+                        comment = PhsString("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asInt()));
                     else if (v.getType() == ValueType::Float)
-                        comment = "const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asFloat());
+                        comment = PhsString("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asFloat()));
                 }
                 break;
             case OperandType::VARIABLE_IDX:
                 instrLine << operands[i];
                 if (indexToVarName.contains(operands[i]))
-                    comment = "var=" + indexToVarName[operands[i]];
+                    comment = PhsString("var=" + indexToVarName[operands[i]]);
                 break;
             case OperandType::FUNCTION_IDX:
                 instrLine << operands[i];
                 if (addressToFuncName.contains(operands[i]))
-                    comment = "func=" + addressToFuncName[operands[i]];
+                    comment = PhsString("func=" + addressToFuncName[operands[i]]);
+                break;
+            case OperandType::SCOPE_IDX:
+                instrLine << operands[i];
                 break;
             default:
                 instrLine << operands[i];
@@ -597,7 +602,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
             }
         }
 
-        std::string lineStr = instrLine.str();
+        PhsString lineStr = instrLine.str();
         if (!comment.empty())
         {
             const size_t commentColumn = 40;
@@ -610,7 +615,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
         ss << lineStr << "\n";
     }
 
-    std::string     textData = ss.str();
+    PhsString     textData = ss.str();
     std::vector<u8> buffer;
     buffer.insert(buffer.end(), textData.begin(), textData.end());
     return buffer;

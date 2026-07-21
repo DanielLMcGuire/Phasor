@@ -18,13 +18,18 @@ Value StdLib::array_resize(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "arr_resize");
 
-    auto arr = std::const_pointer_cast<Value::ArrayInstance>(args[0].asArray());
-    if (!arr)
-        throw std::runtime_error("arr_resize called on non-array");
+    if (!args[0].isArray())
+        PHS_ERROR("arr_resize() expects an array as its first argument");
+
+    if (!args[1].isInt())
+        PHS_ERROR("arr_resize() expects an integer as its second argument");
+
+    auto arr = const_cast<Value &>(args[0]).asArray();
 
     i64 newSize = args[1].asInt();
+
     if (newSize < 0)
-        throw std::runtime_error("arr_resize new size cannot be negative");
+        PHS_ERROR("arr_resize() new size cannot be negative");
 
     arr->resize(static_cast<size_t>(newSize));
     return arr;
@@ -33,9 +38,10 @@ Value StdLib::array_resize(const std::vector<Value> &args, VM *)
 i64 StdLib::array_length(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 1, "arr_length");
-    auto arr = args[0].asArray();
-    if (!arr)
-        throw std::runtime_error("arr_length called on non-array");
+    if (!args[0].isArray())
+        PHS_ERROR("arr_length() expects an array as its first argument");
+    auto arr = const_cast<Value &>(args[0]).asArray();
+
 
     return static_cast<i64>(arr->size());
 }
@@ -44,23 +50,25 @@ Value StdLib::array_push(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 2, "arr_push");
 
-    auto arr = std::const_pointer_cast<Value::ArrayInstance>(args[0].asArray());
-    if (!arr)
-        throw std::runtime_error("arr_push called on non-array");
+    if (!args[0].isArray())
+        PHS_ERROR("arr_push() expects an array as its first argument");
+    auto arr = const_cast<Value &>(args[0]).asArray();
 
     arr->push_back(args[1]);
+
     return arr;
 }
 
 Value StdLib::array_pop(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 1, "arr_pop");
-    auto arr = std::const_pointer_cast<Value::ArrayInstance>(args[0].asArray());
-    if (!arr)
-        throw std::runtime_error("arr_pop called on non-array");
+    if (!args[0].isArray())
+        PHS_ERROR("arr_pop() expects an array as its first argument");
+    auto arr = const_cast<Value &>(args[0]).asArray();
+
 
     if (arr->empty())
-        throw std::runtime_error("arr_pop called on empty array");
+        PHS_ERROR("arr_pop() called on empty array");
 
     Value val = arr->back();
     arr->pop_back();
@@ -71,13 +79,18 @@ Value StdLib::array_insert(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 3, "arr_insert");
 
-    auto arr = std::const_pointer_cast<Value::ArrayInstance>(args[0].asArray());
-    if (!arr)
-        throw std::runtime_error("arr_insert called on non-array");
+    if (!args[0].isArray())
+        PHS_ERROR("arr_insert() expects an array as its first argument");
+
+    if (!args[1].isInt())
+        PHS_ERROR("arr_insert() expects an integer as its second argument (index)");
+
+    auto arr = const_cast<Value &>(args[0]).asArray();
 
     i64 index = args[1].asInt();
+
     if (index < 0 || index > static_cast<i64>(arr->size()))
-        throw std::runtime_error("arr_insert index out of bounds");
+        PHS_ERROR("arr_insert() index out of bounds");
 
     arr->insert(arr->begin() + static_cast<size_t>(index), args[2]);
     return arr;

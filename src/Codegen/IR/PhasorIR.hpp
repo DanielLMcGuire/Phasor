@@ -45,7 +45,8 @@ class PhasorIR
 		REGISTER,     ///< Register operand
 		CONSTANT_IDX, ///< Index into constant pool
 		VARIABLE_IDX, ///< Index into variable mapping
-		FUNCTION_IDX  ///< Index into function entries
+		FUNCTION_IDX,  ///< Index into function entries
+		SCOPE_IDX
 	};
 
 	static int         getOperandCount(OpCode op);

@@ -49,6 +49,27 @@ namespace
 		}
 		return nullptr;
 	}
+
+	/// @brief Require that a Value is a string, throwing a descriptive error otherwise.
+	static void requireString(const Value &v, const char *fnName, const char *what)
+	{
+		if (!v.isString())
+			PHS_ERROR(std::string(fnName) + "() expects a string as its " + what);
+	}
+
+	/// @brief Require that a Value is an integer, throwing a descriptive error otherwise.
+	static void requireInt(const Value &v, const char *fnName, const char *what)
+	{
+		if (!v.isInt())
+			PHS_ERROR(std::string(fnName) + "() expects an integer as its " + what);
+	}
+
+	/// @brief Require that a Value is a boolean, throwing a descriptive error otherwise.
+	static void requireBool(const Value &v, const char *fnName, const char *what)
+	{
+		if (!v.isBool())
+			PHS_ERROR(std::string(fnName) + "() expects a boolean as its " + what);
+	}
 }
 
 void StdLib::registerFileFunctions(VM *vm)
@@ -86,6 +107,8 @@ void StdLib::registerFileFunctions(VM *vm)
 Value StdLib::file_open(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fopen");
+	requireString(args[0], "fopen", "first argument (path)");
+	requireString(args[1], "fopen", "second argument (mode)");
 	PhsString path = args[0].string();
 	PhsString mode = args[1].string();
 
@@ -119,7 +142,7 @@ Value StdLib::file_open(const std::vector<Value> &args, VM *)
 bool StdLib::file_close(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fclose");
-	if (!args[0].isInt()) return false;
+	requireInt(args[0], "fclose", "argument (file descriptor)");
 	i64 fd = args[0].asInt();
 	auto& pool = getFilePool();
 	if (fd >= 0 && fd < static_cast<i64>(pool.size()) && pool[fd].stream)
@@ -134,42 +157,50 @@ bool StdLib::file_close(const std::vector<Value> &args, VM *)
 PhsString StdLib::file_absolute(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fabsolute");
+	requireString(args[0], "fabsolute", "argument (path)");
 	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].stl_string())).string();
 }
 
 PhsString StdLib::file_stem(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fstem");
+	requireString(args[0], "fstem", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).stem().string();
 }
 
 PhsString StdLib::file_filename(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fname");
+	requireString(args[0], "fname", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).filename().string();
 }
 
 PhsString StdLib::file_extension(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fext");
+	requireString(args[0], "fext", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).extension().string();
 }
 
 PhsString StdLib::file_parent(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fparent");
+	requireString(args[0], "fparent", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).parent_path().string();
 }
 
 bool StdLib::file_is_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fisdir");
+	requireString(args[0], "fisdir", "argument (path)");
 	return std::filesystem::is_directory(args[0].stl_string());
 }
 
 PhsString StdLib::file_join_path(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fjoin");
+	requireString(args[0], "fjoin", "first argument (path)");
+	requireString(args[1], "fjoin", "second argument (path)");
 	std::filesystem::path path1 = args[0].stl_string();
 	std::filesystem::path path2 = args[1].stl_string();
 	return (path1 / path2).string();
@@ -178,6 +209,7 @@ PhsString StdLib::file_join_path(const std::vector<Value> &args, VM *)
 i64 StdLib::file_get_size(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fsize");
+	requireString(args[0], "fsize", "argument (path)");
 	return std::filesystem::file_size(args[0].stl_string());
 }
 
@@ -194,6 +226,8 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *)
 		return buffer.str();
 	}
 
+	requireString(args[0], "fread", "argument (file descriptor or path)");
+
 	std::filesystem::path path = args[0].stl_string();
 	std::ifstream         file(path);
 	if (!file.is_open())
@@ -209,12 +243,12 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 {
 	if (args.empty() || args.size() > 2)
 	{
-		throw std::runtime_error("freadln requires 1 or 2 arguments");
+		PHS_ERROR("freadln requires 1 or 2 arguments");
 	}
 
 	if (args.size() == 1)
 	{
-		if (!args[0].isInt()) throw std::runtime_error("freadln with 1 arg requires an FD");
+		if (!args[0].isInt()) PHS_ERROR("freadln with 1 arg requires an FD");
 		std::fstream* fs = getFileDescriptor(args[0].asInt());
 		if (!fs) return phsnull;
 		
@@ -224,6 +258,7 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 		return phsnull;
 	}
 
+	requireInt(args[1], "freadln", "second argument (line number)");
 	i64 lineNum = args[1].asInt();
 	std::istream* is = nullptr;
 	std::ifstream tempFile;
@@ -238,11 +273,12 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 	}
 	else
 	{
+		requireString(args[0], "freadln", "first argument (file descriptor or path)");
 		std::filesystem::path path = args[0].stl_string();
 		tempFile.open(path);
 		if (!tempFile.is_open())
 		{
-			throw std::runtime_error("Could not open file: " + path.string());
+			PHS_ERROR("Could not open file: " + path.string());
 		}
 		is = &tempFile;
 	}
@@ -262,18 +298,24 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 
 	if (args[0].isInt())
 	{
-		throw std::runtime_error("fwriteln modifying arbitrary lines isn't supported for file descriptors; use a file path instead.");
+		PHS_ERROR("fwriteln modifying arbitrary lines isn't supported for file descriptors; use a file path instead.");
 	}
+
+	requireString(args[0], "fwriteln", "first argument (path)");
+	requireInt(args[1], "fwriteln", "second argument (line number)");
 
 	std::filesystem::path path = args[0].stl_string();
 	i64               lineNum = args[1].asInt();
 	PhsString           content = args[2].string();
 
+	if (lineNum < 0)
+		PHS_ERROR("fwriteln() line number cannot be negative");
+
 	// Read all lines first
 	std::ifstream inFile(path);
 	if (!inFile.is_open())
 	{
-		throw std::runtime_error("Could not open file for reading: " + path.string());
+		PHS_ERROR("Could not open file for reading: " + path.string());
 		return false;
 	}
 
@@ -298,7 +340,7 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 	std::ofstream outFile(path);
 	if (!outFile.is_open())
 	{
-		throw std::runtime_error("Could not open file for writing: " + path.string());
+		PHS_ERROR("Could not open file for writing: " + path.string());
 		return false;
 	}
 
@@ -327,11 +369,13 @@ bool StdLib::file_write(const std::vector<Value> &args, VM *)
 		return true;
 	}
 
+	requireString(args[0], "fwrite", "first argument (file descriptor or path)");
+
 	std::filesystem::path path = args[0].stl_string();
 	std::ofstream         file(path);
 	if (!file.is_open())
 	{
-		throw std::runtime_error("Could not open file for writing: " + path.string());
+		PHS_ERROR("Could not open file for writing: " + path.string());
 		return false;
 	}
 	file << args[1].string();
@@ -341,6 +385,7 @@ bool StdLib::file_write(const std::vector<Value> &args, VM *)
 bool StdLib::file_exists(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fexists");
+	requireString(args[0], "fexists", "argument (path)");
 	return std::filesystem::exists(args[0].stl_string());
 }
 
@@ -358,11 +403,13 @@ bool StdLib::file_append(const std::vector<Value> &args, VM *)
 		return true;
 	}
 
+	requireString(args[0], "fappend", "first argument (file descriptor or path)");
+
 	std::filesystem::path path = args[0].stl_string();
 	std::ofstream         file(path, std::ios::app);
 	if (!file.is_open())
 	{
-		throw std::runtime_error("Could not open file for writing: " + path.string());
+		PHS_ERROR("Could not open file for writing: " + path.string());
 		return false;
 	}
 	file << args[1].string();
@@ -372,6 +419,7 @@ bool StdLib::file_append(const std::vector<Value> &args, VM *)
 bool StdLib::file_delete(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "frm");
+	requireString(args[0], "frm", "argument (path)");
 	std::filesystem::path path = args[0].stl_string();
 	if (std::filesystem::exists(path))
 	{
@@ -383,6 +431,8 @@ bool StdLib::file_delete(const std::vector<Value> &args, VM *)
 bool StdLib::file_rename(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "frn");
+	requireString(args[0], "frn", "first argument (source path)");
+	requireString(args[1], "frn", "second argument (destination path)");
 	std::filesystem::path src = args[0].stl_string();
 	std::filesystem::path dest = args[1].stl_string();
 
@@ -402,6 +452,7 @@ Value StdLib::file_current_directory(const std::vector<Value> &args, VM *)
 		return std::filesystem::current_path().string();
 	}
 	checkArgCount(args, 1, "fcd");
+	requireString(args[0], "fcd", "argument (path)");
 	std::filesystem::path dest = args[0].stl_string();
 	if (std::filesystem::exists(dest) && std::filesystem::is_directory(dest))
 	{
@@ -415,9 +466,16 @@ Value StdLib::file_current_directory(const std::vector<Value> &args, VM *)
 bool StdLib::file_copy(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 2, "fcp", true);
+	if (args.size() > 3)
+		PHS_ERROR("fcp() expects at most 3 arguments");
+
+	requireString(args[0], "fcp", "first argument (source path)");
+	requireString(args[1], "fcp", "second argument (destination path)");
+
 	bool overwrite = false;
-	if (args.size() <= 3 && args.size() >= 2)
+	if (args.size() == 3)
 	{
+		requireBool(args[2], "fcp", "third argument (overwrite)");
 		overwrite = args[2].asBool();
 	}
 	std::filesystem::path src = args[0].stl_string();
@@ -468,6 +526,8 @@ bool StdLib::file_copy(const std::vector<Value> &args, VM *vm)
 bool StdLib::file_move(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 2, "fmv");
+	requireString(args[0], "fmv", "first argument (source path)");
+	requireString(args[1], "fmv", "second argument (destination path)");
 	std::filesystem::path src = args[0].stl_string();
 	std::filesystem::path dest = args[1].stl_string();
 	bool                  status;
@@ -485,9 +545,15 @@ bool StdLib::file_move(const std::vector<Value> &args, VM *vm)
 bool StdLib::file_property_edit(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 3, "fpropedit");
-	if (args[2].isInt() && args[2].asInt() < 0)
+	requireString(args[0], "fpropedit", "first argument (path)");
+	requireString(args[1], "fpropedit", "second argument (property)");
+	if (args[1].stl_string().empty())
+		PHS_ERROR("fpropedit() property must be a non-empty string");
+	if (!args[2].isInt())
+		PHS_ERROR("fpropedit() expects an integer as its third argument (epoch)");
+	if (args[2].asInt() < 0)
 	{
-		throw std::runtime_error("epoch must be a non-negative integer");
+		PHS_ERROR("epoch must be a non-negative integer");
 	}
 	std::filesystem::path path = args[0].stl_string();
 	char                  param = args[1].stl_string()[0];
@@ -498,6 +564,10 @@ bool StdLib::file_property_edit(const std::vector<Value> &args, VM *)
 i64 StdLib::file_property_get(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "fpropget");
+	requireString(args[0], "fpropget", "first argument (path)");
+	requireString(args[1], "fpropget", "second argument (property)");
+	if (args[1].string().empty())
+		PHS_ERROR("fpropget() property must be a non-empty string");
 	std::filesystem::path path = args[0].stl_string();
 	char                  param = args[1].string()[0];
 	return PHASORstd_file_getProperties(const_cast<char *>(path.string().c_str()), param);
@@ -506,11 +576,12 @@ i64 StdLib::file_property_get(const std::vector<Value> &args, VM *)
 bool StdLib::file_create(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fcreate");
+	requireString(args[0], "fcreate", "argument (path)");
 	std::filesystem::path path = args[0].stl_string();
 	std::ofstream         file(path);
 	if (!file.is_open())
 	{
-		throw std::runtime_error("Could not open file: " + path.string());
+		PHS_ERROR("Could not open file: " + path.string());
 		return false;
 	}
 	file.close();
@@ -520,6 +591,7 @@ bool StdLib::file_create(const std::vector<Value> &args, VM *)
 Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "freaddir");
+	requireString(args[0], "freaddir", "argument (path)");
 	PhsString path = args[0].string();
 
 	std::vector<Value> entries;
@@ -535,6 +607,7 @@ Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "fmkdir");
+	requireString(args[0], "fmkdir", "argument (path)");
 	std::filesystem::path path = args[0].stl_string();
 	if (std::filesystem::exists(path))
 		return false;
@@ -545,6 +618,8 @@ bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
 bool StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "frmdir");
+	requireString(args[0], "frmdir", "first argument (path)");
+	requireBool(args[1], "frmdir", "second argument (recursive)");
 	std::filesystem::path path = args[0].stl_string();
 	bool                  recursive = args[1].asBool();
 	if (std::filesystem::exists(path))

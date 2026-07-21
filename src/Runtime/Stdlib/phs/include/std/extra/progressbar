@@ -1,7 +1,7 @@
 // Copyright 2026 Daniel McGuire -- progress bar extension for Phasor Standard Library
 // Licensed under the MIT License.
 
-include "./conemu.phs";
+include "./conemu";
 
 // Hide progress indicator
 fn progressBarDone() {

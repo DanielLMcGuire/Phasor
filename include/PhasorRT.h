@@ -153,7 +153,7 @@ extern "C"
 	void *state = createState();
 	initStdLib(state);
 
-	const char *script = "using(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
+	const char *script = "ffiload(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
 
 	size_t bytecodeSize = 0;
 	compilePHS(script, "example", "./", NULL, 0, &bytecodeSize);

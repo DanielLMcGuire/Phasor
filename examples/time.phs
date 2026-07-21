@@ -1,10 +1,10 @@
 #!/usr/bin/env phasor
 include "./time/logic.phs";
-include "std/io.phs";
-include "std/type.phs";
-include "std/str.phs";
-include "std/file.phs";
-include "std/main.phs";
+include "std/io";
+include "std/type";
+include "std/str";
+include "std/file";
+include "std/main";
 
 fn main(args: string[]) -> int {
     var helpStr: string = concat("Expected 1 or 2 optional args: ", args[0].fname(), " [-local] [FORMAT]");

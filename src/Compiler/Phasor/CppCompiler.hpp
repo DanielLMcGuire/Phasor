@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <PhasorString.hpp>
 #include <vector>
 #include <filesystem>
 /// @brief The Phasor Programming Language and Runtime
@@ -27,11 +27,11 @@ class CppCompiler
 		std::filesystem::path              outputFile;
 		std::filesystem::path              mainFile;
 		std::vector<std::filesystem::path> includePaths;
-		std::string                        moduleName;
+		PhsString                        moduleName;
 		bool                               verbose = false;
 		bool                               showHelp = false;
-		std::string                        compiler;
-		std::string                        linker;
+		PhsString                        compiler;
+		PhsString                        linker;
 		bool                               run = false;
 		bool                               headerOnly = false;
 		bool                               objectOnly = false;
@@ -39,7 +39,7 @@ class CppCompiler
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);
-	bool showHelp(const std::string &programName);
+	bool showHelp(const PhsString &programName);
 	bool generateHeader(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
 	bool generateSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
 	bool compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);

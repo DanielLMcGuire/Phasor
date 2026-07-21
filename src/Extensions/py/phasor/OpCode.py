@@ -74,92 +74,92 @@ class OpCode(IntEnum):
     PRINT       = 0x2F
     PRINTERROR  = 0x30
     READLINE    = 0x31
-    IMPORT      = 0x32
-    HALT        = 0x33
-    CALL_NATIVE = 0x34
-    CALL        = 0x35
-    SYSTEM      = 0x36
-    SYSTEM_OUT  = 0x37
-    SYSTEM_ERR  = 0x38
-    RETURN      = 0x39
+    HALT        = 0x32
+    CALL_NATIVE = 0x33
+    CALL        = 0x34
+    SYSTEM      = 0x35
+    SYSTEM_OUT  = 0x36
+    SYSTEM_ERR  = 0x37
+    RETURN      = 0x38
 
-    TRUE_P   = 0x3A
-    FALSE_P  = 0x3B
-    NULL_VAL = 0x3C
+    TRUE_P   = 0x39
+    FALSE_P  = 0x3A
+    NULL_VAL = 0x3B
 
-    LEN     = 0x3D   # pop s → push len(s)
-    CHAR_AT = 0x3E   # pop index, pop s → push s[index]
-    SUBSTR  = 0x3F   # pop len, pop start, pop s → push s[start:start+len]
+    LEN     = 0x3C   # pop s → push len(s)
+    CHAR_AT = 0x3D   # pop index, pop s → push s[index]
+    SUBSTR  = 0x3E   # pop len, pop start, pop s → push s[start:start+len]
 
-    NEW_STRUCT = 0x40
-    GET_FIELD  = 0x41
-    SET_FIELD  = 0x42
+    NEW_STRUCT = 0x3F
+    GET_FIELD  = 0x40
+    SET_FIELD  = 0x41
 
-    NEW_STRUCT_INSTANCE_STATIC = 0x43
-    GET_FIELD_STATIC           = 0x44
-    SET_FIELD_STATIC           = 0x45
+    NEW_STRUCT_INSTANCE_STATIC = 0x42
+    GET_FIELD_STATIC           = 0x43
+    SET_FIELD_STATIC           = 0x44
 
-    MOV          = 0x46   # R[rA] = R[rB]
-    LOAD_CONST_R = 0x47   # R[rA] = constants[imm]
-    LOAD_VAR_R   = 0x48   # R[rA] = variables[imm]
-    STORE_VAR_R  = 0x49   # variables[imm] = R[rA]
-    PUSH_R       = 0x4A   # push(R[rA])
-    PUSH2_R      = 0x4B   # push(R[rA]); push(R[rB])
-    POP_R        = 0x4C   # R[rA] = pop()
-    POP2_R       = 0x4D   # R[rA], R[rB] = pop2()
+    MOV          = 0x45   # R[rA] = R[rB]
+    LOAD_CONST_R = 0x46   # R[rA] = constants[imm]
+    LOAD_VAR_R   = 0x47   # R[rA] = variables[imm]
+    STORE_VAR_R  = 0x48   # variables[imm] = R[rA]
+    PUSH_R       = 0x49   # push(R[rA])
+    PUSH2_R      = 0x4A   # push(R[rA]); push(R[rB])
+    POP_R        = 0x4B   # R[rA] = pop()
+    POP2_R       = 0x4C   # R[rA], R[rB] = pop2()
 
-    IADD_R  = 0x4E   # R[rA] = R[rB] + R[rC]
-    ISUB_R  = 0x4F
-    IMUL_R  = 0x50
-    IDIV_R  = 0x51
-    IMOD_R  = 0x52
-    FLADD_R = 0x53
-    FLSUB_R = 0x54
-    FLMUL_R = 0x55
-    FLDIV_R = 0x56
-    FLMOD_R = 0x57
-    MADD_R  = 0x58
-    MSUB_R  = 0x59
-    MMUL_R  = 0x5A
-    MDIV_R  = 0x5B
-    SQRT_R  = 0x5C   # R[rA] = sqrt(R[rB])
-    POW_R   = 0x5D   # R[rA] = pow(R[rB], R[rC])
-    LOG_R   = 0x5E
-    EXP_R   = 0x5F
-    SIN_R   = 0x60
-    COS_R   = 0x61
-    TAN_R   = 0x62
+    IADD_R  = 0x4D   # R[rA] = R[rB] + R[rC]
+    ISUB_R  = 0x4E
+    IMUL_R  = 0x4F
+    IDIV_R  = 0x50
+    IMOD_R  = 0x51
+    FLADD_R = 0x52
+    FLSUB_R = 0x53
+    FLMUL_R = 0x54
+    FLDIV_R = 0x55
+    FLMOD_R = 0x56
+    MADD_R  = 0x57
+    MSUB_R  = 0x58
+    MMUL_R  = 0x59
+    MDIV_R  = 0x5A
+    SQRT_R  = 0x5B   # R[rA] = sqrt(R[rB])
+    POW_R   = 0x5C   # R[rA] = pow(R[rB], R[rC])
+    LOG_R   = 0x5D
+    EXP_R   = 0x5E
+    SIN_R   = 0x5F
+    COS_R   = 0x60
+    TAN_R   = 0x61
 
-    IAND_R  = 0x63
-    IOR_R   = 0x64
-    IEQ_R   = 0x65
-    INE_R   = 0x66
-    ILT_R   = 0x67
-    IGT_R   = 0x68
-    ILE_R   = 0x69
-    IGE_R   = 0x6A
-    FLAND_R = 0x6B
-    FLOR_R  = 0x6C
-    FLEQ_R  = 0x6D
-    FLNE_R  = 0x6E
-    FLLT_R  = 0x6F
-    FLGT_R  = 0x70
-    FLLE_R  = 0x71
-    FLGE_R  = 0x72
+    IAND_R  = 0x62
+    IOR_R   = 0x63
+    IEQ_R   = 0x64
+    INE_R   = 0x65
+    ILT_R   = 0x66
+    IGT_R   = 0x67
+    ILE_R   = 0x68
 
-    NEG_R = 0x73   # R[rA] = -R[rB]
-    NOT_R = 0x74   # R[rA] = !R[rB]
+    IGE_R   = 0x69
+    FLAND_R = 0x6A
+    FLOR_R  = 0x6B
+    FLEQ_R  = 0x6C
+    FLNE_R  = 0x6D
+    FLLT_R  = 0x6E
+    FLGT_R  = 0x7F
+    FLLE_R  = 0x70
+    FLGE_R  = 0x71
 
-    PRINT_R      = 0x75
-    PRINTERROR_R = 0x76
-    READLINE_R   = 0x77
-    SYSTEM_R     = 0x78
-    SYSTEM_OUT_R = 0x79
-    SYSTEM_ERR_R = 0x7A
-    EXIT_SCOPE   = 0x7B
+    NEG_R = 0x72   # R[rA] = -R[rB]
+    NOT_R = 0x73   # R[rA] = !R[rB]
 
-    NEW_ARR   = 0x7C
-    LOAD_ARR  = 0x7D
-    STORE_ARR = 0x7E
+    PRINT_R      = 0x74
+    PRINTERROR_R = 0x75
+    READLINE_R   = 0x76
+    SYSTEM_R     = 0x77
+    SYSTEM_OUT_R = 0x78
+    SYSTEM_ERR_R = 0x79
+    EXIT_SCOPE   = 0x7A
 
-    GET_FIELD_DYN = 0x7F
+    NEW_ARR   = 0x7B
+    LOAD_ARR  = 0x7C
+    STORE_ARR = 0x7D
+
+    GET_FIELD_DYN = 0x7E

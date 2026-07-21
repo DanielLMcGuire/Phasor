@@ -7,7 +7,7 @@
 
 #include <print>
 #include <format>
-#include <string>
+#include <PhasorString.hpp>
 #include <vector>
 #include <filesystem>
 #include <sstream>
@@ -398,12 +398,14 @@ int main(int argc, char *argv[])
 		if (has_command)
 		{
 			auto vm = createVm(scriptArgc, scriptArgvPtr);
-			return runSourceString(command_script, *vm, includePaths, "", verbose);
+			int ret = runSourceString(command_script, *vm, includePaths, "", verbose);
+			return ret;
 		}
 		else if (has_pipe)
 		{
 			auto vm = createVm(scriptArgc, scriptArgvPtr);
-			return runSourceString(piped_script, *vm, includePaths, "", verbose);
+			int ret =runSourceString(piped_script, *vm, includePaths, "", verbose);
+			return ret;
 		}
 		else if (has_file)
 		{
@@ -426,7 +428,8 @@ int main(int argc, char *argv[])
 			if (ext == ".phsw" || ext == ".phs")
 #endif
 			{
-				return runScriptFile(file, scriptArgc, scriptArgvPtr, includePaths, verbose);
+				int ret = runScriptFile(file, scriptArgc, scriptArgvPtr, includePaths, verbose);
+				return ret;
 			}
 #ifndef PHS_WINDOWED
 			else if (ext == ".phsb")
@@ -434,7 +437,8 @@ int main(int argc, char *argv[])
 			else if (ext == ".phsbw" || ext == ".phsb")
 #endif
 			{
-				return runBytecodeFile(file, scriptArgc, scriptArgvPtr, verbose);
+				int ret = runBytecodeFile(file, scriptArgc, scriptArgvPtr, verbose);
+				return ret;
 			}
 			else
 			{
@@ -444,7 +448,8 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			return runRepl(includePaths, verbose);
+			int ret = runRepl(includePaths, verbose);
+			return ret;
 		}
 	}
 	catch (const std::exception &e)
@@ -452,6 +457,5 @@ int main(int argc, char *argv[])
 		std::println(std::cerr, "Error: {}", e.what());
 		return 1;
 	}
-
 	return 1;
 }

@@ -9,7 +9,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using("stdsys");
 include "../../include/std/types/sys.phs";
 
 fn is_sandboxed() -> bool {

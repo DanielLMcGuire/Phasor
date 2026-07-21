@@ -1,5 +1,5 @@
 include "./types.phs";
-include "std/sys.phs";
+include "std/sys";
 
 fn getTimeStruct() -> timeStruct {
     var fmtFlags: string[2] = [

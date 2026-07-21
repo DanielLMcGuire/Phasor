@@ -9,12 +9,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+include "../../include/std/str";
+
 fn prints(in: string) -> string {
     print in;
     return "";
 }
 
 fn puts(in: string) -> string {
-    print phs__std_noimport("concat", in, "\n");
+    print in.concat("\n");
     return "";
 }

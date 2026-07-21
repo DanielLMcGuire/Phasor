@@ -36,6 +36,15 @@
 #include "PhasorVM.hpp"
 #include "../Value.hpp"
 
+#ifdef TRACING
+#ifdef PHASOR_USES_BOOST
+	#include <boost/assert/source_location.hpp>
+	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
+#else
+	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
+#endif
+#endif
+
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -55,10 +64,10 @@ class StdLib
 	inline static void registerFunctions(VM &vm)
 	{
 #ifdef TRACING
-		vm.log(std::format("StdLib::{}(&VM@{:#x})\n", __func__, reinterpret_cast<std::uintptr_t>(&vm)));
+		vm.log(std::format("({})(&VM@{:#x})\n", PHS_SRC_LOC(), reinterpret_cast<std::uintptr_t>(&vm)));
 		vm.flush();
 #endif
-		vm.registerNativeFunction("using", std_import);
+		vm.registerNativeFunction("ffiload", std_import);
 #ifndef SANDBOXED
 		vm.registerNativeFunction("assert", std_assert);
 #endif
@@ -67,7 +76,7 @@ class StdLib
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
 
-	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const PhsString &name,
 	                          bool allowMoreArguments = false);
 
   private:

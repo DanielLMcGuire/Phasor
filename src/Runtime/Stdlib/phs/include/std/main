@@ -1,4 +1,4 @@
-// Phasor STDMATH
+// Phasor STDMAIN
 // Copyright 2026 Daniel McGuire -- Phasor Standard Library
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -10,4 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using("stdmath");
+fn main(args: string[]) -> i64;
+
+// ----
+include "../../src/std/main.phs";

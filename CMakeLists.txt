@@ -49,6 +49,8 @@ if (PHASOR_SDL2)
     include(cmake/prepSDL2.cmake)
 endif()
 
+include(cmake/prepBoost.cmake)
+
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
 endif()

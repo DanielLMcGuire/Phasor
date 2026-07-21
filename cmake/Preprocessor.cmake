@@ -45,3 +45,8 @@ elseif(APPLE)
 else()
     add_compile_definitions(PHASOR_DEFAULT_FIRST_PATH="/opt/phasor/include")
 endif()
+
+if(PHASOR_BOOST)
+    include_directories(${Boost_INCLUDE_DIRS})
+    add_compile_definitions(PHASOR_USES_BOOST)
+endif()

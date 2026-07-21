@@ -1,4 +1,4 @@
-// Phasor STDSYS
+// Phasor STDFILE
 // Copyright 2026 Daniel McGuire -- Phasor Standard Library
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -10,12 +10,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using("stdsys");
-include "./types/sys.phs";
+ffiload("stdfile");
 
-// Check if running in sandbox build
-// returns: true if running in sandbox, false otherwise
-fn is_sandboxed() -> bool;
+// Copy files with progress
+// files: File path array (source)
+// dest: Destination directory path
+// returns: true on success, false on failure
+fn fcp_progress(files: string[], dest: string) -> bool;
 
 // ----
-include "../../src/std/sys.phs";
+include "../../src/std/file.phs";

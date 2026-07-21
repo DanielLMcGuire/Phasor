@@ -1,0 +1,9 @@
+struct ManagedMemory {
+    ptr: int,
+    size: int
+}
+
+var null_managed_memory: ManagedMemory = {
+    ptr: 0,
+    size: 0
+};

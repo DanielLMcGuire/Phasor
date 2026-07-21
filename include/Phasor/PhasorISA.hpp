@@ -221,10 +221,10 @@ struct Instruction
 /// @brief Struct metadata stored alongside bytecode (struct section)
 struct StructInfo
 {
-	std::string              name;            ///< Struct name
+	PhsString              name;            ///< Struct name
 	int                      firstConstIndex; ///< Index into constants for the first default value
 	int                      fieldCount;      ///< Number of fields in this struct
-	std::vector<std::string> fieldNames;      ///< Field names in declaration order
+	std::vector<PhsString> fieldNames;      ///< Field names in declaration order
 };
 
 /// @brief Complete bytecode structure
@@ -232,19 +232,19 @@ struct Bytecode
 {
 	std::vector<Instruction>             instructions;        ///< List of instructions
 	std::vector<Value>                   constants;           ///< Constant pool
-	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
-	std::vector<std::vector<std::pair<int, std::string>>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
-	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
-	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
-	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
-	std::unordered_map<std::string, std::vector<std::vector<int>>> functionParamArrayDims;
-	std::unordered_map<std::string, std::string> functionReturnTypeNames; ///< Function name -> return type name
-	std::unordered_map<std::string, std::vector<int>> functionReturnArrayDims; ///< Function name -> return array dims
+	std::unordered_map<PhsString, int> variables;           ///< Variable name -> index mapping
+	std::vector<std::vector<std::pair<int, PhsString>>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
+	std::unordered_map<PhsString, int> functionEntries;     ///< Function name -> instruction index mapping
+	std::unordered_map<PhsString, int> functionParamCounts; ///< Function name -> parameter count
+	std::unordered_map<PhsString, std::vector<PhsString>> functionParamTypeNames; ///< Function name -> parameter type names
+	std::unordered_map<PhsString, std::vector<std::vector<int>>> functionParamArrayDims;
+	std::unordered_map<PhsString, PhsString> functionReturnTypeNames; ///< Function name -> return type name
+	std::unordered_map<PhsString, std::vector<int>> functionReturnArrayDims; ///< Function name -> return array dims
 	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
 	std::vector<StructInfo>              structs;       ///< List of struct descriptors
-	std::unordered_map<std::string, int> structEntries; ///< Struct name -> index in structs
+	std::unordered_map<PhsString, int> structEntries; ///< Struct name -> index in structs
 
 	/// @brief Add a constant to the pool and return its index
 	int addConstant(const Value &value)
@@ -254,7 +254,7 @@ struct Bytecode
 	}
 
 	/// @brief Add a string constant with deduplication
-	int addStringConstant(const std::string &s)
+	int addStringConstant(const PhsString &s)
 	{
 		auto it = stringConstantCache.find(s);
 		if (it != stringConstantCache.end())
@@ -266,10 +266,10 @@ struct Bytecode
 		return idx;
 	}
 
-	std::unordered_map<std::string, int> stringConstantCache; ///< Dedup cache for string constants
+	std::unordered_map<PhsString, int> stringConstantCache; ///< Dedup cache for string constants
 
 	/// @brief Get or create a variable index
-	int getOrCreateVar(const std::string &name)
+	int getOrCreateVar(const PhsString &name)
 	{
 		auto it = variables.find(name);
 		if (it != variables.end())

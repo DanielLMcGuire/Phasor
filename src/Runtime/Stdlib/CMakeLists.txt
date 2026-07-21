@@ -10,6 +10,7 @@ set(STDLIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/random.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/type.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/array.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/object.cpp
 )
 
 if (NOT IS_SANDBOXED)

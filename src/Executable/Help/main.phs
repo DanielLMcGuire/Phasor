@@ -1,5 +1,116 @@
-include "./phasor_help.phs";
-include "std/main.phs";
+include "std/io";
+include "std/sys";
+include "std/str";
+include "std/type";
+include "std/meta";
+include "std/file";
+include "std/mem";
+
+struct ManPage {
+    name: string,
+    section: i64
+}
+
+fn getFallbackURL(page: ManPage) -> string {
+    var sb: i64 = sb_new();
+    sb.sb_append("https://phasor-docs.pages.dev/man?f=");
+    sb.sb_append(page.name);
+    sb.sb_append(".");
+    sb.sb_append(page.section);
+    return sb.sb_free();
+}
+
+fn getDocCmd(page: ManPage) -> string {
+    var sb: i64 = sb_new();
+    var os: string = sys_os();
+
+    if (os == sys_os.win32) {
+        if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
+            return concat("\"start ", getFallbackURL(page), "\"");
+        }
+        sb.sb_append("C:/Program%20Files/Phasor%20Programming%20Language/man/man");
+        sb.sb_append(page.section);
+        sb.sb_append("/");
+        sb.sb_append(page.name);
+        sb.sb_append(".");
+        sb.sb_append(page.section);
+        sb.sb_append(".");
+        sb.sb_append("pdf");
+        var path: string = sb.sb_free();
+        return concat("\"start file:///", path, "\"");
+    } else if (os == sys_os.linux || os == sys_os.darwin || os == sys_os.freebsd || os == sys_os.unix) {
+        sb.sb_append(page.section);
+        sb.sb_append(" ");
+        sb.sb_append(page.name);
+        var args: string = sb.sb_free();
+        return concat("man ", args);
+    } else {
+        putf_error("Could not find documentation for %s(%d)", part, type);
+        putf("See %s", getFallbackURL(page));
+        shutdown(-1);
+    }
+}
+
+fn showHelp(programName: string, error: bool) -> void {
+    var winStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<SECTION>\n    \\<PAGE>.<SECTION>.pdf";
+    var unixStr: string = "/usr/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+    var osxStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+    var osStr: string;
+    var os: string = sys_os();
+    if (os == sys_os.win32) {
+        osStr = winStr;
+    } else if (os == "Linux" || os == "FreeBSD" || os == "UNIX") {  
+        osStr = unixStr;
+    } else if (os == "Darwin") {
+        osStr = osxStr;
+    } else {
+        osStr = "https://phasor-docs.pages.dev/man?f=<PAGE>.<SECTION>";
+    }
+
+    var helpStr: string = c_fmt(`
+
+PHASOR-HELP(1)      Phasor %s      PHASOR-HELP(1)
+
+NAME
+    %s - open Phasor manual pages
+
+SYNOPSIS
+    %s PAGE SECTION
+    %s --help
+    %s -h
+
+ARGUMENTS
+    PAGE
+    The name of the manual page to open.
+
+    SECTION  
+    The manual section number. This is an integer corresponding to 
+    standard manual sections.  
+
+EXAMPLES
+    %s phasor
+    Open the section 1 manual page for "phasor".
+
+    %s phasorvm 1
+    Open the section 1 manual page for "phasorvm".
+
+    %s phsb 5  
+    Open the section 5 manual page for "phsb".  
+
+    %s phasorstd_io 3  
+    Open the section 3 manual page for "phasorstd_io".  
+
+FILES
+    %s
+
+SEE ALSO
+    MAN(1)
+
+                              - 1 -
+`, phs_version(), programName, programName, programName, programName, programName, programName, programName, programName, osStr);
+    if (error) puts_error(helpStr);
+    else puts(helpStr);
+}
 
 fn main(args: string[]) -> int {
     if (args.len() == 3) {
@@ -11,3 +122,5 @@ fn main(args: string[]) -> int {
         return 1;
     }
 }
+
+include "std/main";

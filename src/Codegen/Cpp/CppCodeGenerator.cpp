@@ -8,7 +8,7 @@
 namespace Phasor
 {
 
-bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &outputPath, const std::string &modName)
+bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &outputPath, const PhsString &modName)
 {
 	try
 	{
@@ -53,7 +53,7 @@ bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path 
 	}
 }
 
-Bytecode CppCodeGenerator::generateBytecodeFromEmbedded(const std::string &input)
+Bytecode CppCodeGenerator::generateBytecodeFromEmbedded(const PhsString &input)
 {
 	std::vector<unsigned char> bytecodeData = parseEmbeddedBytecode(input);
 	BytecodeDeserializer       deserializer;
@@ -66,28 +66,28 @@ void CppCodeGenerator::generateFileHeader()
 	output << "// Module: " << moduleName << "\n";
 	output << "#pragma once\n";
 	output << "#include <cstddef>\n";
-	output << "#include <string>\n\n";
+	output << "#include <PhasorString.hpp>\n\n";
 }
 
 void CppCodeGenerator::generateModuleName()
 {
-	output << "std::string moduleName = \"" << moduleName << "\";\n\n";
+	output << "Phasor::PhsString moduleName = \"" << moduleName << "\";\n\n";
 }
 
 void CppCodeGenerator::generateEmbeddedBytecode()
 {
 #if defined(_WIN32)
-	const std::string sectionPrefixPragma = "#pragma section(\".phsb\", read)\n";
-	const std::string sectionAttr = "__declspec(allocate(\".phsb\")) ";
+	const PhsString sectionPrefixPragma = "#pragma section(\".phsb\", read)\n";
+	const PhsString sectionAttr = "__declspec(allocate(\".phsb\")) ";
 #elif defined(__APPLE__)
-	const std::string sectionPrefixPragma = "";
-	const std::string sectionAttr = "__attribute__((section(\"__DATA,__phsb\"))) ";
+	const PhsString sectionPrefixPragma = "";
+	const PhsString sectionAttr = "__attribute__((section(\"__DATA,__phsb\"))) ";
 #elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-	const std::string sectionPrefixPragma = "";
-	const std::string sectionAttr = "__attribute__((section(\".phsb\"))) ";
+	const PhsString sectionPrefixPragma = "";
+	const PhsString sectionAttr = "__attribute__((section(\".phsb\"))) ";
 #else
-	const std::string sectionPrefixPragma = "";
-	const std::string sectionAttr = "";
+	const PhsString sectionPrefixPragma = "";
+	const PhsString sectionAttr = "";
 #endif
 
 	if (!sectionPrefixPragma.empty())
@@ -126,7 +126,7 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 	output << std::dec << "\n};\n";
 }
 
-std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const std::string &input)
+std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const PhsString &input)
 {
 	std::vector<unsigned char> result;
 	std::istringstream         stream(input);
@@ -134,7 +134,6 @@ std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const std::st
 
 	while (stream >> token)
 	{
-		// Only process tokens starting with "0x"
 		if (token.size() >= 3 && token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
 		{
 			unsigned int       byte;
@@ -147,7 +146,7 @@ std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const std::st
 	return result;
 }
 
-std::string CppCodeGenerator::escapeString(const std::string &str)
+PhsString CppCodeGenerator::escapeString(const PhsString &str)
 {
 	std::ostringstream escaped;
 	for (char c : str)
@@ -185,7 +184,7 @@ std::string CppCodeGenerator::escapeString(const std::string &str)
 	return escaped.str();
 }
 
-std::string CppCodeGenerator::getValueTypeString(ValueType type)
+PhsString CppCodeGenerator::getValueTypeString(ValueType type)
 {
 	switch (type)
 	{
@@ -204,9 +203,9 @@ std::string CppCodeGenerator::getValueTypeString(ValueType type)
 	}
 }
 
-std::string CppCodeGenerator::sanitizeModuleName(const std::string &name)
+PhsString CppCodeGenerator::sanitizeModuleName(const PhsString &name)
 {
-	std::string result;
+	PhsString result;
 	for (char c : name)
 	{
 		if ((std::isalnum(c) != 0) || c == '_')

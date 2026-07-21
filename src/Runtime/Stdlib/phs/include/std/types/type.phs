@@ -1,12 +1,19 @@
+// enum class ValueType : u8
 var phs_type: any = {
-    int: "int",
-    i64: "int",
-    float: "float",
-    f64: "float",
-    object: "struct",
-    array: "array",
-    string: "string",
-    bool: "bool",
-    void: "null",
-    unknown: "unknown"
+    // ValueType::Null
+    void: 0, 
+    // ValueType::Bool
+    bool: 1, 
+    // ValueType::Int
+    int: 2,  
+    i64: 2,  
+    // ValueType::Float
+    float: 3,
+    f64: 3, 
+    // ValueType::String
+    string: 4,
+    // ValueType::Struct
+    object: 5, 
+    // ValueType::Array
+    array: 6
 };

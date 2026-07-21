@@ -38,7 +38,7 @@ int Compiler::run()
 
 int Compiler::compileToBytecode()
 {
-	if (std::filesystem::path(m_args.inputFile).extension() == ".phsb")
+	if (std::filesystem::path(m_args.inputFile.str()).extension() == ".phsb")
 	{
 		std::println(std::cerr, "Error: Cannot compile a bytecode file (use phasordecomp)");
 		return 1;
@@ -53,12 +53,12 @@ int Compiler::compileToBytecode()
 
 	std::stringstream buffer;
 	buffer << file.rdbuf();
-	std::string source = buffer.str();
+	PhsString source = buffer.str();
 
 	try
 	{
 		Lexer         lexer(source);
-		Parser        parser(lexer.tokenize(), m_args.inputFile);
+		Parser        parser(lexer.tokenize(), m_args.inputFile.str());
 		parser.setIncludePaths(m_args.includePaths);
 		auto          program = parser.parse();
 		CodeGenerator codegen;
@@ -67,13 +67,13 @@ int Compiler::compileToBytecode()
 		if (m_args.outputFile.empty())
 		{
 			m_args.outputFile = m_args.inputFile;
-			std::filesystem::path path(m_args.outputFile);
+			std::filesystem::path path(m_args.outputFile.str());
 			path.replace_extension(".phsb");
-			m_args.outputFile = path.string();
+			m_args.outputFile = PhsString(path.string());
 		}
 
 		BytecodeSerializer serializer;
-		if (!serializer.saveToFile(bytecode, m_args.outputFile))
+		if (!serializer.saveToFile(bytecode, m_args.outputFile.str()))
 		{
 			std::println(std::cerr, "Failed to save bytecode to: {}", m_args.outputFile);
 			return 1;
@@ -91,7 +91,7 @@ int Compiler::compileToBytecode()
 
 int Compiler::compileToIR()
 {
-	if (std::filesystem::path(m_args.inputFile).extension() == ".phir")
+	if (std::filesystem::path(m_args.inputFile.str()).extension() == ".phir")
 	{
 		std::println(std::cerr, "Error: Cannot compile a Phasor IR file (use phasorasm)");
 		return 1;
@@ -106,12 +106,12 @@ int Compiler::compileToIR()
 
 	std::stringstream buffer;
 	buffer << file.rdbuf();
-	std::string source = buffer.str();
+	PhsString source = buffer.str();
 
 	try
 	{
 		Lexer         lexer(source);
-		Parser        parser(lexer.tokenize(), m_args.inputFile);
+		Parser        parser(lexer.tokenize(), m_args.inputFile.str());
 		parser.setIncludePaths(m_args.includePaths);
 		auto          program = parser.parse();
 		CodeGenerator codegen;
@@ -120,12 +120,12 @@ int Compiler::compileToIR()
 		if (m_args.outputFile.empty())
 		{
 			m_args.outputFile = m_args.inputFile;
-			std::filesystem::path path(m_args.outputFile);
+			std::filesystem::path path(m_args.outputFile.str());
 			path.replace_extension(".phir");
-			m_args.outputFile = path.string();
+			m_args.outputFile = PhsString(path.string());
 		}
 
-		if (!PhasorIR::saveToFile(bytecode, m_args.outputFile))
+		if (!PhasorIR::saveToFile(bytecode, m_args.outputFile.str()))
 		{
 			std::println(std::cerr, "Failed to save Phasor IR to: {}", m_args.outputFile);
 			return 1;
@@ -146,7 +146,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 	int defaultArgLocation = 1;
 	for (int i = 1; i < argc; i++)
 	{
-		std::string arg = argv[i];
+		PhsString arg = argv[i];
 
 		if (arg == "-v" || arg == "--verbose")
 		{
@@ -154,7 +154,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 		}
 		else if (arg.starts_with("-i=") || arg.starts_with("-I=") || arg.starts_with("--include="))
 		{
-			std::string values = arg.substr(arg.find('=') + 1);
+			PhsString values = arg.substr(arg.find('=') + 1);
 			std::stringstream ss(values);
 			std::string item;
 			while (std::getline(ss, item, ','))
@@ -167,7 +167,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 		{
 			if (i + 1 < argc)
 			{
-				std::string values = argv[++i];
+				PhsString values = argv[++i];
 				std::stringstream ss(values);
 				std::string item;
 				while (std::getline(ss, item, ','))
@@ -238,9 +238,9 @@ void Compiler::parseArguments(int argc, char *argv[])
 	m_args.includePaths = std::move(finalPaths);
 }
 
-void Compiler::showHelp(const std::string &programName)
+void Compiler::showHelp(const PhsString &programName)
 {
-	std::string filename = std::filesystem::path(programName).filename().string();
+	PhsString filename = PhsString(std::filesystem::path(programName.str()).filename().string());
 
 	std::println("Phasor Compiler v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"

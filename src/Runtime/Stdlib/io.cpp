@@ -38,6 +38,9 @@ PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
 		return ""; // Return empty string if no arguments
 	}
 
+	if (!args[0].isString())
+		PHS_ERROR("c_fmt() expects a string as its first argument (format)");
+
 	const PhsString &fmt = args[0].string();
 
 	// Make vector of format args
@@ -50,6 +53,8 @@ PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
 PhsString StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "printf", true);
+	if (!args[0].isString())
+		PHS_ERROR("printf() expects a string as its first argument (format)");
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
 	return "";
@@ -58,6 +63,8 @@ PhsString StdLib::io_printf(const std::vector<Value> &args, VM *vm)
 PhsString StdLib::io_putf(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf", true);
+	if (!args[0].isString())
+		PHS_ERROR("putf() expects a string as its first argument (format)");
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	PhsString        input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINT_R, input.str() + "\n");
@@ -83,6 +90,8 @@ PhsString StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 PhsString StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
+	if (!args[0].isString())
+		PHS_ERROR("putf_error() expects a string as its first argument (format)");
 	std::vector<Value> formatArgs(args.begin(), args.end());
 	PhsString        input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");

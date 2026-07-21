@@ -3,15 +3,23 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#ifdef PHASOR_USES_BOOST
+#include <boost/container/static_vector.hpp>
+#include <boost/container/flat_map.hpp>
+#endif
 #include <string>
 #include <map>
 
-const std::vector<std::string> PATCHES = {
+#ifdef PHASOR_USES_BOOST
+const boost::container::static_vector<std::string_view, 2> PATCHES =
+#else
+const std::vector<std::string> PATCHES =
+#endif
+{
     "#pragma warning(disable:4996)",
     "#pragma warning(disable:4244)"
 };
 
-// --- TYPE REGISTRY ---
 struct Member {
     std::string type;
     std::string name;
@@ -21,8 +29,12 @@ struct StructDef {
     std::string name;
     std::vector<Member> members;
 };
-
-std::map<std::string, StructDef> StructRegistry = {
+#ifdef PHASOR_USES_BOOST
+boost::container::flat_map<std::string_view, StructDef> StructRegistry =
+#else
+std::map<std::string_view, StructDef> StructRegistry = 
+#endif
+{
     {"POINT", {"POINT", {{"LONG", "x"}, {"LONG", "y"}}}},
     {"RECT",  {"RECT",  {{"LONG", "left"}, {"LONG", "top"}, {"LONG", "right"}, {"LONG", "bottom"}}}},
     {"WNDCLASSEXW", {"WNDCLASSEXW", {
@@ -41,7 +53,6 @@ std::map<std::string, StructDef> StructRegistry = {
     }}}
 };
 
-// --- INTERNAL DATA STRUCTURES ---
 struct ParamInfo {
     std::string cppType;      
     std::string varName;      
@@ -62,7 +73,6 @@ struct Function {
     int lineNumber = 0;
 };
 
-// --- HELPERS ---
 
 bool isHandleType(const std::string &type) {
     return type == "HANDLE" || type == "HMODULE" || type == "HWND" || 

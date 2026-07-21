@@ -52,7 +52,7 @@ struct Plugin
 #else
 	void *handle; ///< POSIX handle for the loaded library
 #endif
-	std::string           path;     ///< Path to the plugin file
+	std::filesystem::path path;     ///< Path to the plugin file
 	FFIFunction           init;     ///< Plugin initialization function
 	std::function<void()> shutdown; ///< Optional shutdown callback
 };
@@ -119,7 +119,7 @@ class FFI
 	 * @param folder Path to the folder to scan.
 	 * @return A vector of plugin file paths.
 	 */
-	std::vector<std::string> scanPlugins(const std::filesystem::path &folder);
+	std::vector<PhsString> scanPlugins(const std::filesystem::path &folder);
 
 	/**
 	 * @brief Unloads all currently loaded plugins and clears internal state.

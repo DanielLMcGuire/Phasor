@@ -3,6 +3,21 @@
 #endif
 #include <phsint.hpp>
 
+
+#ifdef PHASOR_USES_BOOST
+    #ifdef _WIN32
+    #define BOOST_STACKTRACE_USE_WINDBG
+    #endif
+	#include <boost/stacktrace.hpp>
+	#include <boost/assert/source_location.hpp>
+	#define PHS_SRC_LOC() std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line())
+#else
+    #include <stacktrace>
+	#define PHS_SRC_LOC() std::format("VM::{}()", __func__)
+#endif
+
+#define PHS_ERROR(x) throw std::runtime_error(std::format("\"{}\" thrown in {}", x, PHS_SRC_LOC())); \
+
 namespace Phasor
 {
 
@@ -17,9 +32,9 @@ void VM::evalLoop()
 #ifdef TRACING
 #define TRACE_INSTR(_op) \
     do { \
-        log(std::format("\nVM::evalLoop(): RUN (pc={})\n", pc - 1)); \
-        log(std::format("VM::evalLoop({}, {}, {}, {})\n", \
-            opCodeToString(_op), operand1, operand2, operand3)); \
+        log(std::format("\n{}: RUN (pc={})\n", PHS_SRC_LOC(), pc - 1)); \
+        log(std::format("({})({}, {}, {}, {}) \n", \
+            PHS_SRC_LOC(), opCodeToString(_op), operand1, operand2, operand3)); \
         flush(); \
     } while (0)
 #else
@@ -220,11 +235,18 @@ void VM::evalLoop()
             std::string funcName    = funcNameVal.string();
             auto        it          = m_bytecode->functionEntries.find(funcName);
             if (it == m_bytecode->functionEntries.end())
-                throw std::runtime_error("Unknown function: " + funcName);
+                PHS_ERROR("Unknown function: " + funcName);
 #ifdef TRACING
             log(std::format("CALL: {} -> {}: {}\n", pc - 1, funcName, it->second));
             flush();
 #endif
+			int argCount = static_cast<int>(peek().asInt());
+			std::vector<Value> args(argCount);
+			for (int i = argCount - 1; i >= 0; --i)
+			{
+				args[i] = stack[stack.size() - 2 - (argCount - 1 - i)];
+			}
+			tracelog.push({funcName, static_cast<i64>(pc), args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
             callStack.push_back(static_cast<int>(pc));
             pc = it->second;
         }
@@ -241,13 +263,14 @@ void VM::evalLoop()
         if (callStack.empty()) [[unlikely]]
         {
             pc = m_bytecode->instructions.size();
-            throw std::runtime_error("Cannot return from outside a function");
+            PHS_ERROR("Cannot return from outside a function");
         }
 #ifdef TRACING
         log(std::format("RETURN: {} -> {}\n", pc - 1, callStack.back()));
         flush();
 #endif
         pc = callStack.back();
+		tracelog.pop();
         callStack.pop_back();
         NEXT();
     }
@@ -256,10 +279,10 @@ void VM::evalLoop()
     {
         {
             Value       funcNameVal = m_bytecode->constants[operand1];
-            std::string funcName    = funcNameVal.string();
+            PhsString funcName    = funcNameVal.string();
             auto        it          = nativeFunctions.find(funcName);
             if (it == nativeFunctions.end())
-                throw std::runtime_error("Unknown native function: " + funcName);
+                PHS_ERROR("Unknown native function: " + funcName);
 
             int                argCount = static_cast<int>(pop().asInt());
             std::vector<Value> args(argCount);
@@ -276,7 +299,9 @@ void VM::evalLoop()
             log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
             flush();
 #endif
+			tracelog.push({funcName, "(native)", args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
             push(it->second(args, this));
+			tracelog.pop();
         }
         NEXT();
     }
@@ -322,7 +347,7 @@ void VM::evalLoop()
     LABEL_PUSH_CONST:
     {
         if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-            throw std::runtime_error("Invalid constant index");
+            PHS_ERROR("Invalid constant index");
         push(m_bytecode->constants[operand1]);
         NEXT();
     }
@@ -336,7 +361,7 @@ void VM::evalLoop()
     LABEL_STORE_VAR:
     {
         if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-            throw std::runtime_error("Invalid variable index");
+            PHS_ERROR("Invalid variable index");
         variables[operand1] = pop();
         NEXT();
     }
@@ -344,7 +369,7 @@ void VM::evalLoop()
     LABEL_LOAD_VAR:
     {
         if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-            throw std::runtime_error("Invalid variable index");
+            PHS_ERROR("Invalid variable index");
         push(variables[operand1]);
         NEXT();
     }
@@ -565,9 +590,9 @@ void VM::evalLoop()
             else if (idxVal.isString())
             {
                 try { idx = std::stoll(idxVal.string()); }
-                catch (...) { throw std::runtime_error("char_at() expects index convertible to integer"); }
+                catch (...) { PHS_ERROR("char_at() expects index convertible to integer"); }
             }
-            else throw std::runtime_error("char_at() expects string and integer");
+            else PHS_ERROR("char_at() expects string and integer");
 
             if (idx < 0 || idx >= static_cast<i64>(s.length()))
                 push(Value(""));
@@ -595,7 +620,7 @@ void VM::evalLoop()
             }
             else
             {
-                throw std::runtime_error("substr() expects string, int, int");
+                PHS_ERROR("substr() expects string, int, int");
             }
         }
         NEXT();
@@ -609,14 +634,14 @@ void VM::evalLoop()
     {
         {
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-                throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
+                PHS_ERROR("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
             const StructInfo& info     = m_bytecode->structs[operand1];
             Value             instance = Value::createStruct(info.name);
             for (int i = 0; i < info.fieldCount; ++i)
             {
                 int constIndex = info.firstConstIndex + i;
                 if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
-                    throw std::runtime_error("Invalid default constant index for struct field");
+                    PHS_ERROR("Invalid default constant index for struct field");
                 instance.setField(info.fieldNames[i], m_bytecode->constants[constIndex]);
             }
             push(instance);
@@ -628,11 +653,11 @@ void VM::evalLoop()
     {
         {
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-                throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
+                PHS_ERROR("Invalid struct index for GET_FIELD_STATIC");
             const StructInfo& info        = m_bytecode->structs[operand1];
             int               fieldOffset = operand2;
             if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
-                throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
+                PHS_ERROR("Invalid field offset for GET_FIELD_STATIC");
             Value obj = pop();
             push(obj.getField(info.fieldNames[fieldOffset]));
         }
@@ -645,9 +670,9 @@ void VM::evalLoop()
 			Value fieldName = pop();
 			Value obj       = pop();
 			if (!fieldName.isString())
-        		throw std::runtime_error("GET_FIELD_DYN: field name must be a string");
+        		PHS_ERROR("GET_FIELD_DYN: field name must be a string");
 			if (!obj.isStruct())
-				throw std::runtime_error("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
+				PHS_ERROR("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
 			push(obj.getField(fieldName.string()));
 		}
 		NEXT();
@@ -657,11 +682,11 @@ void VM::evalLoop()
     {
         {
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-                throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
+                PHS_ERROR("Invalid struct index for SET_FIELD_STATIC");
             const StructInfo& info        = m_bytecode->structs[operand1];
             int               fieldOffset = operand2;
             if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
-                throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
+                PHS_ERROR("Invalid field offset for SET_FIELD_STATIC");
             Value value = pop();
             Value obj   = pop();
             obj.setField(info.fieldNames[fieldOffset], value);
@@ -673,7 +698,7 @@ void VM::evalLoop()
     LABEL_NEW_STRUCT:
     {
         if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-            throw std::runtime_error("Invalid constant index for NEW_STRUCT");
+            PHS_ERROR("Invalid constant index for NEW_STRUCT");
         push(Value::createStruct(m_bytecode->constants[operand1].string()));
         NEXT();
     }
@@ -682,7 +707,7 @@ void VM::evalLoop()
     {
         {
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-                throw std::runtime_error("Invalid constant index for SET_FIELD");
+                PHS_ERROR("Invalid constant index for SET_FIELD");
             std::string fieldName = m_bytecode->constants[operand1].string();
             Value       value     = pop();
             Value       obj       = pop();
@@ -696,7 +721,7 @@ void VM::evalLoop()
     {
         {
             if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-                throw std::runtime_error("Invalid constant index for GET_FIELD");
+                PHS_ERROR("Invalid constant index for GET_FIELD");
             Value obj = pop();
             push(obj.getField(m_bytecode->constants[operand1].string()));
         }
@@ -713,7 +738,7 @@ void VM::evalLoop()
     {
         int constIndex = operand2;
         if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
-            throw std::runtime_error("Invalid constant index");
+            PHS_ERROR("Invalid constant index");
         registers[rA] = m_bytecode->constants[constIndex];
         NEXT();
     }
@@ -722,7 +747,7 @@ void VM::evalLoop()
     {
         int varIndex = operand2;
         if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
-            throw std::runtime_error("Invalid variable index");
+            PHS_ERROR("Invalid variable index");
         registers[rA] = variables[varIndex];
         NEXT();
     }
@@ -731,7 +756,7 @@ void VM::evalLoop()
     {
         int varIndex = operand2;
         if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
-            throw std::runtime_error("Invalid variable index");
+            PHS_ERROR("Invalid variable index");
         variables[varIndex] = registers[rA];
         NEXT();
     }
@@ -932,7 +957,7 @@ void VM::evalLoop()
 		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
 		{
 			if (idx < 0 || idx >= static_cast<int>(variables.size()))
-				throw std::runtime_error("Invalid variable index in scope exit");
+				PHS_ERROR("Invalid variable index in scope exit");
 			variables[idx] = Value();
 		}
 		NEXT();
@@ -942,7 +967,7 @@ void VM::evalLoop()
     {
         {
             i64 count = pop().asInt();
-            if (count < 0) throw std::runtime_error("Array size cannot be negative");
+            if (count < 0) PHS_ERROR("Array size cannot be negative");
 
             std::vector<Value> elements;
             elements.reserve(static_cast<size_t>(count));
@@ -966,7 +991,7 @@ void VM::evalLoop()
             Value arrVal = pop();
 
             if (!arrVal.isArray())
-                throw std::runtime_error("LOAD_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+                PHS_ERROR("LOAD_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
 
             auto arr = arrVal.asArray();
             i64 idx = idxVal.asInt();
@@ -987,13 +1012,13 @@ void VM::evalLoop()
             Value arrVal = pop();
 
             if (!arrVal.isArray())
-                throw std::runtime_error("STORE_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+                PHS_ERROR("STORE_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
 
             auto arr = std::const_pointer_cast<Value::ArrayInstance>(arrVal.asArray());
             i64 idx = idxVal.asInt();
 
             if (idx < 0 || idx >= static_cast<i64>(arr->size()))
-                throw std::runtime_error("Array index out of bounds");
+                PHS_ERROR("Array index out of bounds");
 
             (*arr)[static_cast<size_t>(idx)] = val;
             push(val);
@@ -1004,7 +1029,7 @@ void VM::evalLoop()
     // UNKNOWN
     
     LABEL_UNKNOWN:
-        throw std::runtime_error("Unknown opcode");
+        PHS_ERROR("Unknown opcode");
 
 #undef NEXT
 #undef TRACE_INSTR
@@ -1014,7 +1039,7 @@ void VM::evalLoop()
     {
         const Instruction& instr = m_bytecode->instructions[pc++];
 #ifdef TRACING
-        log(std::format("\nVM::{}(): RUN (pc={})\n", __func__, pc - 1));
+        log(std::format("\n{}: RUN (pc={})\n", PHS_SRC_LOC(), pc - 1));
         flush();
 #endif
         operation(instr.op, instr.operand1, instr.operand2, instr.operand3);
@@ -1030,7 +1055,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	u8 rB = static_cast<u8>(operand2);
 	u8 rC = static_cast<u8>(operand3);
 #ifdef TRACING
-	log(std::format("VM::{}({}, {}, {}, {})\n", __func__, opCodeToString(op), operand1, operand2, operand3));
+	log(std::format("({})({}, {}, {}, {})\n", PHS_SRC_LOC(), opCodeToString(op), operand1, operand2, operand3));
 	flush();
 #endif
 	switch (op)
@@ -1052,11 +1077,18 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		std::string funcName = funcNameVal.string();
 		auto        it = m_bytecode->functionEntries.find(funcName);
 		if (it == m_bytecode->functionEntries.end())
-			throw std::runtime_error("Unknown function: " + funcName);
+			PHS_ERROR("Unknown function: " + funcName);
 #ifdef TRACING
 		log(std::format("CALL: {} -> {}: {}\n", pc - 1, funcName, it->second));
 		flush();
 #endif
+		int argCount = static_cast<int>(peek().asInt());
+		std::vector<Value> args(argCount);
+		for (int i = argCount - 1; i >= 0; --i)
+		{
+			args[i] = stack[stack.size() - 2 - (argCount - 1 - i)];
+		}
+		tracelog.push({funcName, static_cast<i64>(pc), args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
 		callStack.push_back(static_cast<int>(pc));
 		pc = it->second;
 		break;
@@ -1071,7 +1103,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (callStack.empty()) [[unlikely]]
 		{
 			pc = m_bytecode->instructions.size();
-			throw std::runtime_error("Cannot return from outside a function");
+			PHS_ERROR("Cannot return from outside a function");
 			break;
 		}
 #ifdef TRACING
@@ -1079,16 +1111,17 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		flush();
 #endif
 		pc = callStack.back();
+		tracelog.pop();
 		callStack.pop_back();
 		break;
 	}
 
 	[[likely]] case OpCode::CALL_NATIVE: {
 		Value       funcNameVal = m_bytecode->constants[operand1];
-		std::string funcName = funcNameVal.string();
+		PhsString funcName = funcNameVal.string();
 		auto        it = nativeFunctions.find(funcName);
 		if (it == nativeFunctions.end())
-			throw std::runtime_error("Unknown native function: " + funcName);
+			PHS_ERROR("Unknown native function: " + funcName);
 
 		int                argCount = static_cast<int>(pop().asInt());
 		std::vector<Value> args(argCount);
@@ -1106,9 +1139,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
 		flush();
 #endif
-
-		push(it->second(args, this));
-
+		tracelog.push({funcName, "(native)", args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
+        push(it->second(args, this));
+		tracelog.pop();
 		break;
 	}
 
@@ -1152,7 +1185,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::PUSH_CONST: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index");
+			PHS_ERROR("Invalid constant index");
 		push(m_bytecode->constants[operand1]);
 		break;
 	}
@@ -1164,14 +1197,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::STORE_VAR: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
+			PHS_ERROR("Invalid variable index");
 		variables[operand1] = pop();
 		break;
 	}
 
 	[[likely]] case OpCode::LOAD_VAR: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
+			PHS_ERROR("Invalid variable index");
 		push(variables[operand1]);
 		break;
 	}
@@ -1594,11 +1627,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			}
 			catch (...)
 			{
-				throw std::runtime_error("char_at() expects index convertible to integer");
+				PHS_ERROR("char_at() expects index convertible to integer");
 			}
 		}
 		else
-			throw std::runtime_error("char_at() expects string and integer");
+			PHS_ERROR("char_at() expects string and integer");
 
 		if (idx < 0 || idx >= static_cast<i64>(s.length()))
 			push(Value(""));
@@ -1629,7 +1662,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		}
 		else
 		{
-			throw std::runtime_error("substr() expects string, int, int");
+			PHS_ERROR("substr() expects string, int, int");
 		}
 		break;
 	}
@@ -1639,7 +1672,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-			throw std::runtime_error("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
+			PHS_ERROR("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
 
 		const StructInfo &info     = m_bytecode->structs[operand1];
 		Value             instance = Value::createStruct(info.name);
@@ -1647,7 +1680,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		{
 			int constIndex = info.firstConstIndex + i;
 			if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
-				throw std::runtime_error("Invalid default constant index for struct field");
+				PHS_ERROR("Invalid default constant index for struct field");
 			const Value       &defVal    = m_bytecode->constants[constIndex];
 			const std::string &fieldName = info.fieldNames[i];
 			instance.setField(fieldName, defVal);
@@ -1658,11 +1691,11 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::GET_FIELD_STATIC: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-			throw std::runtime_error("Invalid struct index for GET_FIELD_STATIC");
+			PHS_ERROR("Invalid struct index for GET_FIELD_STATIC");
 		const StructInfo &info        = m_bytecode->structs[operand1];
 		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
-			throw std::runtime_error("Invalid field offset for GET_FIELD_STATIC");
+			PHS_ERROR("Invalid field offset for GET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
 		Value              obj       = pop();
 		push(obj.getField(fieldName));
@@ -1674,20 +1707,20 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value fieldName = pop();
 		Value obj       = pop();
 		if (!fieldName.isString())
-			throw std::runtime_error("GET_FIELD_DYN: field name must be a string");
+			PHS_ERROR("GET_FIELD_DYN: field name must be a string");
 		if (!obj.isStruct())
-			throw std::runtime_error("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
+			PHS_ERROR("GET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
 		push(obj.getField(fieldName.string()));
 		break;
 	}
 
 	case OpCode::SET_FIELD_STATIC: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
-			throw std::runtime_error("Invalid struct index for SET_FIELD_STATIC");
+			PHS_ERROR("Invalid struct index for SET_FIELD_STATIC");
 		const StructInfo &info        = m_bytecode->structs[operand1];
 		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
-			throw std::runtime_error("Invalid field offset for SET_FIELD_STATIC");
+			PHS_ERROR("Invalid field offset for SET_FIELD_STATIC");
 		const std::string &fieldName = info.fieldNames[fieldOffset];
 		Value              value     = pop();
 		Value              obj       = pop();
@@ -1698,7 +1731,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::NEW_STRUCT: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index for NEW_STRUCT");
+			PHS_ERROR("Invalid constant index for NEW_STRUCT");
 		Value       nameVal    = m_bytecode->constants[operand1];
 		std::string structName = nameVal.string();
 		push(Value::createStruct(structName));
@@ -1707,7 +1740,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::SET_FIELD: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index for SET_FIELD");
+			PHS_ERROR("Invalid constant index for SET_FIELD");
 		std::string fieldName = m_bytecode->constants[operand1].string();
 		Value       value     = pop();
 		Value       obj       = pop();
@@ -1718,7 +1751,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::GET_FIELD: {
 		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index for GET_FIELD");
+			PHS_ERROR("Invalid constant index for GET_FIELD");
 		std::string fieldName = m_bytecode->constants[operand1].string();
 		Value       obj       = pop();
 		push(obj.getField(fieldName));
@@ -1732,7 +1765,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	{
 		i64 count = pop().asInt();
 
-        if (count < 0) throw std::runtime_error("Array size cannot be negative");
+        if (count < 0) PHS_ERROR("Array size cannot be negative");
 
         std::vector<Value> elements;
         elements.reserve(static_cast<size_t>(count));
@@ -1754,13 +1787,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
         Value arrVal = pop();
 
         if (!arrVal.isArray())
-            throw std::runtime_error("LOAD_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+            PHS_ERROR("LOAD_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
 
         auto arr = arrVal.asArray();
         i64 idx = idxVal.asInt();
 
         if (idx < 0 || idx >= static_cast<i64>(arr->size()))
-            throw std::runtime_error("Array index out of bounds");
+            PHS_ERROR("Array index out of bounds");
 
         push((*arr)[static_cast<size_t>(idx)]);
         break;
@@ -1773,7 +1806,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
         Value arrVal = pop();
 
         if (!arrVal.isArray())
-            throw std::runtime_error("STORE_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
+            PHS_ERROR("STORE_ARR: Expected array, got " + Value::typeToString(arrVal.getType()).string());
 
         auto arr = std::const_pointer_cast<Value::ArrayInstance>(arrVal.asArray());
         i64 idx = idxVal.asInt();
@@ -1798,7 +1831,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	[[likely]] case OpCode::LOAD_CONST_R: {
 		int constIndex = operand2;
 		if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
-			throw std::runtime_error("Invalid constant index");
+			PHS_ERROR("Invalid constant index");
 		registers[rA] = m_bytecode->constants[constIndex];
 		break;
 	}
@@ -1806,7 +1839,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	[[likely]] case OpCode::LOAD_VAR_R: {
 		int varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
+			PHS_ERROR("Invalid variable index");
 		registers[rA] = variables[varIndex];
 		break;
 	}
@@ -1814,7 +1847,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	[[likely]] case OpCode::STORE_VAR_R: {
 		int varIndex = operand2;
 		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
-			throw std::runtime_error("Invalid variable index");
+			PHS_ERROR("Invalid variable index");
 		variables[varIndex] = registers[rA];
 		break;
 	}
@@ -2182,7 +2215,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma endregion
 #pragma region DEFAULT
 	default: {
-		throw std::runtime_error("Unknown opcode");
+		PHS_ERROR("Unknown opcode");
 		return Value();
 	}
 #pragma endregion

@@ -1,7 +1,9 @@
 #!/usr/bin/env phasor
-include "std/io.phs";
-include "std/sys.phs";
+include "std/io";
+include "std/sys";
+include "std/main";
 
-for (var i: int = 1; i < sys_args().len(); i++) {
-    puts(sys_args()[i]);
+fn main(args: string[]) -> int {
+    putf("%M", args);
+    return 0;
 }

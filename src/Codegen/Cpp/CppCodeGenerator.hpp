@@ -2,7 +2,7 @@
 #include "../Bytecode.hpp"
 #include <filesystem>
 #include <sstream>
-#include <string>
+#include <PhasorString.hpp>
 #include <phsint.hpp>
 
 /// @brief The Phasor Programming Language and Runtime
@@ -30,7 +30,7 @@ class CppCodeGenerator
 	 * @return true if generation succeeded, false otherwise
 	 */
 	bool generate(const Bytecode &bytecode, const std::filesystem::path &outputPath,
-	              const std::string &moduleName = "");
+	              const PhsString &moduleName = "");
 
 	/**
 	 * @brief Generate Bytecode object from embedded bytecode string
@@ -38,12 +38,12 @@ class CppCodeGenerator
 	 * @return Deserialized Bytecode object
 	 *
 	 */
-	Bytecode generateBytecodeFromEmbedded(const std::string &input);
+	Bytecode generateBytecodeFromEmbedded(const PhsString &input);
 
   private:
 	std::ostringstream   output; ///< Output stream for generated code
 	const Bytecode      *bytecode = nullptr;
-	std::string          moduleName;
+	PhsString          moduleName;
 	std::vector<u8> serializedBytecode; ///< Serialized bytecode in .phsb format
 
 	// Code generation methods
@@ -55,12 +55,12 @@ class CppCodeGenerator
 	void generateMainFunction();
 
 	// Deserialization helper
-	static std::vector<unsigned char> parseEmbeddedBytecode(const std::string &input);
+	static std::vector<unsigned char> parseEmbeddedBytecode(const PhsString &input);
 
 	// Helper methods
-	static std::string escapeString(const std::string &str);
-	static std::string getValueTypeString(ValueType type);
-	static std::string sanitizeModuleName(const std::string &name);
+	static PhsString escapeString(const PhsString &str);
+	static PhsString getValueTypeString(ValueType type);
+	static PhsString sanitizeModuleName(const PhsString &name);
 };
 
 } // namespace Phasor

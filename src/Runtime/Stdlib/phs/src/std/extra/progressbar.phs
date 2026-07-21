@@ -1,7 +1,8 @@
 // Copyright 2026 Daniel McGuire -- progress bar extension for Phasor Standard Library
 // Licensed under the MIT License.
 
-include "../../../include/std/extra/conemu.phs";
+include "../../../include/std/extra/conemu";
+include "../../../include/std/io";
 
 fn progressBarDone() {
     conemu_progress_reset();
@@ -18,7 +19,7 @@ fn progressBarPercentage(percentage: int, borderLeft: string, borderRight: strin
     
     var fillLength: int = size * percentage / 100;
     
-    phs__std_noimport("printf", "%s%.*s%s %d%%%s", borderLeft, fillLength, fill, borderRight, percentage, lineEnding);
+    printf("%s%.*s%s %d%%%s", borderLeft, fillLength, fill, borderRight, percentage, lineEnding);
     
     if (percentage >= 100) {
         progressBarDone();

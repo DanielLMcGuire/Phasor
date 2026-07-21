@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using("stdmeta");
+ffiload("stdmeta");
 include "./types/meta.phs";
 
 fn get_self() -> Bytecode;
@@ -35,7 +35,7 @@ fn run_program_function(
     func_arguments: any[], 
     cli_arguments: string[]) -> any;
 
-fn get_alloc_info() -> alloc_info;
+fn get_alloc_info() -> AllocInfo;
 
 fn load_bytecode(file_path: string) -> Bytecode;
 

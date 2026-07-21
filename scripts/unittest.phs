@@ -1,19 +1,18 @@
 #!/usr/bin/env phasor
 
-include "std/sys.phs"; 
-include "std/io.phs";
+include "std/sys"; 
+include "std/io";
 
 // @todo Something more probably
 
-var x: int = 15;
-var y: int = 24;
-var z: int = 72;
+var x: int[2][2] = [[15, 97], [61, 77]];
+var y: int[2][2] = [[24, 47], [45, 81]];
 
-fn main() -> int 
+fn main(args: string[]) -> int
 {
     puts("Hello World!");
-    putf("%d + %d * %d = %d", x, y, z, x + y * z);
+    putf("%M + %M = %M", x, y, x + y);
     return 0;
 }
 
-shutdown(main());
+include "std/main";

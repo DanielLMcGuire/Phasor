@@ -12,7 +12,9 @@
 #include "core/core.h"
 #include <iostream>
 #include <phsint.hpp>
+#include <vformat.hpp>
 #include <stdexcept>
+#include <cinttypes>
 #include <memory_resource>
 #ifdef TRACING
 #include <format>
@@ -30,6 +32,88 @@
 namespace Phasor
 {
 
+struct ManagedTraceEntry
+{
+	PhsString functionName;
+    Value pc;
+	Value::ArrayInstance args;
+    std::array<Value, 3> registers;
+
+	[[nodiscard]] inline PhsString formatTrace() const
+	{
+		PhsString entry = vformat::format(
+			"PC=%s FUNC=%s ARGS=%s R0=%s R1=%s R2=%s",
+			pc.toRepr().c_str(),
+			Value(functionName).toRepr().c_str(),
+			Value::createArray(args).toRepr().c_str(),
+			registers[0].toRepr().c_str(),
+			registers[1].toRepr().c_str(),
+			registers[2].toRepr().c_str()
+		);
+
+		return entry;
+	}
+};
+
+class ManagedTraceLog
+{
+private:
+    std::vector<ManagedTraceEntry> stack;
+
+public:
+    void push(const ManagedTraceEntry& entry)
+    {
+        stack.push_back(entry);
+    }
+
+    bool pop(ManagedTraceEntry& out)
+    {
+        if (stack.empty())
+            return false;
+
+        out = stack.back();
+        stack.pop_back();
+        return true;
+    }
+
+	bool pop()
+    {
+        if (stack.empty())
+            return false;
+
+        stack.pop_back();
+        return true;
+    }
+
+    size_t size() const
+    {
+        return stack.size();
+    }
+
+    void clear()
+    {
+        stack.clear();
+    }
+
+	[[nodiscard]] inline PhsString format() const
+	{
+		PhsString result;
+		size_t counter = 0;
+
+		for (const auto& entry : stack)
+		{
+			result += ' ';
+			result += std::to_string(counter);
+			result += "# ";
+			result += entry.formatTrace();
+			result += '\n';
+			counter++;
+		}
+
+		return result;
+	}
+};
+
 /// @class VM
 /// @brief Virtual Machine
 class VM
@@ -44,7 +128,7 @@ class VM
 	void initFFI(const std::vector<std::filesystem::path> &paths);
 
 	/// @brief Get Phasor VM version
-	std::string getVersion();
+	PhsString getVersion();
 
 	/// @class Halt
 	/// @brief Throws when the HALT opcode is reached
@@ -62,19 +146,19 @@ class VM
 	int run(const Bytecode &bytecode, const size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine
-	Value runFunction(const std::string &name, const Bytecode &bytecode, const bool &argsInit = false);
+	Value runFunction(const PhsString &name, const Bytecode &bytecode, const bool &argsInit = false);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
 
 	/// @brief Register a native function
-	void registerNativeFunction(const std::string &name, NativeFunction fn);
+	void registerNativeFunction(const PhsString &name, NativeFunction fn);
 
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
 
 	/// @brief Free a variable by name in the VM
-	void freeVariableByName(const std::string &name);
+	void freeVariableByName(const PhsString &name);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add
@@ -179,10 +263,10 @@ class VM
 	void reset(const bool &resetStack = true, const bool &resetFunctions = true, const bool &resetVariables = true);
 
 	/// @brief Get VM information for debugging
-	std::string getInformation();
+	PhsString getInformation();
 
 	/// @brief Get bytecode information for debugging
-	std::string getBytecodeInformation();
+	PhsString getBytecodeInformation();
 
 	/// @brief Log a Value to stdout
 	void log(const Value &msg);
@@ -269,6 +353,8 @@ class VM
 	size_t pc = 0;
 
 	/// @brief Native function registry
-	std::map<std::string, NativeFunction> nativeFunctions;
+	std::map<PhsString, NativeFunction> nativeFunctions;
+
+	ManagedTraceLog tracelog;
 };
 } // namespace Phasor

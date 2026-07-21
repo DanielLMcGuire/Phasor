@@ -9,8 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using("stdfile");
-include "../../include/std/extra/progressbar.phs";
+include "../../include/std/extra/progressbar";
+
 
 fn fcp_progress(files: string[], dest: string) -> bool {
     for (var i: i64 = 0; i < files.length; i++) {

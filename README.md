@@ -39,26 +39,26 @@ phasor <options>
 - **Type annotations** ```fn func(input: string) -> void { ... }```
 - **JSON Support** ```var x: string = to_json({ x: 10, y: 20 }); var y: any = from_json(x);```
 - **Control flow**: if/else, while, for, switch/case, break/continue
-- **Standard library** ```using(featureName: string)```
+- **Standard library** ```include "std/mod.phs";```
 - **Plugin/FFI API** [PhasorFFI.h](include/PhasorFFI.h)
 - **[Runtime API](https://phasor-docs.pages.dev/man?f=phasorrt.3)** [PhasorRT.h](include/PhasorRT.h)
 - **[Rust runtime bindings](#overview)** (capi wrapper)
 - **[Zig runtime bindings](#overview)** (capi wrapper)
 - **Minimal Windows and POSIX API Bindings**
 - Supports *most* [**C format specifiers**](https://www.geeksforgeeks.org/c/format-specifiers-in-c/)
-- **stdmem** stdlib module with free() ```using("stdmem"); free("variableName");``` (same as `something = null;`)
 - **AppleScript bindings** for phasor
 
 ```javascript
 // Print (keyword)
 print "Hello World!\n"; // Print to console
 // Or via std
-using("stdio"); // Import io for puts
+include "std/io.phs"; // Import io for puts
 puts("Hello World!"); // Print string with newline
 ```
 
 ```javascript
-using("stdsys", "stdio"); // Import sys, io
+include "std/sys.phs";
+include "std/io.phs";
 // Variables implicitly typed
 var code: any = 15; // int
 var fmt: any = "Code = %d"; // string
@@ -109,7 +109,8 @@ $
 ### Example Program
 
 ```javascript
-using("stdio", "stdtype", "stdmem");
+include "std/io.phs";
+include "std/type.phs";
 
 puts("Enter a number:");
 var input: string = gets();

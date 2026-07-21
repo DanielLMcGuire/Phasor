@@ -64,7 +64,7 @@ class VM
 	void initFFI(const std::filesystem::path &path);
 
 	/// @brief Get Phasor VM version
-	std::string getVersion();
+	PhsString getVersion();
 
 	/// @class Halt
 	/// @brief Throws when the HALT opcode is reached
@@ -82,19 +82,19 @@ class VM
 	int run(const Bytecode &bytecode, const size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine
-	Value runFunction(const std::string &name, const Bytecode &bytecode, const bool &argsInit = false);
+	Value runFunction(const PhsString &name, const Bytecode &bytecode, const bool &argsInit = false);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
 
 	/// @brief Register a native function
-	void registerNativeFunction(const std::string &name, NativeFunction fn);
+	void registerNativeFunction(const PhsString &name, NativeFunction fn);
 
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
 
 	/// @brief Free a variable by name in the VM
-	void freeVariableByName(const std::string &name);
+	void freeVariableByName(const PhsString &name);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add
@@ -199,10 +199,10 @@ class VM
 	void reset(const bool &resetStack = true, const bool &resetFunctions = true, const bool &resetVariables = true);
 
 	/// @brief Get VM information for debugging
-	std::string getInformation();
+	PhsString getInformation();
 
 	/// @brief Get bytecode information for debugging
-	std::string getBytecodeInformation();
+	PhsString getBytecodeInformation();
 
 	/// @brief Log a Value to stdout
 	void log(const Value &msg);
@@ -289,6 +289,6 @@ class VM
 	size_t pc = 0;
 
 	/// @brief Native function registry
-	std::map<std::string, NativeFunction> nativeFunctions;
+	std::map<PhsString, NativeFunction> nativeFunctions;
 };
 } // namespace Phasor

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <PhasorString.hpp>
 #include <vector>
 #include <filesystem>
 /// @brief The Phasor Programming Language and Runtime
@@ -22,8 +22,8 @@ class Compiler
   private:
 	struct Args
 	{
-		std::string                        inputFile;
-		std::string                        outputFile;
+		PhsString                        inputFile;
+		PhsString                        outputFile;
 		std::vector<std::filesystem::path> includePaths;
 		bool                               verbose = false;
 		bool                               irMode = false;
@@ -32,7 +32,7 @@ class Compiler
 	} m_args;
 
 	void        parseArguments(int argc, char *argv[]);
-	static void showHelp(const std::string &programName);
+	static void showHelp(const PhsString &programName);
 
 	int compileToBytecode();
 	int compileToIR();

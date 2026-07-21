@@ -29,10 +29,22 @@ inline bool isDebuggerAttached()
 #endif
 #endif
 
+#ifdef PHASOR_USES_BOOST
+    #ifdef _WIN32
+    #define BOOST_STACKTRACE_USE_WINDBG
+    #endif
+    #include <boost/stacktrace.hpp>
+	#include <boost/assert/source_location.hpp>
+	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
+#else
+    #include <stacktrace>
+	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
+#endif
+
 namespace Phasor
 {
 
-std::string VM::getVersion()
+PhsString VM::getVersion()
 {
 	return PHASOR_VERSION_STRING;
 }
@@ -67,7 +79,7 @@ void VM::setup(const Bytecode &bc, const size_t initialPC) {
 	callStack.clear();
 
 #ifdef TRACING
-	log(std::format("\nVM::{}():\n\n{}\n", __func__, getBytecodeInformation()));
+	log(std::format("\n{}:\n\n{}\n", PHS_SRC_LOC(), getBytecodeInformation()));
 	flush();
 #endif
 
@@ -80,7 +92,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	setup(bc, startPC);
 
 #ifdef TRACING
-	log(std::format("\nVM::{}():\n\n", __func__));
+	log(std::format("\n{}:\n\n", PHS_SRC_LOC()));
 	flush();
 #endif
 
@@ -99,11 +111,17 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 #ifdef TIMING
 		auto end = clock::now();
 		auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-		log(std::format("VM::{}(): Duration of bytecode execution: {}us\n\n", __func__, us));
+		log(std::format("{}: Duration of bytecode execution: {}us\n\n", PHS_SRC_LOC(), us));
 		flush();
 #endif
 #ifdef TRACING
-		log(std::format("\nVM::{}(): HALT (status={})\n\n{}\n", __func__, status, getInformation()));
+		std::ostringstream stacklog;
+	#ifdef PHASOR_USES_BOOST
+    	stacklog << boost::stacktrace::stacktrace();
+	#else
+		stacklog << std::stacktrace::current();
+	#endif
+		log(std::format("\n{}: CAUGHT VM::HALT (VM::status={})\n\n{}\n\n{}\n", PHS_SRC_LOC(), status, stacklog.str(), getInformation()));
 		flush();
 #endif
 #ifdef _DEBUG
@@ -112,16 +130,16 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 #endif
 		return status;
 	}
-#if defined(TRACING) || defined(_DEBUG)
 	catch (const std::exception &e)
-#else
-	catch (const std::exception &)
-#endif
 	{
-#ifdef TRACING
-		logerr(std::format("\nVM::{}(): UNCAUGHT EXCEPTION!\n\n{}\n{}\n\n", __func__, e.what(), getInformation()));
+		std::ostringstream stacklog;
+	#ifdef PHASOR_USES_BOOST
+    	stacklog << boost::stacktrace::stacktrace();
+	#else
+		stacklog << std::stacktrace::current();
+	#endif
+		logerr(std::format("\n{}: UNCAUGHT EXCEPTION!\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
 		flusherr();
-#endif
 		status = BAD_STATUS;
 #ifdef _DEBUG
 		logerr(std::format("{}\n", e.what()));
@@ -131,7 +149,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	}
 }
 
-Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const bool &argsInit)
+Value VM::runFunction(const PhsString &name, const Bytecode &bytecode, const bool &argsInit)
 {
     isDirectCall = true;
     setup(bytecode, bytecode.functionEntries.find(name)->second);
@@ -161,7 +179,7 @@ Value VM::runFunction(const std::string &name, const Bytecode &bytecode, const b
 void VM::cleanup()
 {
 #ifdef TRACING
-	log(std::format("VM::{}()\n", __func__));
+	log(std::format("{}\n", PHS_SRC_LOC()));
 	flush();
 #endif
 	for (auto &i : registers)
@@ -180,7 +198,7 @@ void VM::cleanup()
 void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &resetVariables)
 {
 #ifdef TRACING
-	log(std::format("VM::{}()\n", __func__));
+	log(std::format("Calling: {}\n", PHS_SRC_LOC()));
 	flush();
 #endif
 	if (resetStack)
@@ -203,17 +221,17 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 	isDirectCall = false;
 }
 
-std::string VM::getInformation()
+PhsString VM::getInformation()
 {
 	int         callStackTop = callStack.empty() ? -1 : callStack.back();
-	std::string info;
+	PhsString info;
 
 	if (!stack.empty())
 	{
-		info = std::format("Stack Top: {:T}\n", peek());
+		info += PhsString(std::format("Stack Top: {:T}\n", peek()));
 	}
 
-	std::string registersStr;
+	PhsString registersStr;
 	int         regCount = 0;
 
 	for (const auto &reg : registers)
@@ -230,13 +248,13 @@ std::string VM::getInformation()
 	return info;
 }
 
-std::string VM::getBytecodeInformation()
+PhsString VM::getBytecodeInformation()
 {
-	std::string info;
-	std::string constants;
-	std::string variables;
-	std::string functions;
-	std::string instructions;
+	PhsString info;
+	PhsString constants;
+	PhsString variables;
+	PhsString functions;
+	PhsString instructions;
 
 	for (const auto &constant : m_bytecode->constants)
 	{
@@ -258,7 +276,7 @@ std::string VM::getBytecodeInformation()
 	}
 #endif
 
-	info = std::format(
+	info += std::format(
 	    "BYTECODE INFORMATION:\n\nConstants: {}\n{}\nVariables: {}\n{}\nFunctions: {}\n{}\nInstructions: {}\n{}",
 	    m_bytecode->constants.size(), constants, m_bytecode->variables.size(), variables,
 	    m_bytecode->functionEntries.size(), functions, m_bytecode->instructions.size(), instructions);

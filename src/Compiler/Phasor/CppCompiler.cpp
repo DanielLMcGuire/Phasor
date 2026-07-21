@@ -43,14 +43,14 @@ int CppCompiler::run()
 	if (m_args.moduleName.empty())
 	{
 		std::filesystem::path inputPath(m_args.inputFile);
-		m_args.moduleName = inputPath.stem().string();
+		m_args.moduleName = PhsString(inputPath.stem().string());
 	}
 
 	// Default output file if not specified
 	if (m_args.outputFile.empty())
 	{
 #ifdef _WIN32
-		m_args.outputFile = m_args.moduleName + ".exe";
+		m_args.outputFile = m_args.moduleName.str() + ".exe";
 #else
 		m_args.outputFile = m_args.moduleName;
 #endif
@@ -71,22 +71,22 @@ int CppCompiler::run()
 
 	if (m_args.generateOnly)
 	{
-		generateHeader(m_args.inputFile, m_args.moduleName + ".h");
-		generateSource(m_args.moduleName + ".h", m_args.outputFile);
+		generateHeader(m_args.inputFile, m_args.moduleName.str() + ".h");
+		generateSource(m_args.moduleName.str() + ".h", m_args.outputFile);
 		return 0;
 	}
 
 	if (m_args.objectOnly)
 	{
-		generateHeader(m_args.inputFile, m_args.moduleName + ".h");
-		generateSource(m_args.moduleName + ".h", m_args.moduleName + ".cpp");
-		compileSource(m_args.moduleName + ".cpp", m_args.outputFile);
+		generateHeader(m_args.inputFile, m_args.moduleName.str() + ".h");
+		generateSource(m_args.moduleName.str() + ".h", m_args.moduleName.str() + ".cpp");
+		compileSource(m_args.moduleName.str() + ".cpp", m_args.outputFile);
 		return 0;
 	}
 
 	std::println("Generating wrapper...");
 
-	if (generateHeader(m_args.inputFile, m_args.moduleName + ".h"))
+	if (generateHeader(m_args.inputFile, m_args.moduleName.str() + ".h"))
 		std::println("{} -> {}.h", m_args.inputFile.string(), m_args.moduleName);
 	else
 	{
@@ -94,8 +94,8 @@ int CppCompiler::run()
 		return 1;
 	}
 
-	if (generateSource(m_args.mainFile, m_args.moduleName + ".cpp"))
-		std::println("{} -> {}.cpp\n", m_args.mainFile.filename().string(), m_args.moduleName);
+	if (generateSource(m_args.mainFile, m_args.moduleName.str() + ".cpp"))
+		std::println("{} -> {}.cpp\n", m_args.mainFile.filename().string(), m_args.moduleName.str());
 	else
 	{
 		std::println(std::cerr, "Could not generate source file");
@@ -104,8 +104,8 @@ int CppCompiler::run()
 
 	std::println("Compiling...");
 	std::print("[COMPILER] ");
-	if (compileSource(m_args.moduleName + ".cpp", m_args.moduleName + ".obj"))
-		std::println("{}.cpp -> {}.obj\n", m_args.moduleName, m_args.moduleName);
+	if (compileSource(m_args.moduleName.str() + ".cpp", m_args.moduleName.str() + ".obj"))
+		std::println("{}.cpp -> {}.obj\n", m_args.moduleName, m_args.moduleName.str());
 	else
 	{
 		std::println(std::cerr, "Could not compile program");
@@ -114,7 +114,7 @@ int CppCompiler::run()
 
 	std::println("Linking...");
 	std::print("[LINKER] ");
-	if (linkObject(m_args.moduleName + ".obj", m_args.outputFile))
+	if (linkObject(m_args.moduleName.str() + ".obj", m_args.outputFile))
 		std::println("{}.obj -> {}", m_args.moduleName, m_args.outputFile.string());
 	else
 	{
@@ -129,7 +129,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++)
 	{
-		std::string arg = argv[i];
+		PhsString arg = argv[i];
 
 		if (arg == "-h" || arg == "--help")
 		{
@@ -142,7 +142,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 		}
 		else if (arg.starts_with("-i=") || arg.starts_with("-I=") || arg.starts_with("--include="))
 		{
-			std::string values = arg.substr(arg.find('=') + 1);
+			PhsString values = arg.substr(arg.find('=') + 1);
 			std::stringstream ss(values);
 			std::string item;
 			while (std::getline(ss, item, ','))
@@ -155,7 +155,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 		{
 			if (i + 1 < argc)
 			{
-				std::string values = argv[++i];
+				PhsString values = argv[++i];
 				std::stringstream ss(values);
 				std::string item;
 				while (std::getline(ss, item, ','))
@@ -261,7 +261,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 		{
 			// First non-option argument is the input file
 			if (m_args.inputFile.empty())
-				m_args.inputFile = arg;
+				m_args.inputFile = arg.str();
 			else
 			{
 				std::println(std::cerr, "Error: Multiple input files specified");
@@ -298,7 +298,7 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-bool CppCompiler::showHelp(const std::string &programName)
+bool CppCompiler::showHelp(const PhsString &programName)
 {
 	std::println("Phasor C++ Bytecode Embedder v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
@@ -350,7 +350,7 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 
 			std::stringstream buffer;
 			buffer << file.rdbuf();
-			std::string source = buffer.str();
+			PhsString source = buffer.str();
 			file.close();
 
 			// Lex
@@ -428,7 +428,7 @@ bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const 
 
 	std::stringstream buffer;
 	buffer << file.rdbuf();
-	std::string source = buffer.str();
+	PhsString source = buffer.str();
 	file.close();
 
 	std::ofstream outputFile(outputPath);
@@ -451,7 +451,7 @@ bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const 
 
 bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath)
 {
-	std::vector<std::string> flags;
+	std::vector<PhsString> flags;
 	if (m_args.compiler == "cl")
 		flags = {"/std:c++20", "/Ox", "/D",    "NDEBUG", "/MD",     "/GL", "/Gy-",
 		         "/GS-",       "/Gw", "/EHsc", "/WX-",   "/nologo", "/c",  ("/Fo" + outputPath.string())};
@@ -475,7 +475,7 @@ bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const s
 		return false;
 	}
 
-	std::string command = m_args.compiler;
+	PhsString command = m_args.compiler;
 	for (const auto &flag : flags)
 	{
 		command += " " + flag;
@@ -493,7 +493,7 @@ bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const s
 
 bool CppCompiler::linkObject(const std::filesystem::path &objectPath, const std::filesystem::path &outputPath)
 {
-	std::string command = m_args.linker;
+	PhsString command = m_args.linker;
 	command += " " + objectPath.string();
 	if (m_args.linker == "link")
 		command += " /NOLOGO /LTCG /OPT:REF /OPT:ICF /INCREMENTAL:NO /out:" + outputPath.string();
