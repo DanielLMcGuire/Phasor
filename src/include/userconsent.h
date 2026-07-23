@@ -74,24 +74,24 @@ inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volitio
 
 	if (!tty) { 
 #ifdef _WIN32
-		if (MessageBoxA(NULL, prompt.c_str(), "Phasor Programming Language", MB_YESNO) == IDYES) return true;
+		if (MessageBoxA(nullptr, prompt.c_str(), "Phasor Programming Language", MB_YESNO) == IDYES) return true;
 		else return false;
 #elif __APPLE__
-		CFStringRef cfTitle = CFStringCreateWithCString(NULL, "Phasor Programming Language", kCFStringEncodingUTF8);
-    	CFStringRef cfMessage = CFStringCreateWithCString(NULL, prompt.c_str(), kCFStringEncodingUTF8);
+		CFStringRef cfTitle = CFStringCreateWithCString(nullptr, "Phasor Programming Language", kCFStringEncodingUTF8);
+    	CFStringRef cfMessage = CFStringCreateWithCString(nullptr, prompt.c_str(), kCFStringEncodingUTF8);
 
 		CFOptionFlags responseFlags;
 		CFUserNotificationDisplayAlert(
 			0,
 			kCFUserNotificationNoteAlertLevel,
-			nullptr,
-			nullptr,
-			nullptr,
+			nullptrptr,
+			nullptrptr,
+			nullptrptr,
 			cfTitle,
 			cfMessage,
 			CFSTR("No"),
 			CFSTR("Yes"),
-			nullptr,
+			nullptrptr,
 			&responseFlags
 		);
 
@@ -108,9 +108,9 @@ inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volitio
 		for (const auto& tool : tools) {
 			std::string cmd;
 			if (tool == "zenity")
-				cmd = std::format("zenity --question --text='{}' 2>/dev/null", prompt);
+				cmd = std::format("zenity --question --text='{}' 2>/dev/nullptr", prompt);
 			else
-				cmd = std::format("kdialog --yesno '{}' 2>/dev/null", prompt);
+				cmd = std::format("kdialog --yesno '{}' 2>/dev/nullptr", prompt);
 
 			int ret = std::system(cmd.c_str()); 
 			if (ret == 127) continue;

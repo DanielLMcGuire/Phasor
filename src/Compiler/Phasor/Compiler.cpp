@@ -1,6 +1,7 @@
 #include "Compiler.hpp"
 #include "../../Language/Phasor/Lexer/Lexer.hpp"
 #include "../../Language/Phasor/Parser/Parser.hpp"
+#include "../../Language/Phasor/Parser/PlatformDefines.hpp"
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 #include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
@@ -60,6 +61,7 @@ int Compiler::compileToBytecode()
 		Lexer         lexer(source);
 		Parser        parser(lexer.tokenize(), m_args.inputFile.str());
 		parser.setIncludePaths(m_args.includePaths);
+		parser.setDefines(Phasor::resolveDefines(m_args.defines, false));
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);
@@ -113,6 +115,7 @@ int Compiler::compileToIR()
 		Lexer         lexer(source);
 		Parser        parser(lexer.tokenize(), m_args.inputFile.str());
 		parser.setIncludePaths(m_args.includePaths);
+		parser.setDefines(Phasor::resolveDefines(m_args.defines, /*nativeTarget=*/false));
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);
@@ -174,6 +177,36 @@ void Compiler::parseArguments(int argc, char *argv[])
 				{
 					if (!item.empty())
 						m_args.includePaths.push_back(item);
+				}
+			}
+			else
+			{
+				std::print(std::cerr, "Error: {} requires an argument\n", arg);
+				exit(1);
+			}
+		}
+		else if (arg.starts_with("-D=") || arg.starts_with("--define="))
+		{
+			PhsString values = arg.substr(arg.find('=') + 1);
+			std::stringstream ss(values);
+			std::string item;
+			while (std::getline(ss, item, ','))
+			{
+				if (!item.empty())
+					m_args.defines.push_back(item);
+			}
+		}
+		else if (arg == "-D" || arg == "--define")
+		{
+			if (i + 1 < argc)
+			{
+				PhsString values = argv[++i];
+				std::stringstream ss(values);
+				std::string item;
+				while (std::getline(ss, item, ','))
+				{
+					if (!item.empty())
+						m_args.defines.push_back(item);
 				}
 			}
 			else
@@ -250,6 +283,7 @@ void Compiler::showHelp(const PhsString &programName)
 	             "  -o, --output FILE   Specify output file\n"
 	             "  -i, --ir            Compile to IR format (.phir) instead of bytecode\n"
 	             "  -I, --include PATHS Comma-separated list of include directories (e.g. -I=..., --include=...)\n"
+	             "  -D, --define DEFS  Comma-separated list of NAME or NAME=VALUE definitions\n"
 	             "  -v, --verbose       Enable verbose output\n"
 	             "  -h, --help          Show this help message",
 	             PHASOR_VERSION_STRING, filename);

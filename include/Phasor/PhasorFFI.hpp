@@ -1,8 +1,20 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                                             //
+//   PPPPPPP  H     H      AA      SSSSSSS  OOOOOOO  RRRRRRR    L            AA      NN    N  GGGGGGG  U     U      AA      GGGGGGG  EEEEEEE   //
+//   P     P  H     H     A  A     S        O     O  R     R    L           A  A     N N   N  G        U     U     A  A     G        E         //
+//   PPPPPPP  HHHHHHH    AAAAAA    SSSSSSS  O     O  RRRRRRR    L          AAAAAA    N  N  N  G  GGGG  U     U    AAAAAA    G  GGGG  EEEEEEE   //
+//   P        H     H   A      A         S  O     O  R    R     L         A      A   N   N N  G     G  U     U   A      A   G     G  E         //
+//   P        H     H  A        A  SSSSSSS  OOOOOOO  R     R    LLLLLLL  A        A  N    NN  GGGGGGG  UUUUUUU  A        A  GGGGGGG  EEEEEEE   //
+//                                                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Copyright 2026 Daniel McGuire
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 // http://www.apache.org/licenses/LICENSE-2.0
+// or https://llvm.org/LICENSE.txt
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +64,7 @@ struct Plugin
 #else
 	void *handle; ///< POSIX handle for the loaded library
 #endif
-	std::filesystem::path path;     ///< Path to the plugin file
+	std::string           path;     ///< Path to the plugin file
 	FFIFunction           init;     ///< Plugin initialization function
 	std::function<void()> shutdown; ///< Optional shutdown callback
 };
@@ -83,10 +95,10 @@ class FFI
   public:
 	/**
 	 * @brief Constructs the FFI manager and loads plugins.
-	 * @param pluginFolder Path to the folder containing plugins.
+	 * @param pluginFolders Vector of paths to folders containing plugins.
 	 * @param vm Pointer to the Phasor VM instance to register plugin functions with.
 	 */
-	explicit FFI(const std::filesystem::path &pluginFolder, VM *vm);
+	explicit FFI(const std::vector<std::filesystem::path> &pluginFolders, VM *vm);
 
 	/**
 	 * @brief Destructor. Unloads all loaded plugins.
@@ -99,6 +111,26 @@ class FFI
 	 * @return True if the plugin was added successfully, false otherwise.
 	 */
 	bool addPlugin(const std::filesystem::path &pluginPath);
+
+	/**
+	 * @brief Retrieves FFI instance tied to a specific VM.
+	 */
+	static FFI* getFromVM(VM* vm);
+
+	/**
+	 * @brief Registers a function pointer to be called upon FFI unloading.
+	 */
+	void registerExitCall(void (*func)());
+
+	/**
+	 * @brief Registers a dynamically allocated pointer to be freed upon FFI unloading.
+	 */
+	void registerExitFree(void* ptr);
+
+	/**
+	 * @brief Safely returns cached version string without allocating a dangling pointer.
+	 */
+	const char* getVersionString() const { return cachedVersion_.c_str(); }
 
   private:
 	/**
@@ -115,11 +147,12 @@ class FFI
 	bool loadPlugin(const std::filesystem::path &library, VM *vm);
 
 	/**
-	 * @brief Scans a folder for plugin libraries.
-	 * @param folder Path to the folder to scan.
+	 * @brief Scans multiple folders for plugin libraries.
+	 * @param folders Vector of folder paths to scan.
 	 * @return A vector of plugin file paths.
 	 */
-	std::vector<PhsString> scanPlugins(const std::filesystem::path &folder);
+	std::vector<std::string> scanPlugins(const std::vector<std::filesystem::path> &folders);
+
 
 	/**
 	 * @brief Unloads all currently loaded plugins and clears internal state.
@@ -127,8 +160,12 @@ class FFI
 	void unloadAll();
 
 	std::vector<Plugin>   plugins_;      ///< Loaded plugins
-	std::filesystem::path pluginFolder_; ///< Plugin search folder
+	std::vector<std::filesystem::path> pluginFolders_; ///< Plugin search folder
 	VM                   *vm_;           ///< Pointer to the Phasor VM
+
+	std::string           cachedVersion_;///< Cached version string tied to the VM
+	std::vector<void (*)()> exitCalls_;  ///< Callbacks for onExit
+	std::vector<void*>      exitFrees_;  ///< Pointers mapped for onExit freeing
 };
 
 } // namespace Phasor

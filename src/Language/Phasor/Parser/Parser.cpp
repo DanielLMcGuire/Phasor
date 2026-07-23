@@ -1,10 +1,13 @@
 #include "Parser.hpp"
 #include "../Lexer/Lexer.hpp"
+#include "PlatformDefines.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <utility>
+#include <unordered_map>
+#include <string>
 
 namespace Phasor
 {
@@ -26,13 +29,15 @@ static std::vector<Token> tokenizeFile(const std::filesystem::path &path)
 	return lexer.tokenize();
 }
 
-static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts,
-                                                                    const std::filesystem::path &baseDir,
-                                                                    const std::vector<std::filesystem::path> &includePaths);
+static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(
+    std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir,
+    const std::vector<std::filesystem::path> &includePaths,
+    const Defines &defines);
 
 static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
     std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir,
-    const std::vector<std::filesystem::path> &includePaths)
+    const std::vector<std::filesystem::path> &includePaths,
+    const Defines &defines)
 {
 	std::vector<std::unique_ptr<AST::Statement>> result;
 
@@ -70,9 +75,10 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 			auto   tokens = tokenizeFile(canonicalPath);
 			Parser parser(tokens, canonicalPath);
 			parser.setIncludePaths(includePaths);
+			parser.setDefines(defines);
 			auto   program = parser.parse();
 
-			auto resolved = resolveIncludes(program->statements, canonicalPath.parent_path(), includePaths);
+			auto resolved = resolveIncludes(program->statements, canonicalPath.parent_path(), includePaths, defines);
 			for (auto &stmt : resolved)
 			{
 				result.push_back(std::move(stmt));
@@ -87,22 +93,25 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 	return result;
 }
 
-static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(std::vector<std::unique_ptr<AST::Statement>> &stmts,
-                                                                    const std::filesystem::path &baseDir,
-                                                                    const std::vector<std::filesystem::path> &includePaths)
+static std::vector<std::unique_ptr<AST::Statement>> resolveIncludes(
+    std::vector<std::unique_ptr<AST::Statement>> &stmts, const std::filesystem::path &baseDir,
+    const std::vector<std::filesystem::path> &includePaths,
+    const Defines &defines)
 {
-	return resolveIncludesInternal(stmts, baseDir, includePaths);
+	return resolveIncludesInternal(stmts, baseDir, includePaths, defines);
 }
 
 using namespace AST;
 
 Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens)
 {
+	Phasor::addDefaultDefines(defines, false);
 }
 
 Parser::Parser(const std::vector<Token> &tokens, std::filesystem::path sourcePath)
     : tokens(tokens), sourcePath(std::move(sourcePath))
 {
+	Phasor::addDefaultDefines(defines, false);
 }
 
 std::unique_ptr<Program> Parser::parse()
@@ -128,12 +137,274 @@ std::unique_ptr<Program> Parser::parse()
 	auto program = std::make_unique<Program>();
 	while (!isAtEnd())
 	{
-		program->statements.push_back(declaration());
+		declarationInto(program->statements);
 	}
 
-	program->statements = Phasor::resolveIncludes(program->statements, sourcePath.parent_path(), includePaths);
+	program->statements =
+	    Phasor::resolveIncludes(program->statements, sourcePath.parent_path(), includePaths, defines);
 
 	return program;
+}
+
+void Parser::declarationInto(std::vector<std::unique_ptr<AST::Statement>> &out)
+{
+	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "define")
+	{
+		defineDirective();
+		return;
+	}
+	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "undefine")
+	{
+		undefineDirective();
+		return;
+	}
+	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "static_if")
+	{
+		staticIfDirective(out);
+		return;
+	}
+	out.push_back(declaration());
+}
+
+void Parser::defineDirective()
+{
+	consume(Phasor::TokenType::Keyword, "define", "Expect 'define'.");
+	Token nameTok = consume(Phasor::TokenType::Identifier, "Expect name after 'define'.");
+
+	DefineValue value(DefineValueKind::Number, "1");
+	if (match(Phasor::TokenType::Symbol, "="))
+	{
+		if (check(Phasor::TokenType::Number))
+		{
+			value = DefineValue(DefineValueKind::Number, advance().lexeme);
+		}
+		else if (check(Phasor::TokenType::String))
+		{
+			value = DefineValue(DefineValueKind::String, advance().lexeme);
+		}
+		else if (match(Phasor::TokenType::Keyword, "true"))
+		{
+			value = DefineValue(DefineValueKind::Boolean, "true");
+		}
+		else if (match(Phasor::TokenType::Keyword, "false"))
+		{
+			value = DefineValue(DefineValueKind::Boolean, "false");
+		}
+		else
+		{
+			lastError = {"Expect a literal value after '=' in 'define'.", peek().line, peek().column};
+			throw std::runtime_error("Expect a literal value after '=' in 'define'.");
+		}
+	}
+	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after 'define'.");
+
+	defines[nameTok.lexeme] = value;
+}
+
+void Parser::undefineDirective()
+{
+	consume(Phasor::TokenType::Keyword, "undefine", "Expect 'undefine'.");
+	Token nameTok = consume(Phasor::TokenType::Identifier, "Expect name after 'undefine'.");
+	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after 'undefine'.");
+
+	defines.erase(nameTok.lexeme);
+}
+
+void Parser::staticIfDirective(std::vector<std::unique_ptr<AST::Statement>> &out)
+{
+	struct StaticBranch
+	{
+		std::unique_ptr<AST::Expression>             condition;
+		std::vector<std::unique_ptr<AST::Statement>> statements;
+	};
+
+	auto atBranchEnd = [this]() {
+		return check(Phasor::TokenType::Keyword) && (peek().lexeme == "static_else" || peek().lexeme == "static_endif");
+	};
+
+	auto parseBranchBody = [this, &atBranchEnd](std::vector<std::unique_ptr<AST::Statement>> &stmts) {
+		while (!atBranchEnd())
+		{
+			if (isAtEnd())
+			{
+				lastError = {"Unterminated 'static_if' (expected 'static_else' or 'static_endif').", peek().line,
+				             peek().column};
+				throw std::runtime_error("Unterminated 'static_if'.");
+			}
+			declarationInto(stmts);
+		}
+	};
+
+	std::vector<StaticBranch> branches;
+
+	consume(Phasor::TokenType::Keyword, "static_if", "Expect 'static_if'.");
+	consume(Phasor::TokenType::Symbol, "(", "Expect '(' after 'static_if'.");
+	branches.emplace_back();
+	branches.back().condition = expression();
+	consume(Phasor::TokenType::Symbol, ")", "Expect ')' after 'static_if' condition.");
+	parseBranchBody(branches.back().statements);
+
+	bool sawUnconditionalElse = false;
+	while (match(Phasor::TokenType::Keyword, "static_else"))
+	{
+		if (sawUnconditionalElse)
+		{
+			lastError = {"'static_else' cannot follow an unconditional 'static_else'.", previous().line,
+			             previous().column};
+			throw std::runtime_error("'static_else' cannot follow an unconditional 'static_else'.");
+		}
+
+		branches.emplace_back();
+		if (match(Phasor::TokenType::Symbol, "("))
+		{
+			branches.back().condition = expression();
+			consume(Phasor::TokenType::Symbol, ")", "Expect ')' after 'static_else' condition.");
+		}
+		else
+			sawUnconditionalElse = true;
+		parseBranchBody(branches.back().statements);
+	}
+
+	consume(Phasor::TokenType::Keyword, "static_endif", "Expect 'static_endif' to close 'static_if'.");
+
+	for (auto &branch : branches)
+	{
+		bool taken = (branch.condition == nullptr) || evaluateStaticCondition(branch.condition.get());
+		if (!taken)
+		{
+			continue;
+		}
+		for (auto &stmt : branch.statements)
+		{
+			out.push_back(std::move(stmt));
+		}
+		return;
+	}
+}
+
+static bool staticTextTruthy(const std::string &v)
+{
+	return !v.empty() && v != "0" && v != "false";
+}
+
+static bool staticTryParseNumber(const std::string &s, double &out)
+{
+	if (s.empty())
+	{
+		return false;
+	}
+	try
+	{
+		size_t idx = 0;
+		out = std::stod(s, &idx);
+		return idx == s.size();
+	}
+	catch (...)
+	{
+		return false;
+	}
+}
+
+std::string Parser::evaluateStaticValue(AST::Expression *expr)
+{
+	if (auto *n = dynamic_cast<AST::NumberExpr *>(expr))
+	{
+		return n->value;
+	}
+	if (auto *s = dynamic_cast<AST::StringExpr *>(expr))
+	{
+		return s->value;
+	}
+	if (auto *b = dynamic_cast<AST::BooleanExpr *>(expr))
+	{
+		return b->value ? "true" : "false";
+	}
+	if (dynamic_cast<AST::NullExpr *>(expr) != nullptr)
+	{
+		return std::string();
+	}
+	if (auto *ident = dynamic_cast<AST::IdentifierExpr *>(expr))
+	{
+		auto it = defines.find(ident->name);
+		return it == defines.end() ? std::string() : it->second.text;
+	}
+	if (auto *u = dynamic_cast<AST::UnaryExpr *>(expr))
+	{
+		if (u->op == AST::UnaryOp::Negate)
+		{
+			double d = 0.0;
+			if (staticTryParseNumber(evaluateStaticValue(u->operand.get()), d))
+			{
+				return std::to_string(-d);
+			}
+			return evaluateStaticValue(u->operand.get());
+		}
+		if (u->op == AST::UnaryOp::Not)
+		{
+			return evaluateStaticCondition(u) ? "true" : "false";
+		}
+	}
+	if (dynamic_cast<AST::BinaryExpr *>(expr) != nullptr)
+	{
+		return evaluateStaticCondition(expr) ? "true" : "false";
+	}
+
+	lastError = {"Unsupported expression in 'static_if' condition.", expr->line, expr->column};
+	throw std::runtime_error("Unsupported expression in 'static_if' condition.");
+}
+
+bool Parser::evaluateStaticCondition(AST::Expression *expr)
+{
+	if (expr == nullptr)
+	{
+		return false;
+	}
+
+	if (auto *b = dynamic_cast<AST::BooleanExpr *>(expr))
+	{
+		return b->value;
+	}
+	if (auto *u = dynamic_cast<AST::UnaryExpr *>(expr); u != nullptr && u->op == AST::UnaryOp::Not)
+	{
+		return !evaluateStaticCondition(u->operand.get());
+	}
+	if (auto *bin = dynamic_cast<AST::BinaryExpr *>(expr))
+	{
+		if (bin->op == AST::BinaryOp::And)
+		{
+			return evaluateStaticCondition(bin->left.get()) && evaluateStaticCondition(bin->right.get());
+		}
+		if (bin->op == AST::BinaryOp::Or)
+		{
+			return evaluateStaticCondition(bin->left.get()) || evaluateStaticCondition(bin->right.get());
+		}
+
+		std::string lhs = evaluateStaticValue(bin->left.get());
+		std::string rhs = evaluateStaticValue(bin->right.get());
+		double      lnum = 0.0, rnum = 0.0;
+		bool        numeric = staticTryParseNumber(lhs, lnum) && staticTryParseNumber(rhs, rnum);
+
+		switch (bin->op)
+		{
+		case AST::BinaryOp::Equal:
+			return numeric ? (lnum == rnum) : (lhs == rhs);
+		case AST::BinaryOp::NotEqual:
+			return numeric ? (lnum != rnum) : (lhs != rhs);
+		case AST::BinaryOp::LessThan:
+			return numeric ? (lnum < rnum) : (lhs < rhs);
+		case AST::BinaryOp::GreaterThan:
+			return numeric ? (lnum > rnum) : (lhs > rhs);
+		case AST::BinaryOp::LessEqual:
+			return numeric ? (lnum <= rnum) : (lhs <= rhs);
+		case AST::BinaryOp::GreaterEqual:
+			return numeric ? (lnum >= rnum) : (lhs >= rhs);
+		default:
+			lastError = {"Unsupported operator in 'static_if' condition.", expr->line, expr->column};
+			throw std::runtime_error("Unsupported operator in 'static_if' condition.");
+		}
+	}
+
+	return staticTextTruthy(evaluateStaticValue(expr));
 }
 
 std::unique_ptr<Statement> Parser::declaration()
@@ -489,7 +760,7 @@ std::unique_ptr<Statement> Parser::switchStatement()
 					lastError = {"Unterminated case clause.", peek().line, peek().column};
 					throw std::runtime_error("Unterminated case clause.");
 				}
-				stmts.push_back(declaration());
+				declarationInto(stmts);
 			}
 			cases.emplace_back(std::move(caseValue), std::move(stmts));
 		}
@@ -506,7 +777,7 @@ std::unique_ptr<Statement> Parser::switchStatement()
 					lastError = {"Unterminated default clause.", peek().line, peek().column};
 					throw std::runtime_error("Unterminated default clause.");
 				}
-				defaultStmts.push_back(declaration());
+				declarationInto(defaultStmts);
 			}
 		}
 		else
@@ -547,7 +818,7 @@ std::unique_ptr<BlockStmt> Parser::block()
 			lastError = {"Unterminated block.", peek().line, peek().column};
 			throw std::runtime_error("Unterminated block.");
 		}
-		statements.push_back(declaration());
+		declarationInto(statements);
 	}
 	consume(Phasor::TokenType::Symbol, "}", "Expect '}' after block.");
 	return std::make_unique<BlockStmt>(std::move(statements));
@@ -862,6 +1133,33 @@ std::unique_ptr<Expression> Parser::finishCall(std::unique_ptr<Expression> calle
 	throw std::runtime_error("Can only call named functions.");
 }
 
+std::unique_ptr<AST::Expression> Parser::resolveDefineLiteral(const Token &identTok)
+{
+	auto it = defines.find(identTok.lexeme);
+	if (it == defines.end())
+	{
+		return nullptr;
+	}
+
+	const DefineValue                &def = it->second;
+	std::unique_ptr<AST::Expression> node;
+	switch (def.kind)
+	{
+	case DefineValueKind::Number:
+		node = std::make_unique<NumberExpr>(def.text);
+		break;
+	case DefineValueKind::String:
+		node = std::make_unique<StringExpr>(def.text);
+		break;
+	case DefineValueKind::Boolean:
+		node = std::make_unique<BooleanExpr>(def.text == "true");
+		break;
+	}
+	node->line = identTok.line;
+	node->column = identTok.column;
+	return node;
+}
+
 std::unique_ptr<Expression> Parser::primary()
 {
 	if (match(Phasor::TokenType::Number))
@@ -888,6 +1186,16 @@ std::unique_ptr<Expression> Parser::primary()
 			return structInstance();
 		}
 		advance();
+
+		bool isAssignmentTarget = check(Phasor::TokenType::Symbol) && peek().lexeme == "=";
+		if (!isAssignmentTarget)
+		{
+			if (auto literal = resolveDefineLiteral(identTok))
+			{
+				return literal;
+			}
+		}
+
 		auto node = std::make_unique<IdentifierExpr>(identTok.lexeme);
 		node->line = identTok.line;
 		node->column = identTok.column;

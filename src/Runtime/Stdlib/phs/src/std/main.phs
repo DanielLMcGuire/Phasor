@@ -1,12 +1,7 @@
-ffiload("__phs_init");
+static_if (PHS_DEBUG)
+    print "Hello, Phasor!\n";
+static_endif // (PHS_DEBUG)
 
-include "./main/canary.phs";
-include "./main/common.phs";
-
-fn start() -> void {
-    var cookiePtr: i64 = phsrt_init_canary();
-    phsrt__common_init();
-    phsrt__chk_canary(cookiePtr);
-}
+include "./phs_init/startup.phs";
 
 start();

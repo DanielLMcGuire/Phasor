@@ -100,10 +100,10 @@ static PhasorValue phasor_execve(PhasorVM *, int argc, const PhasorValue *argv)
 	char **envs = (char **)malloc((envcnt + 1) * sizeof(char *));
 	for (size_t i = 0; i < argcnt; i++)
 		args[i] = (char *)phasor_to_string(argarr[i]);
-	args[argcnt] = NULL;
+	args[argcnt] = nullptr;
 	for (size_t i = 0; i < envcnt; i++)
 		envs[i] = (char *)phasor_to_string(envarr[i]);
-	envs[envcnt] = NULL;
+	envs[envcnt] = nullptr;
 
 	int r = execve(path, args, envs);
 	free(args);
@@ -164,7 +164,7 @@ static PhasorValue phasor_pipe(PhasorVM *, int, const PhasorValue *)
 {
     int fd[2];
     if (pipe(fd) != 0)
-        return phasor_make_array(NULL, 0);
+        return phasor_make_array(nullptr, 0);
     PhasorValue elems[2] = {
         phasor_make_int(fd[0]),
         phasor_make_int(fd[1])
@@ -233,15 +233,15 @@ static PhasorValue phasor_stat(PhasorVM *, int argc, const PhasorValue *argv)
 static PhasorValue phasor_readdir(PhasorVM *, int argc, const PhasorValue *argv)
 {
     if (argc < 1 || !phasor_is_string(argv[0]))
-        return phasor_make_array(NULL, 0);
+        return phasor_make_array(nullptr, 0);
 
     DIR *d = opendir(phasor_to_string(argv[0]));
-    if (!d) return phasor_make_array(NULL, 0);
+    if (!d) return phasor_make_array(nullptr, 0);
 
-    PhasorValue *entries = NULL;
+    PhasorValue *entries = nullptr;
     size_t count = 0;
     struct dirent *ent;
-    while ((ent = readdir(d)) != NULL) {
+    while ((ent = readdir(d)) != nullptr) {
         entries = realloc(entries, (count+1) * sizeof(PhasorValue));
         const char *keys[] = {"name", "type"};
         PhasorValue vals[2];

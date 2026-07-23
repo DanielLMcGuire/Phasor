@@ -27,6 +27,7 @@ class CppCompiler
 		std::filesystem::path              outputFile;
 		std::filesystem::path              mainFile;
 		std::vector<std::filesystem::path> includePaths;
+		std::vector<std::string>           defines;
 		PhsString                        moduleName;
 		bool                               verbose = false;
 		bool                               showHelp = false;

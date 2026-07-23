@@ -9,14 +9,14 @@
 #include <sys/wait.h>
 #endif
 
-static char **parse_argv(const char *cmd, int *argc)
+[[nodiscard]] static char **parse_argv(const char *cmd, int *argc)
 {
 	if (!cmd || !*cmd)
-		return NULL;
+		return nullptr;
 	size_t len = strlen(cmd);
 	char  *copy = malloc(len + 1);
 	if (!copy)
-		return NULL;
+		return nullptr;
 
 #ifdef _WIN32
 	strcpy_s(copy, len + 1, cmd);
@@ -26,7 +26,7 @@ static char **parse_argv(const char *cmd, int *argc)
 
 	*argc = 0;
 #ifdef _WIN32
-	char *context = NULL;
+	char *context = nullptr;
 	char *token = strtok_s(copy, " ", &context);
 #else
 	char *token = strtok(copy, " ");
@@ -35,9 +35,9 @@ static char **parse_argv(const char *cmd, int *argc)
 	{
 		(*argc)++;
 #ifdef _WIN32
-		token = strtok_s(NULL, " ", &context);
+		token = strtok_s(nullptr, " ", &context);
 #else
-		token = strtok(NULL, " ");
+		token = strtok(nullptr, " ");
 #endif
 	}
 
@@ -51,7 +51,7 @@ static char **parse_argv(const char *cmd, int *argc)
 	if (!argv)
 	{
 		free(copy);
-		return NULL;
+		return nullptr;
 	}
 
 	int i = 0;
@@ -69,7 +69,7 @@ static char **parse_argv(const char *cmd, int *argc)
 				free(argv[j]);
 			free(argv);
 			free(copy);
-			return NULL;
+			return nullptr;
 		}
 #ifdef _WIN32
 		strcpy_s(argv[i], strlen(token) + 1, token);
@@ -78,12 +78,12 @@ static char **parse_argv(const char *cmd, int *argc)
 #endif
 		i++;
 #ifdef _WIN32
-		token = strtok_s(NULL, " ", &context);
+		token = strtok_s(nullptr, " ", &context);
 #else
-		token = strtok(NULL, " ");
+		token = strtok(nullptr, " ");
 #endif
 	}
-	argv[i] = NULL;
+	argv[i] = nullptr;
 	free(copy);
 	return argv;
 }
@@ -107,7 +107,7 @@ void c_print_stderr(const char *s, int64_t len)
 	fwrite(s, 1, (size_t)len, stderr);
 }
 
-int64_t c_system(const char *cmd)
+[[nodiscard]] int64_t c_system(const char *cmd)
 {
 	return (int64_t)system(cmd);
 }
@@ -117,24 +117,24 @@ char *c_system_out(const char *cmd)
 	int    argc;
 	char **argv = parse_argv(cmd, &argc);
 	if (!argv)
-		return NULL;
-	char  *output = NULL;
+		return nullptr;
+	char  *output = nullptr;
 	size_t output_size = 0;
 	size_t output_capacity = 1024;
 	output = malloc(output_capacity);
 	if (!output)
 	{
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 #ifdef _WIN32
-	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
+	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE};
 	HANDLE              hRead, hWrite;
 	if (!CreatePipe(&hRead, &hWrite, &sa, 0))
 	{
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	STARTUPINFO si = {0};
 	si.cb = sizeof(si);
@@ -143,18 +143,18 @@ char *c_system_out(const char *cmd)
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 	PROCESS_INFORMATION pi;
-	if (!CreateProcess(NULL, (char *)cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+	if (!CreateProcess(nullptr, (char *)cmd, nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
 	{
 		CloseHandle(hRead);
 		CloseHandle(hWrite);
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	CloseHandle(hWrite);
 	DWORD bytesRead;
 	char  buffer[1024];
-	while (ReadFile(hRead, buffer, sizeof(buffer), &bytesRead, NULL) && bytesRead > 0)
+	while (ReadFile(hRead, buffer, sizeof(buffer), &bytesRead, nullptr) && bytesRead > 0)
 	{
 		if (output_size + bytesRead >= output_capacity)
 		{
@@ -167,7 +167,7 @@ char *c_system_out(const char *cmd)
 				CloseHandle(pi.hThread);
 				free(output);
 				free_argv(argv);
-				return NULL;
+				return nullptr;
 			}
 			output = new_output;
 		}
@@ -185,7 +185,7 @@ char *c_system_out(const char *cmd)
 	{
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	pid_t pid = fork();
 	if (pid == -1)
@@ -194,7 +194,7 @@ char *c_system_out(const char *cmd)
 		close(pipefd[1]);
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	if (pid == 0)
 	{
@@ -220,7 +220,7 @@ char *c_system_out(const char *cmd)
 					close(pipefd[0]);
 					free(output);
 					free_argv(argv);
-					return NULL;
+					return nullptr;
 				}
 				output = new_output;
 			}
@@ -242,24 +242,24 @@ char *c_system_err(const char *cmd)
 	int    argc;
 	char **argv = parse_argv(cmd, &argc);
 	if (!argv)
-		return NULL;
-	char  *output = NULL;
+		return nullptr;
+	char  *output = nullptr;
 	size_t output_size = 0;
 	size_t output_capacity = 1024;
 	output = malloc(output_capacity);
 	if (!output)
 	{
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 #ifdef _WIN32
-	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
+	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE};
 	HANDLE              hRead, hWrite;
 	if (!CreatePipe(&hRead, &hWrite, &sa, 0))
 	{
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	STARTUPINFO si = {0};
 	si.cb = sizeof(si);
@@ -268,18 +268,18 @@ char *c_system_err(const char *cmd)
 	si.hStdError = hWrite;
 	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 	PROCESS_INFORMATION pi;
-	if (!CreateProcess(NULL, (char *)cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi))
+	if (!CreateProcess(nullptr, (char *)cmd, nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
 	{
 		CloseHandle(hRead);
 		CloseHandle(hWrite);
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	CloseHandle(hWrite);
 	DWORD bytesRead;
 	char  buffer[1024];
-	while (ReadFile(hRead, buffer, sizeof(buffer), &bytesRead, NULL) && bytesRead > 0)
+	while (ReadFile(hRead, buffer, sizeof(buffer), &bytesRead, nullptr) && bytesRead > 0)
 	{
 		if (output_size + bytesRead >= output_capacity)
 		{
@@ -292,7 +292,7 @@ char *c_system_err(const char *cmd)
 				CloseHandle(pi.hThread);
 				free(output);
 				free_argv(argv);
-				return NULL;
+				return nullptr;
 			}
 			output = new_output;
 		}
@@ -310,7 +310,7 @@ char *c_system_err(const char *cmd)
 	{
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	pid_t pid = fork();
 	if (pid == -1)
@@ -319,7 +319,7 @@ char *c_system_err(const char *cmd)
 		close(pipefd[1]);
 		free(output);
 		free_argv(argv);
-		return NULL;
+		return nullptr;
 	}
 	if (pid == 0)
 	{
@@ -345,7 +345,7 @@ char *c_system_err(const char *cmd)
 					close(pipefd[0]);
 					free(output);
 					free_argv(argv);
-					return NULL;
+					return nullptr;
 				}
 				output = new_output;
 			}

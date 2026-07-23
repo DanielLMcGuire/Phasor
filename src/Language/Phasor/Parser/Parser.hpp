@@ -4,6 +4,9 @@
 #include <optional>
 #include <vector>
 #include <filesystem>
+#include <unordered_map>
+#include <string>
+#include "PlatformDefines.hpp"
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -25,6 +28,19 @@ class Parser
 		includePaths = paths;
 	}
 
+	void setDefines(const Defines &defs)
+	{
+		for (const auto &[name, value] : defs)
+		{
+			defines[name] = value;
+		}
+	}
+
+	[[nodiscard]] const Defines &getDefines() const
+	{
+		return defines;
+	}
+
 	std::unique_ptr<AST::Program> parse();
 
 	struct Error
@@ -39,12 +55,13 @@ class Parser
 	}
 
   private:
-	std::vector<Token>                 tokens;
-	int                                current = 0;
-	std::string                        currentFunction;
-	std::optional<Error>               lastError;
-	std::filesystem::path              sourcePath;
-	std::vector<std::filesystem::path> includePaths;
+	std::vector<Token>                           tokens;
+	int                                          current = 0;
+	std::string                                  currentFunction;
+	std::optional<Error>                         lastError;
+	std::filesystem::path                        sourcePath;
+	std::vector<std::filesystem::path>           includePaths;
+	Defines                                       defines;
 
 	Token peek();
 	Token previous();
@@ -57,6 +74,13 @@ class Parser
 	Token consume(Phasor::TokenType type, const std::string &message);
 	Token consume(Phasor::TokenType type, const std::string &lexeme, const std::string &message);
 	Token expect(Phasor::TokenType type, const std::string &message);
+	void                                      declarationInto(std::vector<std::unique_ptr<AST::Statement>> &out);
+	void                                      defineDirective();
+	void                                      undefineDirective();
+	void                                      staticIfDirective(std::vector<std::unique_ptr<AST::Statement>> &out);
+	bool                                      evaluateStaticCondition(AST::Expression *expr);
+	std::string                               evaluateStaticValue(AST::Expression *expr);
+	std::unique_ptr<AST::Expression>          resolveDefineLiteral(const Token &identTok);
 
 	std::unique_ptr<AST::Statement>          declaration();
 	std::unique_ptr<AST::Statement>          varDeclaration();

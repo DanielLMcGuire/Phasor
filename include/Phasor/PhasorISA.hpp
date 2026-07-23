@@ -1,8 +1,20 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                                             //
+//   PPPPPPP  H     H      AA      SSSSSSS  OOOOOOO  RRRRRRR    L            AA      NN    N  GGGGGGG  U     U      AA      GGGGGGG  EEEEEEE   //
+//   P     P  H     H     A  A     S        O     O  R     R    L           A  A     N N   N  G        U     U     A  A     G        E         //
+//   PPPPPPP  HHHHHHH    AAAAAA    SSSSSSS  O     O  RRRRRRR    L          AAAAAA    N  N  N  G  GGGG  U     U    AAAAAA    G  GGGG  EEEEEEE   //
+//   P        H     H   A      A         S  O     O  R    R     L         A      A   N   N N  G     G  U     U   A      A   G     G  E         //
+//   P        H     H  A        A  SSSSSSS  OOOOOOO  R     R    LLLLLLL  A        A  N    NN  GGGGGGG  UUUUUUU  A        A  GGGGGGG  EEEEEEE   //
+//                                                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Copyright 2026 Daniel McGuire
-// Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// https://llvm.org/LICENSE.txt
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://llvm.org/LICENSE.txt
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +38,7 @@
 
 namespace Phasor
 {
+
 /**
  * @class OpCode
  * @brief Expanded opcode set for Phasor VM
@@ -192,8 +205,8 @@ enum class OpCode : u8
 	NEW_ARR,
 	LOAD_ARR,
 	STORE_ARR,
-	
-	GET_FIELD_DYN,
+
+	GET_FIELD_DYN
 };
 
 /// @brief Instruction with up to 5 operands
@@ -221,10 +234,12 @@ struct Instruction
 /// @brief Struct metadata stored alongside bytecode (struct section)
 struct StructInfo
 {
-	PhsString              name;            ///< Struct name
-	int                      firstConstIndex; ///< Index into constants for the first default value
-	int                      fieldCount;      ///< Number of fields in this struct
-	std::vector<PhsString> fieldNames;      ///< Field names in declaration order
+    std::string              name;
+    int                      firstConstIndex;
+    int                      fieldCount;
+    std::vector<std::string> fieldNames;
+    std::vector<std::vector<int>> fieldArrayDims;
+    std::vector<std::string>      fieldTypeNames;
 };
 
 /// @brief Complete bytecode structure
@@ -232,19 +247,19 @@ struct Bytecode
 {
 	std::vector<Instruction>             instructions;        ///< List of instructions
 	std::vector<Value>                   constants;           ///< Constant pool
-	std::unordered_map<PhsString, int> variables;           ///< Variable name -> index mapping
-	std::vector<std::vector<std::pair<int, PhsString>>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
-	std::unordered_map<PhsString, int> functionEntries;     ///< Function name -> instruction index mapping
-	std::unordered_map<PhsString, int> functionParamCounts; ///< Function name -> parameter count
-	std::unordered_map<PhsString, std::vector<PhsString>> functionParamTypeNames; ///< Function name -> parameter type names
-	std::unordered_map<PhsString, std::vector<std::vector<int>>> functionParamArrayDims;
-	std::unordered_map<PhsString, PhsString> functionReturnTypeNames; ///< Function name -> return type name
-	std::unordered_map<PhsString, std::vector<int>> functionReturnArrayDims; ///< Function name -> return array dims
+	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
+	std::vector<std::vector<std::pair<int, std::string>>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
+	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping
+	std::unordered_map<std::string, int> functionParamCounts; ///< Function name -> parameter count
+	std::unordered_map<std::string, std::vector<std::string>> functionParamTypeNames; ///< Function name -> parameter type names
+	std::unordered_map<std::string, std::vector<std::vector<int>>> functionParamArrayDims;
+	std::unordered_map<std::string, std::string> functionReturnTypeNames; ///< Function name -> return type name
+	std::unordered_map<std::string, std::vector<int>> functionReturnArrayDims; ///< Function name -> return array dims
 	int                                  nextVarIndex = 0;    ///< Next available variable index
 
 	// Struct section (planned usage by future struct codegen)
 	std::vector<StructInfo>              structs;       ///< List of struct descriptors
-	std::unordered_map<PhsString, int> structEntries; ///< Struct name -> index in structs
+	std::unordered_map<std::string, int> structEntries; ///< Struct name -> index in structs
 
 	/// @brief Add a constant to the pool and return its index
 	int addConstant(const Value &value)
@@ -254,7 +269,7 @@ struct Bytecode
 	}
 
 	/// @brief Add a string constant with deduplication
-	int addStringConstant(const PhsString &s)
+	int addStringConstant(const std::string &s)
 	{
 		auto it = stringConstantCache.find(s);
 		if (it != stringConstantCache.end())
@@ -266,10 +281,10 @@ struct Bytecode
 		return idx;
 	}
 
-	std::unordered_map<PhsString, int> stringConstantCache; ///< Dedup cache for string constants
+	std::unordered_map<std::string, int> stringConstantCache; ///< Dedup cache for string constants
 
 	/// @brief Get or create a variable index
-	int getOrCreateVar(const PhsString &name)
+	int getOrCreateVar(const std::string &name)
 	{
 		auto it = variables.find(name);
 		if (it != variables.end())

@@ -2,6 +2,7 @@
 #include "../../../Runtime/Stdlib/StdLib.hpp"
 #include "../../../Language/Phasor/Lexer/Lexer.hpp"
 #include "../../../Language/Phasor/Parser/Parser.hpp"
+#include "../../../Language/Phasor/Parser/PlatformDefines.hpp"
 #include "../../../Codegen/CodeGen.hpp"
 #include "../../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 
@@ -105,6 +106,7 @@ Options:
     -h, --help     Show this help message and exit
     -v, --version  Show the version number and exit
     -c, --command  Run a raw script string
+    -D, --define   Add a NAME[=VALUE] definition (comma-separated, repeatable)
     --verbose      Print the parsed AST before running)");
 }
 
@@ -127,7 +129,8 @@ std::unique_ptr<Phasor::VM> createVm(int scriptArgc, char **scriptArgv)
 }
 
 int runSourceString(const Phasor::PhsString &source, Phasor::VM &vm, const std::vector<std::filesystem::path> &includePaths,
-                     const Phasor::PhsString &sourceName, bool verbose)
+                     const Phasor::PhsString &sourceName, bool verbose,
+                     const Phasor::Defines &defines)
 {
 	Phasor::Lexer  lexer(source);
 	auto           tokens = lexer.tokenize();
@@ -135,6 +138,10 @@ int runSourceString(const Phasor::PhsString &source, Phasor::VM &vm, const std::
 	if (!includePaths.empty())
 	{
 		parser.setIncludePaths(includePaths);
+	}
+	if (!defines.empty())
+	{
+		parser.setDefines(defines);
 	}
 	auto program = parser.parse();
 
@@ -152,7 +159,7 @@ int runSourceString(const Phasor::PhsString &source, Phasor::VM &vm, const std::
 }
 
 int runScriptFile(const std::filesystem::path &file, int scriptArgc, char **scriptArgv, const std::vector<std::filesystem::path> &includePaths,
-                   bool verbose)
+                   bool verbose, const Phasor::Defines &defines)
 {
 	std::ifstream fileStream(file);
 	if (!fileStream.is_open())
@@ -169,7 +176,7 @@ int runScriptFile(const std::filesystem::path &file, int scriptArgc, char **scri
 
 	try
 	{
-		return runSourceString(source, *vm, includePaths, file.string(), verbose);
+		return runSourceString(source, *vm, includePaths, file.string(), verbose, defines);
 	}
 	catch (const std::exception &e)
 	{
@@ -215,7 +222,8 @@ int runBytecodeFile(const std::filesystem::path &file, int scriptArgc, char **sc
 	}
 }
 
-int runRepl(const std::vector<std::filesystem::path> &includePaths, bool verbose)
+int runRepl(const std::vector<std::filesystem::path> &includePaths, bool verbose,
+            const Phasor::Defines &defines)
 {
 	auto vm = createVm(0, nullptr);
 
@@ -252,6 +260,10 @@ int runRepl(const std::vector<std::filesystem::path> &includePaths, bool verbose
 			Phasor::Lexer  lexer(line);
 			Phasor::Parser parser(lexer.tokenize());
 			parser.setIncludePaths(includePaths);
+			if (!defines.empty())
+			{
+				parser.setDefines(defines);
+			}
 
 			auto program = parser.parse();
 
@@ -292,6 +304,7 @@ int main(int argc, char *argv[])
 		Phasor::PhsString              command_script;
 		Phasor::PhsString              file_script;
 		std::vector<Phasor::PhsString> script_args_storage;
+		std::vector<std::string>       defines_raw;
 
 		for (int i = 1; i < argc; ++i)
 		{
@@ -322,6 +335,33 @@ int main(int argc, char *argv[])
 				else if (arg == "--verbose")
 				{
 					verbose = true;
+				}
+				else if (arg.starts_with("-D=") || arg.starts_with("--define="))
+				{
+					Phasor::PhsString values = arg.substr(arg.find('=') + 1);
+					std::stringstream ss(values);
+					std::string item;
+					while (std::getline(ss, item, ','))
+					{
+						if (!item.empty())
+							defines_raw.push_back(item);
+					}
+				}
+				else if (arg == "-D" || arg == "--define")
+				{
+					if (i + 1 >= argc)
+					{
+						std::println(std::cerr, "Error: -D/--define requires a NAME[=VALUE] argument");
+						return 1;
+					}
+					Phasor::PhsString values = argv[++i];
+					std::stringstream ss(values);
+					std::string item;
+					while (std::getline(ss, item, ','))
+					{
+						if (!item.empty())
+							defines_raw.push_back(item);
+					}
 				}
 				else if (arg == "-c" || arg == "--command")
 				{
@@ -395,16 +435,22 @@ int main(int argc, char *argv[])
 		int    scriptArgc = static_cast<int>(scriptArgv.size());
 		char **scriptArgvPtr = scriptArgv.data();
 
+		// Interpreter target: no PHASOR_NATIVE, but bitness/arch/platform
+		// flags are already baked into every Parser by default; this layers
+		// any user-supplied -D values on top of (or beyond) those.
+		const Phasor::Defines defines =
+		    Phasor::resolveDefines(defines_raw, /*nativeTarget=*/false);
+
 		if (has_command)
 		{
 			auto vm = createVm(scriptArgc, scriptArgvPtr);
-			int ret = runSourceString(command_script, *vm, includePaths, "", verbose);
+			int ret = runSourceString(command_script, *vm, includePaths, "", verbose, defines);
 			return ret;
 		}
 		else if (has_pipe)
 		{
 			auto vm = createVm(scriptArgc, scriptArgvPtr);
-			int ret =runSourceString(piped_script, *vm, includePaths, "", verbose);
+			int ret =runSourceString(piped_script, *vm, includePaths, "", verbose, defines);
 			return ret;
 		}
 		else if (has_file)
@@ -428,7 +474,7 @@ int main(int argc, char *argv[])
 			if (ext == ".phsw" || ext == ".phs")
 #endif
 			{
-				int ret = runScriptFile(file, scriptArgc, scriptArgvPtr, includePaths, verbose);
+				int ret = runScriptFile(file, scriptArgc, scriptArgvPtr, includePaths, verbose, defines);
 				return ret;
 			}
 #ifndef PHS_WINDOWED
@@ -448,7 +494,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			int ret = runRepl(includePaths, verbose);
+			int ret = runRepl(includePaths, verbose, defines);
 			return ret;
 		}
 	}

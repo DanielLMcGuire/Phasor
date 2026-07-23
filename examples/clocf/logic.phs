@@ -13,7 +13,7 @@ fn print_help() -> void {
     puts("  cloc . | clocf                        Pipe cloc output");
 }
 
-fn createState() -> ClocState {
+fn ClocState() -> ClocState {
     return ClocState{
         entries:    [],
         totalCode:  0,

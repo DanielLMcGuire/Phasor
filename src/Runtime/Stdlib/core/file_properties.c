@@ -21,7 +21,7 @@
 #endif
 
 #ifdef _WIN32
-static FILETIME UnixTimeToFileTime(int64_t epoch) {
+[[nodiscard]] static FILETIME UnixTimeToFileTime(int64_t epoch) {
     long long ll = (epoch * WIN_TICK_INTERVAL) + WIN_EPOCH_OFFSET;
     FILETIME ft;
     ft.dwLowDateTime = (DWORD)ll;
@@ -29,7 +29,7 @@ static FILETIME UnixTimeToFileTime(int64_t epoch) {
     return ft;
 }
 
-static int64_t FileTimeToUnixTime(FILETIME ft) {
+[[nodiscard]] static int64_t FileTimeToUnixTime(FILETIME ft) {
     ULARGE_INTEGER ull;
     ull.LowPart = ft.dwLowDateTime;
     ull.HighPart = ft.dwHighDateTime;
@@ -39,7 +39,7 @@ static int64_t FileTimeToUnixTime(FILETIME ft) {
 /**
  * Deterministically hashes a Windows SID into a 32-bit integer.
  */
-static uid_t HashSidToUint32(PSID pSid) {
+[[nodiscard]] static uid_t HashSidToUint32(PSID pSid) {
     if (!pSid) return 0;
 
     PBYTE pBinarySid = (PBYTE)pSid;
@@ -53,20 +53,20 @@ static uid_t HashSidToUint32(PSID pSid) {
 }
 #endif
 
-bool PHASORstd_file_setProperties(const char *path, char param, int64_t epoch) {
+[[nodiscard]] bool PHASORstd_file_setProperties(const char *path, char param, int64_t epoch) {
     if (!path) return false;
 
 #ifdef _WIN32
-    HANDLE hFile = CreateFileA(path, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile = CreateFileA(path, FILE_WRITE_ATTRIBUTES, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (hFile == INVALID_HANDLE_VALUE) return false;
 
     FILETIME ft = UnixTimeToFileTime(epoch);
     bool success = false;
 
     switch (param) {
-        case 'a': success = (SetFileTime(hFile, NULL, &ft, NULL) != 0); break;
-        case 'c': success = (SetFileTime(hFile, &ft, NULL, NULL) != 0); break;
-        case 'm': success = (SetFileTime(hFile, NULL, NULL, &ft) != 0); break;
+        case 'a': success = (SetFileTime(hFile, nullptr, &ft, nullptr) != 0); break;
+        case 'c': success = (SetFileTime(hFile, &ft, nullptr, nullptr) != 0); break;
+        case 'm': success = (SetFileTime(hFile, nullptr, nullptr, &ft) != 0); break;
         default:  success = false; break;
     }
 
@@ -92,7 +92,7 @@ bool PHASORstd_file_setProperties(const char *path, char param, int64_t epoch) {
 #endif
 }
 
-int64_t PHASORstd_file_getProperties(const char *path, char param) {
+[[nodiscard]] int64_t PHASORstd_file_getProperties(const char *path, char param) {
     if (!path) return -1;
 
 #ifdef _WIN32
@@ -120,12 +120,12 @@ int64_t PHASORstd_file_getProperties(const char *path, char param) {
 #endif
 }
 
-nlink_t PHASORstd_file_getLinksCount(const char *path) {
+[[nodiscard]] nlink_t PHASORstd_file_getLinksCount(const char *path) {
     if (!path) return 0;
 
 #ifdef _WIN32
     HANDLE hFile = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 
-                               NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+                               nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (hFile == INVALID_HANDLE_VALUE) return 0;
 
     BY_HANDLE_FILE_INFORMATION info;
@@ -142,15 +142,15 @@ nlink_t PHASORstd_file_getLinksCount(const char *path) {
 #endif
 }
 
-bool PHASORstd_file_getOwnerId(const char *path, uid_t *uid, gid_t *gid) {
+[[nodiscard]] bool PHASORstd_file_getOwnerId(const char *path, uid_t *uid, gid_t *gid) {
     if (!path) return false;
 
 #ifdef _WIN32
-    PSID pSidOwner = NULL;
-    PSECURITY_DESCRIPTOR pSD = NULL;
+    PSID pSidOwner = nullptr;
+    PSECURITY_DESCRIPTOR pSD = nullptr;
 
     if (GetNamedSecurityInfoA(path, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, 
-                              &pSidOwner, NULL, NULL, NULL, &pSD) != ERROR_SUCCESS) {
+                              &pSidOwner, nullptr, nullptr, nullptr, &pSD) != ERROR_SUCCESS) {
         return false;
     }
 

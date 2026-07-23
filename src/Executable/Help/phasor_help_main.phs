@@ -1,0 +1,139 @@
+include "std/io";
+include "std/sys";
+include "std/str";
+include "std/type";
+include "std/meta";
+include "std/file";
+include "std/mem";
+
+static_if (WIN32)
+include "win32/windows.phs";
+static_endif // (WIN32)
+
+struct ManPage {
+    name: string,
+    section: i64
+}
+
+fn getFallbackURL(page: ManPage) -> string {
+    var sbHandle: int = sb_new().sb_prealloc(43); // url base + 5 chars for name (averaged from actual doc names) + . + 1 char for section + 1 for null term
+    sbHandle.sb_append("https://phasor-docs.pages.dev/man?f=");
+    sbHandle.sb_append(page.name);
+    sbHandle.sb_append(".");
+    sbHandle.sb_append(page.section);
+    return sbHandle.sb_free();
+}
+
+fn getDocCmd(page: ManPage) -> string {
+    var sbHandle: int = sb_new().sb_prealloc(128); // not even gonna add this all up, but just allocate a fair amount in advance
+
+static_if (WIN32)
+    if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
+        var response: i64 = MessageBox(NULL_HWND, "Could not find local documentation, would you like to try online?", "phasor-help | Warning", MB.YESNO + MB.ICONWARNING);
+        if (response == 6)
+            return concat("\"start ", getFallbackURL(page), "\""); // launch browser
+        else
+            return "";
+    }
+    sbHandle.sb_append("C:/Program%20Files/Phasor%20Programming%20Language/man/man");
+    sbHandle.sb_append(page.section);
+    sbHandle.sb_append("/");
+    sbHandle.sb_append(page.name);
+    sbHandle.sb_append(".");
+    sbHandle.sb_append(page.section);
+    sbHandle.sb_append(".");
+    sbHandle.sb_append("pdf");
+    var path: string = sbHandle.sb_free();
+    return concat("\"start file:///", path, "\""); // launch browser
+static_else (LINUX || DARWIN || BSD || UNIX)
+    sbHandle.sb_append(page.section);
+    sbHandle.sb_append(" ");
+    sbHandle.sb_append(page.name);
+    var args: string = sbHandle.sb_free();
+    return concat("man ", args);
+static_else // (!(WIN32 || LINUX || DARWIN || BSD || UNIX))
+    putf_error("Could not find documentation for %s(%d)", part, type);
+    putf("See %s", getFallbackURL(page));
+    return "";
+static_endif // (WIN32)
+}
+
+fn showHelp(programName: string, error: bool) -> void {
+static_if (WIN32)
+    var osStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<SECTION>\n    \\<PAGE>.<SECTION>.pdf";
+static_else (DARWIN)
+    var osStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+static_else (LINUX || BSD || UNIX)
+    var osStr: string = "/usr/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+static_else // (!(WIN32 || DARWIN || LINUX || BSD || UNIX))
+    var osStr: string = "https://phasor-docs.pages.dev/man?f=<PAGE>.<SECTION>";
+static_endif // (WIN32)
+
+    var helpStr: string = c_fmt(`
+
+PHASOR-HELP(1)      Phasor %s      PHASOR-HELP(1)
+
+NAME
+    %s - open Phasor manual pages
+
+SYNOPSIS
+    %s PAGE SECTION
+    %s --help
+    %s -h
+
+ARGUMENTS
+    PAGE
+    The name of the manual page to open.
+
+    SECTION  
+    The manual section number. This is an integer corresponding to 
+    standard manual sections.  
+
+EXAMPLES
+    %s phasor
+    Open the section 1 manual page for "phasor".
+
+    %s phasorvm 1
+    Open the section 1 manual page for "phasorvm".
+
+    %s phsb 5  
+    Open the section 5 manual page for "phsb".  
+
+    %s phasorstd_io 3  
+    Open the section 3 manual page for "phasorstd_io".  
+
+FILES
+    %s
+
+SEE ALSO
+    MAN(1)
+`, phs_version(), programName, programName, programName, programName, programName, programName, programName, programName, osStr);
+    if (error) puts_error(helpStr);
+    else puts(helpStr);
+}
+
+fn main(args: string[]) -> int {
+    switch (args.len()) {
+        case 3:
+            var command: string = ManPage{name: args[1].to_string(), section: args[2].to_int()}.getDocCmd();
+            if (command.len() == 0)
+                return 1;
+            else
+                return command.sys_shell();
+        case 2:
+            if (args[1] == "--help" || args[1] == "-h" || args[1] == "/?") {
+                showHelp(args[0].fstem(), false);
+                return 0;
+            }
+            var command: string = ManPage{name: args[1], section: 1}.getDocCmd();
+            if (command.len() == 0)
+                return 1;
+            else
+                return command.sys_shell();
+        default:
+            showHelp(args[0].fstem(), true);
+    }
+    return 1;
+}
+
+include "std/main";

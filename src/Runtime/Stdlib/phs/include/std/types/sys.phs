@@ -7,3 +7,31 @@ var sys_os: any = {
     unknown: 5,
     sandbox: 6
 };
+
+var sys_os_map: string[] = [
+    win32,
+    linux,
+    darwin,
+    freebsd,
+    unix,
+    unknown,
+    sandbox
+];
+
+var sys_arch: any = {
+    arm64: 0,
+    arm32: 1,
+    x64: 2,
+    x86: 3,
+    unknown: 4,
+    sandbox: 5
+};
+
+var sys_arch_map: string[] = [
+    arm64,
+    arm32,
+    x64,
+    x86,
+    unknown,
+    sandbox
+];

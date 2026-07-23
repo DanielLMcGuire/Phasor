@@ -25,6 +25,7 @@ class Compiler
 		PhsString                        inputFile;
 		PhsString                        outputFile;
 		std::vector<std::filesystem::path> includePaths;
+		std::vector<std::string>           defines;
 		bool                               verbose = false;
 		bool                               irMode = false;
 		int                                scriptArgc = 0;

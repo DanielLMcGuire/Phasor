@@ -181,6 +181,7 @@ class StdLib
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);           ///< Reset the VM
 	static i64   sys_pid(const std::vector<Value> &args, VM *vm);             ///< Get the current process ID
 	static i64   sys_os(const std::vector<Value> &args, VM *vm);              ///< Get the current OS
+	static i64   sys_arch(const std::vector<Value> &args, VM *vm);
 	static Value sys_isatty(const std::vector<Value> &args, VM *vm); ///< Check if the current output is a terminal
 #endif
 	static Value sys_env(const std::vector<Value> &args, VM *vm); ///< Get the current environment variables

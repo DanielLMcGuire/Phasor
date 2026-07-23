@@ -1,0 +1,28 @@
+include "./util.phs";
+include "../../../include/std/types/type.phs";
+
+fn phsrt__common_init() -> i64 {
+static_if (PHS_DEBUG)
+    print "phsrt__common_init()\n";
+static_endif // (PHS_DEBUG)
+    var args: string[] = phsrt__build_args();
+static_if (PHS_DEBUG)
+    printf("main(%M)\n", args);
+static_endif // (PHS_DEBUG)
+    var ret: i64 = main(args);
+static_if (PHS_DEBUG)
+    printf("main() -> %d\n", ret);
+static_endif // (PHS_DEBUG)
+
+    if (ret.get_type() != phs_type.i64) {
+static_if (WIN32)
+            ret = 87; // 0x57 "The parameter is incorrect."
+static_else // (!WIN32)
+            ret = 22; // EINVAL 22 "Invalid argument"
+static_endif // (WIN32)
+    }
+static_if (PHS_DEBUG)
+    printf("phsrt__common_init() -> %d\n", ret);
+static_endif // (PHS_DEBUG)
+    return ret;
+}

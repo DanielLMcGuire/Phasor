@@ -17,7 +17,7 @@ fn main(args: string[]) -> int {
         return 0;
     }
 
-    var state: ClocState = createState();
+    var state: ClocState = ClocState();
     readInput(state);
 
     if (state.totalCode == 0) {

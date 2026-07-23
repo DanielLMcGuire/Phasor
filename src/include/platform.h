@@ -4,7 +4,7 @@
 #define PLATFORM_LEGACY_GAME
 #elif defined(_GAMING_DESKTOP)
 #define PLATFORM_DESKTOP_GAME
-#elif defined(_GAMING_XBOX_SCARLETT) || defined(__PROSPERO__)
+#elif defined(_GAMING_XBOX_SCARLETT) || defined(__PROSPERO__) || defined(NN_SDK_BUILD)
 #define PLATFORM_MODERN_GAME
 #else
 #define PLATFORM_DESKTOP_STANDARD

@@ -9,7 +9,7 @@
 #  endif
 #endif
 
-size_t PHASORstd_sys_getAvailableMemory(void)
+[[nodiscard]] size_t PHASORstd_sys_getAvailableMemory(void)
 {
 #ifdef _WIN32
 	MEMORYSTATUSEX statex;
@@ -41,17 +41,17 @@ size_t PHASORstd_sys_getAvailableMemory(void)
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 	size_t page_size = 0;
 	size_t len = sizeof(page_size);
-	if (sysctlbyname("hw.pagesize", &page_size, &len, NULL, 0) != 0 || page_size == 0)
+	if (sysctlbyname("hw.pagesize", &page_size, &len, nullptr, 0) != 0 || page_size == 0)
 		return 0;
 
 	long free_pages = 0;
 #if defined(__OpenBSD__)
 	len = sizeof(free_pages);
-	if (sysctlbyname("uvm.stats.sys.free", &free_pages, &len, NULL, 0) != 0)
+	if (sysctlbyname("uvm.stats.sys.free", &free_pages, &len, nullptr, 0) != 0)
 		return 0;
 #else
 	len = sizeof(free_pages);
-	if (sysctlbyname("vm.stats.vm.v_free_count", &free_pages, &len, NULL, 0) != 0)
+	if (sysctlbyname("vm.stats.vm.v_free_count", &free_pages, &len, nullptr, 0) != 0)
 		return 0;
 #endif
 
@@ -62,7 +62,7 @@ size_t PHASORstd_sys_getAvailableMemory(void)
 #endif
 }
 
-int PHASORstd_sys_run(const char *name, int argc, char **argv)
+[[nodiscard]] int PHASORstd_sys_run(const char *name, int argc, char **argv)
 {
 	char **args = (char **)malloc((argc + 2) * sizeof(char *));
 	if (!args)
@@ -71,7 +71,7 @@ int PHASORstd_sys_run(const char *name, int argc, char **argv)
 	args[0] = (char *)name;
 	for (int i = 0; i < argc; i++)
 		args[i + 1] = argv[i];
-	args[argc + 1] = NULL;
+	args[argc + 1] = nullptr;
 
 #ifdef _WIN32
 	int ret = (int)_spawnvp(_P_WAIT, name, (const char *const *)args);
@@ -96,7 +96,7 @@ int PHASORstd_sys_run(const char *name, int argc, char **argv)
 	return ret;
 }
 
-int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
+[[nodiscard]] int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
 {
 	char **args = (char **)malloc((argc + 2) * sizeof(char *));
 	if (!args)
@@ -105,7 +105,7 @@ int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
 	args[0] = (char *)name;
 	for (int i = 0; i < argc; i++)
 		args[i + 1] = argv[i];
-	args[argc + 1] = NULL;
+	args[argc + 1] = nullptr;
 
 #ifdef _WIN32
 

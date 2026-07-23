@@ -1,6 +1,7 @@
 #include "CppCompiler.hpp"
 #include "../../Language/Phasor/Lexer/Lexer.hpp"
 #include "../../Language/Phasor/Parser/Parser.hpp"
+#include "../../Language/Phasor/Parser/PlatformDefines.hpp"
 #include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/Cpp/CppCodeGenerator.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
@@ -171,6 +172,37 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 				return true;
 			}
 		}
+		else if (arg.starts_with("-D=") || arg.starts_with("--define="))
+		{
+			PhsString values = arg.substr(arg.find('=') + 1);
+			std::stringstream ss(values);
+			std::string item;
+			while (std::getline(ss, item, ','))
+			{
+				if (!item.empty())
+					m_args.defines.push_back(item);
+			}
+		}
+		else if (arg == "-D" || arg == "--define")
+		{
+			if (i + 1 < argc)
+			{
+				PhsString values = argv[++i];
+				std::stringstream ss(values);
+				std::string item;
+				while (std::getline(ss, item, ','))
+				{
+					if (!item.empty())
+						m_args.defines.push_back(item);
+				}
+			}
+			else
+			{
+				std::println(std::cerr, "Error: {} requires an argument", arg);
+				m_args.showHelp = true;
+				return true;
+			}
+		}
 		else if (arg == "-o" || arg == "--output")
 		{
 			if (i + 1 < argc)
@@ -303,24 +335,27 @@ bool CppCompiler::showHelp(const PhsString &programName)
 	std::println("Phasor C++ Bytecode Embedder v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
 	             "Usage:\n"
-	             "  {} [options] <input.phs>\n\n"
+	             "  {} [OPTIONS...] INPUT\n\n"
 	             "Options:\n"
-	             "  -c, --compiler <name>   Compiler to use (default: g++)\n"
-	             "  -l, --linker <name>     Linker to use (default: g++)\n"
-	             "  -s, --source <name>     The source file to compile with\n"
-	             "  -o, --output <file>     Output file\n"
-	             "  -m, --module <name>     Module name for generated code (default: input filename)\n"
+	             "  -c, --compiler NAME     Compiler to use (default: g++)\n"
+	             "  -l, --linker NAME       Linker to use (default: g++)\n"
+	             "  -s, --source NAME       The source file to compile with\n"
+	             "  -o, --output FILE       Output file\n"
+	             "  -m, --module NAME       Module name for generated code (default: input filename)\n"
 	             "  -H, --header-only       Generate header file only\n"
 	             "  -g, --generate-only     Generate source file only\n"
 	             "  -O, --object-only       Generate and compile to object only\n"
 	             "  -I, --include PATHS     Comma-separated list of include directories\n"
+	             "  -D, --define DEFS       Comma-separated list of NAME or NAME=VALUE definitions\n"
 	             "  -v, --verbose           Enable verbose output\n"
 	             "  -h, --help              Show this help message\n"
-	             "Example:\n"
+	             "Examples:\n"
 	             "  {} program.phs -o program.exe -c clang++ -l lld\n"
 	             "  {} -O program.phs -o program.obj -c clang++\n"
 	             "  {} -H program.phs -o program.hpp\n"
-	             "  {} -g program.phs -o program.cpp",
+	             "  {} -g program.phs -o program.cpp\n"
+				 "See also:\n"
+				 "  phasor-help phasor-native 1",
 	             PHASOR_VERSION_STRING, programName, programName, programName, programName, programName);
 	return true;
 }
@@ -366,9 +401,9 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 
 			Parser parser(tokens, sourcePath);
 			parser.setIncludePaths(m_args.includePaths);
+			parser.setDefines(Phasor::resolveDefines(m_args.defines, true));
 			auto   program = parser.parse();
 
-			// Generate bytecode
 			if (m_args.verbose)
 				std::println("Generating bytecode...");
 

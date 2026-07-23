@@ -1,3 +1,13 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                                             //
+//   PPPPPPP  H     H      AA      SSSSSSS  OOOOOOO  RRRRRRR    L            AA      NN    N  GGGGGGG  U     U      AA      GGGGGGG  EEEEEEE   //
+//   P     P  H     H     A  A     S        O     O  R     R    L           A  A     N N   N  G        U     U     A  A     G        E         //
+//   PPPPPPP  HHHHHHH    AAAAAA    SSSSSSS  O     O  RRRRRRR    L          AAAAAA    N  N  N  G  GGGG  U     U    AAAAAA    G  GGGG  EEEEEEE   //
+//   P        H     H   A      A         S  O     O  R    R     L         A      A   N   N N  G     G  U     U   A      A   G     G  E         //
+//   P        H     H  A        A  SSSSSSS  OOOOOOO  R     R    LLLLLLL  A        A  N    NN  GGGGGGG  UUUUUUU  A        A  GGGGGGG  EEEEEEE   //
+//                                                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Copyright 2026 Daniel McGuire
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -9,12 +19,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// PHASOR RUNTIME C ABI V1
+// libphasorrt
 // README
 //
-// This is the main header file for the Phasor Runtime C ABI.
+// This is the main header file for the Phasor Runtime C API.
 // The goal is to keep this ABI as stable as possible, see the details below, or at
 // https://phasor-docs.pages.dev/man?f=phasorrt.3
+// phasor-help phasorrt 3
 // man phasorrt
 
 #ifndef PHASOR_RT_H
@@ -105,6 +116,26 @@ extern "C"
 	                                      const char *functionName);
 
 	/**
+	 * @brief Executes a function from pre-compiled Phasor bytecode, and casts return to an string.
+	 *
+	 * @param state                A pointer to an state to execute the script within. If null, new state will be
+	 * created and managed for you.
+	 * @param bytecode             An array of unsigned chars containing the Phasor bytecode.
+	 * @param bytecodeSize         The size of the bytecode array.
+	 * @param moduleName           The name of the module, used for error reporting.
+	 * @param argc                 Argument count.
+	 * @param argv                 Argument vector.
+	 * @param functionName         The name of the function to execute.
+	 * @return                     The return from the function call, nullptr on error. This memory is cleared by the
+	 * C++ runtime when you unload the DLL, and is overwritten after recalling this function. This DOES NOT use two pass
+	 * for perf reasons. Copy the string to safe memory, or you will lose the data.
+	 */
+	PHASOR_API const char *execFuncString(void *state, const unsigned char *bytecode, size_t bytecodeSize,
+	                                      const char *moduleName, int argc, const char **argv,
+	                                      const char *functionName);
+
+
+	/**
 	 * @brief Executes a Phasor Programming Language script.
 	 *
 	 * @param state      A pointer to an state to execute the script within. If null, new state will be created and
@@ -156,7 +187,7 @@ extern "C"
 	const char *script = "ffiload(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
 
 	size_t bytecodeSize = 0;
-	compilePHS(script, "example", "./", NULL, 0, &bytecodeSize);
+	compilePHS(script, "example", "./", nullptr, 0, &bytecodeSize);
 
 	unsigned char *bytecode = (unsigned char *)malloc(bytecodeSize);
 	compilePHS(script, "example", "./", bytecode, bytecodeSize, &bytecodeSize);

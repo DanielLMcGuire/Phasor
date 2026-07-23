@@ -38,6 +38,7 @@ void StdLib::registerSysFunctions(VM *vm)
 {
 #ifndef SANDBOXED
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
+	vm->registerNativeFunction("sys_os", StdLib::sys_arch);
 	vm->registerNativeFunction("sys_get_memory", StdLib::sys_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
@@ -54,6 +55,7 @@ void StdLib::registerSysFunctions(VM *vm)
 #else
 	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull; };
 	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return 6; });
+	vm->registerNativeFunction("sys_arch", [](const std::vector<Value> &, VM *) { return 5; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
 	vm->registerNativeFunction("isatty", stub);
@@ -240,6 +242,22 @@ i64 StdLib::sys_os(const std::vector<Value> &args, VM *)
 	return 4;
 #else
 	return 5;
+#endif
+}
+
+i64 StdLib::sys_arch(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "sys_arch");
+#if defined(TARGET_ARCH_ARM64)
+	return 0;
+#elif defined(TARGET_ARCH_ARM)
+	return 1;
+#elif defined(TARGET_ARCH_X64)
+	return 2;
+#elif defined(TARGET_ARCH_X86)
+	return 3;
+#else
+	return 4;
 #endif
 }
 

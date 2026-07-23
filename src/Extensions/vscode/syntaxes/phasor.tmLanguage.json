@@ -51,6 +51,10 @@
         {
           "name": "constant.language.phasor",
           "match": "\\b(true|false|null)\\b"
+        },
+        {
+          "name": "keyword.static.phasor",
+          "match": "\\b(static_if|static_else|static_endif)\\b"
         }
       ]
     },

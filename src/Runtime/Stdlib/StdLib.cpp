@@ -35,12 +35,16 @@ void StdLib::registerInternalFunctions(VM *vm)
 	vm->registerNativeFunction("phs__memory_read_string_native", StdLib::native_memory_read_string);
 	vm->registerNativeFunction("phs__memory_free_native", StdLib::native_memory_free);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
+	vm->registerNativeFunction("printf", StdLib::io_printf);
+	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
 	vm->registerNativeFunction("phs_push", StdLib::meta_push);
 	vm->registerNativeFunction("arr_push", StdLib::array_push);
 	vm->registerNativeFunction("phs_pop", StdLib::meta_pop);
 	vm->registerNativeFunction("get_type", StdLib::get_type);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
+	vm->registerNativeFunction("sys_arch", StdLib::sys_arch);
+	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
 }
 
 std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules{

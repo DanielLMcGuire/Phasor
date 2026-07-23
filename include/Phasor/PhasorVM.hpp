@@ -1,8 +1,20 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                                             //
+//   PPPPPPP  H     H      AA      SSSSSSS  OOOOOOO  RRRRRRR    L            AA      NN    N  GGGGGGG  U     U      AA      GGGGGGG  EEEEEEE   //
+//   P     P  H     H     A  A     S        O     O  R     R    L           A  A     N N   N  G        U     U     A  A     G        E         //
+//   PPPPPPP  HHHHHHH    AAAAAA    SSSSSSS  O     O  RRRRRRR    L          AAAAAA    N  N  N  G  GGGG  U     U    AAAAAA    G  GGGG  EEEEEEE   //
+//   P        H     H   A      A         S  O     O  R    R     L         A      A   N   N N  G     G  U     U   A      A   G     G  E         //
+//   P        H     H  A        A  SSSSSSS  OOOOOOO  R     R    LLLLLLL  A        A  N    NN  GGGGGGG  UUUUUUU  A        A  GGGGGGG  EEEEEEE   //
+//                                                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Copyright 2026 Daniel McGuire
-// Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// https://llvm.org/LICENSE.txt
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://llvm.org/LICENSE.txt
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,6 +62,88 @@
 namespace Phasor
 {
 
+struct ManagedTraceEntry
+{
+	PhsString functionName;
+    Value pc;
+	Value::ArrayInstance args;
+    std::array<Value, 3> registers;
+
+	[[nodiscard]] inline PhsString formatTrace() const
+	{
+		PhsString entry = vformat::format(
+			"PC=%s FUNC=%s ARGS=%s R0=%s R1=%s R2=%s",
+			pc.toRepr().c_str(),
+			Value(functionName).toRepr().c_str(),
+			Value::createArray(args).toRepr().c_str(),
+			registers[0].toRepr().c_str(),
+			registers[1].toRepr().c_str(),
+			registers[2].toRepr().c_str()
+		);
+
+		return entry;
+	}
+};
+
+class ManagedTraceLog
+{
+private:
+    std::vector<ManagedTraceEntry> stack;
+
+public:
+    void push(const ManagedTraceEntry& entry)
+    {
+        stack.push_back(entry);
+    }
+
+    bool pop(ManagedTraceEntry& out)
+    {
+        if (stack.empty())
+            return false;
+
+        out = stack.back();
+        stack.pop_back();
+        return true;
+    }
+
+	bool pop()
+    {
+        if (stack.empty())
+            return false;
+
+        stack.pop_back();
+        return true;
+    }
+
+    size_t size() const
+    {
+        return stack.size();
+    }
+
+    void clear()
+    {
+        stack.clear();
+    }
+
+	[[nodiscard]] inline PhsString format() const
+	{
+		PhsString result;
+		size_t counter = 0;
+
+		for (const auto& entry : stack)
+		{
+			result += ' ';
+			result += std::to_string(counter);
+			result += "# ";
+			result += entry.formatTrace();
+			result += '\n';
+			counter++;
+		}
+
+		return result;
+	}
+};
+
 /// @class VM
 /// @brief Virtual Machine
 class VM
@@ -61,7 +155,7 @@ class VM
 	~VM();
 
 	/// @brief Initialize the FFI plugins
-	void initFFI(const std::filesystem::path &path);
+	void initFFI(const std::vector<std::filesystem::path> &paths);
 
 	/// @brief Get Phasor VM version
 	PhsString getVersion();
@@ -290,5 +384,7 @@ class VM
 
 	/// @brief Native function registry
 	std::map<PhsString, NativeFunction> nativeFunctions;
+
+	ManagedTraceLog tracelog;
 };
 } // namespace Phasor
