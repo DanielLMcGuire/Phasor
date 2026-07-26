@@ -30,6 +30,7 @@ void StdLib::registerInternalFunctions(VM *vm)
 	vm->registerNativeFunction("phs__argv_ptr", StdLib::native_memory_argv);
 	vm->registerNativeFunction("phs__memory_malloc_native", StdLib::native_memory_malloc);
 	vm->registerNativeFunction("phs__memory_write_native", StdLib::native_memory_write);
+	vm->registerNativeFunction("phs__memory_write_offset_native", StdLib::native_memory_write_offset);
 	vm->registerNativeFunction("phs__memory_read_native", StdLib::native_memory_read);
 	vm->registerNativeFunction("phs__memory_read_offset_native", StdLib::native_memory_read_offset);
 	vm->registerNativeFunction("phs__memory_read_string_native", StdLib::native_memory_read_string);

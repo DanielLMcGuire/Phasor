@@ -114,7 +114,7 @@ Parser::Parser(const std::vector<Token> &tokens, std::filesystem::path sourcePat
 	Phasor::addDefaultDefines(defines, false);
 }
 
-std::unique_ptr<Program> Parser::parse()
+std::unique_ptr<Program> Parser::parse(bool recoverFromErrors)
 {
 	if (parseDepth == 0)
 	{
@@ -137,13 +137,64 @@ std::unique_ptr<Program> Parser::parse()
 	auto program = std::make_unique<Program>();
 	while (!isAtEnd())
 	{
-		declarationInto(program->statements);
+		if (!recoverFromErrors)
+		{
+			declarationInto(program->statements);
+			continue;
+		}
+
+		int before = current;
+		try
+		{
+			declarationInto(program->statements);
+		}
+		catch (const std::runtime_error &)
+		{
+			if (lastError)
+			{
+				errors.push_back(*lastError);
+			}
+			synchronize();
+			if (current == before)
+			{
+				advance();
+			}
+		}
 	}
 
-	program->statements =
-	    Phasor::resolveIncludes(program->statements, sourcePath.parent_path(), includePaths, defines);
+	if (!recoverFromErrors || errors.empty())
+	{
+		program->statements =
+		    Phasor::resolveIncludes(program->statements, sourcePath.parent_path(), includePaths, defines);
+	}
 
 	return program;
+}
+
+void Parser::synchronize()
+{
+	advance();
+
+	static const std::set<std::string> boundaryKeywords = {
+	    "fn", "var", "struct", "if", "while", "for", "return", "print",
+	    "break", "continue", "switch", "include", "define", "undefine", "static_if"};
+
+	while (!isAtEnd())
+	{
+		if (previous().type == Phasor::TokenType::Symbol && previous().lexeme == ";")
+		{
+			return;
+		}
+		if (check(Phasor::TokenType::Symbol) && peek().lexeme == "}")
+		{
+			return;
+		}
+		if (check(Phasor::TokenType::Keyword) && boundaryKeywords.count(peek().lexeme) > 0)
+		{
+			return;
+		}
+		advance();
+	}
 }
 
 void Parser::declarationInto(std::vector<std::unique_ptr<AST::Statement>> &out)
@@ -429,7 +480,12 @@ std::unique_ptr<Statement> Parser::declaration()
 				Token paramName = consume(Phasor::TokenType::Identifier, "Expect parameter name.");
 				consume(Phasor::TokenType::Symbol, ":", "Expect ':' after parameter name.");
 				auto type = parseType();
-				params.push_back({paramName.lexeme, std::move(type)});
+				AST::Param param;
+				param.name = paramName.lexeme;
+				param.type = std::move(type);
+				param.line = paramName.line;
+				param.column = paramName.column;
+				params.push_back(std::move(param));
 			} while (match(Phasor::TokenType::Symbol, ","));
 		}
 		consume(Phasor::TokenType::Symbol, ")", "Expect ')' after parameters.");
@@ -440,11 +496,12 @@ std::unique_ptr<Statement> Parser::declaration()
 			returnType = parseType();
 		}
 
+		(void)start;
 		if (match(Phasor::TokenType::Symbol, ";"))
 		{
 			auto node = std::make_unique<ForwardDecl>(nameTok.lexeme, std::move(params), std::move(returnType));
-			node->line = start.line;
-			node->column = start.column;
+			node->line = nameTok.line;
+			node->column = nameTok.column;
 			return node;
 		}
 		else if (match(Phasor::TokenType::Symbol, "{"))
@@ -455,8 +512,8 @@ std::unique_ptr<Statement> Parser::declaration()
 			currentFunction = previousFunction;
 
 			auto node = std::make_unique<FunctionDecl>(nameTok.lexeme, std::move(params), std::move(returnType), std::move(body), keepFunc);
-			node->line = start.line;
-			node->column = start.column;
+			node->line = nameTok.line;
+			node->column = nameTok.column;
 			return node;
 		}
 		else
@@ -468,12 +525,8 @@ std::unique_ptr<Statement> Parser::declaration()
 
 	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "var")
 	{
-		Token start = peek();
 		advance();
-		auto node = varDeclaration();
-		node->line = start.line;
-		node->column = start.column;
-		return node;
+		return varDeclaration();
 	}
 	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "struct")
 	{
@@ -484,7 +537,6 @@ std::unique_ptr<Statement> Parser::declaration()
 
 std::unique_ptr<TypeNode> Parser::parseType()
 {
-	Token start = peek();
 	bool  isPointer = false;
 	if (match(Phasor::TokenType::Symbol, "*"))
 	{
@@ -521,8 +573,8 @@ std::unique_ptr<TypeNode> Parser::parseType()
 		consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
 	}
 	auto node = std::make_unique<TypeNode>(typeName.lexeme, isPointer, dims);
-	node->line = start.line;
-	node->column = start.column;
+	node->line = typeName.line;
+	node->column = typeName.column;
 	return node;
 }
 
@@ -810,6 +862,8 @@ std::unique_ptr<Statement> Parser::unsafeStatement()
 
 std::unique_ptr<BlockStmt> Parser::block()
 {
+	Token openBrace = previous();
+
 	std::vector<std::unique_ptr<Statement>> statements;
 	while (!check(Phasor::TokenType::Symbol) || peek().lexeme != "}")
 	{
@@ -820,8 +874,14 @@ std::unique_ptr<BlockStmt> Parser::block()
 		}
 		declarationInto(statements);
 	}
-	consume(Phasor::TokenType::Symbol, "}", "Expect '}' after block.");
-	return std::make_unique<BlockStmt>(std::move(statements));
+	Token closeBrace = consume(Phasor::TokenType::Symbol, "}", "Expect '}' after block.");
+
+	auto blk = std::make_unique<BlockStmt>(std::move(statements));
+	blk->line = openBrace.line;
+	blk->column = openBrace.column;
+	blk->endLine = closeBrace.line;
+	blk->endColumn = closeBrace.column;
+	return blk;
 }
 
 std::unique_ptr<Statement> Parser::printStatement()
@@ -1042,17 +1102,11 @@ std::unique_ptr<Expression> Parser::call()
 	{
 		if (match(Phasor::TokenType::Symbol, "("))
 		{
-			Token op = previous();
 			expr = finishCall(std::move(expr));
-			expr->line = op.line;
-			expr->column = op.column;
 		}
 		else if (match(Phasor::TokenType::Symbol, "."))
 		{
-			Token op = previous();
 			expr = fieldAccess(std::move(expr));
-			expr->line = op.line;
-			expr->column = op.column;
 		}
 		else if (match(Phasor::TokenType::Symbol, "++"))
 		{
@@ -1078,9 +1132,10 @@ std::unique_ptr<Expression> Parser::call()
 
 			if (auto* strLit = dynamic_cast<StringExpr*>(index.get()))
 			{
+				size_t strLine = strLit->line, strCol = strLit->column;
 				auto node = std::make_unique<FieldAccessExpr>(std::move(expr), strLit->value);
-				node->line = op.line;
-				node->column = op.column;
+				node->line = strLine;
+				node->column = strCol;
 				expr = std::move(node);
 			}
 			else
@@ -1295,6 +1350,8 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 		consume(Phasor::TokenType::Symbol, ":", "Expected ':' after field name");
 		auto type = parseType();
 		fields.emplace_back(fieldNameTok.lexeme, std::move(type));
+		fields.back().line = fieldNameTok.line;
+		fields.back().column = fieldNameTok.column;
 
 		if (!match(Phasor::TokenType::Symbol, ","))
 		{
@@ -1303,9 +1360,10 @@ std::unique_ptr<StructDecl> Parser::structDecl()
 	}
 
 	consume(Phasor::TokenType::Symbol, "}", "Expected '}' after struct fields");
+	(void)start;
 	auto node = std::make_unique<StructDecl>(nameTok.lexeme, std::move(fields));
-	node->line = start.line;
-	node->column = start.column;
+	node->line = nameTok.line;
+	node->column = nameTok.column;
 	return node;
 }
 

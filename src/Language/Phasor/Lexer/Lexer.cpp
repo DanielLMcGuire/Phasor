@@ -14,6 +14,13 @@ Lexer::Lexer(std::string source) : source(std::move(source))
 	std::erase(this->source, '\r');
 }
 
+void Lexer::reportError(const std::string &message, size_t errLine, size_t errColumn)
+{
+	Error err{message, errLine, errColumn};
+	lastError = err;
+	errors.push_back(std::move(err));
+}
+
 void Lexer::skipShebang()
 {
 	if (position == 0 && peek() == '#' && position + 1 < source.length() && source[position + 1] == '!')
@@ -74,26 +81,20 @@ void Lexer::skipWhitespace()
 	{
 		char c = peek();
 		if (std::isspace(static_cast<unsigned char>(c)) != 0)
-		{
 			advance();
-		}
 		else if (c == '/' && position + 1 < source.length() && source[position + 1] == '/')
-		{
-			// Skip single-line comment
 			while (!isAtEnd() && peek() != '\n')
-			{
 				advance();
-			}
-		}
 		else
-		{
 			break;
-		}
 	}
 }
 
 Token Lexer::scanToken()
 {
+	size_t tokLine = line;
+	size_t tokCol = column;
+
 	char c = peek();
 	if (std::isalpha(static_cast<unsigned char>(c)) != 0)
 	{
@@ -117,71 +118,74 @@ Token Lexer::scanToken()
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "++", line, column};
+		return {Phasor::TokenType::Symbol, "++", tokLine, tokCol};
 	}
 	if (c == '-' && position + 1 < source.length() && source[position + 1] == '-')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "--", line, column};
+		return {Phasor::TokenType::Symbol, "--", tokLine, tokCol};
 	}
 	if (c == '=' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "==", line, column};
+		return {Phasor::TokenType::Symbol, "==", tokLine, tokCol};
 	}
 	if (c == '!' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "!=", line, column};
+		return {Phasor::TokenType::Symbol, "!=", tokLine, tokCol};
 	}
 	if (c == '-' && position + 1 < source.length() && source[position + 1] == '>')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "->", line, column};
+		return {Phasor::TokenType::Symbol, "->", tokLine, tokCol};
 	}
 	if (c == '<' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "<=", line, column};
+		return {Phasor::TokenType::Symbol, "<=", tokLine, tokCol};
 	}
 	if (c == '>' && position + 1 < source.length() && source[position + 1] == '=')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, ">=", line, column};
+		return {Phasor::TokenType::Symbol, ">=", tokLine, tokCol};
 	}
 	if (c == '&' && position + 1 < source.length() && source[position + 1] == '&')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "&&", line, column};
+		return {Phasor::TokenType::Symbol, "&&", tokLine, tokCol};
 	}
 	if (c == '|' && position + 1 < source.length() && source[position + 1] == '|')
 	{
 		advance();
 		advance();
-		return {Phasor::TokenType::Symbol, "||", line, column};
+		return {Phasor::TokenType::Symbol, "||", tokLine, tokCol};
 	}
 
 	// Single-character symbols (parentheses, operators, punctuation, etc.)
 	if (std::string("()+-*/%<>=!&|.{}:;,[]").find(c) != std::string::npos)
 	{
 		advance();
-		return {Phasor::TokenType::Symbol, std::string(1, c), line, column};
+		return {Phasor::TokenType::Symbol, std::string(1, c), tokLine, tokCol};
 	}
 
 	advance();
-	return {Phasor::TokenType::Unknown, std::string(1, c), line, column};
+	reportError("Unrecognized character '" + std::string(1, c) + "'", tokLine, tokCol);
+	return {Phasor::TokenType::Unknown, std::string(1, c), tokLine, tokCol};
 }
 
 Token Lexer::identifier()
 {
 	size_t start = position;
+	size_t tokLine = line;
+	size_t tokCol = column;
 	while ((std::isalnum(static_cast<unsigned char>(peek())) != 0) || peek() == '_')
 	{
 		advance();
@@ -198,16 +202,18 @@ Token Lexer::identifier()
 	{
 		if (text == kw)
 		{
-			return {Phasor::TokenType::Keyword, text, line, column};
+			return {Phasor::TokenType::Keyword, text, tokLine, tokCol};
 		}
 	}
 
-	return {Phasor::TokenType::Identifier, text, line, column};
+	return {Phasor::TokenType::Identifier, text, tokLine, tokCol};
 }
 
 Token Lexer::number()
 {
 	size_t start = position;
+	size_t tokLine = line;
+	size_t tokCol = column;
 	while (std::isdigit(static_cast<unsigned char>(peek())) != 0)
 	{
 		advance();
@@ -221,7 +227,7 @@ Token Lexer::number()
 			advance();
 		}
 	}
-	return {Phasor::TokenType::Number, source.substr(start, position - start), line, column};
+	return {Phasor::TokenType::Number, source.substr(start, position - start), tokLine, tokCol};
 }
 
 static int hexValue(char c)
@@ -253,12 +259,18 @@ Token Lexer::string()
 		char c = advance();
 
 		if (c == '\n')
+		{
+			reportError("Unterminated string literal.", tokenLine, tokenColumn);
 			return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+		}
 
 		if (c == '\\')
 		{
 			if (isAtEnd())
+			{
+				reportError("Unterminated escape sequence in string literal.", tokenLine, tokenColumn);
 				return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+			}
 
 			char esc = advance();
 			switch (esc)
@@ -291,7 +303,10 @@ Token Lexer::string()
 					val = val * 8 + static_cast<u32>(d - '0');
 				}
 				if (val > 0xFF)
+				{
+					reportError("Octal escape sequence out of range.", tokenLine, tokenColumn);
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				}
 				out << static_cast<char>(val);
 				break;
 			}
@@ -299,7 +314,10 @@ Token Lexer::string()
 			case 'x':
 			{
 				if (isAtEnd() || hexValue(peek()) < 0)
+				{
+					reportError("Expected hex digit after '\\x' escape.", tokenLine, tokenColumn);
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				}
 				int val = hexValue(advance());
 				if (!isAtEnd() && hexValue(peek()) >= 0)
 					val = (val << 4) | hexValue(advance());
@@ -315,11 +333,18 @@ Token Lexer::string()
 				for (int i = 0; i < ndigits; ++i)
 				{
 					if (isAtEnd() || hexValue(peek()) < 0)
+					{
+						reportError("Expected " + std::to_string(ndigits) + " hex digits after '\\" + esc + "' escape.",
+						            tokenLine, tokenColumn);
 						return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+					}
 					cp = (cp << 4) | static_cast<u32>(hexValue(advance()));
 				}
 				if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+				{
+					reportError("Invalid Unicode code point in escape sequence.", tokenLine, tokenColumn);
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
+				}
 				if      (cp <= 0x7F)   { out << static_cast<char>(cp); }
 				else if (cp <= 0x7FF)  { out << static_cast<char>(0xC0 | (cp >> 6))
 				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
@@ -348,6 +373,7 @@ Token Lexer::string()
 		}
 	}
 
+	reportError("Unterminated string literal.", tokenLine, tokenColumn);
 	return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 }
 
@@ -374,6 +400,7 @@ Token Lexer::complexString()
 	}
 
 	// If we get here, string was unterminated
+	reportError("Unterminated raw string literal (missing closing '`').", tokenLine, tokenColumn);
 	return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 }
 } // namespace Phasor

@@ -25,6 +25,10 @@ class Lexer
 	{
 		return lastError;
 	}
+	[[nodiscard]] const std::vector<Error> &getErrors() const
+	{
+		return errors;
+	}
 
   private:
 	std::string source;
@@ -33,7 +37,9 @@ class Lexer
 	size_t      column = 1;
 
 	std::optional<Error> lastError;
+	std::vector<Error>   errors;
 
+	void  reportError(const std::string &message, size_t errLine, size_t errColumn);
 	char  peek();
 	char  advance();
 	bool  isAtEnd();

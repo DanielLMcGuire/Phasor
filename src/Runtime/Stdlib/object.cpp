@@ -17,7 +17,7 @@ Value StdLib::object_has(const std::vector<Value> &args, VM *)
     checkArgCount(args, 2, "has", false);
 
     if (!args[0].isStruct()) 
-        PHS_ERROR("has() expects an array as its first argument");
+        PHS_ERROR("has() expects an struct as its first argument");
 
     auto object = args[0].asStruct();
     Value elementName = args[1];

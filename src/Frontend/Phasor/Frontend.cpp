@@ -53,7 +53,7 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::ve
 	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
@@ -100,7 +100,7 @@ int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> p
 	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 

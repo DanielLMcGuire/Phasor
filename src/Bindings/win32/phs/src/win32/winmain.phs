@@ -1,7 +1,7 @@
 include "../../include/win32/types/handle.phs";
-include "../../include/win32/winuser.phs"
-include "../../include/sys";
-include "../../include/io";
+include "../../include/win32/winuser.phs";
+include "std/sys";
+include "std/io";
 
 fn win__pre() -> HINSTANCE {
     assert(sys_os() == sys_os.win32);
@@ -27,7 +27,7 @@ fn win__post(ret: i64) -> i64 {
 
 fn win__init() {
     var hInstance: HINSTANCE = win_pre();
-    var args: string[] = sys_args()
+    var args: string[] = sys_args();
    shutdown(win_post(WinMain(hInstance, args)));
 }
 

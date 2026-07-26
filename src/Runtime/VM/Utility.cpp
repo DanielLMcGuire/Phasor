@@ -121,7 +121,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	#else
 		stacklog << std::stacktrace::current();
 	#endif
-		log(std::format("\n{}: CAUGHT VM::HALT (VM::status={})\n\n{}\n\n{}\n", PHS_SRC_LOC(), status, stacklog.str(), getInformation()));
+		log(std::format("\n{}: CAUGHT Phasor:VM::Halt\n\n{}\n\n{}\n\nUser code exited {} with code {}\n", PHS_SRC_LOC(), stacklog.str(), getInformation(), status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
 		flush();
 #endif
 #ifdef _DEBUG
@@ -138,7 +138,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	#else
 		stacklog << std::stacktrace::current();
 	#endif
-		logerr(std::format("\n{}: UNCAUGHT EXCEPTION!\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
+		logerr(std::format("\n{}: \x1B[0;31mUNCAUGHT std::exception occured in Phasor VM Runtime\x1B[0m\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
 		flusherr();
 		status = BAD_STATUS;
 #ifdef _DEBUG

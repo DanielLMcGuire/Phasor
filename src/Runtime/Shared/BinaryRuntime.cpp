@@ -47,7 +47,7 @@ int BinaryRuntime::run()
 		vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 		vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 		vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 

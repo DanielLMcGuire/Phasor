@@ -5,6 +5,7 @@ include "std/type";
 include "std/meta";
 include "std/file";
 include "std/mem";
+define NO_STACK_COOKIE;
 
 static_if (WIN32)
 include "win32/windows.phs";
@@ -16,7 +17,7 @@ struct ManPage {
 }
 
 fn getFallbackURL(page: ManPage) -> string {
-    var sbHandle: int = sb_new().sb_prealloc(43); // url base + 5 chars for name (averaged from actual doc names) + . + 1 char for section + 1 for null term
+    var sbHandle: int = sb_new().sb_prealloc(55); 
     sbHandle.sb_append("https://phasor-docs.pages.dev/man?f=");
     sbHandle.sb_append(page.name);
     sbHandle.sb_append(".");
@@ -59,7 +60,11 @@ static_endif // (WIN32)
 }
 
 fn showHelp(programName: string, error: bool) -> void {
+static_if (!WIN32)
+    var seeAlsoMan: string = "MAN(1)";
+static_endif // (!WIN32)
 static_if (WIN32)
+    var seeAlsoMan: string = "https://man7.org/linux/man-pages/man1/man.1.html";
     var osStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<SECTION>\n    \\<PAGE>.<SECTION>.pdf";
 static_else (DARWIN)
     var osStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
@@ -106,8 +111,8 @@ FILES
     %s
 
 SEE ALSO
-    MAN(1)
-`, phs_version(), programName, programName, programName, programName, programName, programName, programName, programName, osStr);
+    %s
+`, phs_version(), programName, programName, programName, programName, programName, programName, programName, programName, osStr, seeAlsoMan);
     if (error) puts_error(helpStr);
     else puts(helpStr);
 }

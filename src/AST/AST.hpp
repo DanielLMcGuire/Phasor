@@ -49,12 +49,16 @@ struct Node
 	virtual void print(int indent = 0) const = 0;
 	size_t       line = 0;
 	size_t       column = 0;
+	size_t       endLine = 0;
+	size_t       endColumn = 0;
 };
 
 struct Param
 {
 	std::string               name;
 	std::unique_ptr<TypeNode> type;
+	size_t                     line = 0;
+	size_t                     column = 0;
 };
 
 /// @brief Expression Node
@@ -716,6 +720,9 @@ struct StructField
 {
 	std::string               name;
 	std::unique_ptr<TypeNode> type;
+	/// @brief Position of the field name token, for LSP navigation. 0 if unset.
+	size_t                     line = 0;
+	size_t                     column = 0;
 
 	StructField(std::string n, std::unique_ptr<TypeNode> t) : name(std::move(n)), type(std::move(t))
 	{

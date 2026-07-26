@@ -84,14 +84,14 @@ inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volitio
 		CFUserNotificationDisplayAlert(
 			0,
 			kCFUserNotificationNoteAlertLevel,
-			nullptrptr,
-			nullptrptr,
-			nullptrptr,
+			nullptr,
+			nullptr,
+			nullptr,
 			cfTitle,
 			cfMessage,
 			CFSTR("No"),
 			CFSTR("Yes"),
-			nullptrptr,
+			nullptr,
 			&responseFlags
 		);
 

@@ -121,7 +121,7 @@ std::unique_ptr<Phasor::VM> createVm(int scriptArgc, char **scriptArgv)
 	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
@@ -434,12 +434,8 @@ int main(int argc, char *argv[])
 
 		int    scriptArgc = static_cast<int>(scriptArgv.size());
 		char **scriptArgvPtr = scriptArgv.data();
-
-		// Interpreter target: no PHASOR_NATIVE, but bitness/arch/platform
-		// flags are already baked into every Parser by default; this layers
-		// any user-supplied -D values on top of (or beyond) those.
 		const Phasor::Defines defines =
-		    Phasor::resolveDefines(defines_raw, /*nativeTarget=*/false);
+		    Phasor::resolveDefines(defines_raw, false);
 
 		if (has_command)
 		{

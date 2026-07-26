@@ -1,4 +1,5 @@
-// Copyright 2026 Daniel McGuire -- Phasor Standard Library
+// Copyright 2026 Daniel McGuire -- Phasor stdmeta
+// src/std/meta.phs
 // Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -10,6 +11,7 @@
 // limitations under the License.
 
 ffiload("stdmeta");
+include "std/struct";
 include "../../include/std/types/meta.phs";
 
 fn get_self() -> Bytecode {
@@ -30,6 +32,18 @@ fn get_self_variables() -> VariableData[] {
 
 fn get_self_functions() -> FunctionData[] {
     return phs__get_self().functions;
+}
+
+fn get_func_api(functionName: string) -> FunctionAPI {
+    var function: FunctionData = phs__get_self().functions.struct_find("name", functionName);
+    if (function == null) return NULL_FUNCTIONAPI;
+    var functionAPI: FunctionAPI = FunctionAPI{ 
+        paramTypes: function.paramTypes, 
+        paramArrayDims: function.paramArrayDims, 
+        returnType: function.returnType, 
+        returnArrayDims: function.returnArrayDims
+    };
+    return functionAPI;
 }
 
 fn get_self_structs() -> StructData[] {

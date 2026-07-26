@@ -41,7 +41,7 @@ class Parser
 		return defines;
 	}
 
-	std::unique_ptr<AST::Program> parse();
+	std::unique_ptr<AST::Program> parse(bool recoverFromErrors = false);
 
 	struct Error
 	{
@@ -53,12 +53,17 @@ class Parser
 	{
 		return lastError;
 	}
+	[[nodiscard]] const std::vector<Error> &getErrors() const
+	{
+		return errors;
+	}
 
   private:
 	std::vector<Token>                           tokens;
 	int                                          current = 0;
 	std::string                                  currentFunction;
 	std::optional<Error>                         lastError;
+	std::vector<Error>                           errors;
 	std::filesystem::path                        sourcePath;
 	std::vector<std::filesystem::path>           includePaths;
 	Defines                                       defines;
@@ -74,6 +79,7 @@ class Parser
 	Token consume(Phasor::TokenType type, const std::string &message);
 	Token consume(Phasor::TokenType type, const std::string &lexeme, const std::string &message);
 	Token expect(Phasor::TokenType type, const std::string &message);
+	void                                      synchronize();
 	void                                      declarationInto(std::vector<std::unique_ptr<AST::Statement>> &out);
 	void                                      defineDirective();
 	void                                      undefineDirective();

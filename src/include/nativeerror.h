@@ -15,7 +15,7 @@
 	do                                                                                                                 \
 	{                                                                                                                  \
 		std::string _msg = (msg);                                                                                      \
-		MessageBoxA(nullptrptr, _msg.c_str(), "Phasor VM Runtime Error", MB_OK | MB_ICONERROR);                              \
+		MessageBoxA(nullptr, _msg.c_str(), "Phasor VM Runtime Error", MB_OK | MB_ICONERROR);                              \
 		_phs_nativeerror_console(_msg);                                                                                \
 	} while (0)
 #elif defined(__APPLE__)
@@ -25,7 +25,7 @@
 	do                                                                                                                 \
 	{                                                                                                                  \
 		std::string _msg = (msg);                                                                                      \
-		CFStringRef _cfMsg = CFStringCreateWithCString(nullptrptr, _msg.c_str(), kCFStringEncodingUTF8);                     \
+		CFStringRef _cfMsg = CFStringCreateWithCString(nullptr, _msg.c_str(), kCFStringEncodingUTF8);                     \
 		CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, nullptr, nullptr, nullptr,                         \
 		                               CFSTR("Phasor VM Runtime Error"), _cfMsg, CFSTR("OK"), nullptr, nullptr, nullptr);       \
 		CFRelease(_cfMsg);                                                                                             \

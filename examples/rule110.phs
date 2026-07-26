@@ -1,4 +1,5 @@
 #!/usr/bin/env phasor
+define NO_CHECK_OS;
 include "./rule110/logic.phs";
 include "std/io";
 include "std/type";

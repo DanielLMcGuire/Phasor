@@ -1,4 +1,6 @@
 #!/usr/bin/env phasor
+define NO_CHECK_OS;
+define NO_STACK_COOKIE;
 include "./time/logic.phs";
 include "std/io";
 include "std/type";

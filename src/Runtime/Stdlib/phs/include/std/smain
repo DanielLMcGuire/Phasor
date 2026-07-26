@@ -1,5 +1,5 @@
 // Phasor STDSMAIN
-
+// phasor-help phasorstd-smain 3
 // Copyright 2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
@@ -18,6 +18,9 @@ include "./main";
 fn smain() -> void;
 
 fn main(args: string[]) -> i64 {
+static_if (PHS_DEBUG)
+    printf("smain()\n");
+static_endif // (PHS_DEBUG)
     smain();
     return 0;
 }

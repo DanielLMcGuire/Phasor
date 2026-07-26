@@ -106,7 +106,7 @@ int NativeRuntime::run()
 		m_vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 		int status = m_vm->run(m_bytecode);
@@ -137,7 +137,7 @@ int NativeRuntime::runFunctionInt(std::string functionName)
 		m_vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
@@ -163,7 +163,7 @@ std::optional<std::string> NativeRuntime::runFunctionString(std::string function
 		m_vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
 		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
-#elif defined(__linux__)
+#else
 		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
