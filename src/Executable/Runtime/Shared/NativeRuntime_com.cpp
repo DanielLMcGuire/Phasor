@@ -14,11 +14,12 @@
 
 namespace
 {
-	std::vector<std::filesystem::path> fetchIncludeDirs() {
+	std::vector<std::filesystem::path> fetchIncludeDirs()
+	{
 		std::vector<std::filesystem::path> finalPaths;
 
 #ifdef PHASOR_DEFAULT_FIRST_PATH
-		finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+		finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
 		Phasor::PhsString includeDirs;
@@ -29,7 +30,9 @@ namespace
 			while (std::getline(ss, item, ';'))
 			{
 				if (!item.empty())
-					finalPaths.push_back(item);
+				{
+					finalPaths.emplace_back(item);
+				}
 			}
 		}
 
@@ -40,12 +43,16 @@ namespace
 
 	std::string wideToUtf8(LPCOLESTR text)
 	{
-		if (!text)
+		if (text == nullptr) 
+		{
 			return {};
+		}
 
 		int required = WideCharToMultiByte(CP_UTF8, 0, text, -1, nullptr, 0, nullptr, nullptr);
-		if (required <= 1)
+		if (required <= 1) 
+		{
 			return {};
+		}
 
 		std::string out(static_cast<size_t>(required - 1), '\0');
 		WideCharToMultiByte(CP_UTF8, 0, text, -1, out.data(), required, nullptr, nullptr);
@@ -55,8 +62,10 @@ namespace
 
 HRESULT __stdcall PhasorScriptEngine::QueryInterface(REFIID riid, void** ppv)
 {
-	if (!ppv)
+	if (ppv == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*ppv = nullptr;
 
@@ -67,9 +76,7 @@ HRESULT __stdcall PhasorScriptEngine::QueryInterface(REFIID riid, void** ppv)
 	else if (riid == IID_IActiveScriptParse)
 	{
 		*ppv = static_cast<IActiveScriptParse*>(this);
-	}
-	else
-	{
+	} else {
 		return E_NOINTERFACE;
 	}
 
@@ -86,17 +93,23 @@ ULONG __stdcall PhasorScriptEngine::Release()
 {
 	long r = --refCount;
 	if (r == 0)
+	{
 		delete this;
+	}
 	return r;
 }
 
 HRESULT __stdcall PhasorScriptEngine::SetScriptSite(IActiveScriptSite* pSite)
 {
-	if (pSite)
+	if (pSite != nullptr)
+	{
 		pSite->AddRef();
+	}
 
-	if (site)
+	if (site != nullptr)
+	{
 		site->Release();
+	}
 
 	site = pSite;
 	return S_OK;
@@ -104,13 +117,17 @@ HRESULT __stdcall PhasorScriptEngine::SetScriptSite(IActiveScriptSite* pSite)
 
 HRESULT __stdcall PhasorScriptEngine::GetScriptSite(REFIID riid, void** ppvObject)
 {
-	if (!ppvObject)
+	if (ppvObject == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*ppvObject = nullptr;
 
-	if (!site)
+	if (site == nullptr)
+	{
 		return E_FAIL;
+	}
 
 	return site->QueryInterface(riid, ppvObject);
 }
@@ -123,8 +140,10 @@ HRESULT __stdcall PhasorScriptEngine::SetScriptState(SCRIPTSTATE st)
 
 HRESULT __stdcall PhasorScriptEngine::GetScriptState(SCRIPTSTATE* pss)
 {
-	if (!pss)
+	if (pss == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*pss = state;
 	return S_OK;
@@ -132,7 +151,7 @@ HRESULT __stdcall PhasorScriptEngine::GetScriptState(SCRIPTSTATE* pss)
 
 HRESULT __stdcall PhasorScriptEngine::Close()
 {
-	if (site)
+	if (site != nullptr)
 	{
 		site->Release();
 		site = nullptr;
@@ -155,8 +174,10 @@ HRESULT __stdcall PhasorScriptEngine::AddTypeLib(REFGUID, DWORD, DWORD, DWORD)
 
 HRESULT __stdcall PhasorScriptEngine::GetScriptDispatch(LPCOLESTR, IDispatch** ppdisp)
 {
-	if (!ppdisp)
+	if (ppdisp == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*ppdisp = nullptr;
 	return E_NOTIMPL;
@@ -164,8 +185,10 @@ HRESULT __stdcall PhasorScriptEngine::GetScriptDispatch(LPCOLESTR, IDispatch** p
 
 HRESULT __stdcall PhasorScriptEngine::GetCurrentScriptThreadID(SCRIPTTHREADID* pstidThread)
 {
-	if (!pstidThread)
+	if (pstidThread == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*pstidThread = SCRIPTTHREADID_BASE;
 	return S_OK;
@@ -173,8 +196,10 @@ HRESULT __stdcall PhasorScriptEngine::GetCurrentScriptThreadID(SCRIPTTHREADID* p
 
 HRESULT __stdcall PhasorScriptEngine::GetScriptThreadID(DWORD, SCRIPTTHREADID* pstidThread)
 {
-	if (!pstidThread)
+	if (pstidThread == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*pstidThread = SCRIPTTHREADID_BASE;
 	return S_OK;
@@ -182,8 +207,10 @@ HRESULT __stdcall PhasorScriptEngine::GetScriptThreadID(DWORD, SCRIPTTHREADID* p
 
 HRESULT __stdcall PhasorScriptEngine::GetScriptThreadState(SCRIPTTHREADID, SCRIPTTHREADSTATE* pstsState)
 {
-	if (!pstsState)
+	if (pstsState == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*pstsState = SCRIPTTHREADSTATE_NOTINSCRIPT;
 	return S_OK;
@@ -196,8 +223,10 @@ HRESULT __stdcall PhasorScriptEngine::InterruptScriptThread(SCRIPTTHREADID, cons
 
 HRESULT __stdcall PhasorScriptEngine::Clone(IActiveScript** ppscript)
 {
-	if (ppscript)
+	if (ppscript != nullptr)
+	{
 		*ppscript = nullptr;
+	}
 	return E_NOTIMPL;
 }
 
@@ -226,8 +255,10 @@ HRESULT __stdcall PhasorScriptEngine::AddScriptlet(
 	BSTR* pbstrName,
 	EXCEPINFO*)
 {
-	if (pbstrName)
+	if (pbstrName != nullptr)
+	{
 		*pbstrName = nullptr;
+	}
 
 	return E_NOTIMPL;
 }
@@ -247,19 +278,25 @@ HRESULT __stdcall PhasorScriptEngine::ParseScriptText(
 	VARIANT* result,
 	EXCEPINFO* ex)
 {
-	if (!code)
+	if (code == nullptr)
+	{
 		return E_POINTER;
+	}
 
-	if (result)
+	if (result != nullptr)
+	{
 		VariantInit(result);
+	}
 
-	if (ex)
+	if (ex != nullptr)
+	{
 		ZeroMemory(ex, sizeof(*ex));
+	}
 
 	try
 	{
 		std::string src = wideToUtf8(code);
-		Phasor::Frontend::runScript(src.c_str(), &vm, fetchIncludeDirs(), false);
+		Phasor::Frontend::runScript(src, &vm, fetchIncludeDirs(), false);
 		return S_OK;
 	}
 	catch (...)
@@ -275,8 +312,10 @@ class ClassFactory final : public IClassFactory
 public:
 	HRESULT __stdcall QueryInterface(REFIID riid, void** ppv) override
 	{
-		if (!ppv)
+		if (ppv == nullptr)
+		{
 			return E_POINTER;
+		}
 
 		*ppv = nullptr;
 
@@ -299,19 +338,25 @@ public:
 	{
 		long r = --refCount;
 		if (r == 0)
+		{
 			delete this;
+		}
 		return r;
 	}
 
 	HRESULT __stdcall CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** ppv) override
 	{
-		if (!ppv)
+		if (ppv == nullptr)
+		{
 			return E_POINTER;
+		}
 
 		*ppv = nullptr;
 
-		if (pUnkOuter)
+		if (pUnkOuter != nullptr)
+		{
 			return CLASS_E_NOAGGREGATION;
+		}
 
 		auto* engine = new PhasorScriptEngine();
 		HRESULT hr = engine->QueryInterface(riid, ppv);
@@ -350,13 +395,17 @@ HRESULT __stdcall DllGetClassObject(
 	REFIID riid,
 	void** ppv)
 {
-	if (!ppv)
+	if (ppv == nullptr)
+	{
 		return E_POINTER;
+	}
 
 	*ppv = nullptr;
 
 	if (!IsEqualCLSID(rclsid, CLSID_PhasorEngine))
+	{
 		return CLASS_E_CLASSNOTAVAILABLE;
+	}
 
 	auto* factory = new ClassFactory();
 	HRESULT hr = factory->QueryInterface(riid, ppv);

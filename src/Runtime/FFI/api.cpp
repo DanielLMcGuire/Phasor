@@ -1,5 +1,6 @@
 #include "ffi.hpp"
 #include <PhasorFFI.h>
+#include <algorithm>
 #include <cstdlib>
 
 #ifndef CMAKE_PCH
@@ -21,22 +22,22 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
 	switch (c_value.type)
 	{
 	case PHASOR_TYPE_NULL:
-		return Phasor::Value();
+		return phsnull;
 	case PHASOR_TYPE_BOOL:
-		return Phasor::Value(c_value.as.b);
+		return {c_value.as.b};
 	case PHASOR_TYPE_INT:
-		return Phasor::Value(c_value.as.i);
+		return {c_value.as.i};
 	case PHASOR_TYPE_FLOAT:
-		return Phasor::Value(c_value.as.f);
+		return {c_value.as.f};
 	case PHASOR_TYPE_STRING:
-		if (c_value.as.s)
+		if (c_value.as.s != nullptr)
 		{
-			return Phasor::Value(c_value.as.s);
+			return {c_value.as.s};
 		}
-		return Phasor::Value("");
+		return {""};
 	case PHASOR_TYPE_ARRAY: {
 		std::vector<Phasor::Value> cpp_elements;
-		if (c_value.as.a.elements && c_value.as.a.count > 0)
+		if ((c_value.as.a.elements != nullptr) && c_value.as.a.count > 0)
 		{
 			cpp_elements.reserve(c_value.as.a.count);
 			for (size_t i = 0; i < c_value.as.a.count; ++i)
@@ -49,11 +50,11 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
 	case PHASOR_TYPE_STRUCT: {
 		const auto &st = c_value.as.st;
 		Phasor::Value result = Phasor::Value::createStruct(
-			st.name ? PhsString(st.name) : PhsString(""));
+			(st.name != nullptr) ? PhsString(st.name) : PhsString(""));
 
 		for (size_t i = 0; i < st.count; ++i)
 		{
-			if (st.keys[i])
+			if (st.keys[i] != nullptr)
 			{
 				result.setField(PhsString(st.keys[i]),
 								from_c_value(st.values[i]));
@@ -62,7 +63,7 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
 		return result;
 	}
 	default:
-		return Phasor::Value();
+		return phsnull;
 	}
 }
 
@@ -91,7 +92,7 @@ PhasorValue to_c_value(const Phasor::Value &cpp_value, std::vector<std::unique_p
 	case ValueType::String: {
 		const auto &str = cpp_value.string();
 		auto        c_str = std::make_unique<char[]>(str.length() + 1);
-		std::copy(str.begin(), str.end(), c_str.get());
+		std::ranges::copy(str, c_str.get());
 		c_str[str.length()] = '\0';
 		PhasorValue val = phasor_make_string(c_str.get());
 		string_arena.push_back(std::move(c_str));
@@ -139,7 +140,7 @@ Phasor::Value c_native_func_wrapper(PhasorNativeFunction c_func, Phasor::VM *vm,
 
 void register_native_c_func(PhasorVM *vm, const char *name, PhasorNativeFunction func)
 {
-	Phasor::VM *cpp_vm = reinterpret_cast<Phasor::VM *>(vm);
+	auto *cpp_vm = reinterpret_cast<Phasor::VM *>(vm);
 
 	auto wrapper = [func](const std::vector<Phasor::Value> &args, Phasor::VM *vm_param) -> Phasor::Value {
 		return c_native_func_wrapper(func, vm_param, args);
@@ -154,33 +155,33 @@ extern "C" {
 
 void api_log(PhasorVM* vm, PhasorValue msg)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	cpp_vm->log(Phasor::from_c_value(msg));
 }
 
 void api_logerr(PhasorVM* vm, PhasorValue msg)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	cpp_vm->logerr(Phasor::from_c_value(msg));
 }
 
 void api_flush(PhasorVM* vm)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	cpp_vm->flush();
 }
 
 void api_flusherr(PhasorVM* vm)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	cpp_vm->flusherr();
 }
 
 const char* api_getVersion(PhasorVM* vm)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
-	if (ffi)
+	if (ffi != nullptr)
 	{
 		return ffi->getVersionString();
 	}
@@ -189,20 +190,20 @@ const char* api_getVersion(PhasorVM* vm)
 
 bool api_loadPlugin(PhasorVM* vm, const char* libPath)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
-	if (ffi && libPath)
+	if ((ffi != nullptr) && (libPath != nullptr))
 	{
 		return ffi->addPlugin(libPath);
 	}
 	return false;
 }
 
-void api_onExitCall(PhasorVM* vm, void (*func)(void))
+void api_onExitCall(PhasorVM* vm, void (*func)())
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
-	if (ffi)
+	if (ffi != nullptr)
 	{
 		ffi->registerExitCall(func);
 	}
@@ -210,9 +211,9 @@ void api_onExitCall(PhasorVM* vm, void (*func)(void))
 
 void api_onExitFree(PhasorVM* vm, void* ptr)
 {
-	Phasor::VM* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
+	auto* cpp_vm = reinterpret_cast<Phasor::VM*>(vm);
 	Phasor::FFI* ffi = Phasor::FFI::getFromVM(cpp_vm);
-	if (ffi)
+	if (ffi != nullptr)
 	{
 		ffi->registerExitFree(ptr);
 	}

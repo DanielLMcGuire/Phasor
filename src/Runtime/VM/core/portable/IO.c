@@ -11,12 +11,16 @@
 
 [[nodiscard]] static char **parse_argv(const char *cmd, int *argc)
 {
-	if (!cmd || !*cmd)
+	if (!cmd || !*cmd) 
+	{
 		return nullptr;
+	}
 	size_t len = strlen(cmd);
 	char  *copy = malloc(len + 1);
-	if (!copy)
+	if (!copy) 
+	{
 		return nullptr;
+	}
 
 #ifdef _WIN32
 	strcpy_s(copy, len + 1, cmd);
@@ -66,7 +70,9 @@
 		if (!argv[i])
 		{
 			for (int j = 0; j < i; j++)
+			{
 				free(argv[j]);
+			}
 			free(argv);
 			free(copy);
 			return nullptr;
@@ -91,9 +97,13 @@
 static void free_argv(char **argv)
 {
 	if (!argv)
+	{
 		return;
+	}
 	for (int i = 0; argv[i]; i++)
+	{
 		free(argv[i]);
+	}
 	free(argv);
 }
 
@@ -116,8 +126,10 @@ char *c_system_out(const char *cmd)
 {
 	int    argc;
 	char **argv = parse_argv(cmd, &argc);
-	if (!argv)
+	if (!argv) 
+	{
 		return nullptr;
+	}
 	char  *output = nullptr;
 	size_t output_size = 0;
 	size_t output_capacity = 1024;
@@ -129,7 +141,8 @@ char *c_system_out(const char *cmd)
 	}
 #ifdef _WIN32
 	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE};
-	HANDLE              hRead, hWrite;
+	HANDLE              hRead;
+	HANDLE              hWrite;
 	if (!CreatePipe(&hRead, &hWrite, &sa, 0))
 	{
 		free(output);
@@ -203,9 +216,7 @@ char *c_system_out(const char *cmd)
 		close(pipefd[1]);
 		execvp(argv[0], argv);
 		_exit(1);
-	}
-	else
-	{
+	} else {
 		close(pipefd[1]);
 		ssize_t bytesRead;
 		char    buffer[1024];
@@ -242,7 +253,9 @@ char *c_system_err(const char *cmd)
 	int    argc;
 	char **argv = parse_argv(cmd, &argc);
 	if (!argv)
+	{
 		return nullptr;
+	}
 	char  *output = nullptr;
 	size_t output_size = 0;
 	size_t output_capacity = 1024;
@@ -254,7 +267,8 @@ char *c_system_err(const char *cmd)
 	}
 #ifdef _WIN32
 	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE};
-	HANDLE              hRead, hWrite;
+	HANDLE              hRead;
+	HANDLE              hWrite;
 	if (!CreatePipe(&hRead, &hWrite, &sa, 0))
 	{
 		free(output);
@@ -328,9 +342,7 @@ char *c_system_err(const char *cmd)
 		close(pipefd[1]);
 		execvp(argv[0], argv);
 		_exit(1);
-	}
-	else
-	{
+	} else {
 		close(pipefd[1]);
 		ssize_t bytesRead;
 		char    buffer[1024];

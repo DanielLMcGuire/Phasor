@@ -1,5 +1,6 @@
 #include "ffi.hpp"
 #include "../VM/VM.hpp"
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -51,7 +52,7 @@ FFI* FFI::getFromVM(VM* vm)
 
 void FFI::registerExitCall(void (*func)())
 {
-	if (func)
+	if (func != nullptr)
 	{
 		exitCalls_.push_back(func);
 	}
@@ -59,7 +60,7 @@ void FFI::registerExitCall(void (*func)())
 
 void FFI::registerExitFree(void* ptr)
 {
-	if (ptr)
+	if (ptr != nullptr)
 	{
 		exitFrees_.push_back(ptr);
 	}
@@ -78,7 +79,7 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 
 #if defined(_WIN32)
 	HMODULE lib = LoadLibraryA(library.string().c_str());
-	if (!lib)
+	if (lib == nullptr)
 	{
 		std::stringstream ss;
 		ss << "FFI Error: Failed to load library " << library.string() << ". Code: " << GetLastError();
@@ -98,7 +99,7 @@ bool FFI::loadPlugin(const std::filesystem::path &library, VM *vm)
 	auto entry_point = (PluginEntryFunc)dlsym(lib, "phasor_plugin_entry");
 #endif
 
-	if (!entry_point)
+	if (entry_point == nullptr)
 	{
 		throw std::runtime_error(
 		    std::string("FFI Error: Could not find entry point 'phasor_plugin_entry' in " + library.string()));
@@ -144,7 +145,8 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 {
 #ifdef TRACING
 	std::string folderStrs;
-	for (size_t i = 0; i < folders.size(); ++i) {
+	for (size_t i = 0; i < folders.size(); ++i)
+	{
 		folderStrs += folders[i].string();
 		if (i < folders.size() - 1) folderStrs += ", ";
 	}
@@ -152,8 +154,10 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 	vm_->flush();
 #endif
 
-	if (folders.empty())
+	if (folders.empty()) 
+	{
 		return {};
+	}
 
 	std::vector<std::string>           plugins;
 	std::filesystem::path              exeDir;
@@ -185,14 +189,15 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 	// Aggregate all valid absolute and relative folders to scan
 	for (const auto &folder : folders)
 	{
-		if (folder.empty()) continue;
+		if (folder.empty()) 
+		{ 
+			continue;
+		}
 
 		if (folder.is_absolute())
 		{
 			foldersToScan.push_back(folder);
-		}
-		else
-		{
+		} else {
 			foldersToScan.push_back(exeDir / folder);
 			if (!std::filesystem::equivalent(exeDir, std::filesystem::current_path()))
 			{
@@ -204,13 +209,17 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 	// Iterate through all aggregated directories
 	for (auto &folderPath : foldersToScan)
 	{
-		if (!std::filesystem::exists(folderPath) || !std::filesystem::is_directory(folderPath))
-			continue;
-
-		for (auto &p : std::filesystem::directory_iterator(folderPath))
+		if (!std::filesystem::exists(folderPath) || !std::filesystem::is_directory(folderPath)) 
 		{
-			if (!p.is_regular_file())
+			continue;
+		}
+
+		for (const auto &p : std::filesystem::directory_iterator(folderPath))
+		{
+			if (!p.is_regular_file()) 
+			{
 				continue;
+			}
 			
 			auto ext = p.path().extension().string();
 #if defined(_WIN32)
@@ -223,7 +232,7 @@ std::vector<std::string> FFI::scanPlugins(const std::vector<std::filesystem::pat
 			{
 				// Prevent loading duplicates if overlapping directories resolve to the same files
 				std::string pluginStr = p.path().string();
-				if (std::find(plugins.begin(), plugins.end(), pluginStr) == plugins.end())
+				if (std::ranges::find(plugins, pluginStr) == plugins.end())
 				{
 					plugins.push_back(pluginStr);
 				}
@@ -247,13 +256,19 @@ void FFI::unloadAll()
 	// to ensure pointers to functions safely remain valid during invocation.
 	for (auto cb : exitCalls_)
 	{
-		if (cb) cb();
+		if (cb != nullptr) 
+		{ 
+			cb();
+		}
 	}
 	exitCalls_.clear();
 
-	for (auto ptr : exitFrees_)
+	for (auto *ptr : exitFrees_)
 	{
-		if (ptr) std::free(ptr);
+		if (ptr != nullptr)
+		{
+			std::free(ptr);
+		}
 	}
 	exitFrees_.clear();
 
@@ -298,7 +313,7 @@ FFI::FFI(const std::vector<std::filesystem::path> &pluginFolders, VM *vm)
 		}
 		catch (const std::runtime_error &e)
 		{
-			std::cerr << e.what() << std::endl;
+			std::cerr << e.what() << '\n';
 		}
 	}
 }

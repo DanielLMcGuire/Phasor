@@ -40,9 +40,9 @@ class CppCompiler
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);
-	bool showHelp(const PhsString &programName);
-	bool generateHeader(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
-	bool generateSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
+	static bool showHelp(const PhsString &programName);
+	bool generateHeader(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath) const;
+	static bool generateSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
 	bool compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
 	bool linkObject(const std::filesystem::path &objectPath, const std::filesystem::path &outputPath);
 };

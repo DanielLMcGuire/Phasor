@@ -38,7 +38,7 @@ class CppCodeGenerator
 	 * @return Deserialized Bytecode object
 	 *
 	 */
-	Bytecode generateBytecodeFromEmbedded(const PhsString &input);
+	static Bytecode generateBytecodeFromEmbedded(const PhsString &input);
 
   private:
 	std::ostringstream   output; ///< Output stream for generated code

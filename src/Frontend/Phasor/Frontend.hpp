@@ -21,7 +21,7 @@ int runScript(const std::string &source, VM *vm, const std::vector<std::filesyst
  * @param vm The virtual machine to run the REPL on
  * @param verbose Prints AST to stdout.
  */
-int runRepl(VM *vm = nullptr, const std::vector<std::filesystem::path> paths = {""}, bool verbose = false);
+int runRepl(VM *vm = nullptr, const std::vector<std::filesystem::path>& paths = {""}, bool verbose = false);
 } // namespace Frontend
 
 } // namespace Phasor

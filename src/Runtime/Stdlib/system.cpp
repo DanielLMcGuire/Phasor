@@ -59,23 +59,29 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
 	vm->registerNativeFunction("isatty", stub);
-	if (!std::getenv("PHASOR_NO_ENV")) {
+	if (!std::getenv("PHASOR_NO_ENV"))
+	{
 		vm->registerNativeFunction("sys_env", [] (const std::vector<Value> &v, VM *vm) -> Value {
-			if (consentGrantedEnv) {
+			if (consentGrantedEnv)
+			{
 				return sys_env(v, vm);
 			}
-			if (!consentAskedEnv) {
+			if (!consentAskedEnv)
+			{
 				[[unlikely]]
 				consentGrantedEnv = prompt_consent("Standard library", EConsentVolition::Wants, "use", "environment variables"); 
 				consentAskedEnv = true;
 			}
 			return phsnull;
 		});
-		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm) {
-			if (consentGrantedCLI) {
+		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm)
+		{
+			if (consentGrantedCLI)
+			{
 				return sys_args(v, vm);
 			}
-			if (!consentAskedCLI) {
+			if (!consentAskedCLI)
+			{
 				[[unlikely]]
 				consentGrantedCLI = prompt_consent("Standard library", EConsentVolition::Wants, "use", "command line arguments"); 
 				consentAskedCLI = true;
@@ -137,7 +143,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
     try {
         return PhsString(std::vformat("{:" + format + "}", std::make_format_args(now)));
     } catch (const std::format_error &) {
-        return Value(" ");
+        return {" "};
     }
 }
 
@@ -172,7 +178,7 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 		PHS_ERROR("sleep() expects a number as its argument (milliseconds)");
 	double ms = args[0].asFloat();
 	std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(ms));
-	return Value(" ");
+	return {" "};
 }
 
 Value StdLib::sys_env(const std::vector<Value> &args, VM *)
@@ -183,9 +189,14 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 	PhsString key = args[0].string();
 	PhsString value;
 	dupenv_ret result = dupenv(value, key.c_str());
-	if (result == dupenv_ret::NotFound) return false;
-	else if (result == dupenv_ret::Success) return value;
-	else return phsnull;
+	if (result == dupenv_ret::NotFound)
+	{ 
+		return false;
+	} else if (result == dupenv_ret::Success) {
+		return value;
+	} else {	
+		return phsnull;
+	}
 }
 
 i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
@@ -200,7 +211,10 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 	if (!args[0].isInt())
 		PHS_ERROR("sys_argv() expects an integer as its argument (index)");
 	i64 index = args[0].asInt();
-	if (index < 0 || index >= argc) return phsnull;
+	if (index < 0 || index >= argc) 
+	{ 
+		return phsnull;
+	}
 	return argv[index];
 }
 
@@ -208,9 +222,10 @@ Value StdLib::sys_args(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "sys_args");
 	std::vector<Value> arguments;
+	arguments.reserve(argc);
 	for (int i = 0; i < argc; ++i)
 	{
-		arguments.push_back(Value(argv[i]));
+		arguments.emplace_back(argv[i]);
 	}
 	return Value::createArray(std::move(arguments));
 }
@@ -271,7 +286,7 @@ Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 0, "wait_for_input");
 	io_gets({}, vm);
-	return Value("");
+	return {""};
 }
 
 Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)

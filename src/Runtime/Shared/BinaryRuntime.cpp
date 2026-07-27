@@ -15,7 +15,7 @@ BinaryRuntime::BinaryRuntime(int argc, char *argv[])
 	parseArguments(argc, argv);
 }
 
-int BinaryRuntime::run()
+int BinaryRuntime::run() const
 {
 	if (m_args.inputFile.empty())
 	{
@@ -26,16 +26,18 @@ int BinaryRuntime::run()
 	try
 	{
 		if (m_args.verbose)
-			std::cerr << "DEBUG: Loading bytecode from: " << m_args.inputFile << std::endl;
+		{
+			std::cerr << "DEBUG: Loading bytecode from: " << m_args.inputFile << '\n';
+		}
 
 		BytecodeDeserializer deserializer;
 		Bytecode             bytecode = deserializer.loadFromFile(m_args.inputFile);
 
 		if (m_args.verbose)
 		{
-			std::cerr << "DEBUG: Bytecode loaded successfully" << std::endl;
-			std::cerr << "DEBUG: Instructions: " << bytecode.instructions.size() << std::endl;
-			std::cerr << "DEBUG: Constants: " << bytecode.constants.size() << std::endl;
+			std::cerr << "DEBUG: Bytecode loaded successfully" << '\n';
+			std::cerr << "DEBUG: Instructions: " << bytecode.instructions.size() << '\n';
+			std::cerr << "DEBUG: Constants: " << bytecode.constants.size() << '\n';
 		}
 
 		auto vm = std::make_unique<VM>();
@@ -51,13 +53,17 @@ int BinaryRuntime::run()
 		vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
-		if (m_args.verbose)
-			std::cerr << "DEBUG: About to run bytecode" << std::endl;
+		if (m_args.verbose) 
+		{
+			std::cerr << "DEBUG: About to run bytecode" << '\n';
+		}
 
 		int status = vm->run(bytecode);
 
-		if (m_args.verbose)
-			std::cerr << "DEBUG: Bytecode execution complete with return " << status << std::endl;
+		if (m_args.verbose) 
+		{
+			std::cerr << "DEBUG: Bytecode execution complete with return " << status << '\n';
+		}
 
 		return status;
 	}
@@ -83,9 +89,7 @@ void BinaryRuntime::parseArguments(int argc, char *argv[])
 		{
 			showHelp(argv[0]);
 			exit(0);
-		}
-		else
-		{
+		} else {
 			defaultArgLocation = i;
 			m_args.inputFile = arg;
 			break; // Stop parsing after finding the input file

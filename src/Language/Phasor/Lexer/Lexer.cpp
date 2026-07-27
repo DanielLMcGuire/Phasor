@@ -81,12 +81,16 @@ void Lexer::skipWhitespace()
 	{
 		char c = peek();
 		if (std::isspace(static_cast<unsigned char>(c)) != 0)
+		{
 			advance();
-		else if (c == '/' && position + 1 < source.length() && source[position + 1] == '/')
-			while (!isAtEnd() && peek() != '\n')
+		} else if (c == '/' && position + 1 < source.length() && source[position + 1] == '/') {
+			while (!isAtEnd() && peek() != '\n') 
+			{
 				advance();
-		else
+			}
+		} else {
 			break;
+		}
 	}
 }
 
@@ -298,7 +302,10 @@ Token Lexer::string()
 				for (int i = 1; i < 3 && !isAtEnd(); ++i)
 				{
 					char d = peek();
-					if (d < '0' || d > '7') break;
+					if (d < '0' || d > '7')
+					{
+						break;
+					}
 					advance();
 					val = val * 8 + static_cast<u32>(d - '0');
 				}
@@ -320,7 +327,9 @@ Token Lexer::string()
 				}
 				int val = hexValue(advance());
 				if (!isAtEnd() && hexValue(peek()) >= 0)
+				{
 					val = (val << 4) | hexValue(advance());
+				}
 				out << static_cast<char>(val);
 				break;
 			}
@@ -345,16 +354,23 @@ Token Lexer::string()
 					reportError("Invalid Unicode code point in escape sequence.", tokenLine, tokenColumn);
 					return {Phasor::TokenType::Unknown, std::string(), tokenLine, tokenColumn};
 				}
-				if      (cp <= 0x7F)   { out << static_cast<char>(cp); }
-				else if (cp <= 0x7FF)  { out << static_cast<char>(0xC0 | (cp >> 6))
-				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
-				else if (cp <= 0xFFFF) { out << static_cast<char>(0xE0 | (cp >> 12))
-				                            << static_cast<char>(0x80 | ((cp >> 6) & 0x3F))
-				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
-				else                   { out << static_cast<char>(0xF0 | (cp >> 18))
-				                            << static_cast<char>(0x80 | ((cp >> 12) & 0x3F))
-				                            << static_cast<char>(0x80 | ((cp >> 6) & 0x3F))
-				                            << static_cast<char>(0x80 | (cp & 0x3F)); }
+				if (cp <= 0x7F)
+				{
+					out << static_cast<char>(cp);
+				} else if (cp <= 0x7FF) { 
+					out << static_cast<char>(0xC0 | (cp >> 6))
+						<< static_cast<char>(0x80 | (cp & 0x3F));
+										
+				} else if (cp <= 0xFFFF) {
+					out << static_cast<char>(0xE0 | (cp >> 12))
+				        << static_cast<char>(0x80 | ((cp >> 6) & 0x3F))
+				        << static_cast<char>(0x80 | (cp & 0x3F)); 
+				} else { 
+					out << static_cast<char>(0xF0 | (cp >> 18))
+				        << static_cast<char>(0x80 | ((cp >> 12) & 0x3F))
+				        << static_cast<char>(0x80 | ((cp >> 6) & 0x3F))
+				        << static_cast<char>(0x80 | (cp & 0x3F)); 
+				}
 				break;
 			}
 
@@ -366,9 +382,7 @@ Token Lexer::string()
 		else if (c == '"')
 		{
 			return {Phasor::TokenType::String, out.str(), tokenLine, tokenColumn};
-		}
-		else
-		{
+		} else {
 			out << c;
 		}
 	}

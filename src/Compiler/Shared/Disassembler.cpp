@@ -27,14 +27,16 @@ int Disassembler::run()
 	if (decompileBinary())
 	{
 		if (!m_args.silent)
+		{
 			std::println("Success! Output to {}", m_args.outputFile.string());
+		}
 		return 0;
 	}
-	else
-	{
+	
+	
 		std::println(std::cerr, "Failed to disassemble program!");
 		return 1;
-	}
+
 }
 
 bool Disassembler::parseArguments(int argc, char *argv[])
@@ -49,14 +51,12 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 			m_args.showHelp = true;
 			return true;
 		}
-		else if (arg == "-o" || arg == "--output")
+		if (arg == "-o" || arg == "--output")
 		{
 			if (i + 1 < argc)
 			{
 				m_args.outputFile = argv[++i];
-			}
-			else
-			{
+			} else {
 				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
@@ -71,13 +71,11 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 			std::println(std::cerr, "Error: Unknown option: {}", arg);
 			m_args.showHelp = true;
 			return true;
-		}
-		else
-		{
+		} else {
 			if (m_args.inputFile.empty())
-				m_args.inputFile = arg.str();
-			else
 			{
+				m_args.inputFile = arg.str();
+			} else {
 				std::println(std::cerr, "Error: Multiple input files specified");
 				m_args.showHelp = true;
 				return true;
@@ -87,7 +85,7 @@ bool Disassembler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-void Disassembler::showHelp()
+void Disassembler::showHelp() const
 {
 	std::println("Phasor Disassembler v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
@@ -103,7 +101,6 @@ void Disassembler::showHelp()
 bool Disassembler::decompileBinary()
 {
 	BytecodeDeserializer bcDeserializer{};
-	PhasorIR             phir;
 
 	if (m_args.outputFile.empty())
 	{
@@ -113,7 +110,7 @@ bool Disassembler::decompileBinary()
 		m_args.outputFile = path.string();
 	}
 
-	return phir.saveToFile(bcDeserializer.loadFromFile(m_args.inputFile), m_args.outputFile);
+	return Phasor::PhasorIR::saveToFile(bcDeserializer.loadFromFile(m_args.inputFile), m_args.outputFile);
 }
 
 } // namespace Phasor

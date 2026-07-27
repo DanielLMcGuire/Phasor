@@ -21,14 +21,14 @@ class NativeRuntime
 {
   public:
 	NativeRuntime(const std::vector<u8> &bytecodeData, const int argc, const char **argv);
-	NativeRuntime(const Phasor::Bytecode &bytecode, const int argc, const char **argv);
-	NativeRuntime(const std::string &script, const int argc, const char **argv);
-	NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv);
+	NativeRuntime(Phasor::Bytecode bytecode, const int argc, const char **argv);
+	NativeRuntime(std::string script, const int argc, const char **argv);
+	NativeRuntime(const Phasor::VM &vm, std::string script, const int argc, const char **argv);
 	NativeRuntime(Phasor::VM *vm, const std::vector<u8> &bytecodeData, const int argc, const char **argv);
 	~NativeRuntime();
 	int                        run();
-	int                        runFunctionInt(std::string functionName);
-	std::optional<std::string> runFunctionString(std::string functionName);
+	int                        runFunctionInt(const std::string& functionName);
+	std::optional<std::string> runFunctionString(const std::string& functionName);
 	void                       addNativeFunction(const std::string &name, void *function);
 
 	static int eval(VM *vm, const std::string &script);

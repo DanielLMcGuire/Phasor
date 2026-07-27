@@ -156,9 +156,7 @@ inline Defines resolveDefines(const std::vector<std::string> &cliDefines, bool n
 		if (eq == std::string::npos)
 		{
 			defines[entry] = DefineValue(DefineValueKind::Number, "1");
-		}
-		else
-		{
+		} else {
 			std::string name = entry.substr(0, eq);
 			std::string rawValue = entry.substr(eq + 1);
 			defines[name] = parseCliDefineValue(rawValue);

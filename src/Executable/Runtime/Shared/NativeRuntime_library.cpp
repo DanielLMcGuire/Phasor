@@ -17,7 +17,8 @@
 #include <cstring>
 #include <vformat.hpp>
 
-void set_terminal_title(const char *title) {
+void set_terminal_title(const char *title)
+{
 #ifdef _WIN32
     SetConsoleTitleA(title);
 #else
@@ -33,7 +34,8 @@ void set_terminal_title(const char *title) {
     { FILE* _f; freopen_s(&_f, "CONOUT$", "w", stderr); } \
     puts("")
 
-std::string getCommandLine(LPSTR &lpszCmdLine) {
+std::string getCommandLine(LPSTR &lpszCmdLine)
+{
 	std::string cmdline = lpszCmdLine;
 	return (cmdline.size() >= 2 && cmdline.starts_with('"') && cmdline.ends_with('"')) ? cmdline.substr(1, cmdline.size() - 2) : cmdline;
 }
@@ -49,11 +51,12 @@ std::string getCommandLine(LPSTR &lpszCmdLine) {
 
 #define msg error
 
-std::vector<std::filesystem::path> fetchIncludeDirs() {
+std::vector<std::filesystem::path> fetchIncludeDirs()
+{
 	std::vector<std::filesystem::path> finalPaths;
 
 #ifdef PHASOR_DEFAULT_FIRST_PATH
-	finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+	finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
 	Phasor::PhsString includeDirs;
@@ -64,7 +67,9 @@ std::vector<std::filesystem::path> fetchIncludeDirs() {
 		while (std::getline(ss, item, ';'))
 		{
 			if (!item.empty())
-				finalPaths.push_back(item);
+			{
+				finalPaths.emplace_back(item);
+			}
 		}
 	}
 
@@ -128,8 +133,9 @@ extern "C"
 
 			auto result = NativeRT.runFunctionString(functionName);
 			if (!result)
+			{
 				return nullptr;
-			else
+			} 
 				ret = *result;
 			return ret.c_str();
 		}
@@ -147,7 +153,7 @@ extern "C"
 		try
 		{
 			auto includeDirs = fetchIncludeDirs();
-			includeDirs.push_back(modulePath);
+			includeDirs.emplace_back(modulePath);
 			return Phasor::Frontend::runScript(script, static_cast<Phasor::VM *>(vmPtr), includeDirs, verbose);
 		}
 		catch (const std::exception &e)
@@ -169,10 +175,10 @@ extern "C"
 			Phasor::Parser             parser(lexer.tokenize());
 
 			auto includeDirs = fetchIncludeDirs();
-			if (modulePath && std::filesystem::exists(modulePath))
+			if ((modulePath != nullptr) && std::filesystem::exists(modulePath))
 			{
 				parser.setSourcePath(modulePath);
-				includeDirs.push_back(modulePath);
+				includeDirs.emplace_back(modulePath);
 			}
 			parser.setIncludePaths(includeDirs);
 
@@ -180,14 +186,20 @@ extern "C"
 			auto                 bc = codegen.generate(*ast);
 			std::vector<Phasor::u8> data = serializer.serialize(bc);
 
-			if (outSize)
+			if (outSize != nullptr)
+			{
 				*outSize = data.size();
+			}
 
-			if (!buffer)
+			if (buffer == nullptr)
+			{
 				return true;
+			}
 
 			if (bufferSize < data.size())
+			{
 				return false;
+			}
 
 			std::memcpy(buffer, data.data(), data.size());
 
@@ -202,7 +214,7 @@ extern "C"
 
 	PHASOR_API void *createState()
 	{
-		auto vm = new Phasor::VM();
+		auto *vm = new Phasor::VM();
 		return vm;
 	}
 
@@ -213,8 +225,10 @@ extern "C"
 
 	PHASOR_API bool freeState(void *vmPtr)
 	{
-		if (!vmPtr)
+		if (vmPtr == nullptr) 
+		{
 			return false;
+		}
 
 		delete static_cast<Phasor::VM *>(vmPtr);
 		return true;
@@ -222,20 +236,24 @@ extern "C"
 
 	PHASOR_API bool resetState(void *vmPtr, bool resetFunctions, bool resetVariables)
 	{
-		if (!vmPtr)
+		if (vmPtr == nullptr)
+		{
 			return false;
+		}
 
-		Phasor::VM *vm = static_cast<Phasor::VM *>(vmPtr);
+		auto *vm = static_cast<Phasor::VM *>(vmPtr);
 		vm->reset(true, resetFunctions, resetVariables);
 		return true;
 	}
 
 	PHASOR_API bool isErrorStatus(void *vmPtr)
 	{
-		if (!vmPtr)
+		if (vmPtr == nullptr)
+		{
 			return false;
+		}
 
-		Phasor::VM *vm = static_cast<Phasor::VM *>(vmPtr);
+		auto *vm = static_cast<Phasor::VM *>(vmPtr);
 		return vm->isErrorStatus();
 	}
 
@@ -243,7 +261,7 @@ extern "C"
 	PHASOR_API void CALLBACK PhasorSourceStringEvaluateA(HWND hwnd, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 		setupConsole();
-		int exitCode = evaluatePHS(NULL, getCommandLine(lpszCmdLine).c_str(), __func__, "", false);
+		int exitCode = evaluatePHS(nullptr, getCommandLine(lpszCmdLine).c_str(), __func__, "", false);
 		if (exitCode != 0)
 		{
 			std::string message = std::format("\nFailed with code {}\n", exitCode);
@@ -278,7 +296,7 @@ extern "C"
 
 		fileStream.read(scriptText.data(), scriptText.size());
 
-		int exitCode = evaluatePHS(NULL, scriptText.c_str(), __func__, file.parent_path().string().c_str(), false);
+		int exitCode = evaluatePHS(nullptr, scriptText.c_str(), __func__, file.parent_path().string().c_str(), false);
 		if (exitCode != 0)
 		{
 			std::string message = std::format("\nFailed with code {}\n", exitCode);

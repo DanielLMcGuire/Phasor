@@ -69,21 +69,23 @@ int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::ve
 				vm->reset(true, false, false);
 			}
 		}
-	}
-	catch (...)
-	{
+	} catch (...) {
 		if (ownVM)
+		{
 			delete vm;
+		}
 		throw;
 	}
 
-	if (ownVM)
+	if (ownVM) 
+	{
 		delete vm;
+	}
 
 	return status;
 }
 
-int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> paths, bool verbose)
+int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path>& paths, bool verbose)
 {
 	int           status = 0;
 	bool          ownVM = false;
@@ -107,7 +109,9 @@ int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> p
 	if (status != 0)
 	{
 		if (ownVM)
+		{
 			delete vm;
+		}
 		std::println(std::cerr, "Failed to create FFI handler!");
 		return status;
 	}
@@ -128,7 +132,9 @@ int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> p
 		{
 			std::print("\n> ");
 			if (!std::getline(std::cin, line))
+			{
 				break;
+			}
 
 			if (line.starts_with("exit"))
 			{
@@ -172,10 +178,14 @@ int Phasor::Frontend::runRepl(VM *vm, const std::vector<std::filesystem::path> p
 	}
 
 	if (ownVM)
+	{
 		delete vm;
+	}
 
 	if (cleanExit)
+	{
 		return 0;
+	}
 
 	return status;
 }

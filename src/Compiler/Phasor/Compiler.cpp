@@ -115,7 +115,7 @@ int Compiler::compileToIR()
 		Lexer         lexer(source);
 		Parser        parser(lexer.tokenize(), m_args.inputFile.str());
 		parser.setIncludePaths(m_args.includePaths);
-		parser.setDefines(Phasor::resolveDefines(m_args.defines, /*nativeTarget=*/false));
+		parser.setDefines(Phasor::resolveDefines(m_args.defines, false));
 		auto          program = parser.parse();
 		CodeGenerator codegen;
 		auto          bytecode = codegen.generate(*program);
@@ -163,7 +163,9 @@ void Compiler::parseArguments(int argc, char *argv[])
 			while (std::getline(ss, item, ','))
 			{
 				if (!item.empty())
-					m_args.includePaths.push_back(item);
+				{
+					m_args.includePaths.emplace_back(item);
+				}
 			}
 		}
 		else if (arg == "-I" || arg == "--include")
@@ -176,11 +178,11 @@ void Compiler::parseArguments(int argc, char *argv[])
 				while (std::getline(ss, item, ','))
 				{
 					if (!item.empty())
-						m_args.includePaths.push_back(item);
+					{
+						m_args.includePaths.emplace_back(item);
+					}
 				}
-			}
-			else
-			{
+			} else {
 				std::print(std::cerr, "Error: {} requires an argument\n", arg);
 				exit(1);
 			}
@@ -193,7 +195,9 @@ void Compiler::parseArguments(int argc, char *argv[])
 			while (std::getline(ss, item, ','))
 			{
 				if (!item.empty())
+				{
 					m_args.defines.push_back(item);
+				}
 			}
 		}
 		else if (arg == "-D" || arg == "--define")
@@ -206,11 +210,11 @@ void Compiler::parseArguments(int argc, char *argv[])
 				while (std::getline(ss, item, ','))
 				{
 					if (!item.empty())
+					{
 						m_args.defines.push_back(item);
+					}
 				}
-			}
-			else
-			{
+			} else {
 				std::print(std::cerr, "Error: {} requires an argument\n", arg);
 				exit(1);
 			}
@@ -220,9 +224,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 			if (i + 1 < argc)
 			{
 				m_args.outputFile = argv[++i];
-			}
-			else
-			{
+			} else {
 				std::print(std::cerr, "Error: {} requires an argument\n", arg);
 				exit(1);
 			}
@@ -235,9 +237,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 		{
 			showHelp(argv[0]);
 			exit(0);
-		}
-		else
-		{
+		} else {
 			defaultArgLocation = i;
 			m_args.inputFile = arg;
 			break; // Stop parsing after finding the input file
@@ -249,7 +249,7 @@ void Compiler::parseArguments(int argc, char *argv[])
 	std::vector<std::filesystem::path> finalPaths;
 
 #ifdef PHASOR_DEFAULT_FIRST_PATH
-	finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+	finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
 	for (const auto& p : m_args.includePaths)
@@ -265,7 +265,9 @@ void Compiler::parseArguments(int argc, char *argv[])
 		while (std::getline(ss, item, ';'))
 		{
 			if (!item.empty())
-				finalPaths.push_back(item);
+			{
+				finalPaths.emplace_back(item);
+			}
 		}
 	}
 	m_args.includePaths = std::move(finalPaths);

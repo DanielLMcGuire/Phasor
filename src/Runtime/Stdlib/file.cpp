@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <utility>
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -19,13 +20,13 @@ namespace
 		std::unique_ptr<std::fstream> stream;
 	};
 
-	static std::vector<FileHandle>& getFilePool()
+	std::vector<FileHandle>& getFilePool()
 	{
 		static std::vector<FileHandle> pool;
 		return pool;
 	}
 
-	static i64 allocFileDescriptor(std::unique_ptr<std::fstream> fs)
+	i64 allocFileDescriptor(std::unique_ptr<std::fstream> fs)
 	{
 		auto& pool = getFilePool();
 		for (size_t i = 0; i < pool.size(); ++i)
@@ -40,10 +41,10 @@ namespace
 		return static_cast<i64>(pool.size() - 1);
 	}
 
-	static std::fstream* getFileDescriptor(i64 fd)
+	std::fstream* getFileDescriptor(i64 fd)
 	{
 		auto& pool = getFilePool();
-		if (fd >= 0 && fd < static_cast<i64>(pool.size()) && pool[fd].stream)
+		if (fd >= 0 && std::cmp_less(fd ,pool.size()) && pool[fd].stream)
 		{
 			return pool[fd].stream.get();
 		}
@@ -51,21 +52,21 @@ namespace
 	}
 
 	/// @brief Require that a Value is a string, throwing a descriptive error otherwise.
-	static void requireString(const Value &v, const char *fnName, const char *what)
+	void requireString(const Value &v, const char *fnName, const char *what)
 	{
 		if (!v.isString())
 			PHS_ERROR(std::string(fnName) + "() expects a string as its " + what);
 	}
 
 	/// @brief Require that a Value is an integer, throwing a descriptive error otherwise.
-	static void requireInt(const Value &v, const char *fnName, const char *what)
+	void requireInt(const Value &v, const char *fnName, const char *what)
 	{
 		if (!v.isInt())
 			PHS_ERROR(std::string(fnName) + "() expects an integer as its " + what);
 	}
 
 	/// @brief Require that a Value is a boolean, throwing a descriptive error otherwise.
-	static void requireBool(const Value &v, const char *fnName, const char *what)
+	void requireBool(const Value &v, const char *fnName, const char *what)
 	{
 		if (!v.isBool())
 			PHS_ERROR(std::string(fnName) + "() expects a boolean as its " + what);
@@ -112,22 +113,41 @@ Value StdLib::file_open(const std::vector<Value> &args, VM *)
 	PhsString path = args[0].string();
 	PhsString mode = args[1].string();
 
-	std::ios_base::openmode omode = (std::ios_base::openmode)0;
+	auto omode = (std::ios_base::openmode)0;
 	
-	if (mode == "r") omode = std::ios::in;
-	else if (mode == "w") omode = std::ios::out | std::ios::trunc;
-	else if (mode == "a") omode = std::ios::out | std::ios::app;
-	else if (mode == "r+") omode = std::ios::in | std::ios::out;
-	else if (mode == "w+") omode = std::ios::in | std::ios::out | std::ios::trunc;
-	else if (mode == "a+") omode = std::ios::in | std::ios::out | std::ios::app;
-	else 
+	if (mode == "r")
 	{
-		if (mode.find('r') != std::string::npos) omode |= std::ios::in;
-		if (mode.find('w') != std::string::npos) omode |= std::ios::out | std::ios::trunc;
-		if (mode.find('a') != std::string::npos) omode |= std::ios::out | std::ios::app;
-		if (mode.find('+') != std::string::npos) {
+		omode = std::ios::in;
+	} else if (mode == "w") {
+		omode = std::ios::out | std::ios::trunc;
+	} else if (mode == "a") {
+		omode = std::ios::out | std::ios::app;
+	} else if (mode == "r+") {
+		omode = std::ios::in | std::ios::out;
+	} else if (mode == "w+") {
+		omode = std::ios::in | std::ios::out | std::ios::trunc;
+	} else if (mode == "a+") {
+		omode = std::ios::in | std::ios::out | std::ios::app;
+	} else {
+		if (mode.find('r') != std::string::npos) 
+		{ 
+			omode |= std::ios::in;
+		}
+		if (mode.find('w') != std::string::npos)
+		{ 
+			omode |= std::ios::out | std::ios::trunc;
+		}
+		if (mode.find('a') != std::string::npos)
+		{ 
+			omode |= std::ios::out | std::ios::app;
+		}
+		if (mode.find('+') != std::string::npos)
+		{
 			omode |= std::ios::in | std::ios::out;
-			if (mode.find('w') == std::string::npos) omode &= ~std::ios::trunc;
+			if (mode.find('w') == std::string::npos)
+			{ 
+				omode &= ~std::ios::trunc;
+			}
 		}
 	}
 
@@ -145,7 +165,7 @@ bool StdLib::file_close(const std::vector<Value> &args, VM *)
 	requireInt(args[0], "fclose", "argument (file descriptor)");
 	i64 fd = args[0].asInt();
 	auto& pool = getFilePool();
-	if (fd >= 0 && fd < static_cast<i64>(pool.size()) && pool[fd].stream)
+	if (fd >= 0 && std::cmp_less(fd ,pool.size()) && pool[fd].stream)
 	{
 		pool[fd].stream->close();
 		pool[fd].stream.reset();
@@ -220,7 +240,10 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *)
 	if (args[0].isInt())
 	{
 		std::fstream* fs = getFileDescriptor(args[0].asInt());
-		if (!fs) return phsnull;
+		if (fs == nullptr) 
+		{
+			return phsnull;
+		}
 		std::stringstream buffer;
 		buffer << fs->rdbuf();
 		return buffer.str();
@@ -250,11 +273,16 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 	{
 		if (!args[0].isInt()) PHS_ERROR("freadln with 1 arg requires an FD");
 		std::fstream* fs = getFileDescriptor(args[0].asInt());
-		if (!fs) return phsnull;
+		if (fs == nullptr)
+		{
+			return phsnull;
+		}
 		
 		std::string lineContent;
 		if (std::getline(*fs, lineContent))
+		{
 			return lineContent;
+		}
 		return phsnull;
 	}
 
@@ -266,13 +294,14 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 	if (args[0].isInt())
 	{
 		std::fstream* fs = getFileDescriptor(args[0].asInt());
-		if (!fs) return phsnull;
+		if (fs == nullptr)
+		{
+			return phsnull;
+		}
 		fs->clear();
 		fs->seekg(0, std::ios::beg);
 		is = fs;
-	}
-	else
-	{
+	} else {
 		requireString(args[0], "freadln", "first argument (file descriptor or path)");
 		std::filesystem::path path = args[0].stl_string();
 		tempFile.open(path);
@@ -323,7 +352,7 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 	std::string              line;
 	while (std::getline(inFile, line))
 	{
-		lines.push_back(line);
+		lines.emplace_back(line);
 	}
 	inFile.close();
 
@@ -363,7 +392,10 @@ bool StdLib::file_write(const std::vector<Value> &args, VM *)
 	if (args[0].isInt())
 	{
 		std::fstream* fs = getFileDescriptor(args[0].asInt());
-		if (!fs) return false;
+		if (fs == nullptr)
+		{
+			return false;
+		}
 		(*fs) << args[1].string();
 		fs->flush();
 		return true;
@@ -396,7 +428,10 @@ bool StdLib::file_append(const std::vector<Value> &args, VM *)
 	if (args[0].isInt())
 	{
 		std::fstream* fs = getFileDescriptor(args[0].asInt());
-		if (!fs) return false;
+		if (fs == nullptr)
+		{
+			return false;
+		}
 		fs->seekp(0, std::ios::end); // Safe jumping to EOF for sequential appends 
 		(*fs) << args[1].string();
 		fs->flush();
@@ -437,7 +472,9 @@ bool StdLib::file_rename(const std::vector<Value> &args, VM *)
 	std::filesystem::path dest = args[1].stl_string();
 
 	if (!std::filesystem::exists(src))
+	{
 		return false;
+	}
 
 	std::error_code ec;
 	std::filesystem::rename(src, dest, ec);
@@ -610,7 +647,9 @@ bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
 	requireString(args[0], "fmkdir", "argument (path)");
 	std::filesystem::path path = args[0].stl_string();
 	if (std::filesystem::exists(path))
+	{
 		return false;
+	}
 	std::filesystem::create_directory(path);
 	return true;
 }
@@ -626,13 +665,8 @@ bool StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
 	{
 		if (recursive)
 		{
-			if (std::filesystem::remove_all(path) > 0)
-				return true;
-			else
-				return false;
-		}
-		else
-		{
+			return std::filesystem::remove_all(path) > 0;
+		} else {
 			return std::filesystem::remove(path);
 		}
 	}

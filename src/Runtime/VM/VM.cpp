@@ -14,7 +14,7 @@
 namespace Phasor
 {
 
-VM::VM() : stack_pool(), stack(&stack_pool)
+VM::VM() : stack(&stack_pool)
 {
 #ifdef TRACING
 	log(std::format("{}: v{}:\nnormal instance created {:#x}\n", PHS_SRC_LOC(), getVersion(),
@@ -24,7 +24,7 @@ VM::VM() : stack_pool(), stack(&stack_pool)
 #endif
 }
 
-VM::VM(const Bytecode &bytecode) : stack_pool(), stack(&stack_pool)
+VM::VM(const Bytecode &bytecode) : stack(&stack_pool)
 {
 #ifdef TRACING
 	log(std::format("{}: v{}:\nfast instance created {:#x}\n", PHS_SRC_LOC(), getVersion(), (uintptr_t)this));
@@ -33,7 +33,7 @@ VM::VM(const Bytecode &bytecode) : stack_pool(), stack(&stack_pool)
 	run(bytecode);
 }
 
-VM::VM(const OpCode &op, const int &operand1, const int &operand2, const int &operand3) : stack_pool(), stack(&stack_pool)
+VM::VM(const OpCode &op, const int &operand1, const int &operand2, const int &operand3) : stack(&stack_pool)
 {
 #ifdef TRACING
 	log(std::format("{}: v{}:\noperation instance created {:#x}\n", PHS_SRC_LOC(), getVersion(),

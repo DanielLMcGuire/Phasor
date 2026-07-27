@@ -1,4 +1,5 @@
 #include <Value.hpp>
+#include <utility>
 
 #include "StdLib.hpp"
 
@@ -89,7 +90,7 @@ Value StdLib::array_insert(const std::vector<Value> &args, VM *)
 
     i64 index = args[1].asInt();
 
-    if (index < 0 || index > static_cast<i64>(arr->size()))
+    if (index < 0 || std::cmp_greater(index ,arr->size()))
         PHS_ERROR("arr_insert() index out of bounds");
 
     arr->insert(arr->begin() + static_cast<size_t>(index), args[2]);

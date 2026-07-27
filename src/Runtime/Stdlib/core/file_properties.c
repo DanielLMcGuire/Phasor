@@ -40,7 +40,10 @@
  * Deterministically hashes a Windows SID into a 32-bit integer.
  */
 [[nodiscard]] static uid_t HashSidToUint32(PSID pSid) {
-    if (!pSid) return 0;
+    if (!pSid)
+    {
+        return 0;
+    }
 
     PBYTE pBinarySid = (PBYTE)pSid;
     DWORD dwSidSize = GetLengthSid(pSid);
@@ -54,11 +57,17 @@
 #endif
 
 [[nodiscard]] bool PHASORstd_file_setProperties(const char *path, char param, int64_t epoch) {
-    if (!path) return false;
+    if (!path) 
+    { 
+        return false;
+    }
 
 #ifdef _WIN32
     HANDLE hFile = CreateFileA(path, FILE_WRITE_ATTRIBUTES, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (hFile == INVALID_HANDLE_VALUE) return false;
+    if (hFile == INVALID_HANDLE_VALUE) 
+    { 
+        return false;
+    }
 
     FILETIME ft = UnixTimeToFileTime(epoch);
     bool success = false;
@@ -93,11 +102,17 @@
 }
 
 [[nodiscard]] int64_t PHASORstd_file_getProperties(const char *path, char param) {
-    if (!path) return -1;
+    if (!path) 
+    { 
+        return -1;
+    }
 
 #ifdef _WIN32
     WIN32_FILE_ATTRIBUTE_DATA fileInfo;
-    if (!GetFileAttributesExA(path, GetFileExInfoStandard, &fileInfo)) return -1;
+    if (!GetFileAttributesExA(path, GetFileExInfoStandard, &fileInfo)) 
+    { 
+        return -1;
+    }
 
     FILETIME ft;
     switch (param) {
@@ -121,12 +136,16 @@
 }
 
 [[nodiscard]] nlink_t PHASORstd_file_getLinksCount(const char *path) {
-    if (!path) return 0;
+    if (!path) { return 0;
+}
 
 #ifdef _WIN32
     HANDLE hFile = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 
                                nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
-    if (hFile == INVALID_HANDLE_VALUE) return 0;
+    if (hFile == INVALID_HANDLE_VALUE) 
+    { 
+        return 0;
+    }
 
     BY_HANDLE_FILE_INFORMATION info;
     nlink_t links = 0;
@@ -143,7 +162,10 @@
 }
 
 [[nodiscard]] bool PHASORstd_file_getOwnerId(const char *path, uid_t *uid, gid_t *gid) {
-    if (!path) return false;
+    if (!path) 
+    { 
+        return false;
+    }
 
 #ifdef _WIN32
     PSID pSidOwner = nullptr;
@@ -161,7 +183,10 @@
         *gid = 0;
     }
 
-    if (pSD) LocalFree(pSD);
+    if (pSD) 
+    { 
+        LocalFree(pSD);
+    }
     return true;
 #else
     struct stat st;

@@ -1,6 +1,7 @@
 #ifndef CMAKE_PCH
 #include "VM.hpp" // avoid breaking IDEs
 #endif
+#include <algorithm>
 #include <phsint.hpp>
 
 
@@ -13,6 +14,7 @@
 	#define PHS_SRC_LOC() std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line())
 #else
     #include <stacktrace>
+#include <utility>
 	#define PHS_SRC_LOC() std::format("VM::{}()", __func__)
 #endif
 
@@ -27,7 +29,10 @@ void VM::evalLoop()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 
-    if (pc >= m_bytecode->instructions.size()) return;
+    if (pc >= m_bytecode->instructions.size())
+	{ 
+		return;
+	}
 
 #ifdef TRACING
 #define TRACE_INSTR(_op) \
@@ -47,7 +52,10 @@ void VM::evalLoop()
 
     if (!s_ready) [[unlikely]]
     {
-        for (auto& e : s_table) e = &&LABEL_UNKNOWN;
+        for (auto& e : s_table) 
+		{ 
+			e = &&LABEL_UNKNOWN;
+		}
 
         s_table[(unsigned)OpCode::JUMP]                       = &&LABEL_JUMP;
         s_table[(unsigned)OpCode::CALL]                       = &&LABEL_CALL;
@@ -195,7 +203,9 @@ void VM::evalLoop()
         s_ready = true;
     }
 
-    int operand1 = 0, operand2 = 0, operand3 = 0;
+    int operand1 = 0;
+    int operand2 = 0;
+    int operand3 = 0;
     u8  rA = 0, rB = 0, rC = 0;
 
 #define NEXT() \
@@ -287,7 +297,9 @@ void VM::evalLoop()
             int                argCount = static_cast<int>(pop().asInt());
             std::vector<Value> args(argCount);
             for (int i = argCount - 1; i >= 0; --i)
+			{
                 args[i] = pop();
+			}
 
 #ifdef TRACING
             std::string argsText;
@@ -313,7 +325,10 @@ void VM::evalLoop()
             peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
         flush();
 #endif
-        if (!pop().isTruthy()) pc = operand1;
+        if (!pop().isTruthy()) 
+		{ 
+			pc = operand1;
+		}
         NEXT();
     }
 
@@ -324,7 +339,10 @@ void VM::evalLoop()
             peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
         flush();
 #endif
-        if (pop().isTruthy()) pc = operand1;
+        if (pop().isTruthy()) 
+		{ 
+			pc = operand1;
+		}
         NEXT();
     }
 
@@ -346,7 +364,7 @@ void VM::evalLoop()
 
     LABEL_PUSH_CONST:
     {
-        if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+        if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
             PHS_ERROR("Invalid constant index");
         push(m_bytecode->constants[operand1]);
         NEXT();
@@ -360,7 +378,7 @@ void VM::evalLoop()
 
     LABEL_STORE_VAR:
     {
-        if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+        if (operand1 < 0 || std::cmp_greater_equal(operand1 ,variables.size()))
             PHS_ERROR("Invalid variable index");
         variables[operand1] = pop();
         NEXT();
@@ -368,7 +386,7 @@ void VM::evalLoop()
 
     LABEL_LOAD_VAR:
     {
-        if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+        if (operand1 < 0 || std::cmp_greater_equal(operand1 ,variables.size()))
             PHS_ERROR("Invalid variable index");
         push(variables[operand1]);
         NEXT();
@@ -380,22 +398,37 @@ void VM::evalLoop()
 
     // STACK ARITHMETIC
 
-    LABEL_IADD:      { { Value b = pop(), a = pop(); push(asm_iadd(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_ISUBTRACT: { { Value b = pop(), a = pop(); push(asm_isub(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_IMULTIPLY: { { Value b = pop(), a = pop(); push(asm_imul(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_IDIVIDE:   { { Value b = pop(), a = pop(); push(asm_idiv(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_IMODULO:   { { Value b = pop(), a = pop(); push(asm_imod(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_FLADD:     { { Value b = pop(), a = pop(); push(asm_fladd(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLSUBTRACT:{ { Value b = pop(), a = pop(); push(asm_flsub(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLMULTIPLY:{ { Value b = pop(), a = pop(); push(asm_flmul(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLDIVIDE:  { { Value b = pop(), a = pop(); push(asm_fldiv(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLMODULO:  { { Value b = pop(), a = pop(); push(asm_flmod(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_MADD:      { { Value b = pop(), a = pop(); push(a + b); } NEXT(); }
-    LABEL_MSUBTRACT: { { Value b = pop(), a = pop(); push(a - b); } NEXT(); }
-    LABEL_MMULTIPLY: { { Value b = pop(), a = pop(); push(a * b); } NEXT(); }
-    LABEL_MDIVIDE:   { { Value b = pop(), a = pop(); push(a / b); } NEXT(); }
+    LABEL_IADD:      { { Value b = pop();
+    Value a = pop(); push(asm_iadd(a.asInt(),     b.asInt()));     } NEXT(); }
+    LABEL_ISUBTRACT: { { Value b = pop();
+    Value a = pop(); push(asm_isub(a.asInt(),     b.asInt()));     } NEXT(); }
+    LABEL_IMULTIPLY: { { Value b = pop();
+    Value a = pop(); push(asm_imul(a.asInt(),     b.asInt()));     } NEXT(); }
+    LABEL_IDIVIDE:   { { Value b = pop();
+    Value a = pop(); push(asm_idiv(a.asInt(),     b.asInt()));     } NEXT(); }
+    LABEL_IMODULO:   { { Value b = pop();
+    Value a = pop(); push(asm_imod(a.asInt(),     b.asInt()));     } NEXT(); }
+    LABEL_FLADD:     { { Value b = pop();
+    Value a = pop(); push(asm_fladd(a.asFloat(),  b.asFloat()));   } NEXT(); }
+    LABEL_FLSUBTRACT:{ { Value b = pop();
+    Value a = pop(); push(asm_flsub(a.asFloat(),  b.asFloat()));   } NEXT(); }
+    LABEL_FLMULTIPLY:{ { Value b = pop();
+    Value a = pop(); push(asm_flmul(a.asFloat(),  b.asFloat()));   } NEXT(); }
+    LABEL_FLDIVIDE:  { { Value b = pop();
+    Value a = pop(); push(asm_fldiv(a.asFloat(),  b.asFloat()));   } NEXT(); }
+    LABEL_FLMODULO:  { { Value b = pop();
+    Value a = pop(); push(asm_flmod(a.asFloat(),  b.asFloat()));   } NEXT(); }
+    LABEL_MADD:      { { Value b = pop();
+    Value a = pop(); push(a + b); } NEXT(); }
+    LABEL_MSUBTRACT: { { Value b = pop();
+    Value a = pop(); push(a - b); } NEXT(); }
+    LABEL_MMULTIPLY: { { Value b = pop();
+    Value a = pop(); push(a * b); } NEXT(); }
+    LABEL_MDIVIDE:   { { Value b = pop();
+    Value a = pop(); push(a / b); } NEXT(); }
     LABEL_SQRT:      { push(asm_sqrt(pop().asFloat()));                                              NEXT(); }
-    LABEL_POW:       { { Value b = pop(), a = pop(); push(asm_pow(a.asFloat(),    b.asFloat()));   } NEXT(); }
+    LABEL_POW:       { { Value b = pop();
+    Value a = pop(); push(asm_pow(a.asFloat(),    b.asFloat()));   } NEXT(); }
     LABEL_LOG:       { push(asm_log(pop().asFloat()));                                               NEXT(); }
     LABEL_EXP:       { push(asm_exp(pop().asFloat()));                                               NEXT(); }
     LABEL_SIN:       { push(asm_sin(pop().asFloat()));                                               NEXT(); }
@@ -407,40 +440,56 @@ void VM::evalLoop()
     LABEL_NEGATE: { push(asm_flneg(pop().asFloat()));                               NEXT(); }
     LABEL_NOT:    { push(Value(asm_flnot(pop().isTruthy() ? 1 : 0)));               NEXT(); }
 
-    LABEL_IAND: { { Value b=pop(),a=pop(); push(Value(asm_iand(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
-    LABEL_IOR:  { { Value b=pop(),a=pop(); push(Value(asm_ior (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_IAND: { { Value b=pop();
+    Value a=pop(); push(Value(asm_iand(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_IOR:  { { Value b=pop();
+    Value a=pop(); push(Value(asm_ior (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
 
-    LABEL_IEQUAL:         { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iequal(a.asInt(),b.asInt()))          : Value(a==b)); } NEXT(); }
-    LABEL_INOT_EQUAL:     { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_inot_equal(a.asInt(),b.asInt()))      : Value(a!=b)); } NEXT(); }
-    LABEL_ILESS_THAN:     { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_than(a.asInt(),b.asInt()))      : Value(a< b)); } NEXT(); }
-    LABEL_IGREATER_THAN:  { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_than(a.asInt(),b.asInt()))   : Value(a> b)); } NEXT(); }
-    LABEL_ILESS_EQUAL:    { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_equal(a.asInt(),b.asInt()))     : Value(a<=b)); } NEXT(); }
-    LABEL_IGREATER_EQUAL: { { Value b=pop(),a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_equal(a.asInt(),b.asInt()))  : Value(a>=b)); } NEXT(); }
+    LABEL_IEQUAL:         { { Value b=pop();
+    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iequal(a.asInt(),b.asInt()))          : Value(a==b)); } NEXT(); }
+    LABEL_INOT_EQUAL:     { { Value b=pop();
+    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_inot_equal(a.asInt(),b.asInt()))      : Value(a!=b)); } NEXT(); }
+    LABEL_ILESS_THAN:     { { Value b=pop();
+    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_than(a.asInt(),b.asInt()))      : Value(a< b)); } NEXT(); }
+    LABEL_IGREATER_THAN:  { { Value b=pop();
+    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_than(a.asInt(),b.asInt()))   : Value(a> b)); } NEXT(); }
+    LABEL_ILESS_EQUAL:    { { Value b=pop();
+    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_equal(a.asInt(),b.asInt()))     : Value(a<=b)); } NEXT(); }
+    LABEL_IGREATER_EQUAL: { { Value b=pop();
+    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_equal(a.asInt(),b.asInt()))  : Value(a>=b)); } NEXT(); }
 
-    LABEL_FLAND:          { { Value b=pop(),a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
-    LABEL_FLOR:           { { Value b=pop(),a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
+    LABEL_FLAND:          { { Value b=pop();
+    Value a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
+    LABEL_FLOR:           { { Value b=pop();
+    Value a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
     LABEL_FLEQUAL: { { 
-		Value b = pop(), a = pop(); 
+		Value b = pop();
+		Value a = pop(); 
 		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b)); 
 	} NEXT(); }
     LABEL_FLNOT_EQUAL: { {
-        Value b = pop(), a = pop();
+        Value b = pop();
+        Value a = pop();
         push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
     } NEXT(); }
     LABEL_FLLESS_THAN: { {
-        Value b = pop(), a = pop();
+        Value b = pop();
+        Value a = pop();
             push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
     } NEXT(); }
     LABEL_FLGREATER_THAN: { {
-        Value b = pop(), a = pop();
+        Value b = pop();
+        Value a = pop();
         push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
     } NEXT(); }
     LABEL_FLLESS_EQUAL: { {
-            Value b = pop(), a = pop();
+            Value b = pop();
+            Value a = pop();
             push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
         } NEXT(); }
     LABEL_FLGREATER_EQUAL: { {
-            Value b = pop(), a = pop();
+            Value b = pop();
+            Value a = pop();
             push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
     } NEXT(); }
 
@@ -581,23 +630,32 @@ void VM::evalLoop()
             Value       idxVal = pop();
             Value       strVal = pop();
             std::string s;
-            if (strVal.isString()) s = strVal.string();
-            else                   s = strVal.toString();
+            if (strVal.isString())
+			{
+				s = strVal.string();
+            } else {
+				s = strVal.toString();
+			}
 
             i64 idx = 0;
-            if (idxVal.isInt())         idx = idxVal.asInt();
-            else if (idxVal.isFloat())  idx = static_cast<i64>(idxVal.asFloat());
-            else if (idxVal.isString())
-            {
+            if (idxVal.isInt())
+			{
+				idx = idxVal.asInt();
+            } else if (idxVal.isFloat()) {
+				idx = static_cast<i64>(idxVal.asFloat());
+            } else if (idxVal.isString()) {
                 try { idx = std::stoll(idxVal.string()); }
                 catch (...) { PHS_ERROR("char_at() expects index convertible to integer"); }
-            }
-            else PHS_ERROR("char_at() expects string and integer");
+            } else {
+				PHS_ERROR("char_at() expects string and integer");
+			}
 
-            if (idx < 0 || idx >= static_cast<i64>(s.length()))
+            if (idx < 0 || std::cmp_greater_equal(idx ,s.length())) 
+			{
                 push(Value(""));
-            else
+            } else {
                 push(Value(std::string(1, s[static_cast<size_t>(idx)])));
+			}
         }
         NEXT();
     }
@@ -613,10 +671,12 @@ void VM::evalLoop()
                 const std::string& s     = strVal.string();
                 i64                start = startVal.asInt();
                 i64                len   = lenVal.asInt();
-                if (start < 0 || start >= static_cast<i64>(s.length()))
+                if (start < 0 || std::cmp_greater_equal(start ,s.length())) 
+				{
                     push(Value(""));
-                else
+                } else {
                     push(Value(s.substr(start, len)));
+				}
             }
             else
             {
@@ -633,14 +693,14 @@ void VM::evalLoop()
     LABEL_NEW_STRUCT_INSTANCE_STATIC:
     {
         {
-            if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+            if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
                 PHS_ERROR("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
             const StructInfo& info     = m_bytecode->structs[operand1];
             Value             instance = Value::createStruct(info.name);
             for (int i = 0; i < info.fieldCount; ++i)
             {
                 int constIndex = info.firstConstIndex + i;
-                if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
+                if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
                     PHS_ERROR("Invalid default constant index for struct field");
                 instance.setField(info.fieldNames[i], m_bytecode->constants[constIndex]);
             }
@@ -652,7 +712,7 @@ void VM::evalLoop()
     LABEL_GET_FIELD_STATIC:
     {
         {
-            if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+            if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
                 PHS_ERROR("Invalid struct index for GET_FIELD_STATIC");
             const StructInfo& info        = m_bytecode->structs[operand1];
             int               fieldOffset = operand2;
@@ -681,7 +741,7 @@ void VM::evalLoop()
     LABEL_SET_FIELD_STATIC:
     {
         {
-            if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+            if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
                 PHS_ERROR("Invalid struct index for SET_FIELD_STATIC");
             const StructInfo& info        = m_bytecode->structs[operand1];
             int               fieldOffset = operand2;
@@ -697,7 +757,7 @@ void VM::evalLoop()
 
     LABEL_NEW_STRUCT:
     {
-        if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+        if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
             PHS_ERROR("Invalid constant index for NEW_STRUCT");
         push(Value::createStruct(m_bytecode->constants[operand1].string()));
         NEXT();
@@ -706,7 +766,7 @@ void VM::evalLoop()
     LABEL_SET_FIELD:
     {
         {
-            if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+            if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
                 PHS_ERROR("Invalid constant index for SET_FIELD");
             std::string fieldName = m_bytecode->constants[operand1].string();
             Value       value     = pop();
@@ -720,7 +780,7 @@ void VM::evalLoop()
     LABEL_GET_FIELD:
     {
         {
-            if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+            if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
                 PHS_ERROR("Invalid constant index for GET_FIELD");
             Value obj = pop();
             push(obj.getField(m_bytecode->constants[operand1].string()));
@@ -737,7 +797,7 @@ void VM::evalLoop()
     LABEL_LOAD_CONST_R:
     {
         int constIndex = operand2;
-        if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
+        if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
             PHS_ERROR("Invalid constant index");
         registers[rA] = m_bytecode->constants[constIndex];
         NEXT();
@@ -746,7 +806,7 @@ void VM::evalLoop()
     LABEL_LOAD_VAR_R:
     {
         int varIndex = operand2;
-        if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
+        if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
             PHS_ERROR("Invalid variable index");
         registers[rA] = variables[varIndex];
         NEXT();
@@ -755,7 +815,7 @@ void VM::evalLoop()
     LABEL_STORE_VAR_R:
     {
         int varIndex = operand2;
-        if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
+        if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
             PHS_ERROR("Invalid variable index");
         variables[varIndex] = registers[rA];
         NEXT();
@@ -798,47 +858,63 @@ void VM::evalLoop()
 
     LABEL_NEG_R:   { registers[rA] = Value(asm_flneg(registers[rB].asFloat()));                                    NEXT(); }
     LABEL_NOT_R:   { registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0));                           NEXT(); }
-    LABEL_IAND_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_iand(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-    LABEL_IOR_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_ior (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_IAND_R:  { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=Value(asm_iand(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_IOR_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=Value(asm_ior (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
 
-    LABEL_IEQ_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iequal(b.asInt(),c.asInt()))             : Value(b==c); NEXT(); }
-    LABEL_INE_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_inot_equal(b.asInt(),c.asInt()))         : Value(b!=c); NEXT(); }
-    LABEL_ILT_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_than(b.asInt(),c.asInt()))         : Value(b< c); NEXT(); }
-    LABEL_IGT_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_than(b.asInt(),c.asInt()))      : Value(b> c); NEXT(); }
-    LABEL_ILE_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_equal(b.asInt(),c.asInt()))        : Value(b<=c); NEXT(); }
-    LABEL_IGE_R:   { Value &b=registers[rB],&c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_equal(b.asInt(),c.asInt()))     : Value(b>=c); NEXT(); }
+    LABEL_IEQ_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iequal(b.asInt(),c.asInt()))             : Value(b==c); NEXT(); }
+    LABEL_INE_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_inot_equal(b.asInt(),c.asInt()))         : Value(b!=c); NEXT(); }
+    LABEL_ILT_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_than(b.asInt(),c.asInt()))         : Value(b< c); NEXT(); }
+    LABEL_IGT_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_than(b.asInt(),c.asInt()))      : Value(b> c); NEXT(); }
+    LABEL_ILE_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_equal(b.asInt(),c.asInt()))        : Value(b<=c); NEXT(); }
+    LABEL_IGE_R:   { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_equal(b.asInt(),c.asInt()))     : Value(b>=c); NEXT(); }
     LABEL_FLEQ_R: {
-        Value &b = registers[rB], &c = registers[rC];
+        Value &b = registers[rB];
+        Value &c = registers[rC];
         registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
         NEXT();
     }
     LABEL_FLNE_R: {
-        Value &b = registers[rB], &c = registers[rC];
+        Value &b = registers[rB];
+        Value &c = registers[rC];
         registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
         NEXT();
     }
     LABEL_FLLT_R: {
-        Value &b = registers[rB], &c = registers[rC];
+        Value &b = registers[rB];
+        Value &c = registers[rC];
         registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
         NEXT();
     }
     LABEL_FLGT_R: {
-        Value &b = registers[rB], &c = registers[rC];
+        Value &b = registers[rB];
+        Value &c = registers[rC];
         registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
         NEXT();
     }
     LABEL_FLLE_R: {
-        Value &b = registers[rB], &c = registers[rC];
+        Value &b = registers[rB];
+        Value &c = registers[rC];
         registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
         NEXT();
     }
     LABEL_FLGE_R: {
-        Value &b = registers[rB], &c = registers[rC];
+        Value &b = registers[rB];
+        Value &c = registers[rC];
         registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
         NEXT();
     }
-    LABEL_FLAND_R: { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-    LABEL_FLOR_R:  { Value &b=registers[rB],&c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_FLAND_R: { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_FLOR_R:  { Value &b=registers[rB];
+    Value &c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
 
     
     // REGISTER I/O
@@ -956,7 +1032,7 @@ void VM::evalLoop()
 		int scopeId = operand1;
 		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
 		{
-			if (idx < 0 || idx >= static_cast<int>(variables.size()))
+			if (idx < 0 || std::cmp_greater_equal(idx ,variables.size()))
 				PHS_ERROR("Invalid variable index in scope exit");
 			variables[idx] = Value();
 		}
@@ -977,7 +1053,7 @@ void VM::evalLoop()
                 elements.push_back(pop());
             }
             
-            std::reverse(elements.begin(), elements.end());
+            std::ranges::reverse(elements);
 
             push(Value::createArray(std::move(elements)));
         }
@@ -996,8 +1072,10 @@ void VM::evalLoop()
             auto arr = arrVal.asArray();
             i64 idx = idxVal.asInt();
 
-            if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+            if (idx < 0 || std::cmp_greater_equal(idx ,arr->size())) 
+			{
                 push(phsnull);
+			}
 
             push((*arr)[static_cast<size_t>(idx)]);
         }
@@ -1017,7 +1095,7 @@ void VM::evalLoop()
             auto arr = std::const_pointer_cast<Value::ArrayInstance>(arrVal.asArray());
             i64 idx = idxVal.asInt();
 
-            if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+            if (idx < 0 || std::cmp_greater_equal(idx ,arr->size()))
                 PHS_ERROR("Array index out of bounds");
 
             (*arr)[static_cast<size_t>(idx)] = val;
@@ -1126,7 +1204,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		int                argCount = static_cast<int>(pop().asInt());
 		std::vector<Value> args(argCount);
 		for (int i = argCount - 1; i >= 0; --i)
+		{
 			args[i] = pop();
+		}
 
 #ifdef TRACING
 		std::string argsText;
@@ -1150,8 +1230,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		log(std::format("JUMP_IF_FALSE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
 		flush();
 #endif
-		if (!pop().isTruthy())
+		if (!pop().isTruthy()) 
+		{
 			pc = operand1;
+		}
 		break;
 	}
 
@@ -1160,8 +1242,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		log(std::format("JUMP_IF_TRUE: {} {} -> {}\n", peek().isTruthy() ? "TRUE" : "FALSE", pc - 1, operand1));
 		flush();
 #endif
-		if (pop().isTruthy())
+		if (pop().isTruthy()) 
+		{
 			pc = operand1;
+		}
 		break;
 	}
 
@@ -1184,7 +1268,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region STACK CORE
 
 	[[likely]] case OpCode::PUSH_CONST: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index");
 		push(m_bytecode->constants[operand1]);
 		break;
@@ -1196,14 +1280,14 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	[[likely]] case OpCode::STORE_VAR: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,variables.size()))
 			PHS_ERROR("Invalid variable index");
 		variables[operand1] = pop();
 		break;
 	}
 
 	[[likely]] case OpCode::LOAD_VAR: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(variables.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,variables.size()))
 			PHS_ERROR("Invalid variable index");
 		push(variables[operand1]);
 		break;
@@ -1596,9 +1680,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (v.isArray())
 		{
 			push(Value(static_cast<i64>(v.asArray()->size())));
-		}
-		else
-		{
+		} else {
 			push(Value(static_cast<i64>(v.string().length())));
 		}
 		break;
@@ -1609,17 +1691,20 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value strVal = pop();
 
 		std::string s;
-		if (strVal.isString())
+		if (strVal.isString()) 
+		{
 			s = strVal.string();
-		else
+		} else {
 			s = strVal.toString();
+		}
 
 		i64 idx = 0;
 		if (idxVal.isInt())
+		{
 			idx = idxVal.asInt();
-		else if (idxVal.isFloat())
+		} else if (idxVal.isFloat()) {
 			idx = static_cast<i64>(idxVal.asFloat());
-		else if (idxVal.isString())
+		} else if (idxVal.isString())
 		{
 			try
 			{
@@ -1629,14 +1714,16 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			{
 				PHS_ERROR("char_at() expects index convertible to integer");
 			}
-		}
-		else
+		} else {
 			PHS_ERROR("char_at() expects string and integer");
+		}
 
-		if (idx < 0 || idx >= static_cast<i64>(s.length()))
+		if (idx < 0 || std::cmp_greater_equal(idx ,s.length())) 
+		{
 			push(Value(""));
-		else
+		} else {
 			push(Value(std::string(1, s[static_cast<size_t>(idx)])));
+		}
 		break;
 	}
 
@@ -1651,17 +1738,13 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			i64                start = startVal.asInt();
 			i64                len   = lenVal.asInt();
 
-			if (start < 0 || start >= static_cast<i64>(s.length()))
+			if (start < 0 || std::cmp_greater_equal(start ,s.length()))
 			{
 				push(Value(""));
-			}
-			else
-			{
+			} else {
 				push(Value(s.substr(start, len)));
 			}
-		}
-		else
-		{
+		} else {
 			PHS_ERROR("substr() expects string, int, int");
 		}
 		break;
@@ -1671,7 +1754,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region STACK STRUCT
 
 	case OpCode::NEW_STRUCT_INSTANCE_STATIC: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
 			PHS_ERROR("Invalid struct index for NEW_STRUCT_INSTANCE_STATIC");
 
 		const StructInfo &info     = m_bytecode->structs[operand1];
@@ -1679,7 +1762,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		for (int i = 0; i < info.fieldCount; ++i)
 		{
 			int constIndex = info.firstConstIndex + i;
-			if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
+			if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
 				PHS_ERROR("Invalid default constant index for struct field");
 			const Value       &defVal    = m_bytecode->constants[constIndex];
 			const std::string &fieldName = info.fieldNames[i];
@@ -1690,7 +1773,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::GET_FIELD_STATIC: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
 			PHS_ERROR("Invalid struct index for GET_FIELD_STATIC");
 		const StructInfo &info        = m_bytecode->structs[operand1];
 		int               fieldOffset = operand2;
@@ -1715,7 +1798,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SET_FIELD_STATIC: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->structs.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
 			PHS_ERROR("Invalid struct index for SET_FIELD_STATIC");
 		const StructInfo &info        = m_bytecode->structs[operand1];
 		int               fieldOffset = operand2;
@@ -1730,7 +1813,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::NEW_STRUCT: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index for NEW_STRUCT");
 		Value       nameVal    = m_bytecode->constants[operand1];
 		std::string structName = nameVal.string();
@@ -1739,7 +1822,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SET_FIELD: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index for SET_FIELD");
 		std::string fieldName = m_bytecode->constants[operand1].string();
 		Value       value     = pop();
@@ -1750,7 +1833,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::GET_FIELD: {
-		if (operand1 < 0 || operand1 >= static_cast<int>(m_bytecode->constants.size()))
+		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index for GET_FIELD");
 		std::string fieldName = m_bytecode->constants[operand1].string();
 		Value       obj       = pop();
@@ -1774,8 +1857,8 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
         {
             elements.push_back(pop());
         }
-            
-        std::reverse(elements.begin(), elements.end());
+
+        std::ranges::reverse(elements);
 
         push(Value::createArray(std::move(elements)));
 		break;
@@ -1792,7 +1875,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
         auto arr = arrVal.asArray();
         i64 idx = idxVal.asInt();
 
-        if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+        if (idx < 0 || std::cmp_greater_equal(idx ,arr->size()))
             PHS_ERROR("Array index out of bounds");
 
         push((*arr)[static_cast<size_t>(idx)]);
@@ -1811,8 +1894,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
         auto arr = std::const_pointer_cast<Value::ArrayInstance>(arrVal.asArray());
         i64 idx = idxVal.asInt();
 
-        if (idx < 0 || idx >= static_cast<i64>(arr->size()))
+        if (idx < 0 || std::cmp_greater_equal(idx ,arr->size())) 
+		{
             push(phsnull);
+		}
 
         (*arr)[static_cast<size_t>(idx)] = val;
         
@@ -1830,7 +1915,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::LOAD_CONST_R: {
 		int constIndex = operand2;
-		if (constIndex < 0 || constIndex >= static_cast<int>(m_bytecode->constants.size()))
+		if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index");
 		registers[rA] = m_bytecode->constants[constIndex];
 		break;
@@ -1838,7 +1923,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::LOAD_VAR_R: {
 		int varIndex = operand2;
-		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
+		if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
 			PHS_ERROR("Invalid variable index");
 		registers[rA] = variables[varIndex];
 		break;
@@ -1846,7 +1931,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::STORE_VAR_R: {
 		int varIndex = operand2;
-		if (varIndex < 0 || varIndex >= static_cast<int>(variables.size()))
+		if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
 			PHS_ERROR("Invalid variable index");
 		variables[varIndex] = registers[rA];
 		break;
@@ -2206,7 +2291,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	{
 		int scopeId = operand1;
 		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
+		{
 			freeVariable(static_cast<size_t>(idx));
+		}
 		break;
 	}
 
@@ -2216,12 +2303,12 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region DEFAULT
 	default: {
 		PHS_ERROR("Unknown opcode");
-		return Value();
+		return phsnull;
 	}
 #pragma endregion
 	
 	}
-	return Value(operand1);
+	return {operand1};
 }
 
 } // namespace Phasor

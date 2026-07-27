@@ -159,45 +159,81 @@ PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
 {
     // Stack operations with special indices
     if (op == OpCode::PUSH_CONST && operandIndex == 0)
+    {
         return OperandType::CONSTANT_IDX;
+    }
     if (op == OpCode::STORE_VAR && operandIndex == 0)
+    {
         return OperandType::VARIABLE_IDX;
+    }
     if (op == OpCode::LOAD_VAR && operandIndex == 0)
+    {
         return OperandType::VARIABLE_IDX;
+    }
     if (op == OpCode::CALL_NATIVE && operandIndex == 0)
+    {
         return OperandType::CONSTANT_IDX;
+    }
     if (op == OpCode::CALL && operandIndex == 0)
+    {
         return OperandType::FUNCTION_IDX;
+    }
     if (op == OpCode::SYSTEM && operandIndex == 0)
+    {
         return OperandType::CONSTANT_IDX;
+    }
     if (op == OpCode::EXIT_SCOPE && operandIndex == 0)
+    {
         return OperandType::SCOPE_IDX;
+    }
 
     // Register operations with mixed types
     if (op == OpCode::LOAD_CONST_R)
     {
-        if (operandIndex == 0) return OperandType::REGISTER;
-        if (operandIndex == 1) return OperandType::CONSTANT_IDX;
+        if (operandIndex == 0) 
+        {
+            return OperandType::REGISTER;
+        }
+        if (operandIndex == 1)
+        {
+            return OperandType::CONSTANT_IDX;
+        }
     }
     if (op == OpCode::LOAD_VAR_R)
     {
-        if (operandIndex == 0) return OperandType::REGISTER;
-        if (operandIndex == 1) return OperandType::VARIABLE_IDX;
+        if (operandIndex == 0)
+        { 
+            return OperandType::REGISTER;
+        }
+        if (operandIndex == 1)
+        {
+            return OperandType::VARIABLE_IDX;
+        }
     }
     if (op == OpCode::STORE_VAR_R)
     {
-        if (operandIndex == 0) return OperandType::REGISTER;
-        if (operandIndex == 1) return OperandType::VARIABLE_IDX;
+        if (operandIndex == 0)
+        {
+            return OperandType::REGISTER;
+        }
+        if (operandIndex == 1) 
+        { 
+            return OperandType::VARIABLE_IDX;
+        }
     }
 
     // JUMP instructions take an offset (INT)
     if (op == OpCode::JUMP || op == OpCode::JUMP_IF_FALSE ||
-        op == OpCode::JUMP_IF_TRUE || op == OpCode::JUMP_BACK)
+        op == OpCode::JUMP_IF_TRUE || op == OpCode::JUMP_BACK) 
+    {
         return OperandType::INT;
+    }
 
     // Register ops use REGISTER for all operands
     if (static_cast<int>(op) >= static_cast<int>(OpCode::MOV))
+    {
         return OperandType::REGISTER;
+    }
 
     return OperandType::INT;
 }
@@ -241,10 +277,20 @@ PhsString PhasorIR::unescapeString(const PhsString &str)
     PhsString result;
     size_t      len = str.length();
 
-    auto hexVal = [](char c) -> int {
-        if (c >= '0' && c <= '9') return c - '0';
-        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    auto hexVal = [](char c) -> int 
+    {
+        if (c >= '0' && c <= '9')
+        {
+            return c - '0';
+        }
+        if (c >= 'a' && c <= 'f')
+        {
+            return c - 'a' + 10;
+        }
+        if (c >= 'A' && c <= 'F')
+        { 
+            return c - 'A' + 10;
+        }
         return -1;
     };
 
@@ -279,7 +325,10 @@ PhsString PhasorIR::unescapeString(const PhsString &str)
             for (int k = 1; k < 3 && i + 1 < len; ++k)
             {
                 char d = str[i + 1];
-                if (d < '0' || d > '7') break;
+                if (d < '0' || d > '7')
+                {
+                    break;
+                }
                 val = val * 8 + static_cast<u32>(d - '0');
                 ++i;
             }
@@ -289,10 +338,16 @@ PhsString PhasorIR::unescapeString(const PhsString &str)
 
         case 'x':
         {
-            if (i + 1 >= len || hexVal(str[i + 1]) < 0) { result += esc; break; }
+            if (i + 1 >= len || hexVal(str[i + 1]) < 0)
+            { 
+                result += esc;
+                break;
+            }
             int val = hexVal(str[++i]);
             if (i + 1 < len && hexVal(str[i + 1]) >= 0)
+            {
                 val = (val << 4) | hexVal(str[++i]);
+            }
             result += static_cast<char>(val);
             break;
         }
@@ -305,23 +360,32 @@ PhsString PhasorIR::unescapeString(const PhsString &str)
             bool ok      = true;
             for (int k = 0; k < ndigits; ++k)
             {
-                if (i + 1 >= len || hexVal(str[i + 1]) < 0) { ok = false; break; }
+                if (i + 1 >= len || hexVal(str[i + 1]) < 0)
+                {
+                    ok = false; 
+                    break;
+                }
                 cp = (cp << 4) | static_cast<u32>(hexVal(str[++i]));
             }
             if (!ok || cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
             {
                 result += esc; break;
             }
-            if      (cp <= 0x7F)   { result += static_cast<char>(cp); }
-            else if (cp <= 0x7FF)  { result += static_cast<char>(0xC0 | (cp >> 6));
-                                     result += static_cast<char>(0x80 | (cp & 0x3F)); }
-            else if (cp <= 0xFFFF) { result += static_cast<char>(0xE0 | (cp >> 12));
-                                     result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
-                                     result += static_cast<char>(0x80 | (cp & 0x3F)); }
-            else                   { result += static_cast<char>(0xF0 | (cp >> 18));
-                                     result += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
-                                     result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
-                                     result += static_cast<char>(0x80 | (cp & 0x3F)); }
+            if (cp <= 0x7F)
+            { 
+                result += static_cast<char>(cp);
+            } else if (cp <= 0x7FF)  { 
+                result += static_cast<char>(0xC0 | (cp >> 6));
+                result += static_cast<char>(0x80 | (cp & 0x3F));
+            } else if (cp <= 0xFFFF) { 
+                result += static_cast<char>(0xE0 | (cp >> 12));
+                result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+                result += static_cast<char>(0x80 | (cp & 0x3F));
+            } else { 
+                result += static_cast<char>(0xF0 | (cp >> 18));
+                result += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+                result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+                result += static_cast<char>(0x80 | (cp & 0x3F)); }
             break;
         }
 
@@ -362,7 +426,9 @@ static void writeIRValue(std::stringstream &ss, const Value &val,
     {
         auto structPtr = val.asStruct();
         if (!structPtr)
+        {
             throw std::runtime_error("PhasorIR::serialize: null struct pointer");
+        }
         ss << "STRUCT \"" << escape(structPtr->structName) << "\" " << structPtr->fields.size() << "\n";
         for (const auto &[fieldName, fieldVal] : structPtr->fields)
         {
@@ -376,7 +442,9 @@ static void writeIRValue(std::stringstream &ss, const Value &val,
     {
         auto arrayPtr = val.asArray();
         if (!arrayPtr)
+        {
             throw std::runtime_error("PhasorIR::serialize: null array pointer");
+        }
         ss << "ARRAY " << arrayPtr->size() << "\n";
         for (const auto &elem : *arrayPtr)
         {
@@ -401,7 +469,7 @@ static Value readIRValue(const std::string &type, std::stringstream &ss,
     {
         return Value{};
     }
-    else if (type == "BOOL")
+    if (type == "BOOL")
     {
         std::string b;
         ss >> b;
@@ -489,21 +557,29 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
     // Build reverse lookup maps for inline comments
     std::map<int, std::string> indexToVarName;
     for (const auto &[name, index] : bytecode.variables)
+    {
         indexToVarName[index] = name;
+    }
 
     std::map<int, std::string> addressToFuncName;
     for (const auto &[name, address] : bytecode.functionEntries)
+    {
         addressToFuncName[address] = name;
+    }
 
     // Constants Section
     ss << ".CONSTANTS " << bytecode.constants.size() << "\n";
     for (const auto &val : bytecode.constants)
+    {
         writeIRValue(ss, val, escapeString);
+    }
 
     // Variables Section
     ss << ".VARIABLES " << bytecode.variables.size() << " " << bytecode.nextVarIndex << "\n";
     for (const auto &[name, index] : bytecode.variables)
+    {
         ss << name << " " << index << "\n";
+    }
 
     // Scopes Section
     ss << ".SCOPES " << bytecode.scopeVarLists.size() << "\n";
@@ -511,14 +587,18 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
     {
         ss << varList.size();
         for (const auto &[idx, name] : varList)
+        {
             ss << " " << idx << " " << name;
+        }
         ss << "\n";
     }
 
     // Functions Section
     ss << ".FUNCTIONS " << bytecode.functionEntries.size() << "\n";
     for (const auto &[name, address] : bytecode.functionEntries)
+    {
         ss << name << " " << address << "\n";
+    }
 
     // Function Type Signatures Section
     // Format per line: <name> <returnType> <paramCount> [<paramType>...]
@@ -529,7 +609,9 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
         const std::string &retType = (retIt != bytecode.functionReturnTypeNames.end()) ? retIt->second : "any";
         ss << name << " " << retType << " " << paramTypes.size();
         for (const auto &typeName : paramTypes)
+        {
             ss << " " << typeName;
+        }
         ss << "\n";
     }
 
@@ -539,7 +621,9 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
     {
         ss << info.name << " " << info.firstConstIndex << " " << info.fieldCount;
         for (const auto &fieldName : info.fieldNames)
+        {
             ss << " " << fieldName;
+        }
         ss << "\n";
     }
 
@@ -558,7 +642,10 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
         {
             OperandType type = getOperandType(instr.op, i);
 
-            if (i > 0) instrLine << ",";
+            if (i > 0)
+            { 
+                instrLine << ",";
+            }
             instrLine << " ";
 
             switch (type)
@@ -574,24 +661,31 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
                     if (v.getType() == ValueType::String)
                     {
                         PhsString str = v.string();
-                        if (str.length() > 20) str = str.substr(0, 20) + "...";
+                        if (str.length() > 20) 
+                        {
+                            str = str.substr(0, 20) + "...";
+                        }
                         comment = "const[" + std::to_string(operands[i]) + "]=\"" + escapeString(str) + "\"";
-                    }
-                    else if (v.getType() == ValueType::Int)
+                    } else if (v.getType() == ValueType::Int) {
                         comment = PhsString("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asInt()));
-                    else if (v.getType() == ValueType::Float)
+                    } else if (v.getType() == ValueType::Float) {
                         comment = PhsString("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asFloat()));
+}
                 }
                 break;
             case OperandType::VARIABLE_IDX:
                 instrLine << operands[i];
                 if (indexToVarName.contains(operands[i]))
+                {
                     comment = PhsString("var=" + indexToVarName[operands[i]]);
+                }
                 break;
             case OperandType::FUNCTION_IDX:
                 instrLine << operands[i];
                 if (addressToFuncName.contains(operands[i]))
+                {
                     comment = PhsString("func=" + addressToFuncName[operands[i]]);
+                }
                 break;
             case OperandType::SCOPE_IDX:
                 instrLine << operands[i];
@@ -607,9 +701,11 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
         {
             const size_t commentColumn = 40;
             if (lineStr.length() < commentColumn)
+            {
                 lineStr.append(commentColumn - lineStr.length(), ' ');
-            else
+            } else {
                 lineStr += " ";
+            }
             lineStr += "; " + comment;
         }
         ss << lineStr << "\n";
@@ -627,7 +723,9 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
 Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
 {
     if (data.size() < 8)
+    {
         throw std::runtime_error("Invalid Phasor IR file: too small");
+    }
 
     std::string       textData(data.begin() + 8, data.end());
     std::stringstream ss(textData);
@@ -641,7 +739,9 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
             std::string version;
             ss >> version;
             if (version < "3.0.0")
+            {
                 throw std::runtime_error("Incompatible Phasor IR version");
+            }
         }
         else if (section == ".CONSTANTS")
         {
@@ -682,7 +782,7 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
                     int idx;
                     std::string name;
                     ss >> idx >> name;
-                    bytecode.scopeVarLists[i].push_back({idx, name});
+                    bytecode.scopeVarLists[i].emplace_back(idx, name);
                 }
             }
         }
@@ -704,7 +804,8 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
             ss >> count;
             for (int i = 0; i < count; ++i)
             {
-                std::string name, retType;
+                std::string name;
+                std::string retType;
                 int         paramCount;
                 ss >> name >> retType >> paramCount;
 
@@ -768,12 +869,16 @@ Bytecode PhasorIR::deserialize(const std::vector<u8> &data)
                     }
 
                     if (!token.empty() && token.back() == ',')
+                    {
                         token.pop_back();
+                    }
 
                     if (!token.empty() && token[0] == 'r')
+                    {
                         operands[j] = std::stoi(token.substr(1));
-                    else
+                    } else {
                         operands[j] = std::stoi(token);
+                    }
                 }
 
                 // Skip any remaining content on the line (comments)
@@ -798,7 +903,9 @@ bool PhasorIR::saveToFile(const Bytecode &bytecode, const std::filesystem::path 
         std::vector<u8> data = serialize(bytecode);
         std::ofstream   file(filename, std::ios::binary);
         if (!file.is_open())
+        {
             return false;
+        }
         file.write(reinterpret_cast<const char *>(data.data()), (std::streamsize)data.size());
         return true;
     }
@@ -812,13 +919,17 @@ Bytecode PhasorIR::loadFromFile(const std::filesystem::path &filename)
 {
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
     if (!file.is_open())
+    {
         throw std::runtime_error("Cannot open file");
+    }
 
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
     std::vector<u8> buffer(size);
     if (!file.read(reinterpret_cast<char *>(buffer.data()), size))
+    {
         throw std::runtime_error("Cannot read file");
+    }
 
     return deserialize(buffer);
 }

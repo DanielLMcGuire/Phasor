@@ -14,8 +14,10 @@
 #ifdef _WIN32
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof(statex);
-	if (!GlobalMemoryStatusEx(&statex))
+	if (!GlobalMemoryStatusEx(&statex)) 
+	{
 		return 0;
+	}
 	return (size_t)statex.ullAvailPhys;
 
 #elif defined(__APPLE__) && defined(__MACH__)
@@ -65,12 +67,16 @@
 [[nodiscard]] int PHASORstd_sys_run(const char *name, int argc, char **argv)
 {
 	char **args = (char **)malloc((argc + 2) * sizeof(char *));
-	if (!args)
+	if (!args) 
+	{
 		return -1;
+	}
 
 	args[0] = (char *)name;
-	for (int i = 0; i < argc; i++)
+	for (int i = 0; i < argc; i++) 
+	{
 		args[i + 1] = argv[i];
+	}
 	args[argc + 1] = nullptr;
 
 #ifdef _WIN32
@@ -99,19 +105,25 @@
 [[nodiscard]] int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
 {
 	char **args = (char **)malloc((argc + 2) * sizeof(char *));
-	if (!args)
+	if (!args) 
+	{
 		return -1;
+	}
 
 	args[0] = (char *)name;
-	for (int i = 0; i < argc; i++)
+	for (int i = 0; i < argc; i++) 
+	{
 		args[i + 1] = argv[i];
+	}
 	args[argc + 1] = nullptr;
 
 #ifdef _WIN32
 
 	int ret = (int)_spawnvp(_P_NOWAIT, name, (const char *const *)args);
-	if (ret == -1)
+	if (ret == -1) 
+	{
 		perror(name);
+	}
 
 	free(args);
 	return ret;

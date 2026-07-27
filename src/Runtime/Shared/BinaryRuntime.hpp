@@ -16,7 +16,7 @@ class BinaryRuntime
 {
   public:
 	BinaryRuntime(int argc, char *argv[]);
-	int run();
+	int run() const;
 
   private:
 	struct Args
@@ -28,7 +28,7 @@ class BinaryRuntime
 	} m_args;
 
 	void parseArguments(int argc, char *argv[]);
-	void showHelp(const std::string &programName);
+	static void showHelp(const std::string &programName);
 };
 
 } // namespace Phasor

@@ -72,7 +72,8 @@ void VM::initFFI(const std::vector<std::filesystem::path> &paths)
 #endif
 }
 
-void VM::setup(const Bytecode &bc, const size_t initialPC) {
+void VM::setup(const Bytecode &bc, const size_t initialPC)
+{
 	m_bytecode = &bc;
 	pc = initialPC;
 	stack.clear();
@@ -154,26 +155,33 @@ Value VM::runFunction(const PhsString &name, const Bytecode &bytecode, const boo
     isDirectCall = true;
     setup(bytecode, bytecode.functionEntries.find(name)->second);
 
-	if (!argsInit) push(0);
+	if (!argsInit) 
+	{ 
+		push(0);
+	}
 
-    try {
+    try 
+	{
         evalLoop();
-    }
-    catch (const VM::Halt &) {
-		if (isDirectCall) {
+    } catch (const VM::Halt &) {
+		if (isDirectCall)
+		{
 			Value ret = pop();
-			if (ret.isInt()) status = static_cast<int>(ret.asInt());
-			else status = 0;
+			if (ret.isInt())
+			{
+				status = static_cast<int>(ret.asInt());
+			} else {
+				status = 0;
+			}
 			reset(true, false, true);
 			return ret;
-		} else {
-			throw std::runtime_error("Function call was not properly handled!");
 		}
+			throw std::runtime_error("Function call was not properly handled!");
 	}
 	throw std::runtime_error("Function did not return properly!");
 	status = BAD_STATUS;
 	isError = true;
-	return Value();
+	return phsnull;
 }
 
 void VM::cleanup()

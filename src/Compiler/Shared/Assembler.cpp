@@ -28,14 +28,16 @@ int Assembler::run()
 	if (assembleBinary())
 	{
 		if (!m_args.silent)
+		{
 			std::println("Success! Output to {}", m_args.outputFile.string());
+		}
 		return 0;
 	}
-	else
-	{
+	
+	
 		std::println("Failed to assemble program!");
 		return 1;
-	}
+
 }
 
 bool Assembler::parseArguments(int argc, char *argv[])
@@ -50,14 +52,12 @@ bool Assembler::parseArguments(int argc, char *argv[])
 			m_args.showHelp = true;
 			return true;
 		}
-		else if (arg == "-o" || arg == "--output")
+		if (arg == "-o" || arg == "--output")
 		{
 			if (i + 1 < argc)
 			{
 				m_args.outputFile = argv[++i];
-			}
-			else
-			{
+			} else {
 				std::println(std::cerr, "Error: {} requires an argument", arg);
 				m_args.showHelp = true;
 				return true;
@@ -72,13 +72,11 @@ bool Assembler::parseArguments(int argc, char *argv[])
 			std::println(std::cerr, "Error: Unknown option: {}", arg);
 			m_args.showHelp = true;
 			return true;
-		}
-		else
-		{
+		} else {
 			if (m_args.inputFile.empty())
-				m_args.inputFile = arg.str();
-			else
 			{
+				m_args.inputFile = arg.str();
+			} else {
 				std::println(std::cerr, "Error: Multiple input files specified");
 				m_args.showHelp = true;
 				return true;
@@ -88,7 +86,7 @@ bool Assembler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-void Assembler::showHelp()
+void Assembler::showHelp() const
 {
 	std::println("Phasor Assembler v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
@@ -104,7 +102,6 @@ void Assembler::showHelp()
 bool Assembler::assembleBinary()
 {
 	BytecodeSerializer bcSerializer{};
-	PhasorIR           phir;
 
 	if (m_args.outputFile.empty())
 	{
@@ -114,7 +111,7 @@ bool Assembler::assembleBinary()
 		m_args.outputFile = path.string();
 	}
 
-	return bcSerializer.saveToFile(phir.loadFromFile(m_args.inputFile), m_args.outputFile);
+	return bcSerializer.saveToFile(Phasor::PhasorIR::loadFromFile(m_args.inputFile), m_args.outputFile);
 }
 
 } // namespace Phasor

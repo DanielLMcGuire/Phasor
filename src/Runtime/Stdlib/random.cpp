@@ -32,17 +32,26 @@ namespace Phasor
 
 namespace CryptoRand {
 
-    inline void get_bytes(uint8_t* buffer, size_t size) {
-        if (size == 0) return;
-        if (!buffer) {
+    inline void get_bytes(uint8_t* buffer, size_t size)
+    {
+        if (size == 0)
+        { 
+            return;
+        }
+        if (buffer == nullptr)
+        {
             throw std::invalid_argument("Crypto::get_bytes: null buffer with nonzero size.");
         }
 
     #if defined(_WIN32)
         size_t offset = 0;
-        while (offset < size) {
+        while (offset < size)
+        {
             size_t chunk = size - offset;
-            if (chunk > ULONG_MAX) chunk = ULONG_MAX;
+            if (chunk > ULONG_MAX)
+            { 
+                chunk = ULONG_MAX;
+            }
 
             NTSTATUS status = BCryptGenRandom(
                 nullptr,
@@ -50,22 +59,26 @@ namespace CryptoRand {
                 static_cast<ULONG>(chunk),
                 BCRYPT_USE_SYSTEM_PREFERRED_RNG
             );
-            if (status != STATUS_SUCCESS) {
+            if (status != STATUS_SUCCESS)
+            {
                 PHS_ERROR("Windows BCryptGenRandom failed.");
             }
             offset += chunk;
         }
     #elif defined(__APPLE__)
         int status = SecRandomCopyBytes(kSecRandomDefault, size, buffer);
-        if (status != 0) {
+        if (status != 0)
+        {
             PHS_ERROR("Apple SecRandomCopyBytes failed.");
         }
     #elif (defined(__linux__) || defined(__gnu_linux__)) && \
           !(defined(__ANDROID_API__) && __ANDROID_API__ < 28)
         size_t bytes_read = 0;
-        while (bytes_read < size) {
+        while (bytes_read < size)
+        {
             ssize_t result = getrandom(buffer + bytes_read, size - bytes_read, 0);
-            if (result < 0) {
+            if (result < 0)
+            {
                 if (errno == EINTR) continue;
                 PHS_ERROR("Linux getrandom failed.");
             }
@@ -73,19 +86,23 @@ namespace CryptoRand {
         }
     #else
         int fd = ::open("/dev/urandom", O_RDONLY);
-        if (fd < 0) {
+        if (fd < 0)
+        {
             PHS_ERROR("Failed to open /dev/urandom.");
         }
 
         size_t bytes_read = 0;
-        while (bytes_read < size) {
+        while (bytes_read < size)
+        {
             ssize_t result = ::read(fd, buffer + bytes_read, size - bytes_read);
-            if (result < 0) {
+            if (result < 0)
+            {
                 if (errno == EINTR) continue;
                 ::close(fd);
                 PHS_ERROR("Failed to read from /dev/urandom.");
             }
-            if (result == 0) {
+            if (result == 0)
+            {
                 ::close(fd);
                 PHS_ERROR("Unexpected EOF reading from /dev/urandom.");
             }
@@ -159,7 +176,8 @@ Value StdLib::rand_get_crypto_int(const std::vector<Value> &args, VM *)
 	i64 val = 0;
 	try {
 		CryptoRand::get_bytes(reinterpret_cast<uint8_t*>(&val), sizeof(val));
-	} catch (...) {
+	} catch (...)
+    {
 		return phsnull;
 	}
 	return val;
@@ -171,7 +189,8 @@ Value StdLib::rand_get_crypto_float(const std::vector<Value> &args, VM *)
 	uint64_t  val = 0;
 	try {
         CryptoRand::get_bytes(reinterpret_cast<uint8_t*>(&val), sizeof(val));
-    } catch (...) {
+    } catch (...)
+    {
         return phsnull;
     }
 	return static_cast<f64>(val & 0x1FFFFFFFFFFFFF) / 9007199254740992.0;

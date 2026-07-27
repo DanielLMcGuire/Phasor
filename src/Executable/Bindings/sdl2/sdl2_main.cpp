@@ -4,11 +4,14 @@
 #include <iostream>
 #include <stdexcept>
 
-PhasorValue phasor_sdl_init(PhasorVM*, int argc, const PhasorValue *argv) {
-    if (argc < 1) { [[unlikely]]
+PhasorValue phasor_sdl_init(PhasorVM*, int argc, const PhasorValue *argv)
+{
+    if (argc < 1)
+    { [[unlikely]]
         throw std::runtime_error("SDL_Init requires 1 argument: flags (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0]))
+    { [[unlikely]]
         throw std::runtime_error("SDL_Init argument 1 (flags) must be an integer");
     }
     
@@ -18,18 +21,22 @@ PhasorValue phasor_sdl_init(PhasorVM*, int argc, const PhasorValue *argv) {
     return phasor_make_int(result);
 }
 
-PhasorValue phasor_sdl_quit(PhasorVM*, int, const PhasorValue*) {
+PhasorValue phasor_sdl_quit(PhasorVM*, int, const PhasorValue*)
+{
     SDL_Quit();
     return phasor_make_null();
 }
 
-PhasorValue phasor_sdl_create_window(PhasorVM*, int argc, const PhasorValue *argv) {
-    if (argc < 6) { [[unlikely]]
+PhasorValue phasor_sdl_create_window(PhasorVM*, int argc, const PhasorValue *argv)
+{
+    if (argc < 6)
+    { [[unlikely]]
         throw std::runtime_error("SDL_CreateWindow requires 6 arguments: title (string), x (int), y (int), w (int), h (int), flags (int)");
     }
     
     if (!phasor_is_string(argv[0]) || !phasor_is_int(argv[1]) || !phasor_is_int(argv[2]) || 
-        !phasor_is_int(argv[3]) || !phasor_is_int(argv[4]) || !phasor_is_int(argv[5])) { [[unlikely]]
+        !phasor_is_int(argv[3]) || !phasor_is_int(argv[4]) || !phasor_is_int(argv[5]))
+    { [[unlikely]]
         throw std::runtime_error("SDL_CreateWindow: Invalid argument types (Expected: string, int, int, int, int, int)");
     }
 
@@ -45,27 +52,34 @@ PhasorValue phasor_sdl_create_window(PhasorVM*, int argc, const PhasorValue *arg
     return phasor_make_int((intptr_t)window);
 }
 
-PhasorValue phasor_sdl_destroy_window(PhasorVM*, int argc, const PhasorValue *argv) {
-    if (argc < 1) { [[unlikely]]
+PhasorValue phasor_sdl_destroy_window(PhasorVM*, int argc, const PhasorValue *argv)
+{
+    if (argc < 1)
+    { [[unlikely]]
         throw std::runtime_error("SDL_DestroyWindow requires 1 argument: window_handle (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0]))
+    { [[unlikely]]
         throw std::runtime_error("SDL_DestroyWindow arg 1 must be an integer (window handle)");
     }
 
     SDL_Window* window = (SDL_Window*)(intptr_t)phasor_to_int(argv[0]);
-    if (window) { [[likely]]
+    if (window)
+    { [[likely]]
         SDL_DestroyWindow(window);
     }
     
     return phasor_make_null();
 }
 
-PhasorValue phasor_sdl_delay(PhasorVM*, int argc, const PhasorValue *argv) {
-    if (argc < 1) { [[unlikely]]
+PhasorValue phasor_sdl_delay(PhasorVM*, int argc, const PhasorValue *argv)
+{
+    if (argc < 1)
+    { [[unlikely]]
         throw std::runtime_error("SDL_Delay requires 1 argument: ms (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0]))
+    { [[unlikely]]
         throw std::runtime_error("SDL_Delay arg 1 must be an integer (milliseconds)");
     }
 
@@ -75,15 +89,18 @@ PhasorValue phasor_sdl_delay(PhasorVM*, int argc, const PhasorValue *argv) {
     return phasor_make_null();
 }
 
-PhasorValue phasor_sdl_poll_event(PhasorVM*, int, const PhasorValue*) {
+PhasorValue phasor_sdl_poll_event(PhasorVM*, int, const PhasorValue*)
+{
     SDL_Event event;
-    if (SDL_PollEvent(&event)) { [[unlikely]]
+    if (SDL_PollEvent(&event))
+    { [[unlikely]]
         return phasor_make_int(event.type);
     }
     return phasor_make_int(0); 
 }
 
-PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm) {
+PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
+{
     api->register_function(vm, "SDL_Init", phasor_sdl_init);
     api->register_function(vm, "SDL_Quit", phasor_sdl_quit);
     api->register_function(vm, "SDL_CreateWindow", phasor_sdl_create_window);

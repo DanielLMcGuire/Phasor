@@ -24,10 +24,12 @@ void init_crc32_table_deserializer()
 		Phasor::u32 crc = i;
 		for (int j = 0; j < 8; j++)
 		{
-			if ((crc & 1) != 0u)
+			if ((crc & 1) != 0U)
+			{
 				crc = (crc >> 1) ^ 0xEDB88320;
-			else
+			} else {
 				crc >>= 1;
+			}
 		}
 		crc32_table[i] = crc;
 	}
@@ -40,11 +42,15 @@ namespace Phasor
 u32 BytecodeDeserializer::calculateCRC32(const u8 *data, size_t size)
 {
 	if (!crc32_table_initialized)
+	{
 		init_crc32_table_deserializer();
+	}
 
 	u32 crc = 0xFFFFFFFF;
 	for (size_t i = 0; i < size; i++)
+	{
 		crc = (crc >> 8) ^ crc32_table[(crc ^ data[i]) & 0xFF];
+	}
 	return crc ^ 0xFFFFFFFF;
 }
 
@@ -55,7 +61,9 @@ u32 BytecodeDeserializer::calculateCRC32(const u8 *data, size_t size)
 u8 BytecodeDeserializer::readUInt8()
 {
 	if (position >= dataSize)
+	{
 		throw std::runtime_error("Unexpected end of bytecode data");
+	}
 	return _data[position++];
 }
 
@@ -86,7 +94,9 @@ i64 BytecodeDeserializer::readInt64()
 {
 	i64 value = 0;
 	for (int i = 0; i < 8; i++)
+	{
 		value |= static_cast<i64>(readUInt8()) << (i * 8);
+	}
 	return value;
 }
 
@@ -94,7 +104,9 @@ f64 BytecodeDeserializer::readDouble()
 {
 	u64 bits = 0;
 	for (int i = 0; i < 8; i++)
+	{
 		bits |= static_cast<u64>(readUInt8()) << (i * 8);
+	}
 	f64 value;
 	std::memcpy(&value, &bits, sizeof(f64));
 	return value;
@@ -106,7 +118,9 @@ std::string BytecodeDeserializer::readString()
 	std::string str;
 	str.reserve(length);
 	for (u16 i = 0; i < length; i++)
+	{
 		str.push_back(static_cast<char>(readUInt8()));
+	}
 	return str;
 }
 
@@ -155,7 +169,9 @@ Value BytecodeDeserializer::readValue()
 		std::vector<Value> elements;
 		elements.reserve(elementCount);
 		for (u32 i = 0; i < elementCount; ++i)
+		{
 			elements.push_back(readValue()); // recurse
+		}
 		return Value::createArray(std::move(elements));
 	}
 
@@ -173,11 +189,15 @@ void BytecodeDeserializer::readHeader(u32 &checksum)
 {
 	u32 magic = readUInt32();
 	if (magic != MAGIC_NUMBER)
+	{
 		throw std::runtime_error("Invalid bytecode file: incorrect magic number");
+	}
 
 	u32 version = readUInt32();
 	if (version != VERSION)
+	{
 		throw std::runtime_error("Incompatible bytecode version");
+	}
 
 	u32 flags = readUInt32(); // Reserved
 	(void)flags;
@@ -189,19 +209,25 @@ void BytecodeDeserializer::readConstantPool(Bytecode &bytecode)
 {
 	u8 sectionId = readUInt8();
 	if (sectionId != SECTION_CONSTANTS)
+	{
 		throw std::runtime_error("Expected constant pool section");
+	}
 
 	u32 count = readUInt32();
 	bytecode.constants.reserve(count);
 	for (u32 i = 0; i < count; i++)
+	{
 		bytecode.constants.push_back(readValue());
+	}
 }
 
 void BytecodeDeserializer::readVariableMapping(Bytecode &bytecode)
 {
 	u8 sectionId = readUInt8();
 	if (sectionId != SECTION_VARIABLES)
+	{
 		throw std::runtime_error("Expected variable mapping section");
+	}
 
 	u32 count = readUInt32();
 	bytecode.nextVarIndex = readInt32();
@@ -217,7 +243,9 @@ void BytecodeDeserializer::readInstructions(Bytecode &bytecode)
 {
 	u8 sectionId = readUInt8();
 	if (sectionId != SECTION_INSTRUCTIONS)
+	{
 		throw std::runtime_error("Expected instructions section");
+	}
 
 	u32 count = readUInt32();
 	bytecode.instructions.reserve(count);
@@ -234,8 +262,10 @@ void BytecodeDeserializer::readInstructions(Bytecode &bytecode)
 void BytecodeDeserializer::readFunctionEntries(Bytecode &bytecode)
 {
 	u8 sectionId = readUInt8();
-	if (sectionId != SECTION_FUNCTIONS)
+	if (sectionId != SECTION_FUNCTIONS) 
+	{
 		throw std::runtime_error("Expected function entries section");
+	}
 
 	u32 count = readUInt32();
 	for (u32 i = 0; i < count; i++)
@@ -256,7 +286,9 @@ void BytecodeDeserializer::readFunctionTypes(Bytecode &bytecode)
 {
 	u8 sectionId = readUInt8();
 	if (sectionId != SECTION_FUNC_TYPES)
+	{
 		throw std::runtime_error("Expected function type signatures section");
+	}
 
 	u32 count = readUInt32();
 	for (u32 i = 0; i < count; i++)
@@ -268,7 +300,9 @@ void BytecodeDeserializer::readFunctionTypes(Bytecode &bytecode)
 		std::vector<std::string> paramTypes;
 		paramTypes.reserve(paramCount);
 		for (u32 p = 0; p < paramCount; p++)
+		{
 			paramTypes.push_back(readString());
+		}
 
 		bytecode.functionParamTypeNames[name]  = std::move(paramTypes);
 		bytecode.functionReturnTypeNames[name]  = std::move(returnTypeName);
@@ -285,7 +319,9 @@ void BytecodeDeserializer::readStructSection(Bytecode &bytecode)
 {
 	u8 sectionId = readUInt8();
 	if (sectionId != SECTION_STRUCTS)
+	{
 		throw std::runtime_error("Expected struct definitions section");
+	}
 
 	u32 structCount = readUInt32();
 	bytecode.structs.reserve(structCount);
@@ -299,7 +335,9 @@ void BytecodeDeserializer::readStructSection(Bytecode &bytecode)
 
 		info.fieldNames.reserve(static_cast<size_t>(info.fieldCount));
 		for (int f = 0; f < info.fieldCount; f++)
+		{
 			info.fieldNames.push_back(readString());
+		}		
 
 		int index = static_cast<int>(bytecode.structs.size());
 		bytecode.structs.push_back(std::move(info));
@@ -316,7 +354,9 @@ void BytecodeDeserializer::readScopeVars(Bytecode &bytecode)
 {
     u8 sectionId = readUInt8();
     if (sectionId != SECTION_SCOPE_VARS)
+	{
         throw std::runtime_error("Expected scope vars section");
+	}
 
     u32 count = readUInt32();
     bytecode.scopeVarLists.resize(count);
@@ -328,7 +368,7 @@ void BytecodeDeserializer::readScopeVars(Bytecode &bytecode)
         {
             int         idx  = readInt32();
             std::string name = readString();
-            bytecode.scopeVarLists[i].push_back({idx, name});
+            bytecode.scopeVarLists[i].emplace_back(idx, name);
         }
     }
 }
@@ -351,7 +391,9 @@ Bytecode BytecodeDeserializer::deserialize(const std::vector<u8> &buffer)
 	size_t dataStart      = position;
 	u32    actualChecksum = calculateCRC32(_data + dataStart, dataSize - dataStart);
 	if (actualChecksum != expectedChecksum)
+	{
 		throw std::runtime_error("Bytecode file corrupted: checksum mismatch");
+	}
 
 	// Sections must be read in the same order they were written.
 	readConstantPool(bytecode);
@@ -369,14 +411,18 @@ Bytecode BytecodeDeserializer::loadFromFile(const std::filesystem::path &filenam
 {
 	std::ifstream file(filename, std::ios::binary | std::ios::ate);
 	if (!file.is_open())
+	{
 		throw std::runtime_error("Failed to open bytecode file: " + filename.string());
+	}
 
 	std::streamsize size = file.tellg();
 	file.seekg(0, std::ios::beg);
 
 	std::vector<u8> fileBuffer(size);
 	if (!file.read(reinterpret_cast<char *>(fileBuffer.data()), size))
+	{
 		throw std::runtime_error("Failed to read bytecode file: " + filename.string());
+	}
 
 	return deserialize(fileBuffer);
 }

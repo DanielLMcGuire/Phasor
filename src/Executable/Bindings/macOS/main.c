@@ -23,9 +23,7 @@ static PhasorValue applescript_run(PhasorVM *, int argc, const PhasorValue *argv
 
 		freeAppleScriptResult(&result);
 		return phasor_make_int(0);
-	}
-	else
-	{
+	} else {
 		if (result.error)
 		{
 			puts(result.error);

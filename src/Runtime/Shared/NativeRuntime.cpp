@@ -12,6 +12,7 @@
 #include <iostream>
 #include <nativeerror.h>
 #include <phsint.hpp>
+#include <utility>
 
 namespace Phasor
 {
@@ -24,14 +25,14 @@ NativeRuntime::NativeRuntime(const std::vector<u8> &bytecodeData, const int argc
 	m_vm = std::make_unique<VM>();
 }
 
-NativeRuntime::NativeRuntime(const Phasor::Bytecode &bytecode, const int argc, const char **argv)
-    : m_bytecode(bytecode), m_argc(argc), m_argv(const_cast<char **>(argv))
+NativeRuntime::NativeRuntime(Phasor::Bytecode bytecode, const int argc, const char **argv)
+    : m_bytecode(std::move(bytecode)), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
 	m_vm = std::make_unique<VM>();
 }
 
-NativeRuntime::NativeRuntime(const std::string &script, const int argc, const char **argv)
-    : m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
+NativeRuntime::NativeRuntime(std::string script, const int argc, const char **argv)
+    : m_script(std::move(script)), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
 	Lexer lexer(m_script);
 	auto  tokens = lexer.tokenize();
@@ -44,8 +45,8 @@ NativeRuntime::NativeRuntime(const std::string &script, const int argc, const ch
 	m_vm = std::make_unique<VM>();
 }
 
-NativeRuntime::NativeRuntime(const Phasor::VM &vm, const std::string &script, const int argc, const char **argv)
-    : m_vm(const_cast<VM *>(&vm), [](VM *) {}), m_script(script), m_argc(argc), m_argv(const_cast<char **>(argv))
+NativeRuntime::NativeRuntime(const Phasor::VM &vm, std::string script, const int argc, const char **argv)
+    : m_vm(const_cast<VM *>(&vm), [](VM *) {}), m_script(std::move(script)), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
 	Lexer         lexer(m_script);
 	Parser        parser(lexer.tokenize());
@@ -57,10 +58,12 @@ NativeRuntime::NativeRuntime(Phasor::VM *vm, const std::vector<u8> &bytecodeData
                              const char **argv)
     : m_bytecodeData(bytecodeData), m_argc(argc), m_argv(const_cast<char **>(argv))
 {
-	if (vm)
+	if (vm != nullptr)
+	{
 		m_vm = std::shared_ptr<VM>(vm, [](VM *) {}); // non-owning, caller manages lifetime
-	else
+	} else {
 		m_vm = std::make_shared<VM>(); // owning, we manage lifetime
+	}
 
 	BytecodeDeserializer deserializer;
 	m_bytecode = deserializer.deserialize(m_bytecodeData);
@@ -75,7 +78,7 @@ NativeRuntime::~NativeRuntime()
 void NativeRuntime::addNativeFunction(const std::string &name, void *function)
 {
 	using RawFunctionPtr = Value (*)(const std::vector<Value> &, VM *);
-	RawFunctionPtr rawPtr = reinterpret_cast<RawFunctionPtr>(function);
+	auto rawPtr = reinterpret_cast<RawFunctionPtr>(function);
 	NativeFunction nativeFunction = rawPtr;
 	m_vm->registerNativeFunction(name, nativeFunction);
 }
@@ -126,7 +129,7 @@ int NativeRuntime::run()
 	return 0;
 }
 
-int NativeRuntime::runFunctionInt(std::string functionName)
+int NativeRuntime::runFunctionInt(const std::string& functionName)
 {
 	try
 	{
@@ -152,7 +155,7 @@ int NativeRuntime::runFunctionInt(std::string functionName)
 	return 0;
 }
 
-std::optional<std::string> NativeRuntime::runFunctionString(std::string functionName)
+std::optional<std::string> NativeRuntime::runFunctionString(const std::string& functionName)
 {
 	try
 	{

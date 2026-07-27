@@ -20,9 +20,7 @@ bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path 
 		if (modName.empty())
 		{
 			moduleName = sanitizeModuleName(outputPath.stem().string());
-		}
-		else
-		{
+		} else {
 			moduleName = sanitizeModuleName(modName);
 		}
 
@@ -172,9 +170,7 @@ PhsString CppCodeGenerator::escapeString(const PhsString &str)
 			if (c >= 32 && c <= 126)
 			{
 				escaped << c;
-			}
-			else
-			{
+			} else {
 				escaped << "\\x" << std::hex << std::setw(2) << std::setfill('0')
 				        << static_cast<int>(static_cast<unsigned char>(c));
 			}
@@ -211,9 +207,7 @@ PhsString CppCodeGenerator::sanitizeModuleName(const PhsString &name)
 		if ((std::isalnum(c) != 0) || c == '_')
 		{
 			result += c;
-		}
-		else
-		{
+		} else {
 			result += '_';
 		}
 	}

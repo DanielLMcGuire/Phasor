@@ -1,24 +1,22 @@
 #include "StdLib.hpp"
 #include <cassert>
-#ifdef _WIN32
-#include <stdlib.h>
-#else
 #include <cstdlib>
-#endif
 #include <platform.h>
 
 namespace Phasor
 {
 void StdLib::registerInternalFunctions(VM *vm)
 {
-	vm->registerNativeFunction("phs__is_32", [](const std::vector<Value> &, VM *) {
+	vm->registerNativeFunction("phs__is_32", [](const std::vector<Value> &, VM *)
+	{
 #if defined(PHS_IS_32)
 		return true
 #else
 		return false;
 #endif		
 	});
-	vm->registerNativeFunction("phs__trace", [](const std::vector<Value> &, VM *){
+	vm->registerNativeFunction("phs__trace", [](const std::vector<Value> &, VM *)
+	{
 #if defined(TRACING)
 		return true;
 #else
@@ -63,7 +61,8 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 	    {"stdfile", registerFileFunctions},
 #endif
 	    {"std*",
-	     [](Phasor::VM *vm) {
+	     [](Phasor::VM *vm)
+		 {
 		     registerIOFunctions(vm);
 		     registerSysFunctions(vm);
 		     registerMathFunctions(vm);
@@ -109,9 +108,7 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 		if (it != modules.end())
 		{
 			it->second(vm);
-		}
-		else
-		{
+		} else {
 			PHS_ERROR("Unknown module: " + arg.string());
 		}
 	}

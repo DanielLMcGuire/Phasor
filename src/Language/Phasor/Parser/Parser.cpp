@@ -66,7 +66,7 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 			}
 
 			auto canonicalPath = std::filesystem::canonical(includePath);
-			if (visitedFiles.count(canonicalPath) > 0)
+			if (visitedFiles.contains(canonicalPath))
 			{
 				continue;
 			}
@@ -83,9 +83,7 @@ static std::vector<std::unique_ptr<AST::Statement>> resolveIncludesInternal(
 			{
 				result.push_back(std::move(stmt));
 			}
-		}
-		else
-		{
+		} else {
 			result.push_back(std::move(i));
 		}
 	}
@@ -189,7 +187,7 @@ void Parser::synchronize()
 		{
 			return;
 		}
-		if (check(Phasor::TokenType::Keyword) && boundaryKeywords.count(peek().lexeme) > 0)
+		if (check(Phasor::TokenType::Keyword) && boundaryKeywords.contains(peek().lexeme))
 		{
 			return;
 		}
@@ -240,9 +238,7 @@ void Parser::defineDirective()
 		else if (match(Phasor::TokenType::Keyword, "false"))
 		{
 			value = DefineValue(DefineValueKind::Boolean, "false");
-		}
-		else
-		{
+		} else {
 			lastError = {"Expect a literal value after '=' in 'define'.", peek().line, peek().column};
 			throw std::runtime_error("Expect a literal value after '=' in 'define'.");
 		}
@@ -269,11 +265,13 @@ void Parser::staticIfDirective(std::vector<std::unique_ptr<AST::Statement>> &out
 		std::vector<std::unique_ptr<AST::Statement>> statements;
 	};
 
-	auto atBranchEnd = [this]() {
+	auto atBranchEnd = [this]()
+	{
 		return check(Phasor::TokenType::Keyword) && (peek().lexeme == "static_else" || peek().lexeme == "static_endif");
 	};
 
-	auto parseBranchBody = [this, &atBranchEnd](std::vector<std::unique_ptr<AST::Statement>> &stmts) {
+	auto parseBranchBody = [this, &atBranchEnd](std::vector<std::unique_ptr<AST::Statement>> &stmts)
+	{
 		while (!atBranchEnd())
 		{
 			if (isAtEnd())
@@ -310,9 +308,9 @@ void Parser::staticIfDirective(std::vector<std::unique_ptr<AST::Statement>> &out
 		{
 			branches.back().condition = expression();
 			consume(Phasor::TokenType::Symbol, ")", "Expect ')' after 'static_else' condition.");
-		}
-		else
+		} else {
 			sawUnconditionalElse = true;
+		}
 		parseBranchBody(branches.back().statements);
 	}
 
@@ -372,7 +370,7 @@ std::string Parser::evaluateStaticValue(AST::Expression *expr)
 	}
 	if (dynamic_cast<AST::NullExpr *>(expr) != nullptr)
 	{
-		return std::string();
+		return {};
 	}
 	if (auto *ident = dynamic_cast<AST::IdentifierExpr *>(expr))
 	{
@@ -432,7 +430,8 @@ bool Parser::evaluateStaticCondition(AST::Expression *expr)
 
 		std::string lhs = evaluateStaticValue(bin->left.get());
 		std::string rhs = evaluateStaticValue(bin->right.get());
-		double      lnum = 0.0, rnum = 0.0;
+		double      lnum = 0.0;
+		double      rnum = 0.0;
 		bool        numeric = staticTryParseNumber(lhs, lnum) && staticTryParseNumber(rhs, rnum);
 
 		switch (bin->op)
@@ -467,7 +466,10 @@ std::unique_ptr<Statement> Parser::declaration()
 
 		bool keepFunc = (check(Phasor::TokenType::Keyword)   && peek().lexeme == "keep") ||
 		                (check(Phasor::TokenType::Identifier) && peek().lexeme == "keep");
-		if (keepFunc) advance();
+		if (keepFunc) 
+		{ 
+			advance();
+		}
 
 		Token nameTok = consume(Phasor::TokenType::Identifier, "Expect function name.");
 		consume(Phasor::TokenType::Symbol, "(", "Expect '(' after function name.");
@@ -504,7 +506,7 @@ std::unique_ptr<Statement> Parser::declaration()
 			node->column = nameTok.column;
 			return node;
 		}
-		else if (match(Phasor::TokenType::Symbol, "{"))
+		if (match(Phasor::TokenType::Symbol, "{"))
 		{
 			std::string previousFunction = currentFunction;
 			currentFunction = nameTok.lexeme;
@@ -515,9 +517,7 @@ std::unique_ptr<Statement> Parser::declaration()
 			node->line = nameTok.line;
 			node->column = nameTok.column;
 			return node;
-		}
-		else
-		{
+		} else {
 			lastError = {"Expect '{' or ';' after function signature.", peek().line, peek().column};
 			throw std::runtime_error("Expect '{' or ';' after function signature.");
 		}
@@ -552,9 +552,7 @@ std::unique_ptr<TypeNode> Parser::parseType()
 	else if (check(Phasor::TokenType::Keyword) && peek().lexeme == "any")
 	{
 		typeName = advance();
-	}
-	else
-	{
+	} else {
 		typeName = consume(Phasor::TokenType::Identifier, "Expect type name.");
 	}
 
@@ -565,9 +563,7 @@ std::unique_ptr<TypeNode> Parser::parseType()
 		{
 			Token size = consume(Phasor::TokenType::Number, "Expect array size in type declaration.");
 			dims.push_back(std::stoi(size.lexeme));
-		}
-		else
-		{
+		} else {
 			dims.push_back(-1); 
 		}
 		consume(Phasor::TokenType::Symbol, "]", "Expect ']' after array size.");
@@ -749,14 +745,10 @@ std::unique_ptr<Statement> Parser::forStatement()
 		{
 			advance();
 			initializer = varDeclaration();
-		}
-		else
-		{
+		} else {
 			initializer = expressionStatement();
 		}
-	}
-	else
-	{
+	} else {
 		consume(Phasor::TokenType::Symbol, ";", "Expect ';'.");
 	}
 
@@ -831,9 +823,7 @@ std::unique_ptr<Statement> Parser::switchStatement()
 				}
 				declarationInto(defaultStmts);
 			}
-		}
-		else
-		{
+		} else {
 			lastError = {"Expected 'case' or 'default' in switch statement.", peek().line, peek().column};
 			throw std::runtime_error("Expected 'case' or 'default' in switch statement.");
 		}
@@ -997,9 +987,7 @@ std::unique_ptr<Expression> Parser::comparison()
 		else if (op.lexeme == "<=")
 		{
 			binOp = BinaryOp::LessEqual;
-		}
-		else
-		{
+		} else {
 			binOp = BinaryOp::GreaterEqual;
 		}
 
@@ -1046,9 +1034,7 @@ std::unique_ptr<Expression> Parser::factor()
 		else if (op.lexeme == "/")
 		{
 			binOp = BinaryOp::Divide;
-		}
-		else
-		{
+		} else {
 			binOp = BinaryOp::Modulo;
 		}
 
@@ -1132,22 +1118,19 @@ std::unique_ptr<Expression> Parser::call()
 
 			if (auto* strLit = dynamic_cast<StringExpr*>(index.get()))
 			{
-				size_t strLine = strLit->line, strCol = strLit->column;
+				size_t strLine = strLit->line;
+				size_t strCol = strLit->column;
 				auto node = std::make_unique<FieldAccessExpr>(std::move(expr), strLit->value);
 				node->line = strLine;
 				node->column = strCol;
 				expr = std::move(node);
-			}
-			else
-			{
+			} else {
 				auto node = std::make_unique<ArrayAccessExpr>(std::move(expr), std::move(index));
 				node->line = op.line;
 				node->column = op.column;
 				expr = std::move(node);
 			}
-		}
-		else
-		{
+		} else {
 			break;
 		}
 	}
@@ -1174,10 +1157,11 @@ std::unique_ptr<Expression> Parser::finishCall(std::unique_ptr<Expression> calle
 		node->column = ident->column;
 		return node;
 	}
-	if (auto field = dynamic_cast<FieldAccessExpr *>(callee.get()))
+	if (auto *field = dynamic_cast<FieldAccessExpr *>(callee.get()))
 	{
 		std::string methodName = field->fieldName;
-		size_t      fline = field->line, fcol = field->column;
+		size_t      fline = field->line;
+		size_t      fcol = field->column;
 		arguments.insert(arguments.begin(), std::move(field->object));
 		auto node = std::make_unique<CallExpr>(methodName, std::move(arguments));
 		node->line = fline;
@@ -1416,8 +1400,10 @@ std::unique_ptr<AST::StructInstanceExpr> Parser::anonymousStructInstance()
 		auto value = expression();
 		fields.emplace_back(fieldNameTok.lexeme, std::move(value));
 
-		if (!match(Phasor::TokenType::Symbol, ","))
+		if (!match(Phasor::TokenType::Symbol, ",")) 
+		{
 			break;
+		}
 	}
 	consume(Phasor::TokenType::Symbol, "}", "Expected '}' after anonymous struct fields.");
 

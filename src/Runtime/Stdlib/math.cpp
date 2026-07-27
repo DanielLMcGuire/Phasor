@@ -47,8 +47,10 @@ Value StdLib::math_abs(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 1, "math_abs");
 	if (!args[0].isNumber())
 		PHS_ERROR("math_abs() expects a number as its argument");
-	if (args[0].isInt())
+	if (args[0].isInt()) 
+	{
 		return std::abs(args[0].asInt());
+	}
 	return std::abs(args[0].asFloat());
 }
 
@@ -88,13 +90,13 @@ Value StdLib::math_min(const std::vector<Value> &args, VM *)
 	{
 		i64 ai = a.asInt();
 		i64 bi = b.asInt();
-		return Value(asm_iless_than(ai, bi) ? ai : bi);
+		return {(asm_iless_than(ai, bi) != 0) ? ai : bi};
 	}
 	if (a.isNumber() && b.isNumber())
 	{
 		f64 af = a.asFloat();
 		f64 bf = b.asFloat();
-		return Value(asm_flless_than(af, bf) ? af : bf);
+		return {(asm_flless_than(af, bf) != 0) ? af : bf};
 	}
 	if (a.isString() && b.isString())
 	{
@@ -112,13 +114,13 @@ Value StdLib::math_max(const std::vector<Value> &args, VM *)
 	{
 		i64 ai = a.asInt();
 		i64 bi = b.asInt();
-		return Value(ai > bi ? ai : bi);
+		return {ai > bi ? ai : bi};
 	}
 	if (a.isNumber() && b.isNumber())
 	{
 		f64 af = a.asFloat();
 		f64 bf = b.asFloat();
-		return Value(af > bf ? af : bf);
+		return {af > bf ? af : bf};
 	}
 	if (a.isString() && b.isString())
 	{

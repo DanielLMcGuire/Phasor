@@ -27,7 +27,7 @@ class Disassembler
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);
-	void showHelp();
+	void showHelp() const;
 	bool decompileBinary();
 };
 

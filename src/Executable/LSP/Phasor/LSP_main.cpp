@@ -99,7 +99,7 @@ static std::vector<std::filesystem::path> buildIncludePaths(const std::vector<st
 	std::vector<std::filesystem::path> paths;
 
 #ifdef PHASOR_DEFAULT_FIRST_PATH
-	paths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+	paths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
 	for (const auto &p : clientPaths)
@@ -278,9 +278,7 @@ static json handleCompletion(Phasor::LSP &lsp, const json &params)
 		if (item.isKeyword)
 		{
 			entry["kind"] = 14; // Keyword
-		}
-		else
-		{
+		} else {
 			entry["kind"] = toCompletionItemKind(item.kind);
 			if (!item.detail.empty())
 			{

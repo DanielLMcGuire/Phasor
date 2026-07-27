@@ -17,7 +17,6 @@
 #include <iterator>
 #include <unordered_map>
 
-#include <PhasorString.hpp>
 #include <phs_dupenv.hpp>
 #include <nativeerror.h>
 #include <version.h>
@@ -49,7 +48,7 @@ std::vector<std::filesystem::path> fetchIncludeDirs()
 	std::vector<std::filesystem::path> finalPaths;
 
 #ifdef PHASOR_DEFAULT_FIRST_PATH
-	finalPaths.push_back(PHASOR_DEFAULT_FIRST_PATH);
+	finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
 	Phasor::PhsString includeDirs;
@@ -60,7 +59,9 @@ std::vector<std::filesystem::path> fetchIncludeDirs()
 		while (std::getline(ss, item, ';'))
 		{
 			if (!item.empty())
-				finalPaths.push_back(item);
+			{
+				finalPaths.emplace_back(item);
+			}
 		}
 	}
 
@@ -190,8 +191,10 @@ int runBytecodeFile(const std::filesystem::path &file, int scriptArgc, char **sc
 {
 	try
 	{
-		if (verbose)
+		if (verbose) 
+		{
 			std::println(std::cerr, "DEBUG: Loading bytecode from: {}", file.string());
+		}
 
 		Phasor::BytecodeDeserializer deserializer;
 		Phasor::Bytecode            bytecode = deserializer.loadFromFile(file.string());
@@ -205,13 +208,17 @@ int runBytecodeFile(const std::filesystem::path &file, int scriptArgc, char **sc
 
 		auto vm = createVm(scriptArgc, scriptArgv);
 
-		if (verbose)
+		if (verbose) 
+		{
 			std::println(std::cerr, "DEBUG: About to run bytecode");
+		}
 
 		int status = vm->run(bytecode);
 
 		if (verbose)
+		{
 			std::println(std::cerr, "DEBUG: Bytecode execution complete with return {}", status);
+		}
 
 		return status;
 	}
@@ -244,7 +251,9 @@ int runRepl(const std::vector<std::filesystem::path> &includePaths, bool verbose
 		{
 			std::print("\n> ");
 			if (!std::getline(std::cin, line))
+			{
 				break;
+			}
 
 			if (line.starts_with("exit"))
 			{
@@ -326,17 +335,13 @@ int main(int argc, char *argv[])
 				{
 					showHelp(programPath);
 					return 0;
-				}
-				else if (arg == "-v" || arg == "--version")
-				{
+				} else if (arg == "-v" || arg == "--version") {
 					std::println(PHASOR_VERSION_STRING);
 					return 0;
-				}
-				else if (arg == "--verbose")
+				} else if (arg == "--verbose")
 				{
 					verbose = true;
-				}
-				else if (arg.starts_with("-D=") || arg.starts_with("--define="))
+				} else if (arg.starts_with("-D=") || arg.starts_with("--define="))
 				{
 					Phasor::PhsString values = arg.substr(arg.find('=') + 1);
 					std::stringstream ss(values);
@@ -372,21 +377,15 @@ int main(int argc, char *argv[])
 					}
 					command_script = argv[++i];
 					has_command = true;
-				}
-				else
-				{
+				} else {
 					std::println(std::cerr, "Error: Unknown runtime option '{}'. Use -- to separate script arguments.", arg);
 					return 1;
 				}
-			}
-			else
-			{
+			} else {
 				if (!has_command && file_script.empty())
 				{
 					file_script = arg;
-				}
-				else
-				{
+				} else {
 					script_args_storage.push_back(arg);
 				}
 			}
@@ -442,15 +441,11 @@ int main(int argc, char *argv[])
 			auto vm = createVm(scriptArgc, scriptArgvPtr);
 			int ret = runSourceString(command_script, *vm, includePaths, "", verbose, defines);
 			return ret;
-		}
-		else if (has_pipe)
-		{
+		} else if (has_pipe) {
 			auto vm = createVm(scriptArgc, scriptArgvPtr);
 			int ret =runSourceString(piped_script, *vm, includePaths, "", verbose, defines);
 			return ret;
-		}
-		else if (has_file)
-		{
+		} else if (has_file) {
 			const std::filesystem::path file = file_script.str();
 			if (!std::filesystem::exists(file))
 			{
@@ -464,8 +459,7 @@ int main(int argc, char *argv[])
 			{
 				std::println("Use phasorw for windowed scripts, or rename to .phs/.phsb");
 				return 1;
-			}
-			else if (ext == ".phs")
+			} else if (ext == ".phs")
 #else
 			if (ext == ".phsw" || ext == ".phs")
 #endif
@@ -481,15 +475,11 @@ int main(int argc, char *argv[])
 			{
 				int ret = runBytecodeFile(file, scriptArgc, scriptArgvPtr, verbose);
 				return ret;
-			}
-			else
-			{
+			} else {
 				std::println(std::cerr, "Unsupported extension: {}, see --help", ext);
 				return 1;
 			}
-		}
-		else
-		{
+		} else {
 			int ret = runRepl(includePaths, verbose, defines);
 			return ret;
 		}

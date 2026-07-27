@@ -33,7 +33,7 @@ Value VM::pop()
 #endif
 		std::string msg = "Stack underflow at pc=" + std::to_string(pc);
 		throw std::runtime_error(msg);
-		return Value();
+		return phsnull;
 	}
 #ifdef TRACING_STACK
 	log(std::format("({}) -> {:T}\n", PHS_SRC_LOC(), stack.back()));
@@ -54,7 +54,7 @@ Value VM::peek()
 #endif
 		std::string msg = "Stack is empty at pc=" + std::to_string(pc);
 		throw std::runtime_error(msg);
-		return Value();
+		return phsnull;
 	}
 #ifdef TRACING_STACK
 	log(std::format("({}) -> {:T}\n", PHS_SRC_LOC(), stack.back()));

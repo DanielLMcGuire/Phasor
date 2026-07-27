@@ -25,10 +25,12 @@ void init_crc32_table()
 		Phasor::u32 crc = i;
 		for (int j = 0; j < 8; j++)
 		{
-			if ((crc & 1) != 0u)
+			if ((crc & 1) != 0U)
+			{
 				crc = (crc >> 1) ^ 0xEDB88320;
-			else
+			} else {
 				crc >>= 1;
+			}
 		}
 		crc32_table[i] = crc;
 	}
@@ -41,11 +43,15 @@ namespace Phasor
 u32 BytecodeSerializer::calculateCRC32(const std::vector<u8> &data)
 {
 	if (!crc32_table_initialized)
+	{
 		init_crc32_table();
+	}
 
 	u32 crc = 0xFFFFFFFF;
 	for (u8 byte : data)
+	{
 		crc = (crc >> 8) ^ crc32_table[(crc ^ byte) & 0xFF];
+	}
 	return crc ^ 0xFFFFFFFF;
 }
 
@@ -80,7 +86,9 @@ void BytecodeSerializer::writeInt32(i32 value)
 void BytecodeSerializer::writeInt64(i64 value)
 {
 	for (int i = 0; i < 8; i++)
+	{
 		buffer.push_back(static_cast<u8>((value >> (i * 8)) & 0xFF));
+	}
 }
 
 void BytecodeSerializer::writeDouble(f64 value)
@@ -88,14 +96,18 @@ void BytecodeSerializer::writeDouble(f64 value)
 	u64 bits;
 	std::memcpy(&bits, &value, sizeof(f64));
 	for (int i = 0; i < 8; i++)
+	{
 		buffer.push_back(static_cast<u8>((bits >> (i * 8)) & 0xFF));
+	}
 }
 
 void BytecodeSerializer::writeString(const PhsString &str)
 {
 	writeUInt16(static_cast<u16>(str.length()));
 	for (char c : str)
+	{
 		buffer.push_back(static_cast<u8>(c));
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -158,7 +170,9 @@ void BytecodeSerializer::writeValue(const Value &val)
 		writeUInt8(6);
 		writeUInt32(static_cast<u32>(a->size()));
 		for (const auto &elem : *a)
+		{
 			writeValue(elem); // recurse
+		}
 		break;
 	}
 
@@ -184,7 +198,9 @@ void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
 	writeUInt8(SECTION_CONSTANTS);
 	writeUInt32(static_cast<u32>(constants.size()));
 	for (const auto &val : constants)
+	{
 		writeValue(val);
+	}
 }
 
 void BytecodeSerializer::writeVariableMapping(const std::unordered_map<std::string, int> &variables,
@@ -253,7 +269,9 @@ void BytecodeSerializer::writeFunctionTypes(
 
 		writeUInt32(static_cast<u32>(paramTypes.size()));
 		for (const auto &typeName : paramTypes)
+		{
 			writeString(typeName);
+		}
 	}
 }
 
@@ -279,7 +297,9 @@ void BytecodeSerializer::writeStructSection(const std::vector<StructInfo> &struc
 		writeInt32(info.firstConstIndex);
 		writeInt32(info.fieldCount);
 		for (const auto &fieldName : info.fieldNames)
+		{
 			writeString(fieldName);
+		}
 	}
 }
 
@@ -308,7 +328,9 @@ std::vector<u8> BytecodeSerializer::serialize(const Bytecode &bytecode)
 
 	// Reserve 16 bytes for the header (written after checksum is known).
 	for (int i = 0; i < 16; i++)
+	{
 		buffer.push_back(0);
+	}
 
 	size_t dataStartPos = buffer.size();
 	writeConstantPool(bytecode.constants);
@@ -337,7 +359,9 @@ bool BytecodeSerializer::saveToFile(const Bytecode &bytecode, const std::filesys
 		std::vector<u8> data = serialize(bytecode);
 		std::ofstream   file(filename, std::ios::binary);
 		if (!file.is_open())
+		{
 			return false;
+		}
 		file.write(reinterpret_cast<const char *>(data.data()), data.size());
 		return true;
 	}

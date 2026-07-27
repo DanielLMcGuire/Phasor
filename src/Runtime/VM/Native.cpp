@@ -1,4 +1,6 @@
 #ifndef CMAKE_PCH
+#include <utility>
+
 #include "VM.hpp"
 #endif
 
@@ -17,5 +19,5 @@ void Phasor::VM::registerNativeFunction(const PhsString &name, NativeFunction fn
 	log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), name));
 	flush();
 #endif
-	nativeFunctions[name] = fn;
+	nativeFunctions[name] = std::move(fn);
 }

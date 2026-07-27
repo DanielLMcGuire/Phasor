@@ -1,11 +1,14 @@
+#include <utility>
+
 #include "StdLib.hpp"
 
 Phasor::i64 pointer_to_i64(void* ptr)
 {
-	if (ptr == nullptr)
+	if (ptr == nullptr) {
 		return 0;
+}
 
-	std::uintptr_t value = reinterpret_cast<std::uintptr_t>(ptr);
+	auto value = reinterpret_cast<std::uintptr_t>(ptr);
 
 	if (value > static_cast<std::uintptr_t>(std::numeric_limits<Phasor::i64>::max()))
 		PHS_ERROR("Pointer value does not fit in i64");
@@ -15,8 +18,9 @@ Phasor::i64 pointer_to_i64(void* ptr)
 
 void* i64_to_pointer(Phasor::i64 value)
 {
-	if (value == 0)
+	if (value == 0) {
 		return nullptr;
+}
 
 	if (value < 0)
 		PHS_ERROR("Invalid negative pointer value");
@@ -78,8 +82,10 @@ Value StdLib::native_memory_write(const std::vector<Value> &args, VM *)
 	if (address == 0 || length == 0)
 		PHS_ERROR("Neither length nor address can be empty!");
 
-	if (length > static_cast<i64>(sizeof(i64)))
+	if (std::cmp_greater(length, sizeof(i64)))
+	{
 		length = sizeof(i64);
+	}
 
 	auto* dst = static_cast<std::uint8_t*>(i64_to_pointer(address));
 
@@ -143,8 +149,10 @@ Value StdLib::native_memory_write_offset(const std::vector<Value> &args, VM *)
 	if (address == 0 || length == 0)
 		PHS_ERROR("Neither length nor address can be empty!");
 
-	if (length > static_cast<i64>(sizeof(i64)))
+	if (std::cmp_greater(length ,sizeof(i64))) 
+	{
 		length = sizeof(i64);
+	}
 
 	auto* dst = static_cast<std::uint8_t*>(i64_to_pointer(address));
 	dst += offset;
@@ -207,15 +215,17 @@ PhsString StdLib::native_memory_read_string(const std::vector<Value> &args, VM *
 	if (address == 0 || length == 0)
 		PHS_ERROR("Neither length nor address can be empty!");
 
-	auto* src = static_cast<const char*>(i64_to_pointer(address));
+	const auto* src = static_cast<const char*>(i64_to_pointer(address));
 
 	std::string result;
 	result.reserve(static_cast<size_t>(length));
 
 	for (i64 i = 0; i < length; i++)
 	{
-		if (src[i] == '\0')
+		if (src[i] == '\0') 
+		{
 			break;
+		}
 
 		result.push_back(src[i]);
 	}
@@ -238,8 +248,10 @@ i64 StdLib::native_memory_read(const std::vector<Value> &args, VM *)
 	if (address == 0 || length == 0)
 		PHS_ERROR("Neither length nor address can be empty!");
 
-	if (length > static_cast<i64>(sizeof(i64)))
+	if (std::cmp_greater(length ,sizeof(i64)))
+	{
 		length = sizeof(i64);
+	}
 
 	auto* src = static_cast<std::uint8_t*>(i64_to_pointer(address));
 
@@ -268,7 +280,7 @@ PhsString StdLib::native_memory_read_string_offset(const std::vector<Value> &arg
 	if (address == 0 || length == 0)
 		PHS_ERROR("Neither length nor address can be empty!");
 
-	auto* src = static_cast<const char*>(i64_to_pointer(address));
+	const auto* src = static_cast<const char*>(i64_to_pointer(address));
 	src += offset;
 
 	std::string result;
@@ -276,8 +288,10 @@ PhsString StdLib::native_memory_read_string_offset(const std::vector<Value> &arg
 
 	for (i64 i = 0; i < length; i++)
 	{
-		if (src[i] == '\0')
+		if (src[i] == '\0') 
+		{
 			break;
+		}
 
 		result.push_back(src[i]);
 	}
@@ -304,8 +318,10 @@ i64 StdLib::native_memory_read_offset(const std::vector<Value> &args, VM *)
 	if (address == 0 || length == 0)
 		PHS_ERROR("Neither length nor address can be empty!");
 
-	if (length > static_cast<i64>(sizeof(i64)))
+	if (std::cmp_greater(length ,sizeof(i64)))
+	{
 		length = sizeof(i64);
+	}
 
 	auto* src = static_cast<std::uint8_t*>(i64_to_pointer(address));
 	src += offset;
@@ -330,7 +346,7 @@ i64 StdLib::native_memory_malloc(const std::vector<Value> &args, VM *)
 
 	void* ptr = std::malloc(static_cast<std::size_t>(length));
 
-	if (!ptr)
+	if (ptr == nullptr)
 		PHS_ERROR("malloc failed");
 
 	return pointer_to_i64(ptr);
@@ -350,7 +366,7 @@ i64 StdLib::native_memory_calloc(const std::vector<Value> &args, VM *)
 
 	void* ptr = std::calloc(1, static_cast<std::size_t>(length));
 
-	if (!ptr)
+	if (ptr == nullptr)
 		PHS_ERROR("calloc failed");
 
 	return pointer_to_i64(ptr);
@@ -376,7 +392,7 @@ i64 StdLib::native_memory_realloc(const std::vector<Value> &args, VM *)
 
 	void* newPtr = std::realloc(oldPtr, static_cast<std::size_t>(length));
 
-	if (!newPtr)
+	if (newPtr == nullptr)
 		PHS_ERROR("realloc failed");
 
 	return pointer_to_i64(newPtr);
@@ -427,14 +443,16 @@ Value StdLib::native_memory_strcpy(const std::vector<Value> &args, VM *)
 	if (dstSize <= 0 || srcSize <= 0)
 		PHS_ERROR("Neither destination nor source size can be non-positive!");
 
-	auto* src = static_cast<const char*>(i64_to_pointer(srcAddress));
+	const auto* src = static_cast<const char*>(i64_to_pointer(srcAddress));
 	auto* dst = static_cast<char*>(i64_to_pointer(dstAddress));
 
 	size_t srcLen = 0;
-	while (srcLen < static_cast<size_t>(srcSize) && src[srcLen] != '\0')
+	while (std::cmp_less(srcLen ,srcSize) && src[srcLen] != '\0')
+	{
 		srcLen++;
+	}
 
-	if (srcLen >= static_cast<size_t>(srcSize))
+	if (std::cmp_greater_equal(srcLen ,srcSize))
 		PHS_ERROR("Source string is not null-terminated within the given source size");
 
 	if (srcLen + 1 > static_cast<size_t>(dstSize))
@@ -456,7 +474,7 @@ Value StdLib::native_memory_stralloc(const std::vector<Value> &args, VM *)
 	size_t bufSize = data.size() + 1;
 
 	void* ptr = std::malloc(bufSize);
-	if (!ptr)
+	if (ptr == nullptr)
 		PHS_ERROR("malloc failed");
 
 	std::memcpy(ptr, data.c_str(), bufSize);
@@ -465,12 +483,12 @@ Value StdLib::native_memory_stralloc(const std::vector<Value> &args, VM *)
 	return Value::createArray({address, static_cast<i64>(bufSize)});
 }
 
-i64 StdLib::native_memory_argv(const std::vector<Value> &args, VM *vm) {
+i64 StdLib::native_memory_argv(const std::vector<Value> &args, VM *) {
 	checkArgCount(args, 0, "phs__argv_ptr");
 	return pointer_to_i64(&argv);
 }
 
-i64 StdLib::native_memory_argc(const std::vector<Value> &args, VM *vm){
+i64 StdLib::native_memory_argc(const std::vector<Value> &args, VM *){
 	checkArgCount(args, 0, "phs__argc_ptr");
 	return pointer_to_i64(&argc);
 }

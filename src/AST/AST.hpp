@@ -685,9 +685,7 @@ struct FunctionDecl : public Statement
 		if (returnType)
 		{
 			returnType->print(0);
-		}
-		else
-		{
+		} else {
 			std::cout << "void\n";
 		}
 		if (body)

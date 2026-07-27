@@ -42,11 +42,15 @@ void VM::freeVariableByName(const PhsString &name)
 	log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), name));
 	flush();
 #endif
-	if (!m_bytecode)
+	if (m_bytecode == nullptr)
+	{
 		throw std::runtime_error("Error in freeVariable(): No bytecode loaded");
+	}
 	auto it = m_bytecode->variables.find(name);
 	if (it == m_bytecode->variables.end())
+	{
 		throw std::runtime_error("Error in freeVariable(): Unknown variable \"" + name + "\"");
+	}
 
 	freeVariable(it->second);
 }

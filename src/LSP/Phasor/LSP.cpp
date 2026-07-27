@@ -27,16 +27,27 @@ static inline size_t toLspColumn(size_t lexerColumn)
 std::filesystem::path LSP::uriToPath(const std::string &uri)
 {
 	static const std::string filePrefix = "file://";
-	if (uri.compare(0, filePrefix.size(), filePrefix) != 0)
+	if (!uri.starts_with(filePrefix))
+	{
 		return {};
+	}
 
 	std::string rest = uri.substr(filePrefix.size());
 	std::string decoded;
 	decoded.reserve(rest.size());
 	auto hexVal = [](char c) -> int {
-		if (c >= '0' && c <= '9') return c - '0';
-		if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
-		if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+		if (c >= '0' && c <= '9') 
+		{ 
+			return c - '0';
+		}
+		if (c >= 'a' && c <= 'f') 
+		{ 
+			return 10 + (c - 'a');
+		}
+		if (c >= 'A' && c <= 'F') 
+		{ 
+			return 10 + (c - 'A');
+		}
 		return -1;
 	};
 	for (size_t i = 0; i < rest.size(); ++i)
@@ -81,7 +92,7 @@ bool lessOrEqualPos(size_t l1, size_t c1, size_t l2, size_t c2)
 
 LSP::Scope *innermostScopeAt(LSP::Scope *scope, size_t line, size_t col)
 {
-	if (!scope)
+	if (scope == nullptr)
 	{
 		return nullptr;
 	}
@@ -114,7 +125,7 @@ LSP::SymbolInfo *resolveInScope(LSP::Scope *from, const std::string &name, size_
 
 std::string formatTypeNode(const AST::TypeNode *t)
 {
-	if (!t)
+	if (t == nullptr)
 	{
 		return "void";
 	}
@@ -164,7 +175,7 @@ void        bindStmts(LSP::DocumentState &doc, std::vector<std::unique_ptr<AST::
 
 std::string inferTypeName(LSP::DocumentState &doc, AST::Expression *expr, LSP::Scope *scope)
 {
-	if (!expr)
+	if (expr == nullptr)
 	{
 		return "";
 	}
@@ -235,12 +246,12 @@ std::string inferTypeName(LSP::DocumentState &doc, AST::Expression *expr, LSP::S
 
 void bindType(LSP::DocumentState &doc, AST::TypeNode *t, LSP::Scope *scope)
 {
-	if (!t || t->line == 0)
+	if ((t == nullptr) || t->line == 0)
 	{
 		return;
 	}
 	LSP::SymbolInfo *sym = nullptr;
-	if (doc.structTypes.count(t->name) > 0)
+	if (doc.structTypes.contains(t->name))
 	{
 		sym = resolveInScope(scope, t->name, t->line, t->column);
 	}
@@ -249,7 +260,7 @@ void bindType(LSP::DocumentState &doc, AST::TypeNode *t, LSP::Scope *scope)
 
 void bindExpr(LSP::DocumentState &doc, AST::Expression *expr, LSP::Scope *scope)
 {
-	if (!expr)
+	if (expr == nullptr)
 	{
 		return;
 	}
@@ -376,7 +387,7 @@ LSP::Scope *pushChildScope(LSP::Scope *parent, size_t startLine, size_t startCol
 
 void bindStmt(LSP::DocumentState &doc, AST::Statement *stmt, LSP::Scope *scope)
 {
-	if (!stmt)
+	if (stmt == nullptr)
 	{
 		return;
 	}
@@ -482,7 +493,7 @@ void bindStmt(LSP::DocumentState &doc, AST::Statement *stmt, LSP::Scope *scope)
 			sig << "fn " << fn->name << "(";
 			for (size_t i = 0; i < info.params.size(); ++i)
 			{
-				if (i)
+				if (i != 0u)
 				{
 					sig << ", ";
 				}
@@ -551,7 +562,7 @@ void bindStmt(LSP::DocumentState &doc, AST::Statement *stmt, LSP::Scope *scope)
 		sig << "fn " << fd->name << "(";
 		for (size_t i = 0; i < info.params.size(); ++i)
 		{
-			if (i)
+			if (i != 0u)
 			{
 				sig << ", ";
 			}
@@ -586,7 +597,7 @@ void bindStmt(LSP::DocumentState &doc, AST::Statement *stmt, LSP::Scope *scope)
 			sig << "struct " << st->name << " { ";
 			for (size_t i = 0; i < st->fields.size(); ++i)
 			{
-				if (i)
+				if (i != 0u)
 				{
 					sig << ", ";
 				}
@@ -692,10 +703,9 @@ std::vector<LSP::Diagnostic> LSP::getDiagnostics(const std::string &uri) const
 	return it->second.diagnostics;
 }
 
-const LSP::Occurrence *LSP::occurrenceAt(const DocumentState &doc, size_t line, size_t column) const
+const LSP::Occurrence *LSP::occurrenceAt(const DocumentState &doc, size_t line, size_t column)
 {
-	auto byLine = [](const Occurrence &o, size_t l) { return o.line < l; };
-	auto begin = std::lower_bound(doc.occurrences.begin(), doc.occurrences.end(), line, byLine);
+	auto begin = std::ranges::lower_bound(doc.occurrences, line, {}, &Occurrence::line);
 	for (auto it = begin; it != doc.occurrences.end() && it->line == line; ++it)
 	{
 		if (it->contains(line, column))
@@ -714,10 +724,10 @@ AST::Node *LSP::findNodeAtPosition(const std::string &uri, size_t line, size_t c
 		return nullptr;
 	}
 	const Occurrence *occ = occurrenceAt(it->second, toLexerLine(line), toLexerCol(column));
-	return occ ? occ->node : nullptr;
+	return (occ != nullptr) ? occ->node : nullptr;
 }
 
-std::string LSP::renderHover(const SymbolInfo &sym) const
+std::string LSP::renderHover(const SymbolInfo &sym) 
 {
 	if (!sym.signature.empty())
 	{
@@ -740,11 +750,11 @@ std::optional<std::string> LSP::getHover(const std::string &uri, size_t line, si
 	}
 	const DocumentState &doc = it->second;
 	const Occurrence     *occ = occurrenceAt(doc, toLexerLine(line), toLexerCol(column));
-	if (!occ)
+	if (occ == nullptr)
 	{
 		return std::nullopt;
 	}
-	if (occ->symbol)
+	if (occ->symbol != nullptr)
 	{
 		return renderHover(*occ->symbol);
 	}
@@ -760,7 +770,7 @@ std::optional<LSP::Location> LSP::getDefinition(const std::string &uri, size_t l
 	}
 	const DocumentState &doc = it->second;
 	const Occurrence     *occ = occurrenceAt(doc, toLexerLine(line), toLexerCol(column));
-	if (!occ || !occ->symbol || occ->symbol->declLine == 0)
+	if ((occ == nullptr) || (occ->symbol == nullptr) || occ->symbol->declLine == 0)
 	{
 		return std::nullopt;
 	}
@@ -778,7 +788,7 @@ std::vector<LSP::Location> LSP::getReferences(const std::string &uri, size_t lin
 	}
 	const DocumentState &doc = it->second;
 	const Occurrence     *occ = occurrenceAt(doc, toLexerLine(line), toLexerCol(column));
-	if (!occ || !occ->symbol)
+	if ((occ == nullptr) || (occ->symbol == nullptr))
 	{
 		return results;
 	}
@@ -808,7 +818,7 @@ std::optional<std::vector<LSP::TextEdit>> LSP::getRenameEdits(const std::string 
 	}
 	const DocumentState &doc = it->second;
 	const Occurrence     *occ = occurrenceAt(doc, toLexerLine(line), toLexerCol(column));
-	if (!occ || !occ->symbol)
+	if ((occ == nullptr) || (occ->symbol == nullptr))
 	{
 		return std::nullopt;
 	}
@@ -853,7 +863,7 @@ std::vector<LSP::CompletionItem> LSP::getCompletions(const std::string &uri, siz
 		}
 	}
 	std::string trimmed = linePrefix;
-	while (!trimmed.empty() && std::isspace(static_cast<unsigned char>(trimmed.back())))
+	while (!trimmed.empty() && (std::isspace(static_cast<unsigned char>(trimmed.back())) != 0))
 	{
 		trimmed.pop_back();
 	}
@@ -864,7 +874,7 @@ std::vector<LSP::CompletionItem> LSP::getCompletions(const std::string &uri, siz
 	{
 		std::string beforeDot = trimmed.substr(0, trimmed.size() - 1);
 		size_t      i = beforeDot.size();
-		while (i > 0 && (std::isalnum(static_cast<unsigned char>(beforeDot[i - 1])) || beforeDot[i - 1] == '_'))
+		while (i > 0 && ((std::isalnum(static_cast<unsigned char>(beforeDot[i - 1])) != 0) || beforeDot[i - 1] == '_'))
 		{
 			--i;
 		}
@@ -874,7 +884,7 @@ std::vector<LSP::CompletionItem> LSP::getCompletions(const std::string &uri, siz
 			return results;
 		}
 		auto *sym = resolveInScope(scope, ident, lLine, lCol);
-		if (!sym)
+		if (sym == nullptr)
 		{
 			return results;
 		}
@@ -900,7 +910,7 @@ std::vector<LSP::CompletionItem> LSP::getCompletions(const std::string &uri, siz
 		bool isRoot = (s->parent == nullptr);
 		for (auto &[name, sym] : s->symbols)
 		{
-			if (seen.count(name) > 0)
+			if (seen.contains(name))
 			{
 				continue;
 			}
@@ -923,7 +933,7 @@ std::vector<LSP::CompletionItem> LSP::getCompletions(const std::string &uri, siz
 	    "define", "undefine", "static_if", "unsafe"};
 	for (const auto &kw : keywords)
 	{
-		if (seen.count(kw) > 0)
+		if (seen.contains(kw))
 		{
 			continue;
 		}
@@ -988,12 +998,12 @@ std::optional<LSP::SignatureHelpResult> LSP::getSignatureHelp(const std::string 
 	}
 
 	long nameEnd = openParenIdx;
-	while (nameEnd > 0 && std::isspace(static_cast<unsigned char>(linePrefix[static_cast<size_t>(nameEnd) - 1])))
+	while (nameEnd > 0 && (std::isspace(static_cast<unsigned char>(linePrefix[static_cast<size_t>(nameEnd) - 1])) != 0))
 	{
 		--nameEnd;
 	}
 	long nameStart = nameEnd;
-	while (nameStart > 0 && (std::isalnum(static_cast<unsigned char>(linePrefix[static_cast<size_t>(nameStart) - 1])) ||
+	while (nameStart > 0 && ((std::isalnum(static_cast<unsigned char>(linePrefix[static_cast<size_t>(nameStart) - 1])) != 0) ||
 	                         linePrefix[static_cast<size_t>(nameStart) - 1] == '_'))
 	{
 		--nameStart;
@@ -1006,7 +1016,7 @@ std::optional<LSP::SignatureHelpResult> LSP::getSignatureHelp(const std::string 
 
 	Scope *scope = innermostScopeAt(doc.rootScope.get(), lLine, lCol);
 	auto  *sym = resolveInScope(scope, funcName, lLine, lCol);
-	if (!sym || (sym->kind != SymbolKind::Function && sym->kind != SymbolKind::ForwardDecl))
+	if ((sym == nullptr) || (sym->kind != SymbolKind::Function && sym->kind != SymbolKind::ForwardDecl))
 	{
 		return std::nullopt;
 	}
@@ -1018,10 +1028,7 @@ std::optional<LSP::SignatureHelpResult> LSP::getSignatureHelp(const std::string 
 		result.paramLabels.push_back(pname + (ptype.empty() ? "" : (": " + ptype)));
 	}
 	result.activeParameter = std::min(activeParam, static_cast<int>(result.paramLabels.size()) - 1);
-	if (result.activeParameter < 0)
-	{
-		result.activeParameter = 0;
-	}
+	result.activeParameter = std::max(result.activeParameter, 0);
 	return result;
 }
 
@@ -1047,9 +1054,9 @@ std::vector<LSP::DocumentSymbolInfo> LSP::getDocumentSymbols(const std::string &
 		if (sym.kind == SymbolKind::Struct)
 		{
 			std::string prefix = sym.name + ".";
-			for (auto &[key, field] : doc.fieldSymbols)
+			for (const auto &[key, field] : doc.fieldSymbols)
 			{
-				if (key.rfind(prefix, 0) != 0)
+				if (!key.starts_with(prefix))
 				{
 					continue;
 				}
@@ -1061,7 +1068,7 @@ std::vector<LSP::DocumentSymbolInfo> LSP::getDocumentSymbols(const std::string &
 				fchild.column = toLspColumn(field.declColumn);
 				info.children.push_back(std::move(fchild));
 			}
-			std::sort(info.children.begin(), info.children.end(),
+			std::ranges::sort(info.children,
 			          [](const DocumentSymbolInfo &a, const DocumentSymbolInfo &b) { return a.line < b.line; });
 		}
 		else if (sym.kind == SymbolKind::Function || sym.kind == SymbolKind::ForwardDecl)
@@ -1081,7 +1088,8 @@ std::vector<LSP::DocumentSymbolInfo> LSP::getDocumentSymbols(const std::string &
 		results.push_back(std::move(info));
 	}
 
-	std::sort(results.begin(), results.end(), [](const DocumentSymbolInfo &a, const DocumentSymbolInfo &b) {
+	std::ranges::sort(results, [](const DocumentSymbolInfo &a, const DocumentSymbolInfo &b)
+	{
 		if (a.line != b.line)
 		{
 			return a.line < b.line;
@@ -1091,9 +1099,9 @@ std::vector<LSP::DocumentSymbolInfo> LSP::getDocumentSymbols(const std::string &
 	return results;
 }
 
-std::string LSP::symbolNameAt(AST::Node *node) const
+std::string LSP::symbolNameAt(AST::Node *node) 
 {
-	if (!node)
+	if (node == nullptr)
 	{
 		return "";
 	}
@@ -1153,7 +1161,8 @@ void LSP::buildIndex(DocumentState &doc)
 	}
 	collectStructTypes(doc, doc.program->statements);
 	bindStmts(doc, doc.program->statements, doc.rootScope.get());
-	std::sort(doc.occurrences.begin(), doc.occurrences.end(), [](const Occurrence &a, const Occurrence &b) {
+	std::ranges::sort(doc.occurrences, [](const Occurrence &a, const Occurrence &b)
+	{
 		if (a.line != b.line)
 		{
 			return a.line < b.line;
@@ -1187,9 +1196,7 @@ void LSP::compile(DocumentState &doc)
 		if (haveSrcPath)
 		{
 			parserSlot.emplace(tokens, srcPath);
-		}
-		else
-		{
+		} else {
 			parserSlot.emplace(tokens);
 		}
 		Parser &parser = *parserSlot;

@@ -71,6 +71,16 @@ function(phasor_add_transpiled_header)
 
     set(_output "${CMAKE_CURRENT_BINARY_DIR}/${PHS_OUTPUT_NAME}")
 
+    file(RELATIVE_PATH _rel_dir "${CMAKE_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
+    
+    if(_rel_dir)
+        set(_display_comment "${_rel_dir}/${PHS_TARGET}_${PHS_OUTPUT_NAME}")
+    else()
+        set(_display_comment "${PHS_TARGET}_${PHS_OUTPUT_NAME}")
+    endif()
+    
+    file(TO_NATIVE_PATH "${_display_comment}" _display_comment)
+
     set(_defines_genex "$<TARGET_PROPERTY:${PHS_TARGET},PHASOR_DEFINES_${PHS_NAME}>")
     set(_defines_flag  "$<$<BOOL:${_defines_genex}>:-D>")
     set(_defines_value "$<$<BOOL:${_defines_genex}>:$<JOIN:${_defines_genex},$<COMMA>>>")
@@ -88,7 +98,7 @@ if (WIN32)
             "${PHS_SOURCE}"
             ${_stdlib_headers}
             ${_stdlib_sources}
-        COMMENT "Building PHS bytecode ${PHS_OUTPUT_NAME}"
+        COMMENT "Building PHS bytecode ${_display_comment}"
     )
 else()
     add_custom_command(
@@ -104,7 +114,7 @@ else()
             "${PHS_SOURCE}"
             ${_stdlib_headers}
             ${_stdlib_sources}
-        COMMENT "Building PHS bytecode ${PHS_OUTPUT_NAME}"
+        COMMENT "Building PHS bytecode ${_display_comment}"
     )
 endif()
 

@@ -162,14 +162,14 @@ class LSP
 	std::vector<std::filesystem::path>              includePaths;
 
 	void        compile(DocumentState &doc);
-	void        computeLineOffsets(DocumentState &doc);
-	void        buildIndex(DocumentState &doc);
-	std::string symbolNameAt(AST::Node *node) const;
+	static void        computeLineOffsets(DocumentState &doc);
+	static void        buildIndex(DocumentState &doc);
+	static std::string symbolNameAt(AST::Node *node) ;
 
 	/// @brief converts an LSP document URI (e.g. "file:///home/src/foo.phs") into a filesystem path
 	static std::filesystem::path uriToPath(const std::string &uri);
 
-	const Occurrence *occurrenceAt(const DocumentState &doc, size_t line, size_t column) const;
-	std::string       renderHover(const SymbolInfo &sym) const;
+	static const Occurrence *occurrenceAt(const DocumentState &doc, size_t line, size_t column) ;
+	static std::string       renderHover(const SymbolInfo &sym) ;
 };
 } // namespace Phasor

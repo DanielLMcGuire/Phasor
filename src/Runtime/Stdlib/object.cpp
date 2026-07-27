@@ -20,11 +20,11 @@ Value StdLib::object_has(const std::vector<Value> &args, VM *)
         PHS_ERROR("has() expects an struct as its first argument");
 
     auto object = args[0].asStruct();
-    Value elementName = args[1];
+    const Value& elementName = args[1];
     if (!elementName.isString())
         PHS_ERROR("has() expects a string as its second argument");
 
-    return Value(object->fields.contains(elementName.string()));
+    return {object->fields.contains(elementName.string())};
 }
 
 Value StdLib::object_find(const std::vector<Value> &args, VM *)
@@ -49,11 +49,15 @@ Value StdLib::object_find(const std::vector<Value> &args, VM *)
     auto arr = arrayToSearch.asArray();
     for (const Value &item : *arr)
     {
-        if (!item.isStruct() || !item.hasField(elementName))
+        if (!item.isStruct() || !item.hasField(elementName)) 
+        {
             continue;
+        }
 
-        if (hasValueFilter && !(item.getField(elementName) == *filterValue))
+        if (hasValueFilter && !(item.getField(elementName) == *filterValue)) 
+        {
             continue;
+        }
 
         return item;
     }
@@ -105,7 +109,9 @@ Value StdLib::object_filter(const std::vector<Value> &args, VM *)
     for (const Value &item : *arr)
     {
         if (!item.isStruct())
+        {
             continue;
+        }
 
         bool matchesAll = true;
         for (const auto &cond : conditions)
@@ -118,7 +124,9 @@ Value StdLib::object_filter(const std::vector<Value> &args, VM *)
         }
 
         if (matchesAll)
+        {
             matches.push_back(item);
+        }
     }
 
     return Value::createArray(std::move(matches));

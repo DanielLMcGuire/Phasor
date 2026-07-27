@@ -513,9 +513,7 @@ class Value
 						throw std::runtime_error("Array element types must match");
 					}
 					result->push_back(lhsElem + rhsElem);
-				}
-				else
-				{
+				} else {
 					if (lhsElem.getType() != rhsElem.getType())
 					{
 						throw std::runtime_error("Array element types must match");
@@ -561,9 +559,7 @@ class Value
 						throw std::runtime_error("Array element types must match");
 					}
 					result->push_back(lhsElem - rhsElem);
-				}
-				else
-				{
+				} else {
 					if (lhsElem.getType() != rhsElem.getType())
 					{
 						throw std::runtime_error("Array element types must match");
@@ -639,9 +635,7 @@ class Value
 						throw std::runtime_error("Array element types must match");
 					}
 					result->push_back(lhsElem * rhsElem);
-				}
-				else
-				{
+				} else {
 					if (lhsElem.getType() != rhsElem.getType())
 					{
 						throw std::runtime_error("Array element types must match");
@@ -695,9 +689,7 @@ class Value
 						throw std::runtime_error("Array element types must match");
 					}
 					result->push_back(lhsElem / rhsElem);
-				}
-				else
-				{
+				} else {
 					if (lhsElem.getType() != rhsElem.getType())
 					{
 						throw std::runtime_error("Array element types must match");
@@ -743,9 +735,7 @@ class Value
 						throw std::runtime_error("Array element types must match");
 					}
 					result->push_back(lhsElem % rhsElem);
-				}
-				else
-				{
+				} else {
 					if (lhsElem.getType() != rhsElem.getType())
 					{
 						throw std::runtime_error("Array element types must match");
@@ -989,9 +979,7 @@ class Value
 						char buf[7];
 						snprintf(buf, sizeof(buf), "\\u%04X", static_cast<unsigned char>(c));
 						result += buf;
-					}
-					else
-					{
+					} else {
 						result += c;
 					}
 					break;
@@ -1377,9 +1365,7 @@ template <> struct std::formatter<Phasor::Value>
 					char buf[5];
 					snprintf(buf, sizeof(buf), "\\x%02X", (unsigned char)c);
 					output += buf;
-				}
-				else
-				{
+				} else {
 					output += c;
 				}
 				break;

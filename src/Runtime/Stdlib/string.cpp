@@ -1,6 +1,8 @@
 #include "StdLib.hpp"
+#include <algorithm>
 #include <string>
 #include <phsint.hpp>
+#include <utility>
 
 namespace Phasor
 {
@@ -45,7 +47,7 @@ static size_t checkSbHandle(const Value &handle, const char *fnName)
 		PHS_ERROR(std::string(fnName) + "() expects an integer StringBuilder handle as its first argument");
 
 	i64 idx = handle.asInt();
-	if (idx < 0 || idx >= static_cast<i64>(getSbPool().size()))
+	if (idx < 0 || std::cmp_greater_equal(idx ,getSbPool().size()))
 		PHS_ERROR(std::string(fnName) + "(): invalid StringBuilder handle");
 
 	return static_cast<size_t>(idx);
@@ -64,21 +66,23 @@ Value StdLib::str_split(const std::vector<Value> &args, VM *)
 	PhsString delim = args[1].string();
 
 	std::vector<Value> result;
-	if (delim.empty()) {
-		result.push_back(s);
+	if (delim.empty())
+	{
+		result.emplace_back(s);
 		return Value::createArray(std::move(result));
 	}
 
 	size_t start = 0;
 	size_t end = s.find(delim);
 	
-	while (end != PhsString::npos) {
-		result.push_back(s.substr(start, end - start));
+	while (end != PhsString::npos)
+	{
+		result.emplace_back(s.substr(start, end - start));
 		start = end + delim.length();
 		end = s.find(delim, start);
 	}
 
-	result.push_back(s.substr(start));
+	result.emplace_back(s.substr(start));
 	return Value::createArray(std::move(result));
 }
 
@@ -109,7 +113,7 @@ i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 		}
 		return -1;
 	}
-	else if (args.size() == 4)
+	if (args.size() == 4)
 	{
 		if (!args[2].isInt())
 			PHS_ERROR("find() expects an integer as its third argument (start)");
@@ -123,12 +127,10 @@ i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 			return static_cast<i64>(pos);
 		}
 		return -1;
-	}
-	else
-	{
+	} else {
 		pos = s.find(sub);
 	}
-	return pos != PhsString::npos ? static_cast<i64>(pos) : false;
+	return pos != PhsString::npos ? static_cast<i64>(pos) : 0;
 }
 
 i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
@@ -140,11 +142,9 @@ i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
 		idx = getSbFreeIndices().back();
 		getSbFreeIndices().pop_back();
 		getSbPool()[idx] = "";
-	}
-	else
-	{
+	} else {
 		idx = getSbPool().size();
-		getSbPool().push_back("");
+		getSbPool().emplace_back("");
 	}
 	return static_cast<i64>(idx);
 }
@@ -213,9 +213,11 @@ Value StdLib::str_char_at(const std::vector<Value> &args, VM *)
 
 	const PhsString &s = args[0].string();
 	i64            idx = args[1].asInt();
-	if (idx < 0 || idx >= static_cast<i64>(s.length()))
-		return Value("");
-	return Value(PhsString(1, s[idx]));
+	if (idx < 0 || std::cmp_greater_equal(idx ,s.length())) 
+	{
+		return {""};
+	}
+	return PhsString(1, s[idx]);
 }
 
 Value StdLib::str_substr(const std::vector<Value> &args, VM *)
@@ -237,9 +239,9 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 	i64     start = args[1].asInt();
 	i64     len = (i64)args.size() == 3 ? args[2].asInt() : (i64)s.length() - start;
 
-	if (start < 0 || start >= static_cast<i64>(s.length()))
+	if (start < 0 || std::cmp_greater_equal(start ,s.length()))
 	{
-		return Value("");
+		return {""};
 	}
 
 	return Value(s.substr(start, len));
@@ -269,7 +271,7 @@ PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
 	if (!args[0].isString())
 		PHS_ERROR("to_upper() expects a string as its argument");
 	PhsString s = args[0].string();
-	std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+	std::ranges::transform(s, s.begin(), ::toupper);
 	return s;
 }
 
@@ -279,7 +281,7 @@ PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 	if (!args[0].isString())
 		PHS_ERROR("to_lower() expects a string as its argument");
 	PhsString s = args[0].string();
-	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+	std::ranges::transform(s, s.begin(), ::tolower);
 	return s;
 }
 
@@ -295,9 +297,9 @@ Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
 	std::string prefix = args[1].string();
 	if (s.length() >= prefix.length())
 	{
-		return Value(s.compare(0, prefix.length(), prefix) == 0);
+		return {s.starts_with(prefix)};
 	}
-	return Value(false);
+	return {false};
 }
 
 Value StdLib::str_ends_with(const std::vector<Value> &args, VM *)
@@ -312,8 +314,8 @@ Value StdLib::str_ends_with(const std::vector<Value> &args, VM *)
 	std::string suffix = args[1].string();
 	if (s.length() >= suffix.length())
 	{
-		return Value(s.compare(s.length() - suffix.length(), suffix.length(), suffix) == 0);
+		return {s.ends_with(suffix)};
 	}
-	return Value(false);
+	return {false};
 }
 } // namespace Phasor

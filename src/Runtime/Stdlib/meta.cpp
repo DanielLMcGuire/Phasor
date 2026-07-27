@@ -63,8 +63,10 @@ Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm)
 		PHS_ERROR("Function 'phs_stack_run' expects an OpCode (int/string) as the first argument");
 	Phasor::OpCode opcode = args[0].isString() ? stringToOpCode(args[0].string()) : static_cast<Phasor::OpCode>(args[0].asInt());
 
-	for (size_t i = args.size(); i-- > 1;)
+	for (size_t i = args.size(); i-- > 1;) 
+    {
 		vm->push(args[i]);
+    }
 
 	vm->operation(opcode);
 	return vm->pop();
@@ -77,18 +79,22 @@ PhsString StdLib::meta_get_version(const std::vector<Value> &args, VM *)
 	return PHASOR_VERSION_STRING;
 }
 
-i64 getPhysicalHeapUsage() {
+i64 getPhysicalHeapUsage()
+{
 #if defined(_WIN32)
     PROCESS_MEMORY_COUNTERS pmc{};
-    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+    {
         return static_cast<i64>(pmc.WorkingSetSize); // bytes
     }
 
 #elif defined(__linux__)
     FILE* f = fopen("/proc/self/statm", "r");
-    if (f) {
+    if (f)
+    {
         long rssPages = 0;
-        if (fscanf(f, "%*s %ld", &rssPages) == 1) {
+        if (fscanf(f, "%*s %ld", &rssPages) == 1)
+        {
             fclose(f);
             long pageSize = sysconf(_SC_PAGESIZE);
             return static_cast<i64>(rssPages) * static_cast<i64>(pageSize); // bytes
@@ -102,7 +108,8 @@ i64 getPhysicalHeapUsage() {
     if (task_info(mach_task_self(),
                   MACH_TASK_BASIC_INFO,
                   reinterpret_cast<task_info_t>(&info),
-                  &count) == KERN_SUCCESS) {
+                  &count) == KERN_SUCCESS)
+    {
         return static_cast<i64>(info.resident_size); // bytes
     }
 #endif
@@ -125,7 +132,7 @@ Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 0, "get_registers");
 	size_t registers = vm->getRegisterCount();
 	auto reg_array = Value::createArray();
-	for (const auto& i : std::views::iota(0u, registers))
+	for (const auto& i : std::views::iota(0U, registers))
 	{
 		reg_array.asArray()->push_back(vm->getRegister(i));
 	}
@@ -191,7 +198,7 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
     if (!args[1].isString())
         PHS_ERROR("run_program_function expects functionName to be a string");
 
-    Phasor::Value program = args[0];
+    const Phasor::Value& program = args[0];
     PhsString functionName = args[1].string();
     if (!args[2].isArray())
         PHS_ERROR("run_program_function expects func_arguments to be an array");
@@ -203,7 +210,8 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
 
     std::vector<std::string> arg_strings;
     arg_strings.reserve(cli_arguments->size());
-    for (const auto &arg : *cli_arguments) {
+    for (const auto &arg : *cli_arguments)
+    {
         if (!arg.isString())
             PHS_ERROR("run_program_function expects cli_arguments to contain only strings");
         arg_strings.push_back(arg.string());
@@ -211,8 +219,10 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
 
     std::vector<char *> argv_data;
     argv_data.reserve(arg_strings.size());
-    for (auto &arg_str : arg_strings)
+    for (auto &arg_str : arg_strings) 
+    {
         argv_data.push_back(const_cast<char *>(arg_str.c_str()));
+    }
 
     Phasor::VM vm;
     Phasor::Bytecode bc = bytecodeFromValue(program);
@@ -220,7 +230,8 @@ Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
     Phasor::StdLib::argv = argv_data.data();
     Phasor::StdLib::registerFunctions(vm);
 
-    for (size_t i = func_arguments->size(); i-- > 0;) {
+    for (size_t i = func_arguments->size(); i-- > 0;)
+    {
         vm.push((*func_arguments)[i]);
     }
     vm.push(static_cast<i64>(arg_strings.size()));
