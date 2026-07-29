@@ -4,28 +4,29 @@
 
 Phasor::i64 pointer_to_i64(void* ptr)
 {
-	if (ptr == nullptr) {
+	if (ptr == nullptr)
+	{
 		return 0;
-}
+	}
 
-	auto value = reinterpret_cast<std::uintptr_t>(ptr);
+	static_assert(sizeof(void*) <= sizeof(Phasor::i64));
 
-	if (value > static_cast<std::uintptr_t>(std::numeric_limits<Phasor::i64>::max()))
-		PHS_ERROR("Pointer value does not fit in i64");
+	Phasor::i64 value;
+	std::memcpy(&value, &ptr, sizeof(ptr));
 
-	return static_cast<Phasor::i64>(value);
+	return value;
 }
 
 void* i64_to_pointer(Phasor::i64 value)
 {
-	if (value == 0) {
+	if (value == 0)
+	{
 		return nullptr;
-}
+	}
+	void* ptr;
+	std::memcpy(&ptr, &value, sizeof(ptr));
 
-	if (value < 0)
-		PHS_ERROR("Invalid negative pointer value");
-
-	return reinterpret_cast<void*>(static_cast<std::uintptr_t>(value));
+	return ptr;
 }
 
 namespace Phasor

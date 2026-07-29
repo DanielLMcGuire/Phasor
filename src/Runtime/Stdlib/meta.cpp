@@ -7,13 +7,14 @@
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
 
 #if defined(_WIN32)
-  #include <windows.h>
-  #include <psapi.h>
+    #include <windows.h>
+    #include <psapi.h>
 #elif defined(__linux__)
-  #include <malloc.h>
-  #include <sys/resource.h>
+    #include <unistd.h>
+    #include <malloc.h>
+    #include <sys/resource.h>
 #elif defined(__APPLE__)
-  #include <sys/resource.h>
+    #include <sys/resource.h>
 #endif
 
 namespace Phasor

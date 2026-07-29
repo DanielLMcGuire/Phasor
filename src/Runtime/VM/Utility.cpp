@@ -37,7 +37,9 @@ inline bool isDebuggerAttached()
 	#include <boost/assert/source_location.hpp>
 	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
 #else
-    #include <stacktrace>
+	#ifndef __ANDROID__
+    	#include <stacktrace>
+	#endif
 	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
 #endif
 
@@ -119,6 +121,8 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 		std::ostringstream stacklog;
 	#ifdef PHASOR_USES_BOOST
     	stacklog << boost::stacktrace::stacktrace();
+	#elif defined(__ANDROID__)
+		stacklog << "'stacktrace' unsupported on NDK";
 	#else
 		stacklog << std::stacktrace::current();
 	#endif
@@ -136,6 +140,8 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 		std::ostringstream stacklog;
 	#ifdef PHASOR_USES_BOOST
     	stacklog << boost::stacktrace::stacktrace();
+	#elif defined(__ANDROID__)
+		stacklog << "'stacktrace' unsupported on NDK";
 	#else
 		stacklog << std::stacktrace::current();
 	#endif

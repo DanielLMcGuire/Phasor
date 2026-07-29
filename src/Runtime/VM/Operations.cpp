@@ -13,7 +13,9 @@
 	#include <boost/assert/source_location.hpp>
 	#define PHS_SRC_LOC() std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line())
 #else
-    #include <stacktrace>
+	#ifndef __ANDROID__
+    	#include <stacktrace>
+	#endif
 #include <utility>
 	#define PHS_SRC_LOC() std::format("VM::{}()", __func__)
 #endif
