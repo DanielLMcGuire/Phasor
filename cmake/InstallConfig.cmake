@@ -114,7 +114,7 @@ elseif(APPLE)
     )
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
-        DESTINATION opt/phasor
+        DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
     install(TARGETS phasor_posix_bindings
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
