@@ -119,11 +119,11 @@ std::unique_ptr<Phasor::VM> createVm(int scriptArgc, char **scriptArgv)
 	Phasor::StdLib::argv = scriptArgv;
 
 #if defined(_WIN32)
-	vm->initFFI({"phasorcc", "plugins"});
+	vm->initFFI({"phasornative", "plugins"});
 #elif defined(__APPLE__)
-	vm->initFFI({"phasorcc", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #else
-	vm->initFFI({"phasorcc", "/usr/lib/phasor/plugins/"});
+	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
 #endif
 
 	return vm;
