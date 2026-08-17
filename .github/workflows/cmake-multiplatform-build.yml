@@ -77,7 +77,8 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       shell: bash
       env:
-        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/opt/phasor/include
+        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/usr/bin/phasor ./scripts/unittest.phs
+        LD_LIBRARY_PATH: ${{ github.workspace }}/out/usr/lib
       run: ./out/usr/bin/phasor ./scripts/unittest.phs
 
     - name: Test (macOS)
@@ -85,4 +86,5 @@ jobs:
       shell: bash
       env:
         PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/Library/Application Support/org.Phasor.Phasor/include
+        DYLD_LIBRARY_PATH: ${{ github.workspace }}/out/usr/local/lib
       run: ./out/usr/local/bin/phasor ./scripts/unittest.phs
