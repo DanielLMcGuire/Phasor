@@ -61,9 +61,28 @@ jobs:
     - name: Build
       shell: bash
       run: cmake --build build --config Release
+    
+    - name: Install
+      shell: bash
+      run: cmake --install build --prefix out
 
-    - name: Test 
+    - name: Test (Windows)
+      if: matrix.os == 'windows-2025-vs2026'
       shell: bash
       env:
-        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/src/Runtime/Stdlib/phs/include
-      run: ./build/src/Executable/phasor ./scripts/unittest.phs
+        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/opt/include
+      run: ./out/usr/bin/phasor ./scripts/unittest.phs
+
+    - name: Test (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
+      env:
+        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/opt/phasor/include
+      run: ./out/bin/phasor ./scripts/unittest.phs
+
+    - name: Test (macOS)
+      if: matrix.os == 'macos-latest'
+      shell: bash
+      env:
+        PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/Library/Application Support/org.Phasor.Phasor/include
+      run: ./out/usr/local/bin/phasor ./scripts/unittest.phs
