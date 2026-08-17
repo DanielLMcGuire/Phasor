@@ -95,7 +95,6 @@ class StdLib
 	static Value     meta_pop(const std::vector<Value> &args, VM *vm);
 #endif
 	static PhsString meta_get_version(const std::vector<Value> &args, VM *vm);
-	static Value     meta_get_alloc_info(const std::vector<Value> &args, VM *vm);
 	static Value     meta_get_self(const std::vector<Value> &args, VM *vm);
 	static i64       meta_run_program(const std::vector<Value> &args, VM *vm);
 	static Value     meta_run_program_function(const std::vector<Value> &args, VM *vm);

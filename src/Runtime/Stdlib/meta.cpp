@@ -29,7 +29,6 @@ void StdLib::registerMetaFunctions(VM *vm)
 	vm->registerNativeFunction("phs__phs_pop", StdLib::meta_pop);
 #endif
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
-	vm->registerNativeFunction("phs__phs_alloc_info", StdLib::meta_get_alloc_info);
 	vm->registerNativeFunction("phs__get_self", StdLib::meta_get_self);
     vm->registerNativeFunction("phs__run_program", StdLib::meta_run_program);
     vm->registerNativeFunction("phs__run_program_function", StdLib::meta_run_program_function);
@@ -78,54 +77,6 @@ PhsString StdLib::meta_get_version(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 0, "phs_version");
 	return PHASOR_VERSION_STRING;
-}
-
-i64 getPhysicalHeapUsage()
-{
-#if defined(_WIN32)
-    PROCESS_MEMORY_COUNTERS pmc{};
-    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
-    {
-        return static_cast<i64>(pmc.WorkingSetSize); // bytes
-    }
-
-#elif defined(__linux__)
-    FILE* f = fopen("/proc/self/statm", "r");
-    if (f)
-    {
-        long rssPages = 0;
-        if (fscanf(f, "%*s %ld", &rssPages) == 1)
-        {
-            fclose(f);
-            long pageSize = sysconf(_SC_PAGESIZE);
-            return static_cast<i64>(rssPages) * static_cast<i64>(pageSize); // bytes
-        }
-        fclose(f);
-    }
-
-#elif defined(__APPLE__)
-    mach_task_basic_info info{};
-    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
-    if (task_info(mach_task_self(),
-                  MACH_TASK_BASIC_INFO,
-                  reinterpret_cast<task_info_t>(&info),
-                  &count) == KERN_SUCCESS)
-    {
-        return static_cast<i64>(info.resident_size); // bytes
-    }
-#endif
-
-    return 0;
-}
-
-Value StdLib::meta_get_alloc_info(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 0, "phs__phs_alloc_info");
-
-	return {
-		std::initializer_list<std::pair<PhsString, Value>>{
-            {"physical_heap_bytes_used", getPhysicalHeapUsage()}
-    }};
 }
 
 Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm) 

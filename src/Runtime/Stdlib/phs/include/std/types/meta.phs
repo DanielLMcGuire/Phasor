@@ -81,7 +81,3 @@ struct Bytecode {
     structs: StructData[],
     globalScopes: ScopeData[]
 }
-
-struct AllocInfo {
-    physical_heap_bytes_used: i64
-}

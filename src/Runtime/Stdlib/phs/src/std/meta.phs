@@ -77,11 +77,6 @@ fn run_program_function(
     return phs__run_program_function(program, functionName, func_arguments, cli_arguments);
 }
 
-fn get_alloc_info() -> AllocInfo
-{
-    return phs__phs_alloc_info();
-}
-
 fn load_bytecode(file_path: string) -> Bytecode
 {
     return phs__load_bytecode(file_path);

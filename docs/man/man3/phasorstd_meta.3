@@ -19,7 +19,6 @@ phasorstd_meta \- Phasor VM introspection and meta-programming functions
 .B get_self_functions()
 .B get_self_structs()
 .B get_self_global_scopes()
-.B get_alloc_info()
 .B run_program(program)
 .B run_program_function(program, functionName, func_arguments, cli_arguments)
 .fi
@@ -30,8 +29,6 @@ and
 .B phs_stack_run()
 are only available in non-sandboxed builds.
 .B get_self*(), run_program*(),
-and
-.B get_alloc_info()
 are Phasor-level helper functions defined in \fBphs/meta.phs\fR itself, layered on top of
 lower-level native introspection; they require \fBinclude "std/meta.phs"\fR and are also
 unavailable in sandboxed builds.
@@ -246,21 +243,6 @@ structs
 .RE
 .PP
 .TP
-.BR get_alloc_info ()
-Get a snapshot of the runtime's current memory usage.
-.RS
-.PP
-.B Arguments:
-None
-.PP
-.B Returns:
-.B alloc_info
-struct (see \fBTYPES\fR below) with the process's current heap usage and stack limit, in both
-bytes and kilobytes. Field values may be null on platforms where a given statistic could not
-be read.
-.RE
-.PP
-.TP
 .BR run_program (program)
 Run a
 .B Bytecode
@@ -376,13 +358,6 @@ struct Bytecode {
     structs: StructData[],
     globalScopes: ScopeData[]
 }
-
-struct alloc_info {
-    heap_used: i64,
-    stack_limit: i64,
-    heap_used_kb: i64,
-    stack_limit_kb: i64
-}
 .fi
 .SH EXAMPLES
 .B Getting the Runtime Version
@@ -434,9 +409,6 @@ include "std/meta.phs";
 
 var bc = get_self();
 putf("Function count: %d\n", bc.functions.length);
-
-var info = get_alloc_info();
-putf("Heap used: %d KB\n", info.heap_used_kb);
 .RE
 .fi
 .PP
@@ -488,10 +460,6 @@ use can corrupt VM state
 .B phs_version()
 reflects the version of the running runtime, which may differ from the version used to
 compile the script
-.IP \(bu 2
-Fields in
-.B alloc_info
-may be null if the corresponding statistic is unavailable on the current platform
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT
