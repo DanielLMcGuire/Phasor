@@ -7,6 +7,8 @@
 
 #define error(msg) _phs_nativeerror_console(msg)
 
+#if defined(_DEBUG)
+
 #if defined(_WIN32)
 #include <Windows.h>
 #undef error
@@ -30,4 +32,6 @@
 		CFRelease(_cfMsg);                                                                                             \
 		_phs_nativeerror_console(_msg);                                                                                \
 	} while (0)
+#endif
+
 #endif
