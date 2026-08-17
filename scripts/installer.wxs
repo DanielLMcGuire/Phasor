@@ -29,38 +29,37 @@
       <ComponentRef Id="PhasorIcon_Comp" />
 
       <ComponentRef Id="PathEnv" />
+      <ComponentRef Id="PathExtEnv" />
       <ComponentRef Id="PhasorDefIncludePath" />
 
       <ComponentRef Id="AppPaths_phasor" />
+      <ComponentRef Id="AppPaths_phasorw" />
       <ComponentRef Id="AppPaths_phasorasm" />
       <ComponentRef Id="AppPaths_phasorcompiler" />
       <ComponentRef Id="AppPaths_phasordecomp" />
       <ComponentRef Id="AppPaths_phasorvm" />
       <ComponentRef Id="AppPaths_phasor_help" />
       <ComponentRef Id="AppPaths_phasor_lsp" />
-      <ComponentRef Id="AppPaths_pulsar" />
-      <ComponentRef Id="AppPaths_pulsarcompiler" />
 
       <ComponentRef Id="HKCRApps_phasor" />
+      <ComponentRef Id="HKCRApps_phasorw" />
       <ComponentRef Id="HKCRApps_phasorasm" />
       <ComponentRef Id="HKCRApps_phasorcompiler" />
       <ComponentRef Id="HKCRApps_phasordecomp" />
       <ComponentRef Id="HKCRApps_phasorvm" />
-      <ComponentRef Id="HKCRApps_pulsar" />
-      <ComponentRef Id="HKCRApps_pulsarcompiler" />
 
       <ComponentRef Id="FileAssoc_phsb" />
+      <ComponentRef Id="FileAssoc_phsbw" />
       <ComponentRef Id="FileAssoc_phs" />
+      <ComponentRef Id="FileAssoc_phsw" />
       <ComponentRef Id="FileAssoc_phir" />
-      <ComponentRef Id="FileAssoc_pul" />
 
       <ComponentRef Id="Capabilities_phasor" />
+      <ComponentRef Id="Capabilities_phasorw" />
       <ComponentRef Id="Capabilities_phasorasm" />
       <ComponentRef Id="Capabilities_phasorcompiler" />
       <ComponentRef Id="Capabilities_phasordecomp" />
       <ComponentRef Id="Capabilities_phasorvm" />
-      <ComponentRef Id="Capabilities_pulsar" />
-      <ComponentRef Id="Capabilities_pulsarcompiler" />
       <ComponentRef Id="PhasorActiveScriptEngine" />
     </Feature>
 
@@ -75,6 +74,40 @@
                        Name="PathSet" Type="integer" Value="1" KeyPath="yes" />
         <Environment Id="PhasorBinPath" Name="PATH" Value="[INSTALLFOLDER]bin"
                      Permanent="no" Part="last" Action="set" System="yes" />
+      </Component>
+
+      <Component Id="PathExtEnv" Guid="*">
+        <RegistryValue Root="HKLM" Key="Software\Phasor\Install"
+                      Name="PathExtSet" Type="integer" Value="1" KeyPath="yes" />
+
+        <Environment Id="PhasorScriptPathExt"
+                      Name="PATHEXT"
+                      Value=".PHS"
+                      Action="set"
+                      Part="last"
+                      System="yes"
+                      Permanent="no" />
+          <Environment Id="PhasorWindowedScriptPathExt"
+                      Name="PATHEXT"
+                      Value=".PHSW"
+                      Action="set"
+                      Part="last"
+                      System="yes"
+                      Permanent="no" />
+          <Environment Id="PhasorBinaryPathExt"
+                      Name="PATHEXT"
+                      Value=".PHSB"
+                      Action="set"
+                      Part="last"
+                      System="yes"
+                      Permanent="no" />
+          <Environment Id="PhasorWindowedBinaryPathExt"
+                      Name="PATHEXT"
+                      Value=".PHSBW"
+                      Action="set"
+                      Part="last"
+                      System="yes"
+                      Permanent="no" />
       </Component>
       
       <Component Id="PhasorDefIncludePath" Guid="*">
@@ -94,6 +127,15 @@
           Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
       </Component>
 
+      <Component Id="AppPaths_phasorw" Guid="*" Bitness="always64">
+        <RegistryValue Root="HKLM"
+          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorw.exe"
+          Type="string" Value="[INSTALLFOLDER]bin\phasorw.exe" KeyPath="yes" />
+        <RegistryValue Root="HKLM"
+          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorw.exe"
+          Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
+      </Component>
+
       <Component Id="AppPaths_phasorasm" Guid="*" Bitness="always64">
         <RegistryValue Root="HKLM"
           Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"
@@ -105,10 +147,10 @@
 
       <Component Id="AppPaths_phasorcompiler" Guid="*" Bitness="always64">
         <RegistryValue Root="HKLM"
-          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe"
-          Type="string" Value="[INSTALLFOLDER]bin\phasorcompiler.exe" KeyPath="yes" />
+          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorc.exe"
+          Type="string" Value="[INSTALLFOLDER]bin\phasorc.exe" KeyPath="yes" />
         <RegistryValue Root="HKLM"
-          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe"
+          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\phasorc.exe"
           Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
       </Component>
 
@@ -148,24 +190,6 @@
           Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
       </Component>
 
-      <Component Id="AppPaths_pulsar" Guid="*" Bitness="always64">
-        <RegistryValue Root="HKLM"
-          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\pulsar.exe"
-          Type="string" Value="[INSTALLFOLDER]bin\pulsar.exe" KeyPath="yes" />
-        <RegistryValue Root="HKLM"
-          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\pulsar.exe"
-          Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
-      </Component>
-
-      <Component Id="AppPaths_pulsarcompiler" Guid="*" Bitness="always64">
-        <RegistryValue Root="HKLM"
-          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\pulsarcompiler.exe"
-          Type="string" Value="[INSTALLFOLDER]bin\pulsarcompiler.exe" KeyPath="yes" />
-        <RegistryValue Root="HKLM"
-          Key="Software\Microsoft\Windows\CurrentVersion\App Paths\pulsarcompiler.exe"
-          Name="Path" Type="string" Value="[INSTALLFOLDER]bin" />
-      </Component>
-
       <Component Id="HKCRApps_phasor" Guid="*">
         <RegistryValue Root="HKCR" Key="Applications\phasor.exe"
           Name="FriendlyAppName" Type="string" Value="Phasor" KeyPath="yes" />
@@ -177,6 +201,19 @@
           Name=".phs" Type="string" Value="" />
         <RegistryValue Root="HKCR" Key="Applications\phasor.exe\shell\open\command"
           Type="string" Value="&quot;[INSTALLFOLDER]bin\phasor.exe&quot; &quot;%1&quot; %*" />
+      </Component>
+
+      <Component Id="HKCRApps_phasorw" Guid="*">
+        <RegistryValue Root="HKCR" Key="Applications\phasorw.exe"
+          Name="FriendlyAppName" Type="string" Value="Phasor" KeyPath="yes" />
+        <RegistryValue Root="HKCR" Key="Applications\phasorw.exe\DefaultIcon"
+          Type="string" Value="[INSTALLFOLDER]bin\phasorw.exe" />
+        <RegistryValue Root="HKCR" Key="Applications\phasorw.exe\SupportedTypes"
+          Name=".phsbw" Type="string" Value="" />
+        <RegistryValue Root="HKCR" Key="Applications\phasorw.exe\SupportedTypes"
+          Name=".phsw" Type="string" Value="" />
+        <RegistryValue Root="HKCR" Key="Applications\phasorw.exe\shell\open\command"
+          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorw.exe&quot; &quot;%1&quot; %*" />
       </Component>
 
       <Component Id="HKCRApps_phasorasm" Guid="*">
@@ -191,14 +228,14 @@
       </Component>
 
       <Component Id="HKCRApps_phasorcompiler" Guid="*">
-        <RegistryValue Root="HKCR" Key="Applications\phasorcompiler.exe"
+        <RegistryValue Root="HKCR" Key="Applications\phasorc.exe"
           Name="FriendlyAppName" Type="string" Value="Phasor Compiler" KeyPath="yes" />
-        <RegistryValue Root="HKCR" Key="Applications\phasorcompiler.exe\DefaultIcon"
-          Type="string" Value="[INSTALLFOLDER]bin\phasorcompiler.exe" />
-        <RegistryValue Root="HKCR" Key="Applications\phasorcompiler.exe\SupportedTypes"
+        <RegistryValue Root="HKCR" Key="Applications\phasorc.exe\DefaultIcon"
+          Type="string" Value="[INSTALLFOLDER]bin\phasorc.exe" />
+        <RegistryValue Root="HKCR" Key="Applications\phasorc.exe\SupportedTypes"
           Name=".phs" Type="string" Value="" />
-        <RegistryValue Root="HKCR" Key="Applications\phasorcompiler.exe\shell\open\command"
-          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorcompiler.exe&quot; &quot;%1&quot; %*" />
+        <RegistryValue Root="HKCR" Key="Applications\phasorc.exe\shell\open\command"
+          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorc.exe&quot; &quot;%1&quot; %*" />
       </Component>
 
       <Component Id="HKCRApps_phasordecomp" Guid="*">
@@ -221,28 +258,6 @@
           Name=".phsb" Type="string" Value="" />
         <RegistryValue Root="HKCR" Key="Applications\phasorvm.exe\shell\open\command"
           Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorvm.exe&quot; &quot;%1&quot; %*" />
-      </Component>
-
-      <Component Id="HKCRApps_pulsar" Guid="*">
-        <RegistryValue Root="HKCR" Key="Applications\pulsar.exe"
-          Name="FriendlyAppName" Type="string" Value="Pulsar" KeyPath="yes" />
-        <RegistryValue Root="HKCR" Key="Applications\pulsar.exe\DefaultIcon"
-          Type="string" Value="[INSTALLFOLDER]bin\pulsar.exe" />
-        <RegistryValue Root="HKCR" Key="Applications\pulsar.exe\SupportedTypes"
-          Name=".pul" Type="string" Value="" />
-        <RegistryValue Root="HKCR" Key="Applications\pulsar.exe\shell\open\command"
-          Type="string" Value="&quot;[INSTALLFOLDER]bin\pulsar.exe&quot; &quot;%1&quot; %*" />
-      </Component>
-
-      <Component Id="HKCRApps_pulsarcompiler" Guid="*">
-        <RegistryValue Root="HKCR" Key="Applications\pulsarcompiler.exe"
-          Name="FriendlyAppName" Type="string" Value="Pulsar Compiler" KeyPath="yes" />
-        <RegistryValue Root="HKCR" Key="Applications\pulsarcompiler.exe\DefaultIcon"
-          Type="string" Value="[INSTALLFOLDER]bin\pulsarcompiler.exe" />
-        <RegistryValue Root="HKCR" Key="Applications\pulsarcompiler.exe\SupportedTypes"
-          Name=".pul" Type="string" Value="" />
-        <RegistryValue Root="HKCR" Key="Applications\pulsarcompiler.exe\shell\open\command"
-          Type="string" Value="&quot;[INSTALLFOLDER]bin\pulsarcompiler.exe&quot; &quot;%1&quot; %*" />
       </Component>
 
       <Component Id="FileAssoc_phsb" Guid="*">
@@ -285,6 +300,28 @@
           Type="string" Value="&quot;[INSTALLFOLDER]bin\phasor.exe&quot; &quot;%1&quot; %*" />
       </Component>
 
+      <Component Id="FileAssoc_phsbw" Guid="*">
+
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsbw"
+          Type="string" Value="Phasor.PHSBW" KeyPath="yes" />
+
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsbw\OpenWithProgids"
+          Name="Phasor.PHSBW" Type="string" Value="" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsbw\OpenWithProgids"
+          Name="PhasorDecomp.PHSBW" Type="string" Value="" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsbw\OpenWithProgids"
+          Name="PhasorVM.PHSBW" Type="string" Value="" />
+
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSBW"
+          Type="string" Value="Phasor Binary File" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSBW\DefaultIcon"
+          Type="string" Value="[INSTALLFOLDER]bin\phasorw.exe" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSBW\shell\open"
+          Name="FriendlyAppName" Type="string" Value="Phasor Windowed" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSBW\shell\open\command"
+          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorw.exe&quot; &quot;%1&quot; %*" />
+      </Component>
+
       <Component Id="FileAssoc_phs" Guid="*">
         <RegistryValue Root="HKCU" Key="Software\Classes\.phs"
           Type="string" Value="Phasor.PHS" KeyPath="yes" />
@@ -307,13 +344,32 @@
         <RegistryValue Root="HKCU" Key="Software\Classes\PhasorCompiler.PHS"
           Type="string" Value="Phasor Source File" />
         <RegistryValue Root="HKCU" Key="Software\Classes\PhasorCompiler.PHS\DefaultIcon"
-          Type="string" Value="[INSTALLFOLDER]bin\phasorcompiler.exe" />
+          Type="string" Value="[INSTALLFOLDER]bin\phasorc.exe" />
         <RegistryValue Root="HKCU" Key="Software\Classes\PhasorCompiler.PHS\shell\open"
           Name="FriendlyAppName" Type="string" Value="Phasor Compiler" />
         <RegistryValue Root="HKCU" Key="Software\Classes\PhasorCompiler.PHS\shell\open\command"
-          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorcompiler.exe&quot; &quot;%1&quot; %*" />
+          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorc.exe&quot; &quot;%1&quot; %*" />
       </Component>
 
+      <Component Id="FileAssoc_phsw" Guid="*">
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsw"
+          Type="string" Value="Phasor.PHSW" KeyPath="yes" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsw\OpenWithProgids"
+          Name="Phasor.PHSW" Type="string" Value="" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsw\OpenWithProgids"
+          Name="PhasorCompiler.PHSW" Type="string" Value="" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\.phsw\OpenWithProgids"
+          Name="PhasorJIT.PHSW" Type="string" Value="" />
+
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSW"
+          Type="string" Value="Phasor Source File (Windowed)" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSW\DefaultIcon"
+          Type="string" Value="[INSTALLFOLDER]bin\phasorw.exe" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSW\shell\open"
+          Name="FriendlyAppName" Type="string" Value="Phasor (Windowed)" />
+        <RegistryValue Root="HKCU" Key="Software\Classes\Phasor.PHSW\shell\open\command"
+          Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorw.exe&quot; &quot;%1&quot; %*" />
+      </Component>
 
       <Component Id="FileAssoc_phir" Guid="*">
         <RegistryValue Root="HKCU" Key="Software\Classes\.phir"
@@ -331,33 +387,6 @@
           Type="string" Value="&quot;[INSTALLFOLDER]bin\phasorasm.exe&quot; &quot;%1&quot; %*" />
       </Component>
 
-      <Component Id="FileAssoc_pul" Guid="*">
-        <RegistryValue Root="HKCU" Key="Software\Classes\.pul"
-          Type="string" Value="Pulsar.PUL" KeyPath="yes" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\.pul\OpenWithProgids"
-          Name="Pulsar.PUL" Type="string" Value="" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\.pul\OpenWithProgids"
-          Name="PulsarCompiler.PUL" Type="string" Value="" />
-
-        <RegistryValue Root="HKCU" Key="Software\Classes\Pulsar.PUL"
-          Type="string" Value="Pulsar Script File" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\Pulsar.PUL\DefaultIcon"
-          Type="string" Value="[INSTALLFOLDER]bin\pulsar.exe" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\Pulsar.PUL\shell\open"
-          Name="FriendlyAppName" Type="string" Value="Pulsar" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\Pulsar.PUL\shell\open\command"
-          Type="string" Value="&quot;[INSTALLFOLDER]bin\pulsar.exe&quot; &quot;%1&quot; %*" />
-
-        <RegistryValue Root="HKCU" Key="Software\Classes\PulsarCompiler.PUL"
-          Type="string" Value="Pulsar Script File" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\PulsarCompiler.PUL\DefaultIcon"
-          Type="string" Value="[INSTALLFOLDER]bin\pulsarcompiler.exe" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\PulsarCompiler.PUL\shell\open"
-          Name="FriendlyAppName" Type="string" Value="Pulsar Compiler" />
-        <RegistryValue Root="HKCU" Key="Software\Classes\PulsarCompiler.PUL\shell\open\command"
-          Type="string" Value="&quot;[INSTALLFOLDER]bin\pulsarcompiler.exe&quot; &quot;%1&quot; %*" />
-      </Component>
-
       <Component Id="Capabilities_phasor" Guid="*" Bitness="always64">
         <RegistryValue Root="HKLM" Key="Software\Phasor\phasor\Capabilities"
           Name="ApplicationName" Type="string" Value="Phasor" KeyPath="yes" />
@@ -369,6 +398,19 @@
           Name=".phs" Type="string" Value="Phasor.PHS" />
         <RegistryValue Root="HKLM" Key="Software\RegisteredApplications"
           Name="Phasor" Type="string" Value="Software\Phasor\phasor\Capabilities" />
+      </Component>
+
+      <Component Id="Capabilities_phasorw" Guid="*" Bitness="always64">
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorw\Capabilities"
+          Name="ApplicationName" Type="string" Value="Phasor (Windowed)" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorw\Capabilities"
+          Name="ApplicationDescription" Type="string" Value="Phasor windowed runtime" />
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorw\Capabilities\FileAssociations"
+          Name=".phsbw" Type="string" Value="Phasor.PHSBW" />
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorw\Capabilities\FileAssociations"
+          Name=".phsw" Type="string" Value="Phasor.PHSW" />
+        <RegistryValue Root="HKLM" Key="Software\RegisteredApplications"
+          Name="Phasor (Windowed)" Type="string" Value="Software\Phasor\phasorw\Capabilities" />
       </Component>
 
       <Component Id="Capabilities_phasorasm" Guid="*" Bitness="always64">
@@ -383,14 +425,14 @@
       </Component>
 
       <Component Id="Capabilities_phasorcompiler" Guid="*" Bitness="always64">
-        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorcompiler\Capabilities"
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorc\Capabilities"
           Name="ApplicationName" Type="string" Value="Phasor Compiler" KeyPath="yes" />
-        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorcompiler\Capabilities"
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorc\Capabilities"
           Name="ApplicationDescription" Type="string" Value="Phasor source compiler" />
-        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorcompiler\Capabilities\FileAssociations"
+        <RegistryValue Root="HKLM" Key="Software\Phasor\phasorc\Capabilities\FileAssociations"
           Name=".phs" Type="string" Value="PhasorCompiler.PHS" />
         <RegistryValue Root="HKLM" Key="Software\RegisteredApplications"
-          Name="PhasorCompiler" Type="string" Value="Software\Phasor\phasorcompiler\Capabilities" />
+          Name="PhasorCompiler" Type="string" Value="Software\Phasor\phasorc\Capabilities" />
       </Component>
 
       <Component Id="Capabilities_phasordecomp" Guid="*" Bitness="always64">
@@ -413,28 +455,6 @@
           Name=".phsb" Type="string" Value="PhasorVM.PHSB" />
         <RegistryValue Root="HKLM" Key="Software\RegisteredApplications"
           Name="PhasorVM" Type="string" Value="Software\Phasor\phasorvm\Capabilities" />
-      </Component>
-
-      <Component Id="Capabilities_pulsar" Guid="*" Bitness="always64">
-        <RegistryValue Root="HKLM" Key="Software\Phasor\pulsar\Capabilities"
-          Name="ApplicationName" Type="string" Value="Pulsar" KeyPath="yes" />
-        <RegistryValue Root="HKLM" Key="Software\Phasor\pulsar\Capabilities"
-          Name="ApplicationDescription" Type="string" Value="Pulsar runtime" />
-        <RegistryValue Root="HKLM" Key="Software\Phasor\pulsar\Capabilities\FileAssociations"
-          Name=".pul" Type="string" Value="Pulsar.PUL" />
-        <RegistryValue Root="HKLM" Key="Software\RegisteredApplications"
-          Name="Pulsar" Type="string" Value="Software\Phasor\pulsar\Capabilities" />
-      </Component>
-
-      <Component Id="Capabilities_pulsarcompiler" Guid="*" Bitness="always64">
-        <RegistryValue Root="HKLM" Key="Software\Phasor\pulsarcompiler\Capabilities"
-          Name="ApplicationName" Type="string" Value="Pulsar Compiler" KeyPath="yes" />
-        <RegistryValue Root="HKLM" Key="Software\Phasor\pulsarcompiler\Capabilities"
-          Name="ApplicationDescription" Type="string" Value="Pulsar script compiler" />
-        <RegistryValue Root="HKLM" Key="Software\Phasor\pulsarcompiler\Capabilities\FileAssociations"
-          Name=".pul" Type="string" Value="PulsarCompiler.PUL" />
-        <RegistryValue Root="HKLM" Key="Software\RegisteredApplications"
-          Name="PulsarCompiler" Type="string" Value="Software\Phasor\pulsarcompiler\Capabilities" />
       </Component>
 
       <Component Id="PhasorActiveScriptEngine" Guid="*" Bitness="always64">

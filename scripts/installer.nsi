@@ -95,10 +95,12 @@ WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
 SetRegView 64
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.exe"         "" "$INSTDIR\bin\phasor.exe"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.exe"         "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorw.exe"        "" "$INSTDIR\bin\phasorw.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorw.exe"        "Path" "$INSTDIR\bin"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"      "" "$INSTDIR\bin\phasorasm.exe"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"      "Path" "$INSTDIR\bin"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe" "" "$INSTDIR\bin\phasorcompiler.exe"
-WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe" "Path" "$INSTDIR\bin"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorc.exe" "" "$INSTDIR\bin\phasorc.exe"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorc.exe" "Path" "$INSTDIR\bin"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"   "" "$INSTDIR\bin\phasordecomp.exe"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"   "Path" "$INSTDIR\bin"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"       "" "$INSTDIR\bin\phasorvm.exe"
@@ -154,15 +156,21 @@ WriteRegStr HKCR "Applications\phasor.exe\SupportedTypes" ".phsb" ""
 WriteRegStr HKCR "Applications\phasor.exe\SupportedTypes" ".phs"  ""
 WriteRegStr HKCR "Applications\phasor.exe\shell\open\command" "" '"$INSTDIR\bin\phasor.exe" "%1" %*'
 
+WriteRegStr HKCR "Applications\phasorw.exe"         "FriendlyAppName" "Phasor"
+WriteRegStr HKCR "Applications\phasorw.exe\DefaultIcon" "" "$INSTDIR\bin\phasorw.exe"
+WriteRegStr HKCR "Applications\phasorw.exe\SupportedTypes" ".phsbw" ""
+WriteRegStr HKCR "Applications\phasorw.exe\SupportedTypes" ".phsw"  ""
+WriteRegStr HKCR "Applications\phasorw.exe\shell\open\command" "" '"$INSTDIR\bin\phasorw.exe" "%1" %*'
+
 WriteRegStr HKCR "Applications\phasorasm.exe"         "FriendlyAppName" "Phasor Assembler"
 WriteRegStr HKCR "Applications\phasorasm.exe\DefaultIcon" "" "$INSTDIR\bin\phasorasm.exe"
 WriteRegStr HKCR "Applications\phasorasm.exe\SupportedTypes" ".phir" ""
 WriteRegStr HKCR "Applications\phasorasm.exe\shell\open\command" "" '"$INSTDIR\bin\phasorasm.exe" "%1" %*'
 
-WriteRegStr HKCR "Applications\phasorcompiler.exe"         "FriendlyAppName" "Phasor Compiler"
-WriteRegStr HKCR "Applications\phasorcompiler.exe\DefaultIcon" "" "$INSTDIR\bin\phasorcompiler.exe"
-WriteRegStr HKCR "Applications\phasorcompiler.exe\SupportedTypes" ".phs" ""
-WriteRegStr HKCR "Applications\phasorcompiler.exe\shell\open\command" "" '"$INSTDIR\bin\phasorcompiler.exe" "%1" %*'
+WriteRegStr HKCR "Applications\phasorc.exe"         "FriendlyAppName" "Phasor Compiler"
+WriteRegStr HKCR "Applications\phasorc.exe\DefaultIcon" "" "$INSTDIR\bin\phasorc.exe"
+WriteRegStr HKCR "Applications\phasorc.exe\SupportedTypes" ".phs" ""
+WriteRegStr HKCR "Applications\phasorc.exe\shell\open\command" "" '"$INSTDIR\bin\phasorc.exe" "%1" %*'
 
 WriteRegStr HKCR "Applications\phasordecomp.exe"         "FriendlyAppName" "Phasor Decompiler"
 WriteRegStr HKCR "Applications\phasordecomp.exe\DefaultIcon" "" "$INSTDIR\bin\phasordecomp.exe"
@@ -185,10 +193,12 @@ WriteRegStr HKCR "Applications\pulsarcompiler.exe\SupportedTypes" ".pul" ""
 WriteRegStr HKCR "Applications\pulsarcompiler.exe\shell\open\command" "" '"$INSTDIR\bin\pulsarcompiler.exe" "%1" %*'
 
 
-WriteRegStr HKCU "Software\Classes\.phir" "" "PhasorASM.PHIR"
-WriteRegStr HKCU "Software\Classes\.phs"  "" "Phasor.PHS"
-WriteRegStr HKCU "Software\Classes\.phsb" "" "Phasor.PHSB"
-WriteRegStr HKCU "Software\Classes\.pul"  "" "Pulsar.PUL"
+WriteRegStr HKCU "Software\Classes\.phir"  "" "PhasorASM.PHIR"
+WriteRegStr HKCU "Software\Classes\.phs"   "" "Phasor.PHS"
+WriteRegStr HKCU "Software\Classes\.phsw"  "" "Phasor.PHSW"
+WriteRegStr HKCU "Software\Classes\.phsb"  "" "Phasor.PHSB"
+WriteRegStr HKCU "Software\Classes\.phsbw" "" "Phasor.PHSBW"
+WriteRegStr HKCU "Software\Classes\.pul"   "" "Pulsar.PUL"
 
 WriteRegStr HKCU "Software\Classes\Phasor.PHSB" "" "Phasor Binary File"
 WriteRegStr HKCU "Software\Classes\Phasor.PHSB\DefaultIcon" "" "$INSTDIR\${MAIN_APP_EXE}"
@@ -209,6 +219,15 @@ WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "Phasor.PHSB"        "
 WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "PhasorDecomp.PHSB" ""
 WriteRegStr HKCU "Software\Classes\.phsb\OpenWithProgids" "PhasorVM.PHSB"     ""
 
+WriteRegStr HKCU "Software\Classes\Phasor.PHSBW" "" "Phasor Binary File"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSBW\DefaultIcon" "" "$INSTDIR\bin\phasorw.exe"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSBW\shell\open" "FriendlyAppName" "Phasor Windowed"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSBW\shell\open\command" "" '"$INSTDIR\bin\phasorw.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\.phsbw\OpenWithProgids" "Phasor.PHSBW"        ""
+WriteRegStr HKCU "Software\Classes\.phsbw\OpenWithProgids" "PhasorDecomp.PHSBW" ""
+WriteRegStr HKCU "Software\Classes\.phsbw\OpenWithProgids" "PhasorVM.PHSBW"     ""
+
 
 WriteRegStr HKCU "Software\Classes\Phasor.PHS" "" "Phasor Source File"
 WriteRegStr HKCU "Software\Classes\Phasor.PHS\DefaultIcon" "" "$INSTDIR\${MAIN_APP_EXE}"
@@ -216,13 +235,22 @@ WriteRegStr HKCU "Software\Classes\Phasor.PHS\shell\open" "FriendlyAppName" "Pha
 WriteRegStr HKCU "Software\Classes\Phasor.PHS\shell\open\command" "" '"$INSTDIR\${MAIN_APP_EXE}" "%1" %*'
 
 WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS" "" "Phasor Source File"
-WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\DefaultIcon" "" "$INSTDIR\bin\phasorcompiler.exe"
+WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\DefaultIcon" "" "$INSTDIR\bin\phasorc.exe"
 WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open" "FriendlyAppName" "Phasor Compiler"
-WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open\command" "" '"$INSTDIR\bin\phasorcompiler.exe" "%1" %*'
+WriteRegStr HKCU "Software\Classes\PhasorCompiler.PHS\shell\open\command" "" '"$INSTDIR\bin\phasorc.exe" "%1" %*'
 
 WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "Phasor.PHS"          ""
 WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "PhasorCompiler.PHS" ""
 WriteRegStr HKCU "Software\Classes\.phs\OpenWithProgids" "PhasorJIT.PHS"      ""
+
+WriteRegStr HKCU "Software\Classes\Phasor.PHSW" "" "Phasor Source File (Windowed)"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSW\DefaultIcon" "" "$INSTDIR\bin\phasorw.exe"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSW\shell\open" "FriendlyAppName" "Phasor (Windowed)"
+WriteRegStr HKCU "Software\Classes\Phasor.PHSW\shell\open\command" "" '"$INSTDIR\bin\phasorw.exe" "%1" %*'
+
+WriteRegStr HKCU "Software\Classes\.phsw\OpenWithProgids" "Phasor.PHSW"          ""
+WriteRegStr HKCU "Software\Classes\.phsw\OpenWithProgids" "PhasorCompiler.PHSW" ""
+WriteRegStr HKCU "Software\Classes\.phsw\OpenWithProgids" "PhasorJIT.PHSW"      ""
 
 
 WriteRegStr HKCU "Software\Classes\PhasorASM.PHIR" "" "Phasor IR File"
@@ -253,15 +281,21 @@ WriteRegStr HKLM "Software\Phasor\phasor\Capabilities\FileAssociations" ".phsb" 
 WriteRegStr HKLM "Software\Phasor\phasor\Capabilities\FileAssociations" ".phs"  "Phasor.PHS"
 WriteRegStr HKLM "Software\RegisteredApplications" "Phasor" "Software\Phasor\phasor\Capabilities"
 
+WriteRegStr HKLM "Software\Phasor\phasorw\Capabilities" "ApplicationName"        "Phasor (Windowed)"
+WriteRegStr HKLM "Software\Phasor\phasorw\Capabilities" "ApplicationDescription" "Phasor windowed runtime"
+WriteRegStr HKLM "Software\Phasor\phasorw\Capabilities\FileAssociations" ".phsbw" "Phasor.PHSBW"
+WriteRegStr HKLM "Software\Phasor\phasorw\Capabilities\FileAssociations" ".phsw"  "Phasor.PHSW"
+WriteRegStr HKLM "Software\RegisteredApplications" "Phasor (Windowed)" "Software\Phasor\phasorw\Capabilities"
+
 WriteRegStr HKLM "Software\Phasor\phasorasm\Capabilities" "ApplicationName"        "Phasor Assembler"
 WriteRegStr HKLM "Software\Phasor\phasorasm\Capabilities" "ApplicationDescription" "Phasor IR assembler"
 WriteRegStr HKLM "Software\Phasor\phasorasm\Capabilities\FileAssociations" ".phir" "PhasorASM.PHIR"
 WriteRegStr HKLM "Software\RegisteredApplications" "PhasorASM" "Software\Phasor\phasorasm\Capabilities"
 
-WriteRegStr HKLM "Software\Phasor\phasorcompiler\Capabilities" "ApplicationName"        "Phasor Compiler"
-WriteRegStr HKLM "Software\Phasor\phasorcompiler\Capabilities" "ApplicationDescription" "Phasor source compiler"
-WriteRegStr HKLM "Software\Phasor\phasorcompiler\Capabilities\FileAssociations" ".phs" "PhasorCompiler.PHS"
-WriteRegStr HKLM "Software\RegisteredApplications" "PhasorCompiler" "Software\Phasor\phasorcompiler\Capabilities"
+WriteRegStr HKLM "Software\Phasor\phasorc\Capabilities" "ApplicationName"        "Phasor Compiler"
+WriteRegStr HKLM "Software\Phasor\phasorc\Capabilities" "ApplicationDescription" "Phasor source compiler"
+WriteRegStr HKLM "Software\Phasor\phasorc\Capabilities\FileAssociations" ".phs" "PhasorCompiler.PHS"
+WriteRegStr HKLM "Software\RegisteredApplications" "PhasorCompiler" "Software\Phasor\phasorc\Capabilities"
 
 WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities" "ApplicationName"        "Phasor Decompiler"
 WriteRegStr HKLM "Software\Phasor\phasordecomp\Capabilities" "ApplicationDescription" "Phasor binary decompiler"
@@ -297,6 +331,10 @@ SetRegView 32
 
 EnVar::SetHKLM
 EnVar::AddValue "PATH" "$INSTDIR\bin"
+EnVar::AddValue "PATHEXT" ".PHS"
+EnVar::AddValue "PATHEXT" ".PHSW"
+EnVar::AddValue "PATHEXT" ".PHSB"
+EnVar::AddValue "PATHEXT" ".PHSBW"
 EnVar::AddValue "PHASOR_INCLUDE_PATH" "$INSTDIR\opt\include"
 
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
@@ -314,8 +352,9 @@ DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
 
 SetRegView 64
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorw.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorasm.exe"
-DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorcompiler.exe"
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorc.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasordecomp.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasorvm.exe"
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\phasor-help.exe"
@@ -325,8 +364,9 @@ DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\App Paths\pulsarcom
 SetRegView 32
 
 DeleteRegKey HKCR "Applications\phasor.exe"
+DeleteRegKey HKCR "Applications\phasorw.exe"
 DeleteRegKey HKCR "Applications\phasorasm.exe"
-DeleteRegKey HKCR "Applications\phasorcompiler.exe"
+DeleteRegKey HKCR "Applications\phasorc.exe"
 DeleteRegKey HKCR "Applications\phasordecomp.exe"
 DeleteRegKey HKCR "Applications\phasorvm.exe"
 DeleteRegKey HKCR "Applications\pulsar.exe"
@@ -334,14 +374,18 @@ DeleteRegKey HKCR "Applications\pulsarcompiler.exe"
 
 DeleteRegKey HKCU "Software\Classes\.phir"
 DeleteRegKey HKCU "Software\Classes\.phs"
+DeleteRegKey HKCU "Software\Classes\.phsw"
 DeleteRegKey HKCU "Software\Classes\.phsb"
+DeleteRegKey HKCU "Software\Classes\.phsbw"
 DeleteRegKey HKCU "Software\Classes\.pul"
 
 DeleteRegKey HKCU "Software\Classes\Phasor.PHSB"
 DeleteRegKey HKCU "Software\Classes\PhasorDecomp.PHSB"
 DeleteRegKey HKCU "Software\Classes\PhasorVM.PHSB"
+DeleteRegKey HKCU "Software\Classes\Phasor.PHSBW"
 DeleteRegKey HKCU "Software\Classes\Phasor.PHS"
 DeleteRegKey HKCU "Software\Classes\PhasorCompiler.PHS"
+DeleteRegKey HKCU "Software\Classes\Phasor.PHSW"
 DeleteRegKey HKCU "Software\Classes\PhasorASM.PHIR"
 DeleteRegKey HKCU "Software\Classes\Pulsar.PUL"
 DeleteRegKey HKCU "Software\Classes\PulsarCompiler.PUL"
@@ -351,6 +395,7 @@ DeleteRegKey HKCR "Phasor"
 DeleteRegKey HKCR "CLSID\{c5318f33-2d87-4e95-95b7-2928cd57a5d7}"
 DeleteRegKey  HKLM "Software\Phasor"
 DeleteRegValue HKLM "Software\RegisteredApplications" "Phasor"
+DeleteRegValue HKLM "Software\RegisteredApplications" "Phasor (Windowed)"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorASM"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorCompiler"
 DeleteRegValue HKLM "Software\RegisteredApplications" "PhasorDecomp"
@@ -361,7 +406,11 @@ SetRegView 32
 
 EnVar::SetHKLM
 EnVar::DeleteValue "PATH" "$INSTDIR\bin"
-EnVar::DeleteValue "PHASOR_INCLUDE_PATH" "$INSTDIR\phsinclude"
+EnVar::DeleteValue "PATHEXT" ".PHS"
+EnVar::DeleteValue "PATHEXT" ".PHSW"
+EnVar::DeleteValue "PATHEXT" ".PHSB"
+EnVar::DeleteValue "PATHEXT" ".PHSBW"
+EnVar::DeleteValue "PHASOR_INCLUDE_PATH" "$INSTDIR\opt\include"
 
 System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
