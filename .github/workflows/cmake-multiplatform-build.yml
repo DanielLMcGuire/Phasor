@@ -71,14 +71,14 @@ jobs:
       shell: bash
       env:
         PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/opt/include
-      run: ./out/usr/bin/phasor ./scripts/unittest.phs
+      run: ./out/bin/phasor ./scripts/unittest.phs
 
     - name: Test (Linux)
       if: matrix.os == 'ubuntu-latest'
       shell: bash
       env:
         PHASOR_INCLUDE_PATH: ${{ github.workspace }}/out/opt/phasor/include
-      run: ./out/bin/phasor ./scripts/unittest.phs
+      run: ./out/usr/bin/phasor ./scripts/unittest.phs
 
     - name: Test (macOS)
       if: matrix.os == 'macos-latest'
