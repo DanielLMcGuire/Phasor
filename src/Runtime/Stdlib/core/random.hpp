@@ -1,7 +1,8 @@
 #pragma once
 
-// my tiny xorshift+ implementation
-// (C) Daniel McGuire -- MIT License
+// Phasor stdlibcore random
+// MIT License
+// (C) Daniel McGuire -- 2026
 
 #include <phsint.hpp>
 

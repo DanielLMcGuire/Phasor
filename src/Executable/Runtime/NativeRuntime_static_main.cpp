@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 {
 	try
 	{
-		return exec(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
+		return exec(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName, argc, (const char **)argv);
 	}
 	catch (const std::exception &e)
 	{

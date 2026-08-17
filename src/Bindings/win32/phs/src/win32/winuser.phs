@@ -1,29 +1,35 @@
 include "../../include/win32/types/handle.phs";
+include "std/type";
 
-fn IsWindow(hWnd: HWND) -> bool {
-    if (hWnd.data == null)
+fn IsWindow(hWnd: HWND) -> bool
+{
+    if (hWnd.data.get_type() != phs_type.i64 || hWnd.data == 0)
         return false;
-    return win32_IsWindow(phs__noimport("to_int", hWnd.data));
+    return win32_IsWindow(hWnd.data);
 }
 
-fn GetForegroundWindow() -> HWND {
+fn GetForegroundWindow() -> HWND
+{
     return HWND{ data: win32_GetForegroundWindow() };
 }
 
-fn GetDesktopWindow() -> HWND {
+fn GetDesktopWindow() -> HWND
+{
     return HWND{ data: win32_GetDesktopWindow() };
 }
 
-fn SetWindowText(hWnd: HWND, String: string) -> bool {
-    if (hWnd.data == null)
+fn SetWindowText(hWnd: HWND, String: string) -> bool
+{
+    if (hWnd.data.get_type() != phs_type.i64 || hWnd.data == 0)
         return false;
-    return win32_SetWindowTextA(phs__noimport("to_int", hWnd.data), String);
+    return win32_SetWindowTextA(hWnd.data, String);
 }
 
-fn MessageBox(hWnd: HWND, Text: string, Caption: string, Type: i64) -> i64 {
-    if (hWnd.data == null)
+fn MessageBox(hWnd: HWND, Text: string, Caption: string, Type: i64) -> i64
+{
+    if (hWnd.data.get_type() != phs_type.i64 || hWnd.data == 0)
         return win32_MessageBoxA(null, Text, Caption, Type);
-    return win32_MessageBoxA(phs__noimport("to_int", hWnd.data), Text, Caption, Type);
+    return win32_MessageBoxA(hWnd.data, Text, Caption, Type);
 }
 
 fn CreateWindowEx(
@@ -37,17 +43,19 @@ fn CreateWindowEx(
     nHeight: i64, 
     hWndParent: HWND, 
     hMenu: HMENU, 
-    hInstance: HINSTANCE) -> HWND {
+    hInstance: HINSTANCE
+    ) -> HWND
+{
     var hWndParentReal: any = null;
-    if (hWndParent.data != null) hWndParentReal = phs__noimport("to_int", hWndParent.data);
+    if (hWndParent.data.get_type() == phs_type.i64) hWndParentReal = hWndParent.data;
     var hMenuReal: any = null;
-    if (hMenu.data != null) hMenuReal = phs__noimport("to_int", hMenu.data);
+    if (hMenu.data.get_type() == phs_type.i64) hMenuReal = hMenu.data;
     var hInstanceReal: any = null;
-    if (hInstance.data != null) hInstanceReal = phs__noimport("to_int", hInstance.data);
+    if (hInstance.data.get_type() == phs_type.i64) hInstanceReal = hInstance.data;
 
     return HWND{ data: win32_CreateWindowExW(
-        ExStyle, ClassName, WindowName, Style, 
-        x, y, nWidth, nHeight, hWndParentReal, 
-        hMenuReal, hInstanceReal) 
+        ExStyle, ClassName, WindowName, Style,
+        x, y, nWidth, nHeight, hWndParentReal,
+        hMenuReal, hInstanceReal)
     };
 }

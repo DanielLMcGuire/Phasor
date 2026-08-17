@@ -10,7 +10,7 @@ namespace Phasor
 {
 
 /**
- * @class CppCodeGenerator
+ * @class CCodeGenerator
  * @brief Generates C++ header files with embedded Phasor bytecode
  *
  * This class takes compiled Phasor bytecode and generates a C++ header file
@@ -18,7 +18,7 @@ namespace Phasor
  * included in CppRuntime_main.cpp to provide the module name, bytecode array,
  * and bytecode size.
  */
-class CppCodeGenerator
+class CCodeGenerator
 {
   public:
 	/**

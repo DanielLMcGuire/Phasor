@@ -13,59 +13,73 @@
 include "../../include/std/types/mem.phs";
 
 
-fn malloc_native(size: i64) -> ManagedMemory {
+fn malloc_native(size: i64) -> ManagedMemory
+{
     return ManagedMemory{ ptr: phs__memory_malloc_native(size), size: size };
 }
 
-fn calloc_native(size: i64) -> ManagedMemory {
+fn calloc_native(size: i64) -> ManagedMemory
+{
     return ManagedMemory{ ptr: phs__memory_calloc_native(size), size: size };
 }
 
-fn realloc_native(handle: ManagedMemory, size: i64) -> ManagedMemory {
+fn realloc_native(handle: ManagedMemory, size: i64) -> ManagedMemory
+{
     return ManagedMemory{ ptr: phs__memory_realloc_native(handle.ptr, size), size: size };
 }
 
-fn c_stralloc_native(data: string) -> ManagedMemory {
+fn c_stralloc_native(data: string) -> ManagedMemory
+{
     var ret: int[] = phs__memory_stralloc_native(data);
     return ManagedMemory{ ptr: ret[0], size: ret[1] };
 }
 
-fn c_strcpy_native(handle0: ManagedMemory, handle1: ManagedMemory) -> void {
+fn c_strcpy_native(handle0: ManagedMemory, handle1: ManagedMemory) -> void
+{
     phs__memory_strcpy_native(handle0.ptr, handle0.size, handle1.ptr, handle1.size);
 }
 
-fn write_native(handle: ManagedMemory, data: i64) -> void {
+fn write_native(handle: ManagedMemory, data: i64) -> void
+{
     phs__memory_write_native(handle.ptr, handle.size, data);
 }
 
-fn write_offset_native(handle: ManagedMemory, offset: i64, data: i64) -> void {
+fn write_offset_native(handle: ManagedMemory, offset: i64, data: i64) -> void
+{
     phs__memory_write_offset_native(handle.ptr, offset, handle.size, data);
 }
 
-fn write_c_string_native(handle: ManagedMemory, data: string) -> void {
+fn write_c_string_native(handle: ManagedMemory, data: string) -> void
+{
     phs__memory_write_string_native(handle.ptr, handle.size, data);
 }
 
-fn write_c_string_offset_native(handle: ManagedMemory, offset: i64, data: string) -> void {
+fn write_c_string_offset_native(handle: ManagedMemory, offset: i64, data: string) -> void
+{
     phs__memory_write_string_offset_native(handle.ptr, offset, handle.size, data);
 }
 
-fn read_native(handle: ManagedMemory) -> i64 {
+fn read_native(handle: ManagedMemory) -> i64
+{
     return phs__memory_read_native(handle.ptr, handle.size);
 }
 
-fn read_native_offset(handle: ManagedMemory, offset: i64) -> i64 {
+fn read_native_offset(handle: ManagedMemory, offset: i64) -> i64
+{
     return phs__memory_read_offset_native(handle.ptr, offset, handle.size);
 }
 
-fn read_c_string_native(handle: ManagedMemory) -> string {
+fn read_c_string_native(handle: ManagedMemory) -> string
+{
     return phs__memory_read_string_native(handle.ptr, handle.size);
 }
 
-fn read_c_string_native_offset(handle: ManagedMemory, offset: i64) -> string {
+fn read_c_string_native_offset(handle: ManagedMemory, offset: i64) -> string
+{
     return phs__memory_read_string_offset_native(handle.ptr, offset, handle.size);
 }
 
-fn free_native(handle: ManagedMemory) -> void {
+fn free_native(handle: ManagedMemory) -> void
+{
     phs__memory_free_native(handle.ptr);
 }

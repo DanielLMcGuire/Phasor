@@ -1,12 +1,12 @@
 .TH PHASORNATIVE 1 "January 2026" "Phasor 4.0.0" "Phasor Manual"
 .SH NAME
-phasornative \- Phasor C++ code generator and native compiler
+phasorcc \- Phasor C++ code generator and native compiler
 .SH SYNOPSIS
-.B phasornative
+.B phasorcc
 [\fIOPTIONS\fR]
 .I input.phs
 .SH DESCRIPTION
-.B phasornative
+.B phasorcc
 generates C++ code from Phasor source files or intermediate representation and compiles it into native executables. It can generate header files containing embedded bytecode, compile them with a C++ compiler, and link them against the Phasor runtime library.
 .PP
 This tool enables the creation of standalone native executables from Phasor programs, offering maximum performance and simplified distribution without requiring the Phasor runtime to be separately installed.
@@ -109,7 +109,7 @@ Compile a Phasor program to native executable:
 .PP
 .nf
 .RS
-phasornative program.phs
+phasorcc program.phs
 .RE
 .fi
 .PP
@@ -117,7 +117,7 @@ Use Clang compiler with LLD linker:
 .PP
 .nf
 .RS
-phasornative program.phs -c clang++ -l lld -o program
+phasorcc program.phs -c clang++ -l lld -o program
 .RE
 .fi
 .PP
@@ -125,7 +125,7 @@ Generate only the header file:
 .PP
 .nf
 .RS
-phasornative -H program.phs -o program.hpp
+phasorcc -H program.phs -o program.hpp
 .RE
 .fi
 .PP
@@ -133,7 +133,7 @@ Generate header and source without compiling:
 .PP
 .nf
 .RS
-phasornative -g program.phs -m mymodule
+phasorcc -g program.phs -m mymodule
 .RE
 .fi
 .PP
@@ -141,7 +141,7 @@ Compile to object file only:
 .PP
 .nf
 .RS
-phasornative -O program.phs -o program.obj -c clang++
+phasorcc -O program.phs -o program.obj -c clang++
 .RE
 .fi
 .SH EXIT STATUS
@@ -159,7 +159,7 @@ The native compiler requires a working C++23-compatible compiler toolchain and t
 Generated executables are statically linked against the Phasor runtime where possible, reducing deployment dependencies.
 .SH SEE ALSO
 .BR PHS (5),
-.BR phasorcompiler (1),
+.BR phasorc (1),
 .BR phasorvm (1),
 .BR g++ (1),
 .BR clang++ (1)

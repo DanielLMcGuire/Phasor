@@ -1,5 +1,4 @@
-; Defines arithmetic operations used by the VM for x86_64 on Windows
-
+; Phasor vmcore/native arithmetic -- x86_64 WIN32
 PUBLIC asm_iadd
 PUBLIC asm_isub
 PUBLIC asm_imul

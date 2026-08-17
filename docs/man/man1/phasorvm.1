@@ -21,14 +21,14 @@ Display help information and exit.
 .SH ARGUMENTS
 .TP
 .I file.phsb
-Required Phasor bytecode file to execute. Must be a valid compiled bytecode file created by phasorcompiler.
+Required Phasor bytecode file to execute. Must be a valid compiled bytecode file created by phasorc.
 .TP
 .I SCRIPT_ARGS
 Arguments passed to the bytecode program. These are accessible within the program through the standard library's argument handling functions.
 .SH FILES
 .TP
 .I *.phsb
-Phasor bytecode files (compiled by phasorcompiler)
+Phasor bytecode files (compiled by phasorc)
 .SH VERBOSE OUTPUT
 When verbose mode is enabled, the following information is displayed:
 .RS
@@ -93,15 +93,15 @@ Loads optimized bytecode directly
 Starts execution immediately
 .RE
 .PP
-For production deployments, compile with phasorcompiler and execute with phasorvm for optimal performance.
+For production deployments, compile with phasorc and execute with phasorvm for optimal performance.
 .SH NOTES
 Bytecode files are platform-independent and can be executed on any system with a compatible Phasor VM installation.
 .SH SEE ALSO
 .BR PHS (5),
 .BR PHSB (5),
-.BR phasorcompiler (1),
+.BR phasorc (1),
 .BR phasor (1),
-.BR phasornative (1)
+.BR phasorcc (1)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

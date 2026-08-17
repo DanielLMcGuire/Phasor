@@ -12,10 +12,12 @@
 
 include "../../include/std/str";
 
-fn prints(in: string) -> void {
+fn prints(in: string) -> void
+{
     print in;
 }
 
-fn puts(in: string) -> void {
+fn puts(in: string) -> void
+{
     print in.concat("\n");
 }

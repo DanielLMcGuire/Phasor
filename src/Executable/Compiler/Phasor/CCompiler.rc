@@ -21,11 +21,11 @@ BEGIN
         BLOCK "040904b0" // Language: US English, Codepage: Unicode
         BEGIN
             VALUE "CompanyName", "Phasor"
-            VALUE "FileDescription", "Phasor VM Runtime"
+            VALUE "FileDescription", "Phasor VM C Compiler Wrapper"
             VALUE "FileVersion", "4.0.0.0"
-            VALUE "InternalName", "phasorvm.exe"
-           VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
-            VALUE "OriginalFilename", "phasorvm.exe"
+            VALUE "InternalName", "phasorcc.exe"
+            VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
+            VALUE "OriginalFilename", "phasorcc.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
             VALUE "ProductVersion", "4.0.0.0"
         END
@@ -36,5 +36,5 @@ BEGIN
     END
 END
 
-IDI_APP_ICON ICON "..\\assets\\vm.ico"
+IDI_APP_ICON ICON "..\\assets\\compiler.ico"
 

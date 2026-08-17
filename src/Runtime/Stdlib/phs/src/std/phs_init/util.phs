@@ -13,7 +13,8 @@
 include "../../../include/std/types/sys.phs";
 
 // pops argc then argv off stack, then builds and returns string[] of args
-fn phsrt__build_args() -> string[] {
+fn phsrt__build_args() -> string[]
+{
 static_if (PHS_DEBUG)
     print "phsrt__build_args()\n";
 static_endif // (PHS_DEBUG)
@@ -27,7 +28,8 @@ static_endif // (PHS_DEBUG)
 
     var argvBasePtr: i64 = phs__memory_read_native(argvPtr, PTR_SIZE);
 
-    for (var i: int = 0; i < argc; i++) {
+    for (var i: int = 0; i < argc; i++)
+    {
         var elementPtr: i64 = phs__memory_read_offset_native(argvBasePtr, i * PTR_SIZE, PTR_SIZE);
         argv.arr_push(phs__memory_read_string_native(elementPtr, 1024));
     }
@@ -38,26 +40,29 @@ static_endif // (PHS_DEBUG)
 }
 
 // checks support
-fn phsrt_check_support() -> void {
+fn phsrt_check_support() -> void
+{
 static_if (PHS_DEBUG)
     print "phsrt_check_support()\n";
     static_if (!PHASOR_NATIVE) 
         static_if (!NO_CHECK_OS)
-    if (COMP_OS != sys_os()) {
-    printf("Requires %s operating system.\n", sys_os_map[COMP_OS]);
-    assert(false);
+    if (COMP_OS != sys_os())
+    {
+        printf("Requires %s operating system.\n", sys_os_map[COMP_OS]);
+        assert(false);
     } else print "OS matches\n";
         static_endif // (!NO_CHECK_OS)
-    if (COMP_ARCH != sys_arch()) {
-        printf("Requires %s architecture.\n", sys_arch_map[COMP_ARCH]);
+    if (COMP_ARCH != sys_arch())
+    {
+        printf("Requires %s runtime build.\n", sys_arch_map[COMP_ARCH]);
         assert(false);
     } else print "Arch matches\n";
     static_endif // (!PHASOR_NATIVE)
-    if (PHS_VERSION != phs_version()) {
+    if (PHS_VERSION != phs_version())
+    {
         printf("Requires runtime version %s.\n", PHS_VERSION);
         assert(false);
-    } else
-        print "Version matches\n";
+    } else print "Version matches\n";
 static_else // (!PHS_DEBUG)
     static_if (!PHASOR_NATIVE)
         static_if (!NO_CHECK_OS)
@@ -65,7 +70,7 @@ static_else // (!PHS_DEBUG)
         error(c_fmt("Requires %s operating system.", sys_os_map[COMP_OS]));
         static_endif // (!NO_CHECK_OS)
     if (COMP_ARCH != sys_arch())
-        error(c_fmt("Requires %s architecture.", sys_arch_map[COMP_ARCH]));
+        error(c_fmt("Requires %s runtime build.", sys_arch_map[COMP_ARCH]));
     static_endif // (!PHASOR_NATIVE)
     if (PHS_VERSION != phs_version())
         error(c_fmt("Requires runtime version %s.", PHS_VERSION));

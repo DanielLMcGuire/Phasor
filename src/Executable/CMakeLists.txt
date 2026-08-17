@@ -1,13 +1,14 @@
 set(NATIVE_RUNTIME_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntimeDll.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/NativeRuntimeDll.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Main.cpp
 )
 
 if (WIN32)
     list(APPEND NATIVE_RUNTIME_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_com.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_com.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/NativeRuntime_com.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/NativeRuntime_com.hpp
     )
 endif()
 
@@ -19,7 +20,6 @@ target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
 add_library(phasor_native_runtime_static STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/NativeRuntime_library.cpp
     ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
 )
 
@@ -36,17 +36,17 @@ set(BUILD_POSIX_BINDINGS OFF)
 
 add_executable(phasor_main 
     ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.c
 )
-target_link_libraries(phasor_main phasor_binary_runtime_lib phasor_language PhasorCodegen PhasorRuntime)
+target_link_libraries(phasor_main phasor_native_runtime)
 set_target_properties(phasor_main PROPERTIES OUTPUT_NAME phasor)
 
 if(WIN32)
     add_executable(phasorw_main
         ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor.rc
-        ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Main/Phasor/Phasor_main.c
     )
-    target_link_libraries(phasorw_main phasor_binary_runtime_lib phasor_language PhasorCodegen PhasorRuntime)
+    target_link_libraries(phasorw_main phasor_native_runtime)
     set_target_properties(phasorw_main PROPERTIES OUTPUT_NAME phasorw)
     target_compile_definitions(phasorw_main PRIVATE PHS_WINDOWED)
     set_target_properties(phasorw_main PROPERTIES WIN32_EXECUTABLE TRUE)
@@ -69,10 +69,10 @@ if(NOT IS_XBOX AND NOT EMBEDDED)
 
 add_executable(phasor_compiler
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/Compiler_main.c
 )
-target_link_libraries(phasor_compiler phasor_compiler_lib)
-set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorcompiler)
+target_link_libraries(phasor_compiler phasor_native_runtime)
+set_target_properties(phasor_compiler PROPERTIES OUTPUT_NAME phasorc)
 
 add_executable(phasor_lsp
     ${CMAKE_CURRENT_SOURCE_DIR}/LSP/Phasor/LSP_main.cpp
@@ -95,16 +95,16 @@ add_executable(phasor_asm
 target_link_libraries(phasor_asm phasor_asm_lib)
 set_target_properties(phasor_asm PROPERTIES OUTPUT_NAME phasorasm)
 
-add_executable(phasor_cxx_transpiler
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CppCompiler.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CppCompiler_main.cpp
+add_executable(phasor_c_transpiler
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CCompiler.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CCompiler_main.cpp
 )
-target_link_libraries(phasor_cxx_transpiler phasor_cxx_transpiler_lib)
-set_target_properties(phasor_cxx_transpiler PROPERTIES OUTPUT_NAME phasornative)
+target_link_libraries(phasor_c_transpiler phasor_c_transpiler_lib)
+set_target_properties(phasor_c_transpiler PROPERTIES OUTPUT_NAME phasorcc)
 
 add_executable(phasor_runtime_exe
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/BinaryRuntime.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/Shared/BinaryRuntime_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/BinaryRuntime.rc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/BinaryRuntime_main.cpp
 )
 target_link_libraries(phasor_runtime_exe phasor_binary_runtime_lib)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)

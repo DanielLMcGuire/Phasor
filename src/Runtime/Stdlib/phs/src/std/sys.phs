@@ -12,6 +12,7 @@
 
 include "../../include/std/types/sys.phs";
 
-fn is_sandboxed() -> bool {
+fn is_sandboxed() -> bool
+{
     return sys_os() == sys_os.sandbox;
 }

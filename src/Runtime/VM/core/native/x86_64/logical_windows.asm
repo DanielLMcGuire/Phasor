@@ -1,6 +1,4 @@
-; core/logical/windows_x86_64.asm
-; Defines logical operations used by the VM for x86_64 on Windows
-
+; Phasor vmcore/native logical -- x86_64 WIN32
 PUBLIC asm_inot
 PUBLIC asm_iand
 PUBLIC asm_ior

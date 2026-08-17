@@ -1,7 +1,27 @@
-fn win32_GetConsoleCP() -> int {
+var CP_ACP: int = 0;
+var CP_OEMCP: int = 1;
+var CP_MACCP: int = 2;
+var CP_THREAD_ACP: int = 3;
+var CP_SYMBOL: int = 42;
+var CP_UTF7: int = 65000;
+var CP_UTF8: int = 65001;
+
+fn GetConsoleCP() -> int
+{
     return win32_GetConsoleCP();
 }
 
-fn GetConsoleOutputCP() -> int {
+fn GetConsoleOutputCP() -> int
+{
     return win32_GetConsoleOutputCP();
+}
+
+fn SetConsoleCP(wCodePageID: i64) -> bool
+{
+    return win32_SetConsoleCP(wCodePageID);
+}
+
+fn SetConsoleOutputCP(wCodePageID: i64) -> bool
+{
+    return win32_SetConsoleOutputCP(wCodePageID);
 }

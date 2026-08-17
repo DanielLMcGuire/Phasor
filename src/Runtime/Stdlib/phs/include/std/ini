@@ -1,5 +1,5 @@
-// Phasor STDIO
-// phasor-help phasorstd-io 3
+// Phasor STDINI
+// phasor-help phasorstd-ini 3
 // Copyright 2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
@@ -13,15 +13,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdio");
-
-// Print a string to stdout
-// in: string to print
-fn prints(in: string) -> string;
-
-// Print a string to stdout with newline
-// in: string to print
-fn puts(in: string) -> string;
-
-// ----
-include "../../src/std/io.phs";
+ffiload("stdini");

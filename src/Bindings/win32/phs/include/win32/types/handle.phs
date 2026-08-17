@@ -21,5 +21,5 @@ struct HMENU {
 var NULL_HANDLE: HANDLE = HANDLE{ data: null };
 var NULL_HWND: HWND = HWND{ data: null };
 var NULL_HINSTANCE: HINSTANCE = HINSTANCE{ data: null };
-var NULL_HWND: HMODULE = HMODULE{ data: null };
+var NULL_HMODULE: HMODULE = HMODULE{ data: null };
 var NULL_HMENU: HMENU = HMENU{ data: null };

@@ -1,10 +1,13 @@
 include "../../include/win32/types/handle.phs";
+include "std/type";
 
-fn GetModuleHandle(ModuleName: any) -> HANDLE {
+fn GetModuleHandle(ModuleName: any) -> HANDLE
+{
     if (ModuleName == null) return HANDLE{ data: win32_GetModuleHandleA(null) };
-    else return HANDLE{ data: win32_GetModuleHandleA(phs__noimport("to_string", ModuleName)) };
+    else return HANDLE{ data: win32_GetModuleHandleA(to_string(ModuleName)) };
 }
 
-fn LoadLibrary(LibFileName: string) -> HINSTANCE {
+fn LoadLibrary(LibFileName: string) -> HINSTANCE
+{
     return HANDLE{ data: LoadLibraryA(LibFileName) };
 }

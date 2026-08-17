@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
 		// Execute the bytecode
 		exitCode =
-		    execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
+		    execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName, argc, (const char **)argv);
 
 		// Cleanup
 		FreeLibrary(hRuntime);
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 		// Execute the bytecode
 		int exitCode =
-		    execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName.c_str(), argc, (const char **)argv);
+		    execFunc(nullptr, embeddedBytecode, embeddedBytecodeSize, moduleName, argc, (const char **)argv);
 
 		// Cleanup
 		dlclose(hRuntime);

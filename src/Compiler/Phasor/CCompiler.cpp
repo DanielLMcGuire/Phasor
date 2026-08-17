@@ -1,9 +1,9 @@
-#include "CppCompiler.hpp"
+#include "CCompiler.hpp"
 #include "../../Language/Phasor/Lexer/Lexer.hpp"
 #include "../../Language/Phasor/Parser/Parser.hpp"
 #include "../../Language/Phasor/Parser/PlatformDefines.hpp"
 #include "../../Codegen/CodeGen.hpp"
-#include "../../Codegen/Cpp/CppCodeGenerator.hpp"
+#include "../../Codegen/C/CCodeGenerator.hpp"
 #include "../../Codegen/IR/PhasorIR.hpp"
 #include <version.h>
 #include <filesystem>
@@ -15,16 +15,16 @@
 namespace Phasor
 {
 
-CppCompiler::CppCompiler(int argc, char *argv[])
+CCompiler::CCompiler(int argc, char *argv[])
 {
 	parseArguments(argc, argv);
 }
 
-int CppCompiler::run()
+int CCompiler::run()
 {
 	if (m_args.showHelp)
 	{
-		showHelp("phasornative");
+		showHelp("phasorcc");
 		return 0;
 	}
 
@@ -37,11 +37,11 @@ int CppCompiler::run()
 	if (m_args.mainFile.empty() && !m_args.headerOnly)
 	{
 #ifdef _WIN32
-		m_args.mainFile = R"(C:\Program Files\Phasor VM\Development\nativestub.cpp)";
-}
+		m_args.mainFile = R"(C:\Program Files\Phasor VM\Development\nativestub.c)";
 #else
-		m_args.mainFile = "/usr/local/share/phasor/dev/nativestub.cpp";
+		m_args.mainFile = "/usr/local/share/phasor/dev/nativestub.c";
 #endif
+    }
 
 	if (m_args.moduleName.empty())
 	{
@@ -84,8 +84,8 @@ int CppCompiler::run()
 	if (m_args.objectOnly)
 	{
 		generateHeader(m_args.inputFile, m_args.moduleName.str() + ".h");
-		generateSource(m_args.moduleName.str() + ".h", m_args.moduleName.str() + ".cpp");
-		compileSource(m_args.moduleName.str() + ".cpp", m_args.outputFile);
+		generateSource(m_args.moduleName.str() + ".h", m_args.moduleName.str() + ".c");
+		compileSource(m_args.moduleName.str() + ".c", m_args.outputFile);
 		return 0;
 	}
 
@@ -99,9 +99,9 @@ int CppCompiler::run()
 		return 1;
 	}
 
-	if (generateSource(m_args.mainFile, m_args.moduleName.str() + ".cpp"))
+	if (generateSource(m_args.mainFile, m_args.moduleName.str() + ".c"))
 	{
-		std::println("{} -> {}.cpp\n", m_args.mainFile.filename().string(), m_args.moduleName.str());
+		std::println("{} -> {}.c\n", m_args.mainFile.filename().string(), m_args.moduleName.str());
 	} else {
 		std::println(std::cerr, "Could not generate source file");
 		return 1;
@@ -109,9 +109,9 @@ int CppCompiler::run()
 
 	std::println("Compiling...");
 	std::print("[COMPILER] ");
-	if (compileSource(m_args.moduleName.str() + ".cpp", m_args.moduleName.str() + ".obj"))
+	if (compileSource(m_args.moduleName.str() + ".c", m_args.moduleName.str() + ".obj"))
 	{
-		std::println("{}.cpp -> {}.obj\n", m_args.moduleName, m_args.moduleName.str());
+		std::println("{}.c -> {}.obj\n", m_args.moduleName, m_args.moduleName.str());
 	} else {
 		std::println(std::cerr, "Could not compile program");
 		return 1;
@@ -130,7 +130,7 @@ int CppCompiler::run()
 	return 0;
 }
 
-bool CppCompiler::parseArguments(int argc, char *argv[])
+bool CCompiler::parseArguments(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++)
 	{
@@ -229,11 +229,11 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 				{
 					m_args.linker = "link";
 				}
-				else if ((m_args.compiler == "clang" || m_args.compiler == "clang++") && m_args.linker.empty())
+				else if ((m_args.compiler == "clang" || m_args.compiler == "clang") && m_args.linker.empty())
 				{
 					m_args.linker = "clang";
 				}
-				else if ((m_args.compiler == "gcc" || m_args.compiler == "g++") && m_args.linker.empty())
+				else if ((m_args.compiler == "gcc" || m_args.compiler == "gcc") && m_args.linker.empty())
 				{
 					m_args.linker = "gcc";
 				}
@@ -300,15 +300,15 @@ bool CppCompiler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-bool CppCompiler::showHelp(const PhsString &programName)
+bool CCompiler::showHelp(const PhsString &programName)
 {
-	std::println("Phasor C++ Bytecode Embedder v{}\n"
+	std::println("Phasor CC Wrapper v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
 	             "Usage:\n"
 	             "  {} [OPTIONS...] INPUT\n\n"
 	             "Options:\n"
-	             "  -c, --compiler NAME     Compiler to use (default: g++)\n"
-	             "  -l, --linker NAME       Linker to use (default: g++)\n"
+	             "  -c, --compiler NAME     Compiler to use (default: gcc)\n"
+	             "  -l, --linker NAME       Linker to use (default: gcc)\n"
 	             "  -s, --source NAME       The source file to compile with\n"
 	             "  -o, --output FILE       Output file\n"
 	             "  -m, --module NAME       Module name for generated code (default: input filename)\n"
@@ -320,17 +320,17 @@ bool CppCompiler::showHelp(const PhsString &programName)
 	             "  -v, --verbose           Enable verbose output\n"
 	             "  -h, --help              Show this help message\n"
 	             "Examples:\n"
-	             "  {} program.phs -o program.exe -c clang++ -l lld\n"
-	             "  {} -O program.phs -o program.obj -c clang++\n"
-	             "  {} -H program.phs -o program.hpp\n"
-	             "  {} -g program.phs -o program.cpp\n"
+	             "  {} program.phs -o program.exe -c clang -l lld\n"
+	             "  {} -O program.phs -o program.o -c clang\n"
+	             "  {} -H program.phs -o program.h\n"
+	             "  {} -g program.phs -o program.c\n"
 				 "See also:\n"
-				 "  phasor-help phasor-native 1",
-	             PHASOR_VERSION_STRING, programName, programName, programName, programName, programName);
+				 "  phasor-help {} 1",
+	             PHASOR_VERSION_STRING, programName, programName, programName, programName, programName, programName);
 	return true;
 }
 
-bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath) const
+bool CCompiler::generateHeader(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath) const
 {
 	try
 	{
@@ -403,18 +403,18 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 			             bytecode.functionEntries.size());
 		}
 
-		// Generate C++ code
+		// Generate C code
 		if (m_args.verbose)
 		{
-			std::println("Generating C++ code...");
+			std::println("Generating C code...");
 		}
 
-		CppCodeGenerator cppGen;
-		bool             success = cppGen.generate(bytecode, outputPath, m_args.moduleName);
+		CCodeGenerator cGen;
+		bool             success = cGen.generate(bytecode, outputPath, m_args.moduleName);
 
 		if (!success)
 		{
-			std::println(std::cerr, "Error: Failed to generate C++ code");
+			std::println(std::cerr, "Error: Failed to generate C code");
 			return false;
 		}
 
@@ -429,7 +429,7 @@ bool CppCompiler::generateHeader(const std::filesystem::path &sourcePath, const 
 	return true;
 }
 
-bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath)
+bool CCompiler::generateSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath)
 {
 	std::ifstream file(sourcePath);
 	if (!file.is_open())
@@ -461,27 +461,29 @@ bool CppCompiler::generateSource(const std::filesystem::path &sourcePath, const 
 	return true;
 }
 
-bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath)
+bool CCompiler::compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath)
 {
 	std::vector<PhsString> flags;
 	if (m_args.compiler == "cl")
 	{
-		flags = {"/std:c++20", "/Ox", "/D",    "NDEBUG", "/MD",     "/GL", "/Gy-",
-		         "/GS-",       "/Gw", "/EHsc", "/WX-",   "/nologo", "/c",  ("/Fo" + outputPath.string())};
-	} else if (m_args.compiler == "g++" || m_args.compiler == "clang++") {
-		flags = {"-std=c++20",
-		         "-O3",
-		         "-DNDEBUG",
-		         "-fPIC",
-		         "-flto",
-		         "-fno-function-sections",
-		         "-fno-stack-protector",
-		         "-fwhole-program",
-		         "-fexceptions",
-		         "-Wno-error",
-		         "-c",
-		         ("-o" + outputPath.string())};
-
+		flags = {"/std:c++20", "/Ox", "/D", "NDEBUG", "/MD", "/GL", "/Gy-",
+				"/GS-", "/Gw", "/EHsc", "/WX-", "/nologo", "/c",
+				("/Fo" + outputPath.string())};
+	}
+	else if (m_args.compiler == "gcc" || m_args.compiler == "clang")
+	{
+		flags = {
+			"-O3",
+			"-DNDEBUG",
+			"-fPIC",
+			"-flto",
+			"-fno-function-sections",
+			"-fno-stack-protector",
+			"-fwhole-program",
+			"-fexceptions",
+			"-Wno-error",
+			"-c",
+			("-o" + outputPath.string())};
 	} else {
 		std::println(std::cerr, "Error: Unknown compiler: {}", m_args.compiler);
 		return false;
@@ -503,14 +505,14 @@ bool CppCompiler::compileSource(const std::filesystem::path &sourcePath, const s
 	return true;
 }
 
-bool CppCompiler::linkObject(const std::filesystem::path &objectPath, const std::filesystem::path &outputPath)
+bool CCompiler::linkObject(const std::filesystem::path &objectPath, const std::filesystem::path &outputPath)
 {
 	PhsString command = m_args.linker;
 	command += " " + objectPath.string();
 	if (m_args.linker == "link")
 	{
 		command += " /NOLOGO /LTCG /OPT:REF /OPT:ICF /INCREMENTAL:NO /out:" + outputPath.string();
-	} else if (m_args.linker == "ld" || m_args.linker == "clang++" || m_args.linker == "clang") {
+	} else if (m_args.linker == "ld" || m_args.linker == "clang" || m_args.linker == "clang") {
 		command += "-flto -pthread -Wl,--gc-sections -o " + outputPath.string();
 	} else {
 		std::println(std::cerr, "Error: Unknown linker: {}", m_args.linker);

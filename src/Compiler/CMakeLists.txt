@@ -1,16 +1,9 @@
-add_library(phasor_compiler_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/Compiler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/Compiler.hpp
+add_library(phasor_c_transpiler_lib STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/CCompiler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/CCompiler.hpp
 )
 
-target_link_libraries(phasor_compiler_lib phasor_language PhasorCodegen)
-
-add_library(phasor_cxx_transpiler_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/CppCompiler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Phasor/CppCompiler.hpp
-)
-
-target_link_libraries(phasor_cxx_transpiler_lib phasor_language PhasorCodegen)
+target_link_libraries(phasor_c_transpiler_lib phasor_language PhasorCodegen)
 
 add_library(phasor_disasm_lib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Shared/Disassembler.cpp

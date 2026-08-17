@@ -2,6 +2,7 @@ set(STDLIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/random.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ini.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp

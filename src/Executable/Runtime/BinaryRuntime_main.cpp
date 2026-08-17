@@ -1,4 +1,4 @@
-#include "../../../Runtime/Shared/BinaryRuntime.hpp"
+#include "../../Runtime/Library/BinaryRuntime.hpp"
 #include <nativeerror.h>
 
 int main(int argc, char *argv[])

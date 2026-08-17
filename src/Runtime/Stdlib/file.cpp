@@ -97,7 +97,7 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("fmv", StdLib::file_move);
 	vm->registerNativeFunction("fpropset", StdLib::file_property_edit);
 	vm->registerNativeFunction("fpropget", StdLib::file_property_get);
-	vm->registerNativeFunction("fmk", StdLib::file_create);
+	vm->registerNativeFunction("ftouch", StdLib::file_create);
 	vm->registerNativeFunction("fmkdir", StdLib::file_create_directory);
 	vm->registerNativeFunction("frmdir", StdLib::file_remove_directory);
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);

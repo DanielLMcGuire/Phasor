@@ -5,10 +5,14 @@
 // A console uses its input code page to translate keyboard input into the corresponding character value.
 fn GetConsoleCP() -> i64;
 
+fn SetConsoleCP(wCodePageID: i64) -> bool;
+
 // Retrieves the output code page used by the console associated with the calling process. 
 // A console uses its output code page to translate the character values written by the various 
 // output functions into the images displayed in the console window.
 fn GetConsoleOutputCP() -> i64;
+
+fn SetConsoleOutputCP(wCodePageID: i64) -> bool;
 
 // ----
 include "../../src/win32/consoleapi2.phs";

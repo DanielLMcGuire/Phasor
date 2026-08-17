@@ -1,6 +1,8 @@
 #include "../arithmetic.h"
 #include <math.h>
 
+// Phasor vmcore/native arithmetic -- CRT
+
 [[nodiscard]] int64_t asm_iadd(int64_t a, int64_t b)
 {
 	return a + b;

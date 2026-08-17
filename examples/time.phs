@@ -1,12 +1,38 @@
 #!/usr/bin/env phasor
 define NO_CHECK_OS;
 define NO_STACK_COOKIE;
-include "./time/logic.phs";
 include "std/io";
 include "std/type";
 include "std/str";
 include "std/file";
-include "std/main";
+include "std/sys";
+
+struct timeBase {
+    UTC: string,
+    LOCAL: string
+}
+struct timeStruct {
+    TwentyFourHour: timeBase,
+    TwelveHour: timeBase
+}
+
+fn getTimeStruct() -> timeStruct {
+    var fmtFlags: string[2] = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %I:%M:%S"
+    ];
+
+    return timeStruct{
+        TwentyFourHour: timeBase{
+            UTC: timef(fmtFlags[0]), 
+            LOCAL: localtimef(fmtFlags[0])
+        },
+        TwelveHour: timeBase{
+            UTC: timef(fmtFlags[1]), 
+            LOCAL: localtimef(fmtFlags[1])
+        }
+    };
+}
 
 fn main(args: string[]) -> int {
     var helpStr: string = concat("Expected 1 or 2 optional args: ", args[0].fname(), " [-local] [FORMAT]");
@@ -38,3 +64,5 @@ fn main(args: string[]) -> int {
 
     return 0;
 }
+
+include "std/main";

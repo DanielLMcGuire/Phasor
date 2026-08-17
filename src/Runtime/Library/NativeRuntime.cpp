@@ -5,7 +5,7 @@
 #include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
-#include "../../Codegen/Cpp/CppCodeGenerator.hpp"
+#include "../../Codegen/C/CCodeGenerator.hpp"
 #include "../../Runtime/VM/VM.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include <filesystem>
@@ -106,11 +106,11 @@ int NativeRuntime::run()
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		m_vm->initFFI({"phasornative", "plugins"});
+		m_vm->initFFI({"phasorcc", "plugins"});
 #elif defined(__APPLE__)
-		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+		m_vm->initFFI({"phasorcc", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #else
-		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+		m_vm->initFFI({"phasorcc", "/usr/lib/phasor/plugins/"});
 #endif
 		int status = m_vm->run(m_bytecode);
 
@@ -137,11 +137,11 @@ int NativeRuntime::runFunctionInt(const std::string& functionName)
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		m_vm->initFFI({"phasornative", "plugins"});
+		m_vm->initFFI({"phasorcc", "plugins"});
 #elif defined(__APPLE__)
-		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+		m_vm->initFFI({"phasorcc", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #else
-		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+		m_vm->initFFI({"phasorcc", "/usr/lib/phasor/plugins/"});
 #endif
 
 		Value ret = m_vm->runFunction(functionName, m_bytecode);
@@ -163,11 +163,11 @@ std::optional<std::string> NativeRuntime::runFunctionString(const std::string& f
 		StdLib::argv = m_argv;
 		StdLib::registerFunctions(*m_vm);
 #if defined(_WIN32)
-		m_vm->initFFI({"phasornative", "plugins"});
+		m_vm->initFFI({"phasorcc", "plugins"});
 #elif defined(__APPLE__)
-		m_vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+		m_vm->initFFI({"phasorcc", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #else
-		m_vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+		m_vm->initFFI({"phasorcc", "/usr/lib/phasor/plugins/"});
 #endif
 
 		Value ret = m_vm->runFunction(functionName, m_bytecode);

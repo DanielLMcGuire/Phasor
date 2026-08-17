@@ -1,6 +1,8 @@
 include "../../include/win32/types/handle.phs";
+include "std/type";
 
-fn CloseHandle(object: HANDLE) -> bool {
-    if (object.data == null) return win32_CloseHandle(null);
-    return win32_CloseHandle(phs__noimport("to_int", object.data));
+fn CloseHandle(object: HANDLE) -> bool
+{
+    if (object.data.get_type() != phs_type.i64 || object.data == 0) return win32_CloseHandle(null);
+    return win32_CloseHandle(object.data);
 }

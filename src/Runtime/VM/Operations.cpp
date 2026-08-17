@@ -14,7 +14,7 @@
 	#define PHS_SRC_LOC() std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line())
 #else
 	#ifndef __ANDROID__
-    	#include <stacktrace>
+//    	#include <stacktrace>
 	#endif
 #include <utility>
 	#define PHS_SRC_LOC() std::format("VM::{}()", __func__)
@@ -47,6 +47,7 @@ void VM::evalLoop()
 #else
 #define TRACE_INSTR(_op) do {} while (0)
 #endif
+#pragma region GNU
 
     static constexpr unsigned TABLE_SIZE = 512;
     static void*              s_table[TABLE_SIZE];
@@ -59,148 +60,148 @@ void VM::evalLoop()
 			e = &&LABEL_UNKNOWN;
 		}
 
-        s_table[(unsigned)OpCode::JUMP]                       = &&LABEL_JUMP;
-        s_table[(unsigned)OpCode::CALL]                       = &&LABEL_CALL;
-        s_table[(unsigned)OpCode::RETURN]                     = &&LABEL_RETURN;
-        s_table[(unsigned)OpCode::CALL_NATIVE]                = &&LABEL_CALL_NATIVE;
-        s_table[(unsigned)OpCode::JUMP_IF_FALSE]              = &&LABEL_JUMP_IF_FALSE;
-        s_table[(unsigned)OpCode::JUMP_IF_TRUE]               = &&LABEL_JUMP_IF_TRUE;
-        s_table[(unsigned)OpCode::JUMP_BACK]                  = &&LABEL_JUMP_BACK;
-        s_table[(unsigned)OpCode::HALT]                       = &&LABEL_HALT;
+        s_table[(unsigned)OpCode::JUMP] = &&LABEL_JUMP;
+        s_table[(unsigned)OpCode::CALL] = &&LABEL_CALL;
+        s_table[(unsigned)OpCode::RETURN] = &&LABEL_RETURN;
+        s_table[(unsigned)OpCode::CALL_NATIVE] = &&LABEL_CALL_NATIVE;
+        s_table[(unsigned)OpCode::JUMP_IF_FALSE] = &&LABEL_JUMP_IF_FALSE;
+        s_table[(unsigned)OpCode::JUMP_IF_TRUE] = &&LABEL_JUMP_IF_TRUE;
+        s_table[(unsigned)OpCode::JUMP_BACK] = &&LABEL_JUMP_BACK;
+        s_table[(unsigned)OpCode::HALT] = &&LABEL_HALT;
 
-        s_table[(unsigned)OpCode::PUSH_CONST]                 = &&LABEL_PUSH_CONST;
-        s_table[(unsigned)OpCode::POP]                        = &&LABEL_POP;
-        s_table[(unsigned)OpCode::STORE_VAR]                  = &&LABEL_STORE_VAR;
-        s_table[(unsigned)OpCode::LOAD_VAR]                   = &&LABEL_LOAD_VAR;
-        s_table[(unsigned)OpCode::TRUE_P]                     = &&LABEL_TRUE_P;
-        s_table[(unsigned)OpCode::FALSE_P]                    = &&LABEL_FALSE_P;
-        s_table[(unsigned)OpCode::NULL_VAL]                   = &&LABEL_NULL_VAL;
+        s_table[(unsigned)OpCode::PUSH_CONST] = &&LABEL_PUSH_CONST;
+        s_table[(unsigned)OpCode::POP] = &&LABEL_POP;
+        s_table[(unsigned)OpCode::STORE_VAR] = &&LABEL_STORE_VAR;
+        s_table[(unsigned)OpCode::LOAD_VAR] = &&LABEL_LOAD_VAR;
+        s_table[(unsigned)OpCode::TRUE_P] = &&LABEL_TRUE_P;
+        s_table[(unsigned)OpCode::FALSE_P] = &&LABEL_FALSE_P;
+        s_table[(unsigned)OpCode::NULL_VAL] = &&LABEL_NULL_VAL;
 
-        s_table[(unsigned)OpCode::IADD]                       = &&LABEL_IADD;
-        s_table[(unsigned)OpCode::ISUBTRACT]                  = &&LABEL_ISUBTRACT;
-        s_table[(unsigned)OpCode::IMULTIPLY]                  = &&LABEL_IMULTIPLY;
-        s_table[(unsigned)OpCode::IDIVIDE]                    = &&LABEL_IDIVIDE;
-        s_table[(unsigned)OpCode::IMODULO]                    = &&LABEL_IMODULO;
-        s_table[(unsigned)OpCode::FLADD]                      = &&LABEL_FLADD;
-        s_table[(unsigned)OpCode::FLSUBTRACT]                 = &&LABEL_FLSUBTRACT;
-        s_table[(unsigned)OpCode::FLMULTIPLY]                 = &&LABEL_FLMULTIPLY;
-        s_table[(unsigned)OpCode::FLDIVIDE]                   = &&LABEL_FLDIVIDE;
-        s_table[(unsigned)OpCode::FLMODULO]                   = &&LABEL_FLMODULO;
-        s_table[(unsigned)OpCode::MADD]                       = &&LABEL_MADD;
-        s_table[(unsigned)OpCode::MSUBTRACT]                  = &&LABEL_MSUBTRACT;
-        s_table[(unsigned)OpCode::MMULTIPLY]                  = &&LABEL_MMULTIPLY;
-        s_table[(unsigned)OpCode::MDIVIDE]                    = &&LABEL_MDIVIDE;
-        s_table[(unsigned)OpCode::SQRT]                       = &&LABEL_SQRT;
-        s_table[(unsigned)OpCode::POW]                        = &&LABEL_POW;
-        s_table[(unsigned)OpCode::LOG]                        = &&LABEL_LOG;
-        s_table[(unsigned)OpCode::EXP]                        = &&LABEL_EXP;
-        s_table[(unsigned)OpCode::SIN]                        = &&LABEL_SIN;
-        s_table[(unsigned)OpCode::COS]                        = &&LABEL_COS;
-        s_table[(unsigned)OpCode::TAN]                        = &&LABEL_TAN;
+        s_table[(unsigned)OpCode::IADD] = &&LABEL_IADD;
+        s_table[(unsigned)OpCode::ISUBTRACT] = &&LABEL_ISUBTRACT;
+        s_table[(unsigned)OpCode::IMULTIPLY] = &&LABEL_IMULTIPLY;
+        s_table[(unsigned)OpCode::IDIVIDE] = &&LABEL_IDIVIDE;
+        s_table[(unsigned)OpCode::IMODULO] = &&LABEL_IMODULO;
+        s_table[(unsigned)OpCode::FLADD] = &&LABEL_FLADD;
+        s_table[(unsigned)OpCode::FLSUBTRACT]  = &&LABEL_FLSUBTRACT;
+        s_table[(unsigned)OpCode::FLMULTIPLY] = &&LABEL_FLMULTIPLY;
+        s_table[(unsigned)OpCode::FLDIVIDE] = &&LABEL_FLDIVIDE;
+        s_table[(unsigned)OpCode::FLMODULO] = &&LABEL_FLMODULO;
+        s_table[(unsigned)OpCode::MADD] = &&LABEL_MADD;
+        s_table[(unsigned)OpCode::MSUBTRACT] = &&LABEL_MSUBTRACT;
+        s_table[(unsigned)OpCode::MMULTIPLY] = &&LABEL_MMULTIPLY;
+        s_table[(unsigned)OpCode::MDIVIDE] = &&LABEL_MDIVIDE;
+        s_table[(unsigned)OpCode::SQRT] = &&LABEL_SQRT;
+        s_table[(unsigned)OpCode::POW] = &&LABEL_POW;
+        s_table[(unsigned)OpCode::LOG] = &&LABEL_LOG;
+        s_table[(unsigned)OpCode::EXP] = &&LABEL_EXP;
+        s_table[(unsigned)OpCode::SIN] = &&LABEL_SIN;
+        s_table[(unsigned)OpCode::COS] = &&LABEL_COS;
+        s_table[(unsigned)OpCode::TAN] = &&LABEL_TAN;
 
-        s_table[(unsigned)OpCode::NEGATE]                     = &&LABEL_NEGATE;
-        s_table[(unsigned)OpCode::NOT]                        = &&LABEL_NOT;
-        s_table[(unsigned)OpCode::IAND]                       = &&LABEL_IAND;
-        s_table[(unsigned)OpCode::IOR]                        = &&LABEL_IOR;
-        s_table[(unsigned)OpCode::IEQUAL]                     = &&LABEL_IEQUAL;
-        s_table[(unsigned)OpCode::INOT_EQUAL]                 = &&LABEL_INOT_EQUAL;
-        s_table[(unsigned)OpCode::ILESS_THAN]                 = &&LABEL_ILESS_THAN;
-        s_table[(unsigned)OpCode::IGREATER_THAN]              = &&LABEL_IGREATER_THAN;
-        s_table[(unsigned)OpCode::ILESS_EQUAL]                = &&LABEL_ILESS_EQUAL;
-        s_table[(unsigned)OpCode::IGREATER_EQUAL]             = &&LABEL_IGREATER_EQUAL;
-        s_table[(unsigned)OpCode::FLAND]                      = &&LABEL_FLAND;
-        s_table[(unsigned)OpCode::FLOR]                       = &&LABEL_FLOR;
-        s_table[(unsigned)OpCode::FLEQUAL]                    = &&LABEL_FLEQUAL;
-        s_table[(unsigned)OpCode::FLNOT_EQUAL]                = &&LABEL_FLNOT_EQUAL;
-        s_table[(unsigned)OpCode::FLLESS_THAN]                = &&LABEL_FLLESS_THAN;
-        s_table[(unsigned)OpCode::FLGREATER_THAN]             = &&LABEL_FLGREATER_THAN;
-        s_table[(unsigned)OpCode::FLLESS_EQUAL]               = &&LABEL_FLLESS_EQUAL;
-        s_table[(unsigned)OpCode::FLGREATER_EQUAL]            = &&LABEL_FLGREATER_EQUAL;
+        s_table[(unsigned)OpCode::NEGATE] = &&LABEL_NEGATE;
+        s_table[(unsigned)OpCode::NOT] = &&LABEL_NOT;
+        s_table[(unsigned)OpCode::IAND] = &&LABEL_IAND;
+        s_table[(unsigned)OpCode::IOR] = &&LABEL_IOR;
+        s_table[(unsigned)OpCode::IEQUAL] = &&LABEL_IEQUAL;
+        s_table[(unsigned)OpCode::INOT_EQUAL] = &&LABEL_INOT_EQUAL;
+        s_table[(unsigned)OpCode::ILESS_THAN]  = &&LABEL_ILESS_THAN;
+        s_table[(unsigned)OpCode::IGREATER_THAN]  = &&LABEL_IGREATER_THAN;
+        s_table[(unsigned)OpCode::ILESS_EQUAL] = &&LABEL_ILESS_EQUAL;
+        s_table[(unsigned)OpCode::IGREATER_EQUAL] = &&LABEL_IGREATER_EQUAL;
+        s_table[(unsigned)OpCode::FLAND] = &&LABEL_FLAND;
+        s_table[(unsigned)OpCode::FLOR] = &&LABEL_FLOR;
+        s_table[(unsigned)OpCode::FLEQUAL] = &&LABEL_FLEQUAL;
+        s_table[(unsigned)OpCode::FLNOT_EQUAL] = &&LABEL_FLNOT_EQUAL;
+        s_table[(unsigned)OpCode::FLLESS_THAN] = &&LABEL_FLLESS_THAN;
+        s_table[(unsigned)OpCode::FLGREATER_THAN] = &&LABEL_FLGREATER_THAN;
+        s_table[(unsigned)OpCode::FLLESS_EQUAL] = &&LABEL_FLLESS_EQUAL;
+        s_table[(unsigned)OpCode::FLGREATER_EQUAL] = &&LABEL_FLGREATER_EQUAL;
 
-        s_table[(unsigned)OpCode::PRINT]                      = &&LABEL_PRINT;
-        s_table[(unsigned)OpCode::PRINTERROR]                 = &&LABEL_PRINTERROR;
-        s_table[(unsigned)OpCode::READLINE]                   = &&LABEL_READLINE;
+        s_table[(unsigned)OpCode::PRINT]  = &&LABEL_PRINT;
+        s_table[(unsigned)OpCode::PRINTERROR] = &&LABEL_PRINTERROR;
+        s_table[(unsigned)OpCode::READLINE] = &&LABEL_READLINE;
 
-        s_table[(unsigned)OpCode::SYSTEM]                     = &&LABEL_SYSTEM;
-        s_table[(unsigned)OpCode::SYSTEM_OUT]                 = &&LABEL_SYSTEM_OUT;
-        s_table[(unsigned)OpCode::SYSTEM_ERR]                 = &&LABEL_SYSTEM_ERR;
+        s_table[(unsigned)OpCode::SYSTEM] = &&LABEL_SYSTEM;
+        s_table[(unsigned)OpCode::SYSTEM_OUT] = &&LABEL_SYSTEM_OUT;
+        s_table[(unsigned)OpCode::SYSTEM_ERR] = &&LABEL_SYSTEM_ERR;
 
-        s_table[(unsigned)OpCode::LEN]                        = &&LABEL_LEN;
-        s_table[(unsigned)OpCode::CHAR_AT]                    = &&LABEL_CHAR_AT;
-        s_table[(unsigned)OpCode::SUBSTR]                     = &&LABEL_SUBSTR;
+        s_table[(unsigned)OpCode::LEN] = &&LABEL_LEN;
+        s_table[(unsigned)OpCode::CHAR_AT] = &&LABEL_CHAR_AT;
+        s_table[(unsigned)OpCode::SUBSTR] = &&LABEL_SUBSTR;
 
         s_table[(unsigned)OpCode::NEW_STRUCT_INSTANCE_STATIC] = &&LABEL_NEW_STRUCT_INSTANCE_STATIC;
-        s_table[(unsigned)OpCode::GET_FIELD_STATIC]           = &&LABEL_GET_FIELD_STATIC;
-        s_table[(unsigned)OpCode::SET_FIELD_STATIC]           = &&LABEL_SET_FIELD_STATIC;
-        s_table[(unsigned)OpCode::NEW_STRUCT]                 = &&LABEL_NEW_STRUCT;
-        s_table[(unsigned)OpCode::SET_FIELD]                  = &&LABEL_SET_FIELD;
-        s_table[(unsigned)OpCode::GET_FIELD]                  = &&LABEL_GET_FIELD;
+        s_table[(unsigned)OpCode::GET_FIELD_STATIC] = &&LABEL_GET_FIELD_STATIC;
+        s_table[(unsigned)OpCode::SET_FIELD_STATIC] = &&LABEL_SET_FIELD_STATIC;
+        s_table[(unsigned)OpCode::NEW_STRUCT] = &&LABEL_NEW_STRUCT;
+        s_table[(unsigned)OpCode::SET_FIELD] = &&LABEL_SET_FIELD;
+        s_table[(unsigned)OpCode::GET_FIELD] = &&LABEL_GET_FIELD;
 
-        s_table[(unsigned)OpCode::MOV]                        = &&LABEL_MOV;
-        s_table[(unsigned)OpCode::LOAD_CONST_R]               = &&LABEL_LOAD_CONST_R;
-        s_table[(unsigned)OpCode::LOAD_VAR_R]                 = &&LABEL_LOAD_VAR_R;
-        s_table[(unsigned)OpCode::STORE_VAR_R]                = &&LABEL_STORE_VAR_R;
-        s_table[(unsigned)OpCode::PUSH_R]                     = &&LABEL_PUSH_R;
-        s_table[(unsigned)OpCode::PUSH2_R]                    = &&LABEL_PUSH2_R;
-        s_table[(unsigned)OpCode::POP_R]                      = &&LABEL_POP_R;
-        s_table[(unsigned)OpCode::POP2_R]                     = &&LABEL_POP2_R;
+        s_table[(unsigned)OpCode::MOV] = &&LABEL_MOV;
+        s_table[(unsigned)OpCode::LOAD_CONST_R] = &&LABEL_LOAD_CONST_R;
+        s_table[(unsigned)OpCode::LOAD_VAR_R] = &&LABEL_LOAD_VAR_R;
+        s_table[(unsigned)OpCode::STORE_VAR_R]  = &&LABEL_STORE_VAR_R;
+        s_table[(unsigned)OpCode::PUSH_R] = &&LABEL_PUSH_R;
+        s_table[(unsigned)OpCode::PUSH2_R] = &&LABEL_PUSH2_R;
+        s_table[(unsigned)OpCode::POP_R]  = &&LABEL_POP_R;
+        s_table[(unsigned)OpCode::POP2_R] = &&LABEL_POP2_R;
 
-        s_table[(unsigned)OpCode::IADD_R]                     = &&LABEL_IADD_R;
-        s_table[(unsigned)OpCode::ISUB_R]                     = &&LABEL_ISUB_R;
-        s_table[(unsigned)OpCode::IMUL_R]                     = &&LABEL_IMUL_R;
-        s_table[(unsigned)OpCode::IDIV_R]                     = &&LABEL_IDIV_R;
-        s_table[(unsigned)OpCode::IMOD_R]                     = &&LABEL_IMOD_R;
-        s_table[(unsigned)OpCode::FLADD_R]                    = &&LABEL_FLADD_R;
-        s_table[(unsigned)OpCode::FLSUB_R]                    = &&LABEL_FLSUB_R;
-        s_table[(unsigned)OpCode::FLMUL_R]                    = &&LABEL_FLMUL_R;
-        s_table[(unsigned)OpCode::FLDIV_R]                    = &&LABEL_FLDIV_R;
-        s_table[(unsigned)OpCode::FLMOD_R]                    = &&LABEL_FLMOD_R;
-        s_table[(unsigned)OpCode::MADD_R]                     = &&LABEL_MADD_R;
-        s_table[(unsigned)OpCode::MSUB_R]                     = &&LABEL_MSUB_R;
-        s_table[(unsigned)OpCode::MMUL_R]                     = &&LABEL_MMUL_R;
-        s_table[(unsigned)OpCode::MDIV_R]                     = &&LABEL_MDIV_R;
-        s_table[(unsigned)OpCode::SQRT_R]                     = &&LABEL_SQRT_R;
-        s_table[(unsigned)OpCode::POW_R]                      = &&LABEL_POW_R;
-        s_table[(unsigned)OpCode::LOG_R]                      = &&LABEL_LOG_R;
-        s_table[(unsigned)OpCode::EXP_R]                      = &&LABEL_EXP_R;
-        s_table[(unsigned)OpCode::SIN_R]                      = &&LABEL_SIN_R;
-        s_table[(unsigned)OpCode::COS_R]                      = &&LABEL_COS_R;
-        s_table[(unsigned)OpCode::TAN_R]                      = &&LABEL_TAN_R;
+        s_table[(unsigned)OpCode::IADD_R] = &&LABEL_IADD_R;
+        s_table[(unsigned)OpCode::ISUB_R] = &&LABEL_ISUB_R;
+        s_table[(unsigned)OpCode::IMUL_R] = &&LABEL_IMUL_R;
+        s_table[(unsigned)OpCode::IDIV_R] = &&LABEL_IDIV_R;
+        s_table[(unsigned)OpCode::IMOD_R] = &&LABEL_IMOD_R;
+        s_table[(unsigned)OpCode::FLADD_R] = &&LABEL_FLADD_R;
+        s_table[(unsigned)OpCode::FLSUB_R] = &&LABEL_FLSUB_R;
+        s_table[(unsigned)OpCode::FLMUL_R] = &&LABEL_FLMUL_R;
+        s_table[(unsigned)OpCode::FLDIV_R] = &&LABEL_FLDIV_R;
+        s_table[(unsigned)OpCode::FLMOD_R] = &&LABEL_FLMOD_R;
+        s_table[(unsigned)OpCode::MADD_R] = &&LABEL_MADD_R;
+        s_table[(unsigned)OpCode::MSUB_R] = &&LABEL_MSUB_R;
+        s_table[(unsigned)OpCode::MMUL_R] = &&LABEL_MMUL_R;
+        s_table[(unsigned)OpCode::MDIV_R] = &&LABEL_MDIV_R;
+        s_table[(unsigned)OpCode::SQRT_R] = &&LABEL_SQRT_R;
+        s_table[(unsigned)OpCode::POW_R] = &&LABEL_POW_R;
+        s_table[(unsigned)OpCode::LOG_R] = &&LABEL_LOG_R;
+        s_table[(unsigned)OpCode::EXP_R] = &&LABEL_EXP_R;
+        s_table[(unsigned)OpCode::SIN_R] = &&LABEL_SIN_R;
+        s_table[(unsigned)OpCode::COS_R] = &&LABEL_COS_R;
+        s_table[(unsigned)OpCode::TAN_R] = &&LABEL_TAN_R;
 
-        s_table[(unsigned)OpCode::NEG_R]                      = &&LABEL_NEG_R;
-        s_table[(unsigned)OpCode::NOT_R]                      = &&LABEL_NOT_R;
-        s_table[(unsigned)OpCode::IEQ_R]                      = &&LABEL_IEQ_R;
-        s_table[(unsigned)OpCode::INE_R]                      = &&LABEL_INE_R;
-        s_table[(unsigned)OpCode::ILT_R]                      = &&LABEL_ILT_R;
-        s_table[(unsigned)OpCode::IGT_R]                      = &&LABEL_IGT_R;
-        s_table[(unsigned)OpCode::ILE_R]                      = &&LABEL_ILE_R;
-        s_table[(unsigned)OpCode::IGE_R]                      = &&LABEL_IGE_R;
-        s_table[(unsigned)OpCode::IAND_R]                     = &&LABEL_IAND_R;
-        s_table[(unsigned)OpCode::IOR_R]                      = &&LABEL_IOR_R;
-        s_table[(unsigned)OpCode::FLEQ_R]                     = &&LABEL_FLEQ_R;
-        s_table[(unsigned)OpCode::FLNE_R]                     = &&LABEL_FLNE_R;
-        s_table[(unsigned)OpCode::FLLT_R]                     = &&LABEL_FLLT_R;
-        s_table[(unsigned)OpCode::FLGT_R]                     = &&LABEL_FLGT_R;
-        s_table[(unsigned)OpCode::FLLE_R]                     = &&LABEL_FLLE_R;
-        s_table[(unsigned)OpCode::FLGE_R]                     = &&LABEL_FLGE_R;
-        s_table[(unsigned)OpCode::FLAND_R]                    = &&LABEL_FLAND_R;
-        s_table[(unsigned)OpCode::FLOR_R]                     = &&LABEL_FLOR_R;
+        s_table[(unsigned)OpCode::NEG_R] = &&LABEL_NEG_R;
+        s_table[(unsigned)OpCode::NOT_R] = &&LABEL_NOT_R;
+        s_table[(unsigned)OpCode::IEQ_R] = &&LABEL_IEQ_R;
+        s_table[(unsigned)OpCode::INE_R] = &&LABEL_INE_R;
+        s_table[(unsigned)OpCode::ILT_R] = &&LABEL_ILT_R;
+        s_table[(unsigned)OpCode::IGT_R] = &&LABEL_IGT_R;
+        s_table[(unsigned)OpCode::ILE_R] = &&LABEL_ILE_R;
+        s_table[(unsigned)OpCode::IGE_R] = &&LABEL_IGE_R;
+        s_table[(unsigned)OpCode::IAND_R] = &&LABEL_IAND_R;
+        s_table[(unsigned)OpCode::IOR_R] = &&LABEL_IOR_R;
+        s_table[(unsigned)OpCode::FLEQ_R] = &&LABEL_FLEQ_R;
+        s_table[(unsigned)OpCode::FLNE_R] = &&LABEL_FLNE_R;
+        s_table[(unsigned)OpCode::FLLT_R] = &&LABEL_FLLT_R;
+        s_table[(unsigned)OpCode::FLGT_R] = &&LABEL_FLGT_R;
+        s_table[(unsigned)OpCode::FLLE_R] = &&LABEL_FLLE_R;
+        s_table[(unsigned)OpCode::FLGE_R] = &&LABEL_FLGE_R;
+        s_table[(unsigned)OpCode::FLAND_R] = &&LABEL_FLAND_R;
+        s_table[(unsigned)OpCode::FLOR_R] = &&LABEL_FLOR_R;
 
-        s_table[(unsigned)OpCode::PRINT_R]                    = &&LABEL_PRINT_R;
-        s_table[(unsigned)OpCode::PRINTERROR_R]               = &&LABEL_PRINTERROR_R;
-        s_table[(unsigned)OpCode::READLINE_R]                 = &&LABEL_READLINE_R;
+        s_table[(unsigned)OpCode::PRINT_R] = &&LABEL_PRINT_R;
+        s_table[(unsigned)OpCode::PRINTERROR_R] = &&LABEL_PRINTERROR_R;
+        s_table[(unsigned)OpCode::READLINE_R] = &&LABEL_READLINE_R;
 
-        s_table[(unsigned)OpCode::SYSTEM_R]                   = &&LABEL_SYSTEM_R;
-        s_table[(unsigned)OpCode::SYSTEM_OUT_R]               = &&LABEL_SYSTEM_OUT_R;
-        s_table[(unsigned)OpCode::SYSTEM_ERR_R]               = &&LABEL_SYSTEM_ERR_R;
+        s_table[(unsigned)OpCode::SYSTEM_R] = &&LABEL_SYSTEM_R;
+        s_table[(unsigned)OpCode::SYSTEM_OUT_R] = &&LABEL_SYSTEM_OUT_R;
+        s_table[(unsigned)OpCode::SYSTEM_ERR_R] = &&LABEL_SYSTEM_ERR_R;
 
-		s_table[(unsigned)OpCode::EXIT_SCOPE]                 = &&LABEL_EXIT_SCOPE;
+		s_table[(unsigned)OpCode::EXIT_SCOPE] = &&LABEL_EXIT_SCOPE;
 
-		s_table[(unsigned)OpCode::NEW_ARR]                    = &&LABEL_NEW_ARR;
-		s_table[(unsigned)OpCode::LOAD_ARR]                   = &&LABEL_LOAD_ARR;
-		s_table[(unsigned)OpCode::STORE_ARR]                  = &&LABEL_STORE_ARR;
+		s_table[(unsigned)OpCode::NEW_ARR] = &&LABEL_NEW_ARR;
+		s_table[(unsigned)OpCode::LOAD_ARR] = &&LABEL_LOAD_ARR;
+		s_table[(unsigned)OpCode::STORE_ARR] = &&LABEL_STORE_ARR;
 
-		s_table[(unsigned)OpCode::GET_FIELD_DYN]              = &&LABEL_GET_FIELD_DYN;
+		s_table[(unsigned)OpCode::GET_FIELD_DYN] = &&LABEL_GET_FIELD_DYN;
 
         s_ready = true;
     }
@@ -229,6 +230,7 @@ void VM::evalLoop()
 
     NEXT();
 
+#pragma region CONTROL FLOW
 
     LABEL_JUMP:
     {
@@ -364,6 +366,9 @@ void VM::evalLoop()
         throw VM::Halt();
     }
 
+#pragma endregion
+#pragma region STACK CORE
+
     LABEL_PUSH_CONST:
     {
         if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
@@ -394,76 +399,53 @@ void VM::evalLoop()
         NEXT();
     }
 
-    LABEL_TRUE_P:   { push(Value(true));  NEXT(); }
-    LABEL_FALSE_P:  { push(Value(false)); NEXT(); }
-    LABEL_NULL_VAL: { push(Value());      NEXT(); }
+    LABEL_TRUE_P: { push(Value(true));  NEXT(); }
+    LABEL_FALSE_P: { push(Value(false)); NEXT(); }
+    LABEL_NULL_VAL: { push(phsnull); NEXT(); }
 
-    // STACK ARITHMETIC
+#pragma endregion
+#pragma region STACK ARITHMETIC
 
-    LABEL_IADD:      { { Value b = pop();
-    Value a = pop(); push(asm_iadd(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_ISUBTRACT: { { Value b = pop();
-    Value a = pop(); push(asm_isub(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_IMULTIPLY: { { Value b = pop();
-    Value a = pop(); push(asm_imul(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_IDIVIDE:   { { Value b = pop();
-    Value a = pop(); push(asm_idiv(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_IMODULO:   { { Value b = pop();
-    Value a = pop(); push(asm_imod(a.asInt(),     b.asInt()));     } NEXT(); }
-    LABEL_FLADD:     { { Value b = pop();
-    Value a = pop(); push(asm_fladd(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLSUBTRACT:{ { Value b = pop();
-    Value a = pop(); push(asm_flsub(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLMULTIPLY:{ { Value b = pop();
-    Value a = pop(); push(asm_flmul(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLDIVIDE:  { { Value b = pop();
-    Value a = pop(); push(asm_fldiv(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_FLMODULO:  { { Value b = pop();
-    Value a = pop(); push(asm_flmod(a.asFloat(),  b.asFloat()));   } NEXT(); }
-    LABEL_MADD:      { { Value b = pop();
-    Value a = pop(); push(a + b); } NEXT(); }
-    LABEL_MSUBTRACT: { { Value b = pop();
-    Value a = pop(); push(a - b); } NEXT(); }
-    LABEL_MMULTIPLY: { { Value b = pop();
-    Value a = pop(); push(a * b); } NEXT(); }
-    LABEL_MDIVIDE:   { { Value b = pop();
-    Value a = pop(); push(a / b); } NEXT(); }
-    LABEL_SQRT:      { push(asm_sqrt(pop().asFloat()));                                              NEXT(); }
-    LABEL_POW:       { { Value b = pop();
-    Value a = pop(); push(asm_pow(a.asFloat(),    b.asFloat()));   } NEXT(); }
-    LABEL_LOG:       { push(asm_log(pop().asFloat()));                                               NEXT(); }
-    LABEL_EXP:       { push(asm_exp(pop().asFloat()));                                               NEXT(); }
-    LABEL_SIN:       { push(asm_sin(pop().asFloat()));                                               NEXT(); }
-    LABEL_COS:       { push(asm_cos(pop().asFloat()));                                               NEXT(); }
-    LABEL_TAN:       { push(asm_tan(pop().asFloat()));                                               NEXT(); }
+    LABEL_IADD: { { Value b = pop(); Value a = pop(); push(asm_iadd(a.asInt(), b.asInt())); } NEXT(); }
+    LABEL_ISUBTRACT: { { Value b = pop(); Value a = pop(); push(asm_isub(a.asInt(), b.asInt())); } NEXT(); }
+    LABEL_IMULTIPLY: { { Value b = pop(); Value a = pop(); push(asm_imul(a.asInt(), b.asInt())); } NEXT(); }
+    LABEL_IDIVIDE: { { Value b = pop(); Value a = pop(); push(asm_idiv(a.asInt(), b.asInt())); } NEXT(); }
+    LABEL_IMODULO: { { Value b = pop(); Value a = pop(); push(asm_imod(a.asInt(), b.asInt())); } NEXT(); }
+    LABEL_FLADD: { { Value b = pop(); Value a = pop(); push(asm_fladd(a.asFloat(), b.asFloat())); } NEXT(); }
+    LABEL_FLSUBTRACT: { { Value b = pop(); Value a = pop(); push(asm_flsub(a.asFloat(), b.asFloat())); } NEXT(); }
+    LABEL_FLMULTIPLY: { { Value b = pop(); Value a = pop(); push(asm_flmul(a.asFloat(), b.asFloat())); } NEXT(); }
+    LABEL_FLDIVIDE: { { Value b = pop(); Value a = pop(); push(asm_fldiv(a.asFloat(), b.asFloat())); } NEXT(); }
+    LABEL_FLMODULO: { { Value b = pop(); Value a = pop(); push(asm_flmod(a.asFloat(), b.asFloat())); } NEXT(); }
+    LABEL_MADD: { { Value b = pop(); Value a = pop(); push(a + b); } NEXT(); }
+    LABEL_MSUBTRACT: { { Value b = pop(); Value a = pop(); push(a - b); } NEXT(); }
+    LABEL_MMULTIPLY: { { Value b = pop(); Value a = pop(); push(a * b); } NEXT(); }
+    LABEL_MDIVIDE: { { Value b = pop(); Value a = pop(); push(a / b); } NEXT(); }
+    LABEL_SQRT: { push(asm_sqrt(pop().asFloat())); NEXT(); }
+    LABEL_POW: { { Value b = pop(); Value a = pop(); push(asm_pow(a.asFloat(), b.asFloat())); } NEXT(); }
+    LABEL_LOG: { push(asm_log(pop().asFloat())); NEXT(); }
+    LABEL_EXP: { push(asm_exp(pop().asFloat())); NEXT(); }
+    LABEL_SIN: { push(asm_sin(pop().asFloat())); NEXT(); }
+    LABEL_COS: { push(asm_cos(pop().asFloat())); NEXT(); }
+    LABEL_TAN: { push(asm_tan(pop().asFloat())); NEXT(); }
 
-    // STACK LOGICAL
+#pragma endregion
+#pragma region STACK LOGICAL
 
-    LABEL_NEGATE: { push(asm_flneg(pop().asFloat()));                               NEXT(); }
-    LABEL_NOT:    { push(Value(asm_flnot(pop().isTruthy() ? 1 : 0)));               NEXT(); }
+    LABEL_NEGATE: { { Value a=pop(); push(a.isInt() ? -a.asInt() : -a.asFloat()); } NEXT(); }
+    LABEL_NOT: { push(Value(asm_flnot(pop().isTruthy() ? 1 : 0))); NEXT(); }
 
-    LABEL_IAND: { { Value b=pop();
-    Value a=pop(); push(Value(asm_iand(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
-    LABEL_IOR:  { { Value b=pop();
-    Value a=pop(); push(Value(asm_ior (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_IAND: { { Value b=pop(); Value a=pop(); push(Value(asm_iand(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_IOR:  { { Value b=pop(); Value a=pop(); push(Value(asm_ior (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
 
-    LABEL_IEQUAL:         { { Value b=pop();
-    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iequal(a.asInt(),b.asInt()))          : Value(a==b)); } NEXT(); }
-    LABEL_INOT_EQUAL:     { { Value b=pop();
-    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_inot_equal(a.asInt(),b.asInt()))      : Value(a!=b)); } NEXT(); }
-    LABEL_ILESS_THAN:     { { Value b=pop();
-    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_than(a.asInt(),b.asInt()))      : Value(a< b)); } NEXT(); }
-    LABEL_IGREATER_THAN:  { { Value b=pop();
-    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_than(a.asInt(),b.asInt()))   : Value(a> b)); } NEXT(); }
-    LABEL_ILESS_EQUAL:    { { Value b=pop();
-    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_equal(a.asInt(),b.asInt()))     : Value(a<=b)); } NEXT(); }
-    LABEL_IGREATER_EQUAL: { { Value b=pop();
-    Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_equal(a.asInt(),b.asInt()))  : Value(a>=b)); } NEXT(); }
+    LABEL_IEQUAL:         { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iequal(a.asInt(),b.asInt())) : Value(a==b)); } NEXT(); }
+    LABEL_INOT_EQUAL:     { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_inot_equal(a.asInt(),b.asInt())) : Value(a!=b)); } NEXT(); }
+    LABEL_ILESS_THAN:     { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_than(a.asInt(),b.asInt())) : Value(a< b)); } NEXT(); }
+    LABEL_IGREATER_THAN:  { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_than(a.asInt(),b.asInt())) : Value(a> b)); } NEXT(); }
+    LABEL_ILESS_EQUAL:    { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_equal(a.asInt(),b.asInt())) : Value(a<=b)); } NEXT(); }
+    LABEL_IGREATER_EQUAL: { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_equal(a.asInt(),b.asInt())) : Value(a>=b)); } NEXT(); }
 
-    LABEL_FLAND:          { { Value b=pop();
-    Value a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
-    LABEL_FLOR:           { { Value b=pop();
-    Value a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0)));                                 } NEXT(); }
+    LABEL_FLAND: { { Value b=pop(); Value a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_FLOR: { { Value b=pop(); Value a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
     LABEL_FLEQUAL: { { 
 		Value b = pop();
 		Value a = pop(); 
@@ -495,7 +477,8 @@ void VM::evalLoop()
             push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
     } NEXT(); }
 
-    // STACK I/O
+#pragma endregion
+#pragma region STACK I/O
 
     LABEL_PRINT:
     {
@@ -544,13 +527,14 @@ void VM::evalLoop()
         NEXT();
     }
 
-    // STACK SYSTEM
+#pragma endregion
+#pragma region STACK SYSTEM
 
     LABEL_SYSTEM:
     {
 #ifdef SANDBOXED
         logerr("CANNOT ESCAPE SANDBOX");
-        push(Value());
+        push(phsnull);
 #else
         {
 #ifdef TRACING
@@ -570,7 +554,7 @@ void VM::evalLoop()
     {
 #ifdef SANDBOXED
         logerr("CANNOT ESCAPE SANDBOX");
-        push(Value());
+        push(phsnull);
 #else
         {
 #ifdef TRACING
@@ -590,7 +574,7 @@ void VM::evalLoop()
     {
 #ifdef SANDBOXED
         logerr("CANNOT ESCAPE SANDBOX");
-        push(Value());
+        push(phsnull);
 #else
         {
 #ifdef TRACING
@@ -606,8 +590,8 @@ void VM::evalLoop()
         NEXT();
     }
 
-    
-    // STACK STRING
+#pragma endregion
+#pragma region STACK STRING
     
 
     LABEL_LEN:
@@ -675,9 +659,9 @@ void VM::evalLoop()
                 i64                len   = lenVal.asInt();
                 if (start < 0 || std::cmp_greater_equal(start ,s.length())) 
 				{
-                    push(Value(""));
+push(Value(""));
                 } else {
-                    push(Value(s.substr(start, len)));
+push(Value(s.substr(start, len)));
 				}
             }
             else
@@ -688,8 +672,8 @@ void VM::evalLoop()
         NEXT();
     }
 
-    
-    // STACK STRUCT
+#pragma endregion
+#pragma region STACK STRUCT
     
 
     LABEL_NEW_STRUCT_INSTANCE_STATIC:
@@ -703,7 +687,7 @@ void VM::evalLoop()
             {
                 int constIndex = info.firstConstIndex + i;
                 if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
-                    PHS_ERROR("Invalid default constant index for struct field");
+PHS_ERROR("Invalid default constant index for struct field");
                 instance.setField(info.fieldNames[i], m_bytecode->constants[constIndex]);
             }
             push(instance);
@@ -790,256 +774,8 @@ void VM::evalLoop()
         NEXT();
     }
 
-    
-    // REGISTER CORE
-    
-
-    LABEL_MOV:         { registers[rA] = registers[rB]; NEXT(); }
-
-    LABEL_LOAD_CONST_R:
-    {
-        int constIndex = operand2;
-        if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
-            PHS_ERROR("Invalid constant index");
-        registers[rA] = m_bytecode->constants[constIndex];
-        NEXT();
-    }
-
-    LABEL_LOAD_VAR_R:
-    {
-        int varIndex = operand2;
-        if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
-            PHS_ERROR("Invalid variable index");
-        registers[rA] = variables[varIndex];
-        NEXT();
-    }
-
-    LABEL_STORE_VAR_R:
-    {
-        int varIndex = operand2;
-        if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
-            PHS_ERROR("Invalid variable index");
-        variables[varIndex] = registers[rA];
-        NEXT();
-    }
-
-    LABEL_PUSH_R:  { push(registers[rA]);                         NEXT(); }
-    LABEL_PUSH2_R: { push(registers[rA]); push(registers[rB]);    NEXT(); }
-    LABEL_POP_R:   { registers[rA] = pop();                       NEXT(); }
-    LABEL_POP2_R:  { registers[rA] = pop(); registers[rB] = pop();NEXT(); }
-
-    
-    // REGISTER ARITHMETIC
-    
-
-    LABEL_IADD_R:  { registers[rA] = Value(asm_iadd (registers[rB].asInt(),    registers[rC].asInt()));    NEXT(); }
-    LABEL_ISUB_R:  { registers[rA] = Value(asm_isub (registers[rB].asInt(),    registers[rC].asInt()));    NEXT(); }
-    LABEL_IMUL_R:  { registers[rA] = Value(asm_imul (registers[rB].asInt(),    registers[rC].asInt()));    NEXT(); }
-    LABEL_IDIV_R:  { registers[rA] = Value(asm_idiv (registers[rB].asInt(),    registers[rC].asInt()));    NEXT(); }
-    LABEL_IMOD_R:  { registers[rA] = Value(asm_imod (registers[rB].asInt(),    registers[rC].asInt()));    NEXT(); }
-    LABEL_FLADD_R: { registers[rA] = Value(asm_fladd(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_FLSUB_R: { registers[rA] = Value(asm_flsub(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_FLMUL_R: { registers[rA] = Value(asm_flmul(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_FLDIV_R: { registers[rA] = Value(asm_fldiv(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_FLMOD_R: { registers[rA] = Value(asm_flmod(registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_MADD_R:  { registers[rA] = registers[rB] + registers[rC]; NEXT(); }
-    LABEL_MSUB_R:  { registers[rA] = registers[rB] - registers[rC]; NEXT(); }
-    LABEL_MMUL_R:  { registers[rA] = registers[rB] * registers[rC]; NEXT(); }
-    LABEL_MDIV_R:  { registers[rA] = registers[rB] / registers[rC]; NEXT(); }
-    LABEL_SQRT_R:  { registers[rA] = Value(asm_sqrt (registers[rB].asFloat()));                            NEXT(); }
-    LABEL_POW_R:   { registers[rA] = Value(asm_pow  (registers[rB].asFloat(),  registers[rC].asFloat()));  NEXT(); }
-    LABEL_LOG_R:   { registers[rA] = Value(asm_log  (registers[rB].asFloat()));                              NEXT(); }
-    LABEL_EXP_R:   { registers[rA] = Value(asm_exp  (registers[rB].asFloat()));                              NEXT(); }
-    LABEL_SIN_R:   { registers[rA] = Value(asm_sin  (registers[rB].asFloat()));                              NEXT(); }
-    LABEL_COS_R:   { registers[rA] = Value(asm_cos  (registers[rB].asFloat()));                              NEXT(); }
-    LABEL_TAN_R:   { registers[rA] = Value(asm_tan  (registers[rB].asFloat()));                              NEXT(); }
-
-    
-    // REGISTER LOGICAL
-    
-
-    LABEL_NEG_R:   { registers[rA] = Value(asm_flneg(registers[rB].asFloat()));                                    NEXT(); }
-    LABEL_NOT_R:   { registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0));                           NEXT(); }
-    LABEL_IAND_R:  { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=Value(asm_iand(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-    LABEL_IOR_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=Value(asm_ior (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-
-    LABEL_IEQ_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iequal(b.asInt(),c.asInt()))             : Value(b==c); NEXT(); }
-    LABEL_INE_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_inot_equal(b.asInt(),c.asInt()))         : Value(b!=c); NEXT(); }
-    LABEL_ILT_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_than(b.asInt(),c.asInt()))         : Value(b< c); NEXT(); }
-    LABEL_IGT_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_than(b.asInt(),c.asInt()))      : Value(b> c); NEXT(); }
-    LABEL_ILE_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_iless_equal(b.asInt(),c.asInt()))        : Value(b<=c); NEXT(); }
-    LABEL_IGE_R:   { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt())     ? Value(asm_igreater_equal(b.asInt(),c.asInt()))     : Value(b>=c); NEXT(); }
-    LABEL_FLEQ_R: {
-        Value &b = registers[rB];
-        Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
-        NEXT();
-    }
-    LABEL_FLNE_R: {
-        Value &b = registers[rB];
-        Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
-        NEXT();
-    }
-    LABEL_FLLT_R: {
-        Value &b = registers[rB];
-        Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
-        NEXT();
-    }
-    LABEL_FLGT_R: {
-        Value &b = registers[rB];
-        Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
-        NEXT();
-    }
-    LABEL_FLLE_R: {
-        Value &b = registers[rB];
-        Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
-        NEXT();
-    }
-    LABEL_FLGE_R: {
-        Value &b = registers[rB];
-        Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
-        NEXT();
-    }
-    LABEL_FLAND_R: { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-    LABEL_FLOR_R:  { Value &b=registers[rB];
-    Value &c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-
-    
-    // REGISTER I/O
-    
-
-    LABEL_PRINT_R:
-    {
-        {
-            std::string s = registers[rA].toString();
-#ifdef TRACING
-            log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
-#else
-            c_print_stdout(s.c_str(), (i64)s.length());
-#endif
-            flush();
-        }
-        NEXT();
-    }
-
-    LABEL_PRINTERROR_R:
-    {
-        {
-            std::string s = registers[rA].toString();
-#ifdef TRACING
-            log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
-#else
-            c_print_stderr(s.c_str(), (i64)s.length());
-#endif
-            flusherr();
-        }
-        NEXT();
-    }
-
-    LABEL_READLINE_R:
-    {
-        {
-            std::string s;
-#ifdef TRACING
-            log("READLINE_R:");
-            flush();
-#endif
-            std::getline(std::cin, s);
-#ifdef TRACING
-            log(std::format("\nREADLINE_R: {}\n", s));
-#endif
-            registers[rA] = s;
-        }
-        NEXT();
-    }
-    
-    // REGISTER SYSTEM
-
-    LABEL_SYSTEM_R:
-    {
-#ifdef SANDBOXED
-        logerr("CANNOT ESCAPE SANDBOX");
-        registers[rA] = Value();
-#else
-        {
-#ifdef TRACING
-            Value cmd = registers[rA];
-            i64   ret = c_system(cmd.c_str());
-            log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
-            registers[rA] = ret;
-#else
-            registers[rA] = c_system(registers[rA].c_str());
-#endif
-        }
-#endif
-        NEXT();
-    }
-
-    LABEL_SYSTEM_OUT_R:
-    {
-#ifdef SANDBOXED
-        logerr("CANNOT ESCAPE SANDBOX");
-        registers[rA] = Value();
-#else
-        {
-#ifdef TRACING
-            Value       cmd = registers[rA];
-            std::string ret = c_system_out(cmd.c_str());
-            log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
-            registers[rA] = ret;
-#else
-            registers[rA] = c_system_out(registers[rA].c_str());
-#endif
-        }
-#endif
-        NEXT();
-    }
-
-    LABEL_SYSTEM_ERR_R:
-    {
-#ifdef SANDBOXED
-        logerr("CANNOT ESCAPE SANDBOX");
-        registers[rA] = Value();
-#else
-        {
-#ifdef TRACING
-            Value       cmd = registers[rA];
-            std::string ret = c_system_err(cmd.c_str());
-            log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
-            registers[rA] = ret;
-#else
-            registers[rA] = c_system_err(registers[rA].c_str());
-#endif
-        }
-#endif
-        NEXT();
-    }
-
-	LABEL_EXIT_SCOPE:
-	{
-		int scopeId = operand1;
-		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
-		{
-			if (idx < 0 || std::cmp_greater_equal(idx ,variables.size()))
-				PHS_ERROR("Invalid variable index in scope exit");
-			variables[idx] = Value();
-		}
-		NEXT();
-	}
+#pragma endregion
+#pragma region STACK ARRAY
 
 	LABEL_NEW_ARR:
     {
@@ -1106,14 +842,261 @@ void VM::evalLoop()
         NEXT();
     }
 
-    // UNKNOWN
+#pragma endregion
+#pragma region REGISTER CORE
+    
+
+    LABEL_MOV:         { registers[rA] = registers[rB]; NEXT(); }
+
+    LABEL_LOAD_CONST_R:
+    {
+        int constIndex = operand2;
+        if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
+            PHS_ERROR("Invalid constant index");
+        registers[rA] = m_bytecode->constants[constIndex];
+        NEXT();
+    }
+
+    LABEL_LOAD_VAR_R:
+    {
+        int varIndex = operand2;
+        if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
+            PHS_ERROR("Invalid variable index");
+        registers[rA] = variables[varIndex];
+        NEXT();
+    }
+
+    LABEL_STORE_VAR_R:
+    {
+        int varIndex = operand2;
+        if (varIndex < 0 || std::cmp_greater_equal(varIndex ,variables.size()))
+            PHS_ERROR("Invalid variable index");
+        variables[varIndex] = registers[rA];
+        NEXT();
+    }
+
+    LABEL_PUSH_R:  { push(registers[rA]);     NEXT(); }
+    LABEL_PUSH2_R: { push(registers[rA]); push(registers[rB]);    NEXT(); }
+    LABEL_POP_R:   { registers[rA] = pop();   NEXT(); }
+    LABEL_POP2_R:  { registers[rA] = pop(); registers[rB] = pop();NEXT(); }
+
+#pragma endregion
+#pragma region REG ARITHMETIC
+    
+
+    LABEL_IADD_R: { registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
+    LABEL_ISUB_R: { registers[rA] = Value(asm_isub(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
+    LABEL_IMUL_R: { registers[rA] = Value(asm_imul(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
+    LABEL_IDIV_R: { registers[rA] = Value(asm_idiv(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
+    LABEL_IMOD_R: { registers[rA] = Value(asm_imod(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
+    LABEL_FLADD_R: { registers[rA] = Value(asm_fladd(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_FLSUB_R: { registers[rA] = Value(asm_flsub(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_FLMUL_R: { registers[rA] = Value(asm_flmul(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_FLDIV_R: { registers[rA] = Value(asm_fldiv(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_FLMOD_R: { registers[rA] = Value(asm_flmod(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_MADD_R: { registers[rA] = registers[rB] + registers[rC]; NEXT(); }
+    LABEL_MSUB_R: { registers[rA] = registers[rB] - registers[rC]; NEXT(); }
+    LABEL_MMUL_R: { registers[rA] = registers[rB] * registers[rC]; NEXT(); }
+    LABEL_MDIV_R: { registers[rA] = registers[rB] / registers[rC]; NEXT(); }
+    LABEL_SQRT_R: { registers[rA] = Value(asm_sqrt(registers[rB].asFloat())); NEXT(); }
+    LABEL_POW_R: { registers[rA] = Value(asm_pow(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_LOG_R: { registers[rA] = Value(asm_log(registers[rB].asFloat())); NEXT(); }
+    LABEL_EXP_R: { registers[rA] = Value(asm_exp(registers[rB].asFloat())); NEXT(); }
+    LABEL_SIN_R: { registers[rA] = Value(asm_sin(registers[rB].asFloat())); NEXT(); }
+    LABEL_COS_R: { registers[rA] = Value(asm_cos(registers[rB].asFloat())); NEXT(); }
+    LABEL_TAN_R: { registers[rA] = Value(asm_tan(registers[rB].asFloat())); NEXT(); }
+
+#pragma endregion
+#pragma region REGISTER LOGICAL
+    
+
+    LABEL_NEG_R: { registers[rA] = Value(asm_flneg(registers[rB].asFloat())); NEXT(); }
+    LABEL_NOT_R: { registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0)); NEXT(); }
+    LABEL_IAND_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_iand(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_IOR_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_ior (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+
+    LABEL_IEQ_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_iequal(b.asInt(),c.asInt())) : Value(b==c); NEXT(); }
+    LABEL_INE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_inot_equal(b.asInt(),c.asInt())) : Value(b!=c); NEXT(); }
+    LABEL_ILT_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_iless_than(b.asInt(),c.asInt())) : Value(b< c); NEXT(); }
+    LABEL_IGT_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_igreater_than(b.asInt(),c.asInt())) : Value(b> c); NEXT(); }
+    LABEL_ILE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_iless_equal(b.asInt(),c.asInt())) : Value(b<=c); NEXT(); }
+    LABEL_IGE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_igreater_equal(b.asInt(),c.asInt())) : Value(b>=c); NEXT(); }
+    LABEL_FLEQ_R: { 
+		Value &b = registers[rB];
+		Value &c = registers[rC];
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? 
+			Value(asm_flequal(b.asFloat(), c.asFloat())) :
+			Value(b == c); NEXT();
+    }
+    LABEL_FLNE_R: {
+        Value &b = registers[rB];
+        Value &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
+        NEXT();
+    }
+    LABEL_FLLT_R: {
+        Value &b = registers[rB];
+        Value &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
+        NEXT();
+    }
+    LABEL_FLGT_R: {
+        Value &b = registers[rB];
+        Value &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+        NEXT();
+    }
+    LABEL_FLLE_R: {
+        Value &b = registers[rB];
+        Value &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+        NEXT();
+    }
+    LABEL_FLGE_R: {
+        Value &b = registers[rB];
+        Value &c = registers[rC];
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+        NEXT();
+    }
+    LABEL_FLAND_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_FLOR_R:  { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+
+#pragma endregion
+#pragma region REGISTER I/O
+    
+
+    LABEL_PRINT_R:
+    {
+        {
+            std::string s = registers[rA].toString();
+#ifdef TRACING
+            log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
+#else
+            c_print_stdout(s.c_str(), (i64)s.length());
+#endif
+            flush();
+        }
+        NEXT();
+    }
+
+    LABEL_PRINTERROR_R:
+    {
+        {
+            std::string s = registers[rA].toString();
+#ifdef TRACING
+            log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
+#else
+            c_print_stderr(s.c_str(), (i64)s.length());
+#endif
+            flusherr();
+        }
+        NEXT();
+    }
+
+    LABEL_READLINE_R:
+    {
+        {
+            std::string s;
+#ifdef TRACING
+            log("READLINE_R:");
+            flush();
+#endif
+            std::getline(std::cin, s);
+#ifdef TRACING
+            log(std::format("\nREADLINE_R: {}\n", s));
+#endif
+            registers[rA] = s;
+        }
+        NEXT();
+    }
+    
+#pragma endregion
+#pragma region REGISTER SYSTEM
+
+    LABEL_SYSTEM_R:
+    {
+#ifdef SANDBOXED
+        logerr("CANNOT ESCAPE SANDBOX");
+        registers[rA] = phsnull;
+#else
+        {
+#ifdef TRACING
+            Value cmd = registers[rA];
+            i64   ret = c_system(cmd.c_str());
+            log(std::format("SYSTEM_R: {} -> {}\n", cmd, ret));
+            registers[rA] = ret;
+#else
+            registers[rA] = c_system(registers[rA].c_str());
+#endif
+        }
+#endif
+        NEXT();
+    }
+
+    LABEL_SYSTEM_OUT_R:
+    {
+#ifdef SANDBOXED
+        logerr("CANNOT ESCAPE SANDBOX");
+        registers[rA] = phsnull;
+#else
+        {
+#ifdef TRACING
+            Value       cmd = registers[rA];
+            std::string ret = c_system_out(cmd.c_str());
+            log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
+            registers[rA] = ret;
+#else
+            registers[rA] = c_system_out(registers[rA].c_str());
+#endif
+        }
+#endif
+        NEXT();
+    }
+
+    LABEL_SYSTEM_ERR_R:
+    {
+#ifdef SANDBOXED
+        logerr("CANNOT ESCAPE SANDBOX");
+        registers[rA] = phsnull;
+#else
+        {
+#ifdef TRACING
+            Value       cmd = registers[rA];
+            std::string ret = c_system_err(cmd.c_str());
+            log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
+            registers[rA] = ret;
+#else
+            registers[rA] = c_system_err(registers[rA].c_str());
+#endif
+        }
+#endif
+        NEXT();
+    }
+
+	LABEL_EXIT_SCOPE:
+	{
+		int scopeId = operand1;
+		for (const auto &[idx, name] : m_bytecode->scopeVarLists[scopeId])
+		{
+			if (idx < 0 || std::cmp_greater_equal(idx ,variables.size()))
+				PHS_ERROR("Invalid variable index in scope exit");
+			variables[idx] = phsnull;
+		}
+		NEXT();
+	}
+
+#pragma endregion
+#pragma region UNKNOWN
     
     LABEL_UNKNOWN:
         PHS_ERROR("Unknown opcode");
 
+#pragma endregion
+
 #undef NEXT
 #undef TRACE_INSTR
 
+#pragma region MSVC
 #else
     while (pc < m_bytecode->instructions.size())
     {
@@ -1306,7 +1289,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::NULL_VAL: {
-		push(Value());
+		push(phsnull);
 		break;
 	}
 
@@ -1458,7 +1441,12 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region STACK LOGICAL
 
 	case OpCode::NEGATE: {
-		push(asm_flneg(pop().asFloat()));
+		Value a = pop(); 
+		if (a.isInt()) {
+			push(a.asInt());
+		} else {
+			push(a.asFloat());
+		}
 		break;
 	}
 
@@ -1626,7 +1614,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SYSTEM: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
-		push(Value());
+		push(phsnull);
 #else
 #ifdef TRACING
 		Value cmd = pop();
@@ -1643,7 +1631,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SYSTEM_OUT: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
-		push(Value());
+		push(phsnull);
 #else
 #ifdef TRACING
 		Value       cmd = pop();
@@ -1660,7 +1648,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SYSTEM_ERR: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
-		push(Value());
+		push(phsnull);
 #else
 #ifdef TRACING
 		Value       cmd = pop();
@@ -2241,7 +2229,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SYSTEM_R: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
-		registers[rA] = Value();
+		registers[rA] = phsnull;
 #else
 #ifdef TRACING
 		Value   cmd = registers[rA];
@@ -2258,7 +2246,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SYSTEM_OUT_R: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
-		registers[rA] = Value();
+		registers[rA] = phsnull;
 #else
 #ifdef TRACING
 		Value       cmd = registers[rA];
@@ -2275,7 +2263,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SYSTEM_ERR_R: {
 #ifdef SANDBOXED
 		logerr("CANNOT ESCAPE SANDBOX");
-		registers[rA] = Value();
+		registers[rA] = phsnull;
 #else
 #ifdef TRACING
 		Value       cmd = registers[rA];
@@ -2308,7 +2296,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		return phsnull;
 	}
 #pragma endregion
-	
+#pragma endregion	
 	}
 	return {operand1};
 }

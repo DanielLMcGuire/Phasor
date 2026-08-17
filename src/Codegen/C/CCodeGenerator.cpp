@@ -1,4 +1,4 @@
-#include "CppCodeGenerator.hpp"
+#include "CCodeGenerator.hpp"
 #include "../Bytecode/BytecodeSerializer.hpp"
 #include "../Bytecode/BytecodeDeserializer.hpp"
 #include <fstream>
@@ -8,7 +8,7 @@
 namespace Phasor
 {
 
-bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &outputPath, const PhsString &modName)
+bool CCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &outputPath, const PhsString &modName)
 {
 	try
 	{
@@ -51,28 +51,27 @@ bool CppCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path 
 	}
 }
 
-Bytecode CppCodeGenerator::generateBytecodeFromEmbedded(const PhsString &input)
+Bytecode CCodeGenerator::generateBytecodeFromEmbedded(const PhsString &input)
 {
 	std::vector<unsigned char> bytecodeData = parseEmbeddedBytecode(input);
 	BytecodeDeserializer       deserializer;
 	return deserializer.deserialize(bytecodeData);
 }
 
-void CppCodeGenerator::generateFileHeader()
+void CCodeGenerator::generateFileHeader()
 {
 	output << "// Phasor VM Program\n";
 	output << "// Module: " << moduleName << "\n";
 	output << "#pragma once\n";
-	output << "#include <cstddef>\n";
-	output << "#include <PhasorString.hpp>\n\n";
+	output << "#include <stddef.h>\n";
 }
 
-void CppCodeGenerator::generateModuleName()
+void CCodeGenerator::generateModuleName()
 {
-	output << "Phasor::PhsString moduleName = \"" << moduleName << "\";\n\n";
+	output << "const char *moduleName = \"" << moduleName << "\";\n\n";
 }
 
-void CppCodeGenerator::generateEmbeddedBytecode()
+void CCodeGenerator::generateEmbeddedBytecode()
 {
 #if defined(_WIN32)
 	const PhsString sectionPrefixPragma = "#pragma section(\".phsb\", read)\n";
@@ -93,9 +92,9 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 		output << sectionPrefixPragma;
 	}
 
-	output << sectionAttr << "volatile const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
+	output << sectionAttr << "const size_t embeddedBytecodeSize = " << serializedBytecode.size() << ";\n";
 
-	output << sectionAttr << "constexpr unsigned char embeddedBytecode[] = {\n";
+	output << sectionAttr << "const unsigned char embeddedBytecode[] = {\n";
 
 	for (size_t i = 0; i < serializedBytecode.size(); i++)
 	{
@@ -124,7 +123,7 @@ void CppCodeGenerator::generateEmbeddedBytecode()
 	output << std::dec << "\n};\n";
 }
 
-std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const PhsString &input)
+std::vector<unsigned char> CCodeGenerator::parseEmbeddedBytecode(const PhsString &input)
 {
 	std::vector<unsigned char> result;
 	std::istringstream         stream(input);
@@ -144,7 +143,7 @@ std::vector<unsigned char> CppCodeGenerator::parseEmbeddedBytecode(const PhsStri
 	return result;
 }
 
-PhsString CppCodeGenerator::escapeString(const PhsString &str)
+PhsString CCodeGenerator::escapeString(const PhsString &str)
 {
 	std::ostringstream escaped;
 	for (char c : str)
@@ -180,7 +179,7 @@ PhsString CppCodeGenerator::escapeString(const PhsString &str)
 	return escaped.str();
 }
 
-PhsString CppCodeGenerator::getValueTypeString(ValueType type)
+PhsString CCodeGenerator::getValueTypeString(ValueType type)
 {
 	switch (type)
 	{
@@ -199,7 +198,7 @@ PhsString CppCodeGenerator::getValueTypeString(ValueType type)
 	}
 }
 
-PhsString CppCodeGenerator::sanitizeModuleName(const PhsString &name)
+PhsString CCodeGenerator::sanitizeModuleName(const PhsString &name)
 {
 	PhsString result;
 	for (char c : name)

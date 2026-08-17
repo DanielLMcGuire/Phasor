@@ -13,10 +13,18 @@
 include "./util.phs";
 include "../../../include/std/types/type.phs";
 
-fn phsrt__common_init() -> i64 {
+static_if (WIN32)
+include "win32/wincon.phs";
+static_endif
+
+fn phsrt__common_init() -> i64
+{
 static_if (PHS_DEBUG)
     print "phsrt__common_init()\n";
 static_endif // (PHS_DEBUG)
+static_if (WIN32)
+    SetConsoleCP(CP_UTF8);
+static_endif
     var args: string[] = phsrt__build_args();
 static_if (PHS_DEBUG)
     printf("main(%M)\n", args);
@@ -26,7 +34,8 @@ static_if (PHS_DEBUG)
     printf("main() -> %d\n", ret);
 static_endif // (PHS_DEBUG)
 
-    if (ret.get_type() != phs_type.i64) {
+    if (ret.get_type() != phs_type.i64)
+    {
 static_if (!NO_CHECK_OS)
     static_if (WIN32)
         ret = 87; // 0x57 "The parameter is incorrect."

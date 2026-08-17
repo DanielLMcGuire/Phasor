@@ -17,7 +17,8 @@ include "./main";
 
 fn smain() -> void;
 
-fn main(args: string[]) -> i64 {
+fn main(args: string[]) -> i64
+{
 static_if (PHS_DEBUG)
     printf("smain()\n");
 static_endif // (PHS_DEBUG)

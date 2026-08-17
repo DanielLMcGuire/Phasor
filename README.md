@@ -95,7 +95,7 @@ $ phasor input.phs
 $ phasor
 
 # Compile to bytecode
-$ phasorcompiler input.phs (-o, --output output.phsb)
+$ phasorc input.phs (-o, --output output.phsb)
 
 # Run bytecode
 $ phasorvm output.phsb
@@ -147,8 +147,8 @@ putf("%d + %d = %d\n", num, num2, num1 + num2);
 - **Phasor**
   - **[phasor](https://phasor-docs.pages.dev/man?f=phasor.1)** - Combines the Scripting Runtime, VM Runtime, and REPL, adds pipe support, and supports shabangs
   - **[phasor-lsp](https://phasor-docs.pages.dev/man?f=phasorlsp.1)** - JSON-RPC 2.0 LSP Protocol Handler for the Phasor Language
-  - **Bytecode Compiler** ([`phasorcompiler`](https://phasor-docs.pages.dev/man?f=phasorcompiler.1)) - Script to bytecode compiler
-  - **Native Compiler** ([`phasornative`](https://phasor-docs.pages.dev/man?f=phasornative.1)) - Script to C++ transpiler
+  - **Bytecode Compiler** ([`phasorc`](https://phasor-docs.pages.dev/man?f=phasorc.1)) - Script to bytecode compiler
+  - **Native Compiler** ([`phasorcc`](https://phasor-docs.pages.dev/man?f=phasorcc.1)) - Script to C++ transpiler
   - **VM Runtime** ([`phasorvm`](https://phasor-docs.pages.dev/man?f=phasorvm.1)) - Bytecode executor
   - **Disassembler** ([`phasordecomp`](https://phasor-docs.pages.dev/man?f=phasordecomp.1))
   - **Assembler** ([`phasorasm`](https://phasor-docs.pages.dev/man?f=phasorasm.1))
@@ -327,9 +327,9 @@ See [Building Phasor Extensions](https://github.com/DanielLMcGuire/Phasor/wiki/B
 
 #### Plugins
 
-- Unix - `/usr/lib/phasor/plugins/`, `./phasornative/`
-- macOS - `/Library/Application Support/org.Phasor.Phasor/plugins/`, `./phasornative/`
-- Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`, `.\phasornative\`
+- Unix - `/usr/lib/phasor/plugins/`, `./phasorcc/`
+- macOS - `/Library/Application Support/org.Phasor.Phasor/plugins/`, `./phasorcc/`
+- Windows - `C:\Program Files\Phasor Programming Language\bin\plugins\`, `.\phasorcc\`
 
 #### Includes
 

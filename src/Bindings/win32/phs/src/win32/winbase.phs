@@ -1,3 +1,4 @@
-fn MulDiv(number: i64, numerator: i64, denominator: i64) -> i64 {
+fn MulDiv(number: i64, numerator: i64, denominator: i64) -> i64
+{
     return win32_MulDiv(number, numerator, denominator);
 }

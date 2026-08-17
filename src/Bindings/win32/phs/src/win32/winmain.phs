@@ -1,34 +1,84 @@
-include "../../include/win32/types/handle.phs";
-include "../../include/win32/winuser.phs";
+static_if (PHS_DEBUG)
+print "Hello, Phasor! (win32)\n";
+static_endif
+
+static_if (WIN32)
+
+ffiload("__phs_init");
+
+define PHSRT_CANARY_SIZE = 2;
+define ERROR_INVALID_PARAMETER = 87; // 0x57 - ERROR_INVALID_PARAMETER - "The parameter is incorrect."
+
+include "win32/types/handle.phs";
+include "win32/winuser.phs";
+include "win32/libloaderapi.phs";
+include "win32/errhandlingapi.phs";
 include "std/sys";
 include "std/io";
+include "std/type";
+include "std/array";
+include "../src/std/phs_init/util.phs";
+include "../src/std/phs_init/corruptioncheck.phs";
 
-fn win__pre() -> HINSTANCE {
-    assert(sys_os() == sys_os.win32);
-    var handle: HANDLE = HANDLE{ data: GetModuleHandle(null) };
-    if (!handle || !handle.data) {
-        var err: int = GetLastError();
-        var msg: string = "GetModuleHandle() returned null";
-        if (err == null) {
-            MessageBox(NULL_HWND, concat(msg, " , unknown error (GetLastError() returned null)."), "Phasor Windows API Bindings", MB.OK + MB.ICONERROR + MB.SETFOREGROUND);
-        } else {
-            MessageBox(NULL_HWND, c_fmt("%s error: %d", msg, err), "Phasor Windows API Bindings", MB.OK + MB.ICONERROR + MB.SETFOREGROUND);
-            return err;
+static_if (WIN32_ARGS)
+var win32_args: string[]; // expose args array in global scope
+static_endif
+
+fn start()
+{
+    phsrt_check_support();
+static_if (!NO_STACK_COOKIE)
+    // int64_t cookie* = malloc(PHSRT_CANARY_SIZE * sizeof(int64_t));
+    var cookiePtr: i64 = phs__memory_malloc_native(PHSRT_CANARY_SIZE * 8);
+    phsrt_init_canary(cookiePtr);
+static_endif
+    var hInstance: HINSTANCE = HINSTANCE{ data: GetModuleHandle(null).data };
+    if (hInstance.data == 0 || hInstance.data.get_type() != phs_type.i64) 
+    {
+        var err: i64 = GetLastError();
+static_if (PHS_DEBUG)
+        var message: string = c_fmt("Error: Handle is not an integer. %#x Would you like to debug?", err);
+        var res: i64 = MessageBox(NULL_HWND, message, "Phasor win32 bindings", MB.OKCANCEL + MB.ICONERROR + MB.SETFOREGROUND);
+        switch (res) 
+        {
+            case 0:
+                error(message);
+            case 2:
+                error(message);
+            case 1:
+                puts(message);
+                assert(false);
         }
-        return -2147467259;
+static_else
+        var message: string = c_fmt("Error: Handle is not an integer. %#x", err);
+        MessageBox(NULL_HWND, message, "Phasor win32 bindings", MB.OK + MB.ICONERROR + MB.SETFOREGROUND);
+        error(message);
+static_endif
     }
-    return HINSTANCE{ data: handle.data };
+    phs_push(phs__argv_ptr());
+    phs_push(phs__argc_ptr());
+static_if (WIN32_ARGS)
+    win32_args = phsrt__build_args();
+    var CommandLine: string = win32_args.arr_join(" ");
+static_else
+    var CommandLine: string = phsrt__build_args().arr_join(" ");
+static_endif
+    var ret: i64 = WinMain(hInstance, CommandLine);
+    if (ret.get_type() != phs_type.i64) return ERROR_INVALID_PARAMETER; 
+static_if (!NO_STACK_COOKIE)
+    phsrt__chk_and_free_canary(cookiePtr);
+static_endif
+    shutdown(ret);
 }
 
-fn win__post(ret: i64) -> i64 {
-    if (ret == null) return 87; // 0x57 "The parameter is incorrect."
-    return ret;
-}
+start();
 
-fn win__init() {
-    var hInstance: HINSTANCE = win_pre();
-    var args: string[] = sys_args();
-   shutdown(win_post(WinMain(hInstance, args)));
-}
+static_else
 
-win__init();
+static_if (PHS_DEBUG)
+    print "Requires Windows or wine for compilation.\n";
+static_else
+    error("Requires Windows or wine for compilation.");
+static_endif
+
+static_endif

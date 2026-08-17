@@ -321,6 +321,37 @@ bool CodeGenerator::isLiteralExpression(const AST::Expression *expr, Value &outV
 		outValue = Value();
 		return true;
 	}
+
+	if (const auto *unaryExpr = dynamic_cast<const AST::UnaryExpr *>(expr))
+	{
+		Value operandVal;
+		if (unaryExpr->op == AST::UnaryOp::Negate && isLiteralExpression(unaryExpr->operand.get(), operandVal))
+		{
+			ValueType operandType = operandVal.getType();
+			if (operandType == ValueType::Int || operandType == ValueType::Float)
+			{
+				try
+				{
+					outValue = Value(static_cast<i64>(0)) - operandVal;
+					return true;
+				}
+				catch (...)
+				{
+					return false;
+				}
+			}
+			return false;
+		}
+		if (unaryExpr->op == AST::UnaryOp::Not && isLiteralExpression(unaryExpr->operand.get(), operandVal))
+		{
+			if (operandVal.isBool())
+			{
+				outValue = Value(!operandVal.asBool());
+				return true;
+			}
+			return false;
+		}
+	}
 	return false;
 }
 
@@ -512,6 +543,12 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 					{
 						if (s.fieldNames[i] == fieldExpr->fieldName)
 						{
+							if (s.fieldTypeNames[i] == "any")
+							{
+								// not known
+								known = false;
+								return ValueType::Float; // unused: known is false
+							}
 							known = true;
 							return mapTypeNameToValueType(s.fieldTypeNames[i]);
 						}
@@ -559,11 +596,18 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 					{
 						if (s.fieldNames[i] == fieldExpr->fieldName)
 						{
-							known = true;
 							if (!s.fieldArrayDims[i].empty())
 							{
+								known = true;
 								return ValueType::Array;
 							}
+							if (s.fieldTypeNames[i] == "any")
+							{
+								// not known
+								known = false;
+								return ValueType::Float;
+							}
+							known = true;
 							return mapTypeNameToValueType(s.fieldTypeNames[i]);
 						}
 					}
@@ -574,7 +618,7 @@ ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &
 
 	// Unknown
 	known = false;
-	return ValueType::Float; // default when unknown (not used unless known==true)
+	return ValueType::Float;
 }
 
 void CodeGenerator::generateStatement(const AST::Statement *stmt)
@@ -715,7 +759,8 @@ void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
 	bool hasExplicitType = (varDecl->type != nullptr);
 	bool isAny = (hasExplicitType && varDecl->type->name == "any");
 	bool isArrayType = (hasExplicitType && !varDecl->type->arrayDimensions.empty());
-	ValueType declaredType = ValueType::Float;
+	// default to null, not float
+	ValueType declaredType = ValueType::Null;
 
 	if (hasExplicitType)
 	{
@@ -994,6 +1039,24 @@ void CodeGenerator::generateIdentifierExpr(const AST::IdentifierExpr *identExpr)
 
 void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
 {
+	// fold literal unary
+	Value folded;
+	if (isLiteralExpression(unaryExpr, folded))
+	{
+		if (folded.isBool())
+		{
+			bytecode.emit(folded.asBool() ? OpCode::TRUE_P : OpCode::FALSE_P);
+		}
+		else if (folded.isNull())
+		{
+			bytecode.emit(OpCode::NULL_VAL);
+		} else {
+			int constIndex = bytecode.addConstant(folded);
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		}
+		return;
+	}
+
 	generateExpression(unaryExpr->operand.get());
 
 	switch (unaryExpr->op)
@@ -2265,8 +2328,13 @@ ValueType CodeGenerator::mapTypeNameToValueType(const std::string &typeName)
 	{
 		return ValueType::Null;
 	}
+    if (typeName == "any")
+	{
+		return ValueType::Null;
+	}
 
-    return ValueType::Float;
+    throw std::runtime_error("Unknown type name '" + typeName +
+                              "' (if this is a struct, make sure it is declared before its first use).");
 }
 
 void CodeGenerator::generateDefaultArray(const std::vector<int> &dims, size_t dimIdx, const std::string &baseTypeName)

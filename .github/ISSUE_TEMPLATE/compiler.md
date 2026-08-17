@@ -1,6 +1,6 @@
 ---
 name: Compiler
-about: I have an issue with the compiler (phasorcompiler, phasornative, etc)
+about: I have an issue with the compiler (phasorc, phasorcc, etc)
 title: "[COMPILER]"
 labels: bug
 assignees: DanielLMcGuire

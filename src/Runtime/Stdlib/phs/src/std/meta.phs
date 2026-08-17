@@ -14,27 +14,33 @@ ffiload("stdmeta");
 include "std/struct";
 include "../../include/std/types/meta.phs";
 
-fn get_self() -> Bytecode {
+fn get_self() -> Bytecode
+{
     return phs__get_self();
 }
 
-fn get_self_instructions() -> InstructionData[] {
+fn get_self_instructions() -> InstructionData[]
+{
     return phs__get_self().instructions;
 }
 
-fn get_self_constants() -> ConstantData[] {
+fn get_self_constants() -> ConstantData[]
+{
     return phs__get_self().constants;
 }
 
-fn get_self_variables() -> VariableData[] {
+fn get_self_variables() -> VariableData[]
+{
     return phs__get_self().variables;
 }
 
-fn get_self_functions() -> FunctionData[] {
+fn get_self_functions() -> FunctionData[]
+{
     return phs__get_self().functions;
 }
 
-fn get_func_api(functionName: string) -> FunctionAPI {
+fn get_func_api(functionName: string) -> FunctionAPI
+{
     var function: FunctionData = phs__get_self().functions.struct_find("name", functionName);
     if (function == null) return NULL_FUNCTIONAPI;
     var functionAPI: FunctionAPI = FunctionAPI{ 
@@ -46,38 +52,52 @@ fn get_func_api(functionName: string) -> FunctionAPI {
     return functionAPI;
 }
 
-fn get_self_structs() -> StructData[] {
+fn get_self_structs() -> StructData[]
+{
     return phs__get_self().structs;
 }
 
-fn get_self_global_scopes() -> ScopeData[] {
+fn get_self_global_scopes() -> ScopeData[]
+{
     return phs__get_self().globalScopes;
 }
 
-fn run_program(program: Bytecode) -> i64 {
+fn run_program(program: Bytecode) -> i64
+{
     return phs__run_program(program);
 }
 
-fn run_program_function(program: Bytecode, functionName: string, func_arguments: any[], cli_arguments: string[]) -> any {
+fn run_program_function(
+    program: Bytecode,
+    functionName: string,
+    func_arguments: any[],
+    cli_arguments: string[]
+    ) -> any
+{
     return phs__run_program_function(program, functionName, func_arguments, cli_arguments);
 }
 
-fn get_alloc_info() -> AllocInfo {
+fn get_alloc_info() -> AllocInfo
+{
     return phs__phs_alloc_info();
 }
 
-fn load_bytecode(file_path: string) -> Bytecode {
+fn load_bytecode(file_path: string) -> Bytecode
+{
     return phs__load_bytecode(file_path);
 }
 
-fn save_bytecode(program: Bytecode, file_path: string) -> bool {
+fn save_bytecode(program: Bytecode, file_path: string) -> bool
+{
     return phs__save_bytecode(program, file_path);
 }
 
-fn vm_push(value: any) -> void {
+fn vm_push(value: any) -> void
+{
     phs_push(value);
 }
 
-fn vm_pop() -> any {
+fn vm_pop() -> any
+{
     return phs_pop();
 }

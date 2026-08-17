@@ -57,6 +57,7 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 	    {"stdrand", registerRandomFunctions},
 		{"stdarray", registerArrayFunctions},
 		{"stdstruct", registerObjectFunctions},
+		{"stdini", registerIniFunctions},
 #ifndef SANDBOXED
 	    {"stdfile", registerFileFunctions},
 #endif

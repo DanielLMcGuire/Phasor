@@ -64,6 +64,8 @@ extern "C"
 	 */
 	PHASOR_API const char *getVersion();
 
+	PHASOR_API int phasor_main(int argc, char *argv[]);
+
 	/**
 	 * @brief Executes pre-compiled Phasor bytecode.
 	 *
@@ -115,25 +117,6 @@ extern "C"
 	                                      const char *moduleName, int argc, const char **argv,
 	                                      const char *functionName);
 
-	/**
-	 * @brief Executes a function from pre-compiled Phasor bytecode, and casts return to an string.
-	 *
-	 * @param state                A pointer to an state to execute the script within. If null, new state will be
-	 * created and managed for you.
-	 * @param bytecode             An array of unsigned chars containing the Phasor bytecode.
-	 * @param bytecodeSize         The size of the bytecode array.
-	 * @param moduleName           The name of the module, used for error reporting.
-	 * @param argc                 Argument count.
-	 * @param argv                 Argument vector.
-	 * @param functionName         The name of the function to execute.
-	 * @return                     The return from the function call, nullptr on error. This memory is cleared by the
-	 * C++ runtime when you unload the DLL, and is overwritten after recalling this function. This DOES NOT use two pass
-	 * for perf reasons. Copy the string to safe memory, or you will lose the data.
-	 */
-	PHASOR_API const char *execFuncString(void *state, const unsigned char *bytecode, size_t bytecodeSize,
-	                                      const char *moduleName, int argc, const char **argv,
-	                                      const char *functionName);
-
 
 	/**
 	 * @brief Executes a Phasor Programming Language script.
@@ -147,6 +130,8 @@ extern "C"
 	 * @return           The exit code of the program given from script (-1 might be an unhandled exception in VM).
 	 */
 	PHASOR_API int evaluatePHS(void *state, const char *script, const char *moduleName, const char *modulePath,
+	                           const char **includePaths, int includePathCount,
+	                           const char **defines, int defineCount,
 	                           bool verbose);
 
 	/**
@@ -156,6 +141,10 @@ extern "C"
 	 * @param[in] moduleName  The name of the module, used for error reporting.
 	 * @param[in] modulePath  An required path to the parent folder for the script, used for resolving compile time
 	 * imports.
+	 * @param[in] includePaths Optional include directories used while resolving compile time imports.
+	 * @param[in] includePathCount Number of includePaths entries.
+	 * @param[in] defines     Optional preprocessor-like defines in the form NAME or NAME=VALUE.
+	 * @param[in] defineCount Number of defines entries.
 	 * @param[out] buffer     A pointer to a buffer where the compiled bytecode will be written. If null, the function
 	 * will only calculate the required buffer size and return it via `outSize`.
 	 * @param[in] bufferSize The size of the provided buffer. This is ignored if `buffer` is null.
@@ -167,7 +156,32 @@ extern "C"
 	 * if bufferSize < data.size(), buffer will not be modified, however outSize will be set.
 	 */
 	PHASOR_API bool compilePHS(const char *script, const char *moduleName, const char *modulePath,
+	                           const char **includePaths, int includePathCount,
+	                           const char **defines, int defineCount,
 	                           unsigned char *buffer, size_t bufferSize, size_t *outSize);
+
+	PHASOR_API bool compilePHSToIR(const char *script, const char *moduleName, const char *modulePath,
+	                           const char **includePaths, int includePathCount,
+	                           const char **defines, int defineCount,
+	                           unsigned char *buffer, size_t bufferSize, size_t *outSize);
+
+	/**
+	 * @brief Assembles serialized Phasor IR data into VM bytecode.
+	 *
+	 * @param[in] irBuffer       A pointer to the serialized IR data produced by compilePHSToIR or PhasorIR::serialize.
+	 * @param[in] irBufferSize   Size of the IR buffer.
+	 * @param[out] buffer        Destination buffer for the assembled bytecode. If null, only the required size is
+	 * returned via outSize.
+	 * @param[in] bufferSize     Size of the provided destination buffer. Ignored if buffer is null.
+	 * @param[out] outSize       If buffer is null, set to the required bytecode size. Otherwise set to the actual size
+	 * written.
+	 * @return                   true if the IR was successfully assembled and the output buffer was large enough.
+	 */
+	PHASOR_API bool assembleIR(const unsigned char *irBuffer, size_t irBufferSize,
+	                          unsigned char *buffer, size_t bufferSize, size_t *outSize);
+
+	PHASOR_API bool disassembleToIR(const unsigned char *bcBuffer, size_t bcBufferSize,
+							  unsigned char *buffer, size_t bufferSize, size_t *outSize);
 
 	/**
 	 * @brief Creates a new state instance.

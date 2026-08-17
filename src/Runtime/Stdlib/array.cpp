@@ -13,6 +13,7 @@ void StdLib::registerArrayFunctions(VM *vm)
     vm->registerNativeFunction("arr_push", array_push);
     vm->registerNativeFunction("arr_pop", array_pop);
     vm->registerNativeFunction("arr_insert", array_insert);
+    vm->registerNativeFunction("arr_join", array_join);
 }
 
 Value StdLib::array_resize(const std::vector<Value> &args, VM *)
@@ -95,6 +96,36 @@ Value StdLib::array_insert(const std::vector<Value> &args, VM *)
 
     arr->insert(arr->begin() + static_cast<size_t>(index), args[2]);
     return arr;
+}
+
+Value StdLib::array_join(const std::vector<Value> &args, VM *)
+{
+    checkArgCount(args, 2, "arr_join");
+
+    if (!args[0].isArray())
+        PHS_ERROR("array_join() expects an array as its first argument");
+
+    if (!args[1].isString())
+        PHS_ERROR("array_join() expects a string as its second argument");
+
+    auto arr = args[0].asArray();
+
+    if (!arr)
+        return Value(PhsString(""));
+
+    const PhsString separator = args[1].string();
+
+    PhsString result;
+
+    for (size_t i = 0; i < arr->size(); ++i)
+    {
+        if (i != 0)
+            result += separator;
+
+        result += (*arr)[i].toString();
+    }
+
+    return Value(result);
 }
 
 }

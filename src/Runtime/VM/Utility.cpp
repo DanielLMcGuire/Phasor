@@ -8,13 +8,18 @@
 #include "core/core.h"
 #include <phsint.hpp>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 #ifdef TIMING
 #include <chrono>
 #endif
 
 #ifdef _DEBUG
 #ifdef _WIN32
-#include <windows.h>
 inline bool isDebuggerAttached()
 {
 	return IsDebuggerPresent() == TRUE;
@@ -38,7 +43,7 @@ inline bool isDebuggerAttached()
 	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
 #else
 	#ifndef __ANDROID__
-    	#include <stacktrace>
+//    	#include <stacktrace>
 	#endif
 	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
 #endif
@@ -104,6 +109,13 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	auto start = clock::now();
 #endif
 
+#ifdef _WIN32
+	int out_fd = _fileno(stdout);
+    int in_fd = _fileno(stdin);
+	int old_out_mode = _setmode(out_fd, _O_BINARY);
+    int old_in_mode = _setmode(in_fd, _O_BINARY);
+#endif
+
 	try
 	{
 		evalLoop();
@@ -111,6 +123,10 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	}
 	catch (const VM::Halt &)
 	{
+#ifdef _WIN32
+	_setmode(out_fd, old_out_mode);
+    _setmode(in_fd, old_in_mode);
+#endif
 #ifdef TIMING
 		auto end = clock::now();
 		auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
@@ -120,11 +136,12 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 #ifdef TRACING
 		std::ostringstream stacklog;
 	#ifdef PHASOR_USES_BOOST
-    	stacklog << boost::stacktrace::stacktrace();
+//    	stacklog << boost::stacktrace::stacktrace();
 	#elif defined(__ANDROID__)
-		stacklog << "'stacktrace' unsupported on NDK";
+//		stacklog << "'stacktrace' unsupported on NDK";
 	#else
-		stacklog << std::stacktrace::current();
+//		stacklog << std::stacktrace::current();
+stacklog << "disabled for now";
 	#endif
 		log(std::format("\n{}: CAUGHT Phasor:VM::Halt\n\n{}\n\n{}\n\nUser code exited {} with code {}\n", PHS_SRC_LOC(), stacklog.str(), getInformation(), status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
 		flush();
@@ -137,13 +154,18 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	}
 	catch (const std::exception &e)
 	{
+#ifdef _WIN32
+	_setmode(out_fd, old_out_mode);
+    _setmode(in_fd, old_in_mode);
+#endif
 		std::ostringstream stacklog;
 	#ifdef PHASOR_USES_BOOST
-    	stacklog << boost::stacktrace::stacktrace();
+//    	stacklog << boost::stacktrace::stacktrace();
 	#elif defined(__ANDROID__)
-		stacklog << "'stacktrace' unsupported on NDK";
+//		stacklog << "'stacktrace' unsupported on NDK";
 	#else
-		stacklog << std::stacktrace::current();
+//		stacklog << std::stacktrace::current();
+stacklog << "disabled for now";
 	#endif
 		logerr(std::format("\n{}: \x1B[0;31mUNCAUGHT std::exception occured in Phasor VM Runtime\x1B[0m\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
 		flusherr();
@@ -166,10 +188,21 @@ Value VM::runFunction(const PhsString &name, const Bytecode &bytecode, const boo
 		push(0);
 	}
 
+#ifdef _WIN32
+	int out_fd = _fileno(stdout);
+    int in_fd = _fileno(stdin);
+	int old_out_mode = _setmode(out_fd, _O_BINARY);
+    int old_in_mode = _setmode(in_fd, _O_BINARY);
+#endif
+
     try 
 	{
         evalLoop();
     } catch (const VM::Halt &) {
+#ifdef _WIN32
+	_setmode(out_fd, old_out_mode);
+    _setmode(in_fd, old_in_mode);
+#endif
 		if (isDirectCall)
 		{
 			Value ret = pop();
@@ -184,6 +217,10 @@ Value VM::runFunction(const PhsString &name, const Bytecode &bytecode, const boo
 		}
 			throw std::runtime_error("Function call was not properly handled!");
 	}
+#ifdef _WIN32
+	_setmode(out_fd, old_out_mode);
+    _setmode(in_fd, old_in_mode);
+#endif
 	throw std::runtime_error("Function did not return properly!");
 	status = BAD_STATUS;
 	isError = true;

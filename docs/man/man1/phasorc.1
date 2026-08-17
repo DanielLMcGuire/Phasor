@@ -1,12 +1,12 @@
 .TH PHASORCOMPILER 1 "January 2026" "Phasor 4.0.0" "Phasor Manual"
 .SH NAME
-phasorcompiler \- Phasor source code compiler
+phasorc \- Phasor source code compiler
 .SH SYNOPSIS
-.B phasorcompiler
+.B phasorc
 [\fIOPTIONS\fR]
 .I file.phs
 .SH DESCRIPTION
-.B phasorcompiler
+.B phasorc
 compiles Phasor source files (.phs) into bytecode (.phsb) or intermediate representation (.phir) format. The bytecode can be executed by the Phasor VM, while IR files can be used for analysis.
 .PP
 The compiler performs lexical analysis, parsing, and code generation to transform high-level Phasor source code into executable bytecode or a human-readable intermediate representation.
@@ -38,7 +38,7 @@ Compile a source file to bytecode:
 .PP
 .nf
 .RS
-phasorcompiler program.phs
+phasorc program.phs
 .RE
 .fi
 .PP
@@ -46,7 +46,7 @@ Compile with a specific output file:
 .PP
 .nf
 .RS
-phasorcompiler program.phs -o output.phsb
+phasorc program.phs -o output.phsb
 .RE
 .fi
 .PP
@@ -54,7 +54,7 @@ Compile to IR format:
 .PP
 .nf
 .RS
-phasorcompiler --ir program.phs -o program.phir
+phasorc --ir program.phs -o program.phir
 .RE
 .fi
 .PP
@@ -62,7 +62,7 @@ Compile with verbose output:
 .PP
 .nf
 .RS
-phasorcompiler -v program.phs
+phasorc -v program.phs
 .RE
 .fi
 .SH EXIT STATUS
@@ -81,7 +81,7 @@ The compiler will refuse to compile bytecode (.phsb) files or IR (.phir) files, 
 .BR PHSB (5),
 .BR PHIR (5),
 .BR phasorvm (1),
-.BR phasornative (1)
+.BR phasorcc (1)
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

@@ -221,11 +221,38 @@ void Parser::defineDirective()
 	Token nameTok = consume(Phasor::TokenType::Identifier, "Expect name after 'define'.");
 
 	DefineValue value(DefineValueKind::Number, "1");
+
 	if (match(Phasor::TokenType::Symbol, "="))
 	{
+		bool  negative = false;
+		Token signTok  = peek();
+
+		if (check(Phasor::TokenType::Symbol) && peek().lexeme == "-")
+		{
+			signTok  = advance();
+			negative = true;
+		}
+
 		if (check(Phasor::TokenType::Number))
 		{
-			value = DefineValue(DefineValueKind::Number, advance().lexeme);
+			Token numTok = advance();
+			std::string text = numTok.lexeme;
+
+			if (negative)
+			{
+				text = "-" + text;
+			}
+
+			value = DefineValue(DefineValueKind::Number, text);
+		}
+		else if (negative)
+		{
+			lastError = {
+				"Expect numeric literal after '-' in 'define'.",
+				signTok.line,
+				signTok.column
+			};
+			throw std::runtime_error("Expect numeric literal after '-' in 'define'.");
 		}
 		else if (check(Phasor::TokenType::String))
 		{
@@ -238,13 +265,19 @@ void Parser::defineDirective()
 		else if (match(Phasor::TokenType::Keyword, "false"))
 		{
 			value = DefineValue(DefineValueKind::Boolean, "false");
-		} else {
-			lastError = {"Expect a literal value after '=' in 'define'.", peek().line, peek().column};
+		}
+		else
+		{
+			lastError = {
+				"Expect a literal value after '=' in 'define'.",
+				peek().line,
+				peek().column
+			};
 			throw std::runtime_error("Expect a literal value after '=' in 'define'.");
 		}
 	}
-	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after 'define'.");
 
+	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after 'define'.");
 	defines[nameTok.lexeme] = value;
 }
 
@@ -381,12 +414,30 @@ std::string Parser::evaluateStaticValue(AST::Expression *expr)
 	{
 		if (u->op == AST::UnaryOp::Negate)
 		{
+			std::string operandText = evaluateStaticValue(u->operand.get());
+
+			if (!operandText.empty() && operandText.find('.') == std::string::npos)
+			{
+				try
+				{
+					size_t    idx = 0;
+					long long i = std::stoll(operandText, &idx);
+					if (idx == operandText.size())
+					{
+						return std::to_string(-i);
+					}
+				}
+				catch (...)
+				{
+				}
+			}
+
 			double d = 0.0;
-			if (staticTryParseNumber(evaluateStaticValue(u->operand.get()), d))
+			if (staticTryParseNumber(operandText, d))
 			{
 				return std::to_string(-d);
 			}
-			return evaluateStaticValue(u->operand.get());
+			return operandText;
 		}
 		if (u->op == AST::UnaryOp::Not)
 		{

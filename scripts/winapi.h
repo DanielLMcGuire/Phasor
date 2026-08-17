@@ -13,6 +13,8 @@ UINT  GetACP(void);
 UINT  GetOEMCP(void);
 UINT  GetConsoleCP(void);
 UINT  GetConsoleOutputCP(void);
+BOOL  SetConsoleCP(UINT wCodePageID);
+BOOL  SetConsoleOutputCP(UINT wCodePageID);
 ULONG MulDiv(ULONG nNumber, ULONG nNumerator, ULONG nDenominator);
 int   MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 int   MessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);

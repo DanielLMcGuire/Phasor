@@ -17,7 +17,7 @@ elseif(WIN32)
         phasorw_main
         phasor_help
         phasor_compiler
-        phasor_cxx_transpiler
+        phasor_c_transpiler
         phasor_lsp
 
         phasor_asm
@@ -87,7 +87,7 @@ elseif(APPLE)
         phasor_main
         phasor_help
         phasor_compiler
-        phasor_cxx_transpiler
+        phasor_c_transpiler
         phasor_lsp
 
         phasor_asm
@@ -133,7 +133,7 @@ else()
         phasor_main
         phasor_help
         phasor_compiler
-        phasor_cxx_transpiler
+        phasor_c_transpiler
         phasor_lsp
 
         phasor_asm

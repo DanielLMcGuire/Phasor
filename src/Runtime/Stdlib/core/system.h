@@ -1,6 +1,10 @@
 #ifndef CORE_SYSTEM_H
 #define CORE_SYSTEM_H
 
+// Phasor stdlibcore system
+// Apache 2.0 (With LLVM-Exception) License
+// (C) Daniel McGuire -- 2026
+
 #ifdef _WIN32
 #include <windows.h>
 #include <process.h>

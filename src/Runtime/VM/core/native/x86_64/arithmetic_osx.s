@@ -1,4 +1,5 @@
 .intel_syntax noprefix
+# Phasor vmcore/native arithmetic -- x86_64 OSX
 .text
 
 .global _asm_iadd

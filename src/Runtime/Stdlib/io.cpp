@@ -15,10 +15,12 @@ void StdLib::registerIOFunctions(VM *vm)
 	vm->registerNativeFunction("printf", StdLib::io_printf);
 	vm->registerNativeFunction("putf", StdLib::io_putf);
 	vm->registerNativeFunction("puts_error", StdLib::io_puts_error);
+	vm->registerNativeFunction("print_error", StdLib::io_print_error);
 	vm->registerNativeFunction("putf_error", StdLib::io_putf_error);
 #ifndef SANDBOXED
 	vm->registerNativeFunction("clear", StdLib::io_clear);
 	vm->registerNativeFunction("gets", StdLib::io_gets);
+	vm->registerNativeFunction("get_input", StdLib::io_get_input);
 #endif
 }
 
@@ -77,6 +79,13 @@ Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 0, "gets");
 	return vm->regRun(OpCode::READLINE_R, REGISTER1);
 }
+
+Value StdLib::io_get_input(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "get_input");
+	std::string content((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
+	return content;
+}
 #endif
 
 PhsString StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
@@ -87,13 +96,21 @@ PhsString StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
 	return "";
 }
 
+PhsString StdLib::io_print_error(const std::vector<Value> &args, VM *vm)
+{
+	checkArgCount(args, 1, "puts_error", true);
+	PhsString input = args[0].toString();
+	vm->regRun(OpCode::PRINTERROR_R, input.str());
+	return "";
+}
+
 PhsString StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
 	if (!args[0].isString())
 		PHS_ERROR("putf_error() expects a string as its first argument (format)");
 	std::vector<Value> formatArgs(args.begin(), args.end());
-	PhsString        input = io_c_format(formatArgs, vm);
+	PhsString input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
 	return "";
 }

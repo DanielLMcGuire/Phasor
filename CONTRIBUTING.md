@@ -14,7 +14,7 @@
 ### Compilation & Execution
 - **Compiler/** - CLI tools
   - `Phasor/Compiler` - Compiles `.phs` → `.phsb` or `.phir`
-  - `Phasor/CppCompiler` - `.phs` → `.phsb` (in-memory) → C++ header + main.cpp stub → object file → linked executable
+  - `Phasor/CCompiler` - `.phs` → `.phsb` (in-memory) → C++ header + main.cpp stub → object file → linked executable
   - `Shared/Assembler` - Assembles `.phir` → `.phsb`
   - `Shared/Disassembler` - Disassembles `.phsb` → `.phir`
 - **Frontend/** - High-level API (runScript, runRepl)

@@ -1,5 +1,10 @@
 #include <stdint.h>
 
+
+// Phasor vmcore/native arithmetic
+// Apache 2.0 (With LLVM-Exception) License
+// (C) Daniel McGuire -- 2026
+
 #ifdef __cplusplus
 extern "C"
 {

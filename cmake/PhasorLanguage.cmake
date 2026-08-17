@@ -63,7 +63,7 @@ function(phasor_add_transpiled_header)
         get_filename_component(PHS_NAME "${PHS_SOURCE}" NAME_WE)
     endif()
     if(NOT PHS_OUTPUT_NAME)
-        set(PHS_OUTPUT_NAME "${PHS_NAME}.hpp")
+        set(PHS_OUTPUT_NAME "${PHS_NAME}.h")
     endif()
 
     get_property(_stdlib_headers GLOBAL PROPERTY PHASOR_STDLIB_HEADERS)
@@ -87,14 +87,14 @@ function(phasor_add_transpiled_header)
 if (WIN32)
     add_custom_command(
         OUTPUT ${_output}
-        COMMAND $<TARGET_FILE:phasor_cxx_transpiler>
+        COMMAND $<TARGET_FILE:phasor_c_transpiler>
                 "${PHS_SOURCE}"
                 -o "${_output}"
                 -H
                 -I "${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include,${CMAKE_SOURCE_DIR}/src/Bindings/win32/phs/include,${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/include"
                 ${_defines_flag} ${_defines_value}
         DEPENDS
-            phasor_cxx_transpiler
+            phasor_c_transpiler
             "${PHS_SOURCE}"
             ${_stdlib_headers}
             ${_stdlib_sources}
@@ -103,14 +103,14 @@ if (WIN32)
 else()
     add_custom_command(
         OUTPUT ${_output}
-        COMMAND $<TARGET_FILE:phasor_cxx_transpiler>
+        COMMAND $<TARGET_FILE:phasor_c_transpiler>
                 "${PHS_SOURCE}"
                 -o "${_output}"
                 -H
                 -I "${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/include,${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/include"
                 ${_defines_flag} ${_defines_value}
         DEPENDS
-            phasor_cxx_transpiler
+            phasor_c_transpiler
             "${PHS_SOURCE}"
             ${_stdlib_headers}
             ${_stdlib_sources}

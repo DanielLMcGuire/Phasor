@@ -1,8 +1,0 @@
-struct timeBase {
-    UTC: string,
-    LOCAL: string
-}
-struct timeStruct {
-    TwentyFourHour: timeBase,
-    TwelveHour: timeBase
-}

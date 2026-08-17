@@ -13,40 +13,73 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var sys_os: any = {
+struct sys_os_def {
+    win32: int,
+    windows: int,
+    linux: int,
+    darwin: int,
+    apple: int,
+    freebsd: int,
+    netbsd: int,
+    bsd: int,
+    unix: int,
+    unknown: int,
+    sandbox: int
+}
+
+var sys_os: sys_os_def = sys_os_def{
     win32: 0,
+    windows: 0,
     linux: 1,
     darwin: 2,
+    apple: 2,
     freebsd: 3,
+    netbsd: 3,
+    bsd: 3,
     unix: 4,
     unknown: 5,
     sandbox: 6
 };
 
 var sys_os_map: string[] = [
-    win32,
-    linux,
-    darwin,
-    freebsd,
-    unix,
-    unknown,
-    sandbox
+    "win32",
+    "linux",
+    "darwin",
+    "bsd",
+    "unix",
+    "unknown",
+    "sandbox"
 ];
 
-var sys_arch: any = {
+struct sys_arch_def {
+    arm64: int,
+    aarch64: int,
+    arm32: int,
+    aarch32: int,
+    x64: int,
+    x86_64: int,
+    x86: int,
+    unknown: int,
+    sandbox: int
+}
+
+var sys_arch: sys_arch_def = sys_arch_def{
     arm64: 0,
+    aarch64: 0,
     arm32: 1,
+    aarch32: 0,
     x64: 2,
+    x86_64: 2,
     x86: 3,
     unknown: 4,
     sandbox: 5
 };
 
 var sys_arch_map: string[] = [
-    arm64,
-    arm32,
-    x64,
-    x86,
-    unknown,
-    sandbox
+    "aarch64",
+    "aarch32",
+    "x86_64",
+    "x86",
+    "unknown",
+    "sandbox"
 ];

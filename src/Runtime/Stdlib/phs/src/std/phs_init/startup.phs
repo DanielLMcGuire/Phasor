@@ -18,7 +18,8 @@ include "./corruptioncheck.phs";
 include "./common.phs";
 include "./util.phs";
 
-fn start() -> void {
+fn start() -> void
+{
 static_if (PHS_DEBUG)
     print "start()\n";
 static_endif // (PHS_DEBUG)

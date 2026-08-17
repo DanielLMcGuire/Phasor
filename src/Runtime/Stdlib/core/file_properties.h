@@ -1,6 +1,11 @@
 #ifndef FILE_PROPERTIES_H
 #define FILE_PROPERTIES_H
 
+
+// Phasor stdlibcore file_properties
+// Apache 2.0 (With LLVM-Exception) License
+// (C) Daniel McGuire -- 2026
+
 #include <stdint.h>
 #include <stdbool.h>
 

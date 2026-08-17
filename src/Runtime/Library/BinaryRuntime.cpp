@@ -46,11 +46,11 @@ int BinaryRuntime::run() const
 		StdLib::argc = m_args.scriptArgc;
 
 #if defined(_WIN32)
-		vm->initFFI({"phasornative", "plugins"});
+		vm->initFFI({"phasorcc", "plugins"});
 #elif defined(__APPLE__)
-		vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+		vm->initFFI({"phasorcc", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #else
-		vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+		vm->initFFI({"phasorcc", "/usr/lib/phasor/plugins/"});
 #endif
 
 		if (m_args.verbose) 

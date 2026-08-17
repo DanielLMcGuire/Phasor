@@ -1,5 +1,7 @@
 #include "../logical.h"
 
+// Phasor vmcore/native logical -- CRT
+
 [[nodiscard]] [[nodiscard]] int64_t asm_inot(int64_t a)
 {
 	return a == 0 ? 1 : 0;

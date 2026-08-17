@@ -1,8 +1,8 @@
 #include "NativeRuntime_com.hpp"
 
-#include "../../../Frontend/Phasor/Frontend.hpp"
-#include "../../../Runtime/Stdlib/StdLib.hpp"
-#include "../../../Runtime/VM/VM.hpp"
+#include "../../Frontend/Phasor/Frontend.hpp"
+#include "../../Runtime/Stdlib/StdLib.hpp"
+#include "../../Runtime/VM/VM.hpp"
 
 #include <PhasorString.hpp>
 #include <phs_dupenv.hpp>

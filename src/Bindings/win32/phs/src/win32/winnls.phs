@@ -1,7 +1,9 @@
-fn GetACP() -> i64 {
+fn GetACP() -> i64
+{
     return win32_GetACP();
 }
 
-fn GetOEMCP() -> i64 {
+fn GetOEMCP() -> i64
+{
     return win32_GetOEMCP();
 }

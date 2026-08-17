@@ -79,6 +79,7 @@ class StdLib
 	static void registerTypeConvFunctions(VM *vm);
 #ifndef SANDBOXED
 	static void registerFileFunctions(VM *vm);
+	static void registerIniFunctions(VM* vm);
 #endif
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
@@ -101,8 +102,7 @@ class StdLib
 	static Value     meta_get_registers(const std::vector<Value> &args, VM *vm);
 	static Value     meta_load_bytecode_from_file(const std::vector<Value> &args, VM *vm);
 	static bool      meta_save_bytecode_to_file(const std::vector<Value> &args, VM *vm);
-
-#pragma endregion stdmeta
+#pragma endregion
 
 #pragma region stdmemory
 	static Value var_free(const std::vector<Value> &args, VM *vm); ///< Free a variable
@@ -196,6 +196,20 @@ class StdLib
 	static Value sys_shutdown(const std::vector<Value> &args, VM *vm);       ///< Shutdown the VM
 #pragma endregion
 
+#pragma region stdini
+	static Value     ini_read(const std::vector<Value> &args, VM *);
+	static PhsString ini_write(const std::vector<Value> &args, VM *);
+	static PhsString ini_read_entry(const std::vector<Value> &args, VM *);
+	static PhsString ini_write_entry(const std::vector<Value> &args, VM *);
+	static Value     ini_read_section(const std::vector<Value> &args, VM *);
+	static PhsString ini_write_section(const std::vector<Value> &args, VM *);
+	static bool      ini_has_section(const std::vector<Value> &args, VM *);
+	static bool      ini_has_entry(const std::vector<Value> &args, VM *);
+	static PhsString ini_remove_section(const std::vector<Value> &args, VM *);
+	static PhsString ini_remove_entry(const std::vector<Value> &args, VM *);
+	static bool      ini_empty(const std::vector<Value> &args, VM *);
+#pragma endregion
+
 #pragma region stdtype
 	static i64         to_int(const std::vector<Value> &args, VM *vm);    ///< Convert to integer
 	static f64         to_float(const std::vector<Value> &args, VM *vm);  ///< Convert to float
@@ -215,6 +229,7 @@ class StdLib
 	static Value array_pop(const std::vector<Value> &args, VM *vm);    ///< Pop from array
 	static Value array_insert(const std::vector<Value> &args, VM *vm); ///< Insert into array
 	static Value array_resize(const std::vector<Value> &args, VM *vm); ///< Resize array
+	static Value array_join(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 #pragma region stdobject
@@ -261,12 +276,15 @@ class StdLib
 	static PhsString io_printf(const std::vector<Value> &args, VM *vm); ///< Print formatted string
 	static PhsString io_putf(const std::vector<Value> &args, VM *vm);   ///< Print formatted string with newline
 #ifndef SANDBOXED
-	static Value     io_gets(const std::vector<Value> &args, VM *vm); ///< Get string
+	static Value     io_gets(const std::vector<Value> &args, VM *vm); ///< Get line of stdin
+	static Value     io_get_input(const std::vector<Value> &args, VM *vm); ///< Get stdin until EOF
 #endif
 	static PhsString io_putf_error(const std::vector<Value> &args,
 	                                 VM *vm); ///< Print formatted string with newline to error output
 	static PhsString io_puts_error(const std::vector<Value> &args,
 	                                 VM                       *vm); ///< Print string with newline to error output
+									 static PhsString io_print_error(const std::vector<Value> &args,
+	                                 VM                       *vm); ///< Print string to error output
 #pragma endregion
 };
 

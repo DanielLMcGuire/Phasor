@@ -13,7 +13,8 @@
 include "../../../include/std/types/type.phs";
 
 // Push cookie onto stack, returns pointer
-fn phsrt_init_canary(cookiePtr: i64) -> i64 {
+fn phsrt_init_canary(cookiePtr: i64) -> i64
+{
 static_if (PHS_DEBUG)
     print "phsrt_init_canary()\nCreating and allocating canary\n";
 static_endif // (PHS_DEBUG)
@@ -28,14 +29,16 @@ static_endif // (PHS_DEBUG)
 }
 
 // takes pointer to cookie, verifies against top stack
-fn phsrt__chk_and_free_canary(cookiePtr: i64) -> void {
+fn phsrt__chk_and_free_canary(cookiePtr: i64) -> void
+{
 static_if (PHS_DEBUG)
     printf("phsrt__chk_canary(cookiePtr: %#x)\n", cookiePtr);
 static_endif
     var vm_cookie: i64[2] = phs_pop();
     var cookie: i64[2] = [phs__memory_read_native(cookiePtr, 8), phs__memory_read_offset_native(cookiePtr, 8, 8)];
 static_if (PHS_DEBUG)  
-    if (vm_cookie[0] != cookie[0] || vm_cookie[1] != cookie[1]) {
+    if (vm_cookie[0] != cookie[0] || vm_cookie[1] != cookie[1])
+    {
         printf("Canary mismatch, chk: %M != real: %M\nFreeing canary\n", vm_cookie, cookie);
         phs__memory_free_native(cookiePtr);
         assert(false);
@@ -44,7 +47,8 @@ static_if (PHS_DEBUG)
         phs__memory_free_native(cookiePtr);
     }
 static_else // (!PHS_DEBUG)
-    if (vm_cookie[0] != cookie[0] || vm_cookie[1] != cookie[1]) {
+    if (vm_cookie[0] != cookie[0] || vm_cookie[1] != cookie[1])
+    {
         phs__memory_free_native(cookiePtr);
         error("Stack corruption detected.");
     } else phs__memory_free_native(cookiePtr);

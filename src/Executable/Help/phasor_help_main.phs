@@ -1,3 +1,5 @@
+// phasor help, first phasor bundled program written in phasor
+
 include "std/io";
 include "std/sys";
 include "std/str";
@@ -5,7 +7,6 @@ include "std/type";
 include "std/meta";
 include "std/file";
 include "std/mem";
-define NO_STACK_COOKIE;
 
 static_if (WIN32)
 include "win32/windows.phs";
@@ -16,6 +17,7 @@ struct ManPage {
     section: i64
 }
 
+// Builds a URL in the event we cannot get local docs
 fn getFallbackURL(page: ManPage) -> string {
     var sbHandle: int = sb_new().sb_prealloc(55); 
     sbHandle.sb_append("https://phasor-docs.pages.dev/man?f=");
@@ -25,54 +27,57 @@ fn getFallbackURL(page: ManPage) -> string {
     return sbHandle.sb_free();
 }
 
+// Builds a command for viewing the given manual page
 fn getDocCmd(page: ManPage) -> string {
-    var sbHandle: int = sb_new().sb_prealloc(128); // not even gonna add this all up, but just allocate a fair amount in advance
+    var sbHandle: int = sb_new().sb_prealloc(128); // just allocate a fair amount in advance
 
-static_if (WIN32)
-    if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
-        var response: i64 = MessageBox(NULL_HWND, "Could not find local documentation, would you like to try online?", "phasor-help | Warning", MB.YESNO + MB.ICONWARNING);
-        if (response == 6)
-            return concat("\"start ", getFallbackURL(page), "\""); // launch browser
-        else
-            return "";
-    }
-    sbHandle.sb_append("C:/Program%20Files/Phasor%20Programming%20Language/man/man");
-    sbHandle.sb_append(page.section);
-    sbHandle.sb_append("/");
-    sbHandle.sb_append(page.name);
-    sbHandle.sb_append(".");
-    sbHandle.sb_append(page.section);
-    sbHandle.sb_append(".");
-    sbHandle.sb_append("pdf");
-    var path: string = sbHandle.sb_free();
-    return concat("\"start file:///", path, "\""); // launch browser
-static_else (LINUX || DARWIN || BSD || UNIX)
-    sbHandle.sb_append(page.section);
-    sbHandle.sb_append(" ");
-    sbHandle.sb_append(page.name);
-    var args: string = sbHandle.sb_free();
-    return concat("man ", args);
-static_else // (!(WIN32 || LINUX || DARWIN || BSD || UNIX))
-    putf_error("Could not find documentation for %s(%d)", part, type);
-    putf("See %s", getFallbackURL(page));
-    return "";
-static_endif // (WIN32)
+    static_if (WIN32)
+        if (!fisdir("C:/Program Files/Phasor Programming Language/man/")) {
+            var response: i64 = MessageBox(NULL_HWND, "Could not find local documentation, would you like to try online?", "phasor-help | Warning", MB.YESNO + MB.ICONWARNING);
+            if (response == 6)
+                return concat("\"start ", page.getFallbackURL(), "\""); // launch browser using windows start cmd
+            else
+                return "";
+        }
+        sbHandle.sb_append("C:/Program%20Files/Phasor%20Programming%20Language/man/man");
+        sbHandle.sb_append(page.section);
+        sbHandle.sb_append("/");
+        sbHandle.sb_append(page.name);
+        sbHandle.sb_append(".");
+        sbHandle.sb_append(page.section);
+        sbHandle.sb_append(".");
+        sbHandle.sb_append("pdf");
+        var path: string = sbHandle.sb_free();
+        return concat("\"start file:///", path, "\""); // launch browser using windows start cmd
+    static_else (LINUX || DARWIN || BSD || UNIX)
+        sbHandle.sb_append(page.section);
+        sbHandle.sb_append(" ");
+        sbHandle.sb_append(page.name);
+        var args: string = sbHandle.sb_free();
+        return concat("man ", args);
+    static_else // (!(WIN32 || LINUX || DARWIN || BSD || UNIX))
+        putf_error("Could not find documentation for %s(%d)", part, type);
+        putf("See %s", page.getFallbackURL()); // afaik no way to run browser outside windows universally
+        return "";
+    static_endif // (WIN32)
 }
 
+// Outputs this tools own pre-formatted manual page to the terminal
 fn showHelp(programName: string, error: bool) -> void {
-static_if (!WIN32)
-    var seeAlsoMan: string = "MAN(1)";
-static_endif // (!WIN32)
-static_if (WIN32)
-    var seeAlsoMan: string = "https://man7.org/linux/man-pages/man1/man.1.html";
-    var osStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<SECTION>\n    \\<PAGE>.<SECTION>.pdf";
-static_else (DARWIN)
-    var osStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
-static_else (LINUX || BSD || UNIX)
-    var osStr: string = "/usr/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
-static_else // (!(WIN32 || DARWIN || LINUX || BSD || UNIX))
-    var osStr: string = "https://phasor-docs.pages.dev/man?f=<PAGE>.<SECTION>";
-static_endif // (WIN32)
+    static_if (!WIN32)
+        var seeAlsoMan: string = "MAN(1)";
+    static_endif // (!WIN32)
+    static_if (WIN32) // need to build URL
+        var seeAlsoMan: string = "https://man7.org/linux/man-pages/man1/man.1.html";
+        // spacing tuned for fixed width, classic manual page format
+        var osStr: string = "C:\\Program Files\\Phasor Programming Language\\man\\man<SECTION>\n    \\<PAGE>.<SECTION>.pdf";
+    static_else (DARWIN)
+        var osStr: string = "/usr/local/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+    static_else (LINUX || BSD || UNIX)
+        var osStr: string = "/usr/share/man/man<SECTION>/<PAGE>.<SECTION>(.gz)";
+    static_else // (!(WIN32 || DARWIN || LINUX || BSD || UNIX))
+        var osStr: string = "https://phasor-docs.pages.dev/man?f=<PAGE>.<SECTION>";
+    static_endif // (WIN32)
 
     var helpStr: string = c_fmt(`
 
@@ -120,21 +125,28 @@ SEE ALSO
 fn main(args: string[]) -> int {
     switch (args.len()) {
         case 3:
-            var command: string = ManPage{name: args[1].to_string(), section: args[2].to_int()}.getDocCmd();
+            var page: ManPage = ManPage{name: args[1].to_string(), section: args[2].to_int()};
+            var command: string = page.getDocCmd();
             if (command.len() == 0)
                 return 1;
             else
-                return command.sys_shell();
+                if (!(command.sys_shell() == 0)) {
+                    putf_error("FAILED! Use the online documentation: %s", page.getFallbackUrl());
+                } else return 0;
         case 2:
-            if (args[1] == "--help" || args[1] == "-h" || args[1] == "/?") {
+            if (args[1] == "--help" || args[1] == "-h" || args[1] == "/?")
+            {
                 showHelp(args[0].fstem(), false);
                 return 0;
             }
-            var command: string = ManPage{name: args[1], section: 1}.getDocCmd();
+            var page: ManPage = ManPage{name: args[1], section: 1};
+            var command: string = page.getDocCmd();
             if (command.len() == 0)
                 return 1;
             else
-                return command.sys_shell();
+                if (!(command.sys_shell() == 0)) {
+                    putf_error("FAILED! Use the online documentation: %s", page.getFallbackUrl());
+                } else return 0;
         default:
             showHelp(args[0].fstem(), true);
     }

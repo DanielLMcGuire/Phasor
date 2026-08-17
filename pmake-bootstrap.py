@@ -204,7 +204,7 @@ def try_phasor_toolchain():
 
     pulsar_exe        = shutil.which("pulsar")
     phasor_exe        = shutil.which("phasor") or shutil.which("phasorvm")
-    phasorcompiler_exe = shutil.which("phasorcompiler")
+    phasorcompiler_exe = shutil.which("phasorc")
 
     if pulsar_exe and phasor_exe and phasorcompiler_exe:
         with Spinner("Building pmake.phsb with phasor toolchain..."):
@@ -253,7 +253,7 @@ def cmake_configure(cmake_preset):
 def build_and_install(os_name):
     build_targets = [
         ("phasor_native_runtime_static", 40, 55),
-        ("phasor_cxx_transpiler",        55, 75),
+        ("phasor_c_transpiler",        55, 75),
         ("pmake",                         75, 85),
     ]
 

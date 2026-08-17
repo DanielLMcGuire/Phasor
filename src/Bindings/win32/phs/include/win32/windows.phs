@@ -5,3 +5,4 @@ include "./types/wintypes.phs";
 include "./winbase.phs";
 include "./winnt.phs";
 include "./winuser.phs";
+include "./wincon.phs";

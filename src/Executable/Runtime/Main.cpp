@@ -1,10 +1,10 @@
-#include "../../../Runtime/VM/VM.hpp"
-#include "../../../Runtime/Stdlib/StdLib.hpp"
-#include "../../../Language/Phasor/Lexer/Lexer.hpp"
-#include "../../../Language/Phasor/Parser/Parser.hpp"
-#include "../../../Language/Phasor/Parser/PlatformDefines.hpp"
-#include "../../../Codegen/CodeGen.hpp"
-#include "../../../Codegen/Bytecode/BytecodeDeserializer.hpp"
+#include "../../Runtime/VM/VM.hpp"
+#include "../../Runtime/Stdlib/StdLib.hpp"
+#include "../../Language/Phasor/Lexer/Lexer.hpp"
+#include "../../Language/Phasor/Parser/Parser.hpp"
+#include "../../Language/Phasor/Parser/PlatformDefines.hpp"
+#include "../../Codegen/CodeGen.hpp"
+#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
 
 #include <print>
 #include <format>
@@ -43,7 +43,7 @@ Phasor::PhsString readStdin()
 	return content;
 }
 
-std::vector<std::filesystem::path> fetchIncludeDirs()
+static std::vector<std::filesystem::path> fetchIncludeDirs()
 {
 	std::vector<std::filesystem::path> finalPaths;
 
@@ -119,11 +119,11 @@ std::unique_ptr<Phasor::VM> createVm(int scriptArgc, char **scriptArgv)
 	Phasor::StdLib::argv = scriptArgv;
 
 #if defined(_WIN32)
-	vm->initFFI({"phasornative", "plugins"});
+	vm->initFFI({"phasorcc", "plugins"});
 #elif defined(__APPLE__)
-	vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+	vm->initFFI({"phasorcc", "/Library/Application Support/org.Phasor.Phasor/plugins"});
 #else
-	vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+	vm->initFFI({"phasorcc", "/usr/lib/phasor/plugins/"});
 #endif
 
 	return vm;
@@ -300,7 +300,17 @@ int runRepl(const std::vector<std::filesystem::path> &includePaths, bool verbose
 	return cleanExit ? 0 : status;
 }
 
-int main(int argc, char *argv[])
+#ifndef _SHARED
+#define PHASOR_API
+#elif _WIN32
+#define PHASOR_API __declspec(dllexport)
+#elif defined(__GNUC__) || defined(__clang__)
+#define PHASOR_API __attribute__((visibility("default")))
+#endif
+
+extern "C"
+{
+PHASOR_API int phasor_main(int argc, char *argv[])
 {
 	try
 	{
@@ -490,4 +500,5 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	return 1;
+}
 }

@@ -5,6 +5,6 @@ include "std/sys";
 include "std/main";
 
 fn main(args: string[]) -> int {
-    putf("%M", args);
+    print args;
     return 0;
 }

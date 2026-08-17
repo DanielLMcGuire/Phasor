@@ -1,6 +1,5 @@
 #include "file_properties.h"
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 
 #ifdef _WIN32
@@ -36,9 +35,6 @@
     return (int64_t)((ull.QuadPart - WIN_EPOCH_OFFSET) / WIN_TICK_INTERVAL);
 }
 
-/**
- * Deterministically hashes a Windows SID into a 32-bit integer.
- */
 [[nodiscard]] static uid_t HashSidToUint32(PSID pSid) {
     if (!pSid)
     {
@@ -47,7 +43,7 @@
 
     PBYTE pBinarySid = (PBYTE)pSid;
     DWORD dwSidSize = GetLengthSid(pSid);
-    uid_t hash = 5381; // djb2 hash algorithm
+    uid_t hash = 5381;
 
     for (DWORD i = 0; i < dwSidSize; i++) {
         hash = ((hash << 5) + hash) + pBinarySid[i];
@@ -94,7 +90,7 @@
     } else if (param == 'm') {
         times.modtime = (time_t)epoch;
     } else {
-        return false; // Creation time not settable via standard POSIX utime
+        return false;
     }
 
     return utime(path, &times) == 0;

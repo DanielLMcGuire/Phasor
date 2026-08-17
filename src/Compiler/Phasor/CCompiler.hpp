@@ -8,16 +8,16 @@ namespace Phasor
 {
 
 /**
- * @class CppCompiler
+ * @class CCompiler
  * @brief CLI wrapper for C++ code generation from Phasor source
  *
  * Compiles Phasor source files to C++ source files that embed bytecode
  * and link against the phasor-runtime DLL.
  */
-class CppCompiler
+class CCompiler
 {
   public:
-	CppCompiler(int argc, char *argv[]);
+	CCompiler(int argc, char *argv[]);
 	int run();
 
   private:

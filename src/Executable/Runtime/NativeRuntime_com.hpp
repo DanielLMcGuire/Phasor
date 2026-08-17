@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "../../../Runtime/VM/VM.hpp"
+#include "../../Runtime/VM/VM.hpp"
 
 // {c5318f33-2d87-4e95-95b7-2928cd57a5d7}
 static const GUID CLSID_PhasorEngine = { 0xc5318f33, 0x2d87, 0x4e95, { 0x95, 0xb7, 0x29, 0x28, 0xcd, 0x57, 0xa5, 0xd7 } };

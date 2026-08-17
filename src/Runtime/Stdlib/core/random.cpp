@@ -1,9 +1,6 @@
 #include "random.hpp"
 #include <phsint.hpp>
 
-// my tiny xorshift+ implementation
-// (C) Daniel McGuire -- MIT License
-
 static Phasor::u64 s[2];
 
 void PHASORstd_rand_seed(Phasor::u64 s0, Phasor::u64 s1)

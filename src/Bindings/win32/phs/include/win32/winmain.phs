@@ -1,8 +1,7 @@
 include "./libloaderapi.phs";
 include "./types/handle.phs";
 
-fn WinMain(hInstance: HINSTANCE, args: string[]) -> int;
-fn win__init();
+fn WinMain(hInstance: HINSTANCE, CommandLine: string) -> int;
 
 // ----
 include "../../src/win32/winmain.phs";

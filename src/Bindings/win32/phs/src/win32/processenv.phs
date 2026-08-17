@@ -1,5 +1,6 @@
 include "../../include/win32/types/handle.phs";
 
-fn GetStdHandle(StdHandle: i64) -> HANDLE {
+fn GetStdHandle(StdHandle: i64) -> HANDLE
+{
     return HANDLE{ data: win32_GetStdHandle() };
 }

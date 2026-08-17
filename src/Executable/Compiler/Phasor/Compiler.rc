@@ -24,9 +24,9 @@ BEGIN
             VALUE "CompanyName", "Phasor"
             VALUE "FileDescription", "Phasor VM Compiler"
             VALUE "FileVersion", "4.0.0.0"
-            VALUE "InternalName", "phasorcompiler.exe"
+            VALUE "InternalName", "phasorc.exe"
             VALUE "LegalCopyright", "(C) 2026 Daniel McGuire"
-            VALUE "OriginalFilename", "phasorcompiler.exe"
+            VALUE "OriginalFilename", "phasorc.exe"
             VALUE "ProductName", "Phasor Bytecode VM"
             VALUE "ProductVersion", "4.0.0.0"
         END

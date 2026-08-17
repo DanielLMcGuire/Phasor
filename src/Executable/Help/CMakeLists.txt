@@ -1,6 +1,6 @@
 add_executable(phasor_help
     phasor_help.rc
-    phasor_help_bootstrap.cpp
+    phasor_help_bootstrap.c
 )
 phasor_add_transpiled_header(
     TARGET phasor_help

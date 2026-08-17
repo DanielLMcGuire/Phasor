@@ -4,59 +4,73 @@
 include "../../../include/std/sys";
 include "../../../include/std/io";
 
-fn conemu_sleep(ms: int) {
+fn conemu_sleep(ms: int)
+{
     printf("\e]9;1;%d\a", ms);
 }
 
-fn conemu_messagebox(txt: string) {
+fn conemu_messagebox(txt: string)
+{
     printf("\e]9;2;%s\a", txt);
 }
 
-fn conemu_title(txt: string) {
+fn conemu_title(txt: string)
+{
     printf("\e]9;3;%s\a", txt);
 }
 
-fn conemu_progress(st: int, pr: int) {
+fn conemu_progress(st: int, pr: int)
+{
     printf("\e]9;4;%d;%d\a", st, pr);
 }
-fn conemu_progress_reset() {
+fn conemu_progress_reset()
+{
     printf("\e]9;4;0;0\a");
 }
 
-fn conemu_wait_for_input() {
+fn conemu_wait_for_input()
+{
     printf("\e]9;5\a");
 }
 
-fn conemu_guimacro(txt: string) -> string {
+fn conemu_guimacro(txt: string) -> string
+{
     printf("\e]9;6;%s\a", txt);
     if (sys_os() == sys_os.sandbox) return "";
     return sys_env("ConEmuMacroResult");
 }
 
-fn conemu_run(cmd: string) {
+fn conemu_run(cmd: string)
+{
     printf("\e]9;7;%s\a", cmd);
 }
 
-fn conemu_print_envvar(env: string) {
+fn conemu_print_envvar(env: string)
+{
     printf("\e]9;8;%s\a", env);
 }
 
-fn conemu_inform_cwd(cwd: string) {
+fn conemu_inform_cwd(cwd: string)
+{
     printf("\e]9;9;%s\a", cwd);
 }
 
-fn conemu_request_xtermemulation() {
+fn conemu_request_xtermemulation()
+{
     printf("\e]9;10\a");
 }
 
-fn conemu_set_xtermemulation(n: int) {
+fn conemu_set_xtermemulation(n: int)
+{
     printf("\e]9;10;%s\a", n);
 }
 
-fn conemu_comment(txt: string) {
+fn conemu_comment(txt: string)
+{
     printf("\e]9;11;%s\a", txt);
 }
 
-fn conemu_set_prompt_start() {
+fn conemu_set_prompt_start()
+{
     printf("\e]9;12\a");
 }

@@ -14,7 +14,19 @@
 // limitations under the License.
 
 // enum class ValueType : u8
-var phs_type: any = {
+struct phs_type_def {
+    void: int,
+    bool: int,
+    int: int,
+    i64: int,
+    float: int,
+    f64: int,
+    string: int,
+    object: int,
+    array: int
+}
+
+var phs_type: phs_type_def = {
     // ValueType::Null
     void: 0, 
     // ValueType::Bool
@@ -32,3 +44,13 @@ var phs_type: any = {
     // ValueType::Array
     array: 6
 };
+
+var phs_type_map: string[] = [
+    "void",
+    "bool",
+    "i64",
+    "f64",
+    "string",
+    "object",
+    "array"
+];
