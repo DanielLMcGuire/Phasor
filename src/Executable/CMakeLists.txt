@@ -20,7 +20,7 @@ target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
 add_library(phasor_native_runtime_static STATIC
-    ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
+    ${NATIVE_RUNTIME_SOURCES}
 )
 
 target_link_libraries(phasor_native_runtime_static PRIVATE
@@ -52,12 +52,8 @@ if(WIN32)
     set_target_properties(phasorw_main PROPERTIES WIN32_EXECUTABLE TRUE)
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        # MinGW/MSYS2 gcc: WIN32_EXECUTABLE + -mwindows is sufficient,
-        # main() works as entry point automatically
         target_link_options(phasorw_main PRIVATE -mwindows)
     elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-        # cl.exe or clang-cl: WIN32_EXECUTABLE sets /SUBSYSTEM:WINDOWS,
-        # need explicit entry point for main()
         target_link_options(phasorw_main PRIVATE /ENTRY:mainCRTStartup)
     else()
         # plain clang, MSVC ABI, lld-link via GNU-style driver

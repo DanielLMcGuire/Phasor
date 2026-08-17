@@ -19,4 +19,4 @@ set(CODEGEN_HEADERS
 
 add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
 
-target_link_libraries(PhasorCodegen PUBLIC "$<$<PLATFORM_ID:Darwin>:-framework CoreFoundation>")
+target_link_libraries(PhasorCodegen PUBLIC "$<$<PLATFORM_ID:Darwin>:-framework CoreFoundation>" "$<$<PLATFORM_ID:Darwin>:-framework Security>")
