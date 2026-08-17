@@ -95,6 +95,11 @@ add_executable(phasor_asm
 target_link_libraries(phasor_asm phasor_asm_lib)
 set_target_properties(phasor_asm PROPERTIES OUTPUT_NAME phasorasm)
 
+if(APPLE)
+    target_link_libraries(phasor_disasm PRIVATE "-framework CoreFoundation")
+    target_link_libraries(phasor_asm PRIVATE "-framework CoreFoundation")
+endif()
+
 add_executable(phasor_c_transpiler
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CCompiler.rc
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Phasor/CCompiler_main.cpp
