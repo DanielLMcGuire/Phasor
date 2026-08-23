@@ -14,3 +14,19 @@
 // limitations under the License.
 
 ffiload("stdmath");
+include "./types/math.phs";
+
+fn vec2matrix(in: Vec2) -> int[2];
+
+fn matrixvec2(in: int[2]) -> Vec2;
+
+fn vec3matrix(in: Vec3) -> int[3];
+
+fn matrixvec3(in: int[3]) -> Vec3;
+
+fn vec2add(Vec2: a, Vec2: b) -> Vec2;
+
+fn vec3add(Vec3: a, Vec3: b) -> Vec3;
+
+// ----
+include "../../src/std/math.phs";

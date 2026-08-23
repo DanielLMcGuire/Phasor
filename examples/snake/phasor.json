@@ -1,0 +1,9 @@
+{
+    "source": "snake.phs",
+    "out": "snake.phsb",
+    "defines": [""],
+    "includes": [""],
+    "irMode": false,
+    "taskHandler": "",
+    "buildTask": false
+}

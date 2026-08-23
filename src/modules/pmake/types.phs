@@ -10,7 +10,8 @@ struct ProjectJson {
     command: string,
     install: string,
     src: string,
-    cache: string
+    cache: string,
+    defines: string[]
 }
 
 struct ProjectPaths {

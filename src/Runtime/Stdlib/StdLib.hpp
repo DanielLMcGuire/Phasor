@@ -150,6 +150,7 @@ class StdLib
 	static Value     file_open(const std::vector<Value> &args, VM *vm); ///< Get file descriptor
 	static bool      file_close(const std::vector<Value> &args, VM *vm); ///< Close file descriptor
 	static PhsString file_absolute(const std::vector<Value> &args, VM *vm);   ///< Get full path to relative path
+	static PhsString file_relative(const std::vector<Value> &args, VM *vm);   ///< Get relative path to given path
 	static Value     file_read(const std::vector<Value> &args, VM *vm);       ///< Read file
 	static bool      file_write(const std::vector<Value> &args, VM *vm);      ///< Write to file
 	static bool      file_exists(const std::vector<Value> &args, VM *vm);     ///< Check if file exists

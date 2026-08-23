@@ -83,7 +83,7 @@ constexpr size_t kEventFieldCount = sizeof(kEventKeys) / sizeof(kEventKeys[0]);
 
 PhasorValue phasor_sdl_poll_event(PhasorVM*, int, const PhasorValue*)
 {
-    static PhasorValue values[kEventFieldCount]; // <-- was a local stack array, now static
+    static PhasorValue values[kEventFieldCount];
 
     for (size_t i = 0; i < kEventFieldCount; ++i) {
         values[i] = phasor_make_int(0);
@@ -300,8 +300,4 @@ PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
     api->register_function(vm, "SDL_RenderDrawLine", phasor_sdl_render_draw_line);
     api->register_function(vm, "SDL_RenderDrawRect", phasor_sdl_render_draw_rect);
     api->register_function(vm, "SDL_RenderFillRect", phasor_sdl_render_fill_rect);
-
-#ifdef _DEBUG
-    api->log(vm, phasor_make_string("SDL2 Bindings (with Renderer) loaded successfully."));
-#endif
 }

@@ -1,11 +1,24 @@
-fn configure(paths: ProjectPaths, preset: string) -> bool {
-    return sys_fork("cmake", ["-S", paths.src, "-B", paths.out, "--preset", preset]) == 0;
+fn configure(paths: ProjectPaths, preset: string, defines: string[]) -> bool {
+    var args: string[] = ["-S", paths.src, "-B", paths.out, "--preset", preset];
+    var dispArgs: string[] = ["-S", paths.src.frelative(), "-B", paths.out.frelative(), "--preset", preset];
+    for (var i: int = 0; i < defines.len(); i++) {
+        args.arr_push("-D".concat(defines[i]));
+        dispArgs.arr_push("-D".concat(defines[i]));
+    }
+    putf("Using defines: %s\nRunning: cmake %s", defines.arr_join(", "), dispArgs.arr_join(" "));
+    return sys_fork("cmake", args) == 0;
 }
 
 fn build(paths: ProjectPaths) -> bool {
-    return sys_fork("ninja", ["-C", paths.out]) == 0;
+    var args: string[] = ["-C", paths.out];
+    var dispArgs: string[] = ["-C", paths.out.frelative()];
+    putf("Running: ninja %s", dispArgs.arr_join(" "));
+    return sys_fork("ninja", args) == 0;
 }
 
 fn install(paths: ProjectPaths) -> bool {
-    return sys_fork("cmake", ["--install", paths.out, "--prefix", paths.install]) == 0;
+    var args: string[] = ["--install", paths.out, "--prefix", paths.install];
+    var dispArgs: string[] = ["--install", paths.out.frelative(), "--prefix", paths.install.frelative()];
+    putf("Running: cmake %s", dispArgs.arr_join(" "));
+    return sys_fork("cmake", args) == 0;
 }

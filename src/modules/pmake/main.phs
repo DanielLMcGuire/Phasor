@@ -1,7 +1,8 @@
 #!/usr/bin/env phasor
 define NO_CHECK_OS;
 include "std/sys";
-include "std/type"; 
+include "std/type";
+include "std/array"; 
 include "std/io"; 
 include "std/file"; 
 include "std/ini"; 
@@ -52,6 +53,7 @@ fn main_pmake(argv: string[]) -> int {
         src: fcd(), install: "out", cache: ".pmake", 
         out: ".pmake/CMakeBuild", cacheTpl: ".pmake/%s.cache", lock: ".pmake/%s.lock"
     };
+    var defines: string[];
 
     var pid: int = sys_pid();
 
@@ -64,6 +66,8 @@ fn main_pmake(argv: string[]) -> int {
         paths.install = fabsolute(data.install);
         paths.src     = fabsolute(data.src);
         paths.cache   = fabsolute(data.cache);
+
+        defines = data.defines;
         
         paths.cacheTpl = "%s/%%s.cache".c_fmt(paths.cache);
         paths.lockTpl  = "%s/%%s.lock".c_fmt(paths.cache);
@@ -175,7 +179,7 @@ fn main_pmake(argv: string[]) -> int {
         writeStatus("config", paths, proj);
         putf("Configuring %s...", proj.name);
         
-        if (!paths.configure(args.preset)) {
+        if (!paths.configure(args.preset, defines)) {
             update_win_progress(0, 0);
             puts_error("Configuration failed");
             return 1;

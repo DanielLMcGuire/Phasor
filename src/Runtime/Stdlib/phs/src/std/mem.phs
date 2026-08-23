@@ -30,7 +30,7 @@ fn realloc_native(handle: ManagedMemory, size: i64) -> ManagedMemory
 
 fn c_stralloc_native(data: string) -> ManagedMemory
 {
-    var ret: int[] = phs__memory_stralloc_native(data);
+    var ret: int[2] = phs__memory_stralloc_native(data);
     return ManagedMemory{ ptr: ret[0], size: ret[1] };
 }
 

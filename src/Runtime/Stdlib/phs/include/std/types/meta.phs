@@ -51,7 +51,7 @@ struct Bytecode {
 }
 
 struct VM {
-    ptr: any
+    handle: any
 }
 
-var NULL_VM: VM = VM{ ptr: null };
+var NULL_VM: VM = VM{ handle: null };

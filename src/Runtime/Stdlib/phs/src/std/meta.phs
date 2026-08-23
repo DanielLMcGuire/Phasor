@@ -44,11 +44,11 @@ fn vm_pop() -> any
 }
 
 fn new_vm() -> VM {
-    return VM{ptr: phs__new_vm()};
+    return VM{handle: phs__new_vm()};
 }
 
 fn free_vm(vm: VM) -> bool {
-    return phs__free_vm(vm.ptr);
+    return phs__free_vm(vm.handle);
 }
 
 fn phs_compile(source: string, modulePath: string, includePaths: string[], defines: string[]) -> Bytecode {

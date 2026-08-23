@@ -81,6 +81,7 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("fclose", StdLib::file_close);
 	
 	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
+	vm->registerNativeFunction("frelative", StdLib::file_relative);
 	vm->registerNativeFunction("fstem", StdLib::file_stem);
 	vm->registerNativeFunction("fname", StdLib::file_filename);
 	vm->registerNativeFunction("fext", StdLib::file_extension);
@@ -181,6 +182,20 @@ PhsString StdLib::file_absolute(const std::vector<Value> &args, VM *)
 	checkArgCount(args, 1, "fabsolute");
 	requireString(args[0], "fabsolute", "argument (path)");
 	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].stl_string())).string();
+}
+
+PhsString StdLib::file_relative(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "frelative");
+	requireString(args[0], "frelative", "argument (path)");
+
+	std::filesystem::path path = std::filesystem::weakly_canonical(
+		std::filesystem::path(args[0].stl_string())
+	);
+
+	std::filesystem::path cwd = std::filesystem::current_path();
+
+	return std::filesystem::relative(path, cwd).string();
 }
 
 PhsString StdLib::file_stem(const std::vector<Value> &args, VM *)

@@ -254,39 +254,53 @@ i64 StdLib::meta_eval_phs(const std::vector<Value> &args, VM *){
         PHS_ERROR("phs_eval() expects an optional boolean (verbose) as it's sixth argument.");
  
     VM *state = nullptr;
+    bool ownVM = false;
     if (args[0].isInt()) state = static_cast<VM *>(i64_to_pointer(args[0].asInt()));
-    PhsString script = args[1].toString();
-    PhsString moduleName = args[2].toString();
-    PhsString modulePath = args[3].toString();
-    std::vector<PhsString> includePaths = phasorStringArrayToVector(args[4]);
-    std::vector<PhsString> defines = phasorStringArrayToVector(args[5]);
-    bool verbose = args.size() == 7 ? args[6].asBool() : false;
+    else {
+        ownVM = true;
+        state = new VM;
+        if (!state) return -1;
+    } 
+    try {
+        PhsString script = args[1].toString();
+        PhsString modulePath = args[2].toString();
+        std::vector<PhsString> includePaths = phasorStringArrayToVector(args[3]);
+        std::vector<PhsString> defines = phasorStringArrayToVector(args[4]);
+        bool verbose = args.size() == 6 ? args[5].asBool() : false;
 
-    Lexer lexer(script.str());
-    auto tokens = lexer.tokenize();
-    Parser parser(tokens, modulePath.str());
+        Lexer lexer(script.str());
+        auto tokens = lexer.tokenize();
+        Parser parser(tokens, modulePath.str());
+    
+        auto resolvedIncludes = resolveIncludePathsFromValues(modulePath, includePaths);
+        if (!resolvedIncludes.empty())
+        {
+            parser.setIncludePaths(resolvedIncludes);
+        }
+        if (!modulePath.empty())
+        {
+            parser.setSourcePath(modulePath.str());
+        }
+        parser.setDefines(resolveDefinesFromValues(defines));
+    
+        auto program = parser.parse();
+        if (verbose)
+        {
+            program->print();
+        }
+    
+        CodeGenerator codegen;
+        auto bytecode = codegen.generate(*program);
  
-    auto resolvedIncludes = resolveIncludePathsFromValues(modulePath, includePaths);
-    if (!resolvedIncludes.empty())
-    {
-        parser.setIncludePaths(resolvedIncludes);
+        i64 ret = static_cast<i64>(state->run(bytecode));
+        if (ownVM) delete state;
+        return ret;
+    } catch(...) {
+        if (ownVM) delete state;
+        throw;
+        return -1;
     }
-    if (!modulePath.empty())
-    {
-        parser.setSourcePath(modulePath.str());
-    }
-    parser.setDefines(resolveDefinesFromValues(defines));
- 
-    auto program = parser.parse();
-    if (verbose)
-    {
-        program->print();
-    }
- 
-    CodeGenerator codegen;
-    auto bytecode = codegen.generate(*program);
- 
-    return static_cast<i64>(state->run(bytecode));
+    return -1;
 }
  
 i64 StdLib::meta_exec_phsb(const std::vector<Value> &args, VM *){

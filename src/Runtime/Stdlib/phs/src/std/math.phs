@@ -1,0 +1,26 @@
+include "../../include/std/types/math.phs";
+
+fn vec2matrix(in: Vec2) -> int[2] {
+    return [in.x, in.y];
+}
+
+fn matrixvec2(in: int[2]) -> Vec2 {
+    return Vec2{x: in[0], y: in[1]};
+}
+
+fn vec3matrix(in: Vec3) -> int[3] {
+    return [in.x, in.y, in.z];
+}
+
+fn matrixvec3(in: int[3]) -> Vec3 {
+    return Vec2{x: in[0], y: in[1], z: in[2]};
+}
+
+fn vec2add(Vec2: a, Vec2: b) -> Vec2 {
+    return matrixvec2(vec2matrix(a) + vec2matrix(b));
+}
+
+fn vec3add(Vec3: a, Vec3: b) -> Vec3 {
+    return matrixvec3(vec3matrix(a) + vec3matrix(b));
+}
+

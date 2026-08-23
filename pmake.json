@@ -4,5 +4,8 @@
     "command": "git rev-parse --short HEAD",
     "install": "out",
     "src": ".",
-    "cache": ".pmake"
+    "cache": ".pmake",
+    "defines": [
+        "NATIVE=ON"
+    ]
 }

@@ -14,8 +14,8 @@
 // limitations under the License.
 
 struct ManagedMemory {
-    ptr: int,
-    size: int
+    ptr: i64,
+    size: i64
 }
 
 var null_managed_memory: ManagedMemory = {

@@ -1,0 +1,10 @@
+struct Vec2 {
+    x: i64,
+    y: i64
+}
+
+struct Vec3 {
+    x: i64,
+    y: i64,
+    z: i64
+}
