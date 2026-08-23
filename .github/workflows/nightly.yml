@@ -52,7 +52,7 @@ jobs:
       shell: bash
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} --preset macos-arm-rel
+      run: cmake -S . -G Ninja -B build -DASSEMBLY=OFF -DSDL2=OFF  -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} --preset macos-arm-rel
 
     - name: Configure 
       if: matrix.os != 'macos-latest'
