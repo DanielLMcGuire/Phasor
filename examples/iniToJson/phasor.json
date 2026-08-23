@@ -1,0 +1,9 @@
+{
+    "source": "iniToJson.phs",
+    "out": "iniToJson.phsb",
+    "defines": [""],
+    "includes": [""],
+    "irMode": false,
+    "taskHandler": "",
+    "buildTask": false
+}

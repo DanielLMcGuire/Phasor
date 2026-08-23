@@ -2,33 +2,6 @@
 
 #include "StdLib.hpp"
 
-Phasor::i64 pointer_to_i64(void* ptr)
-{
-	if (ptr == nullptr)
-	{
-		return 0;
-	}
-
-	static_assert(sizeof(void*) <= sizeof(Phasor::i64));
-
-	Phasor::i64 value;
-	std::memcpy(&value, &ptr, sizeof(ptr));
-
-	return value;
-}
-
-void* i64_to_pointer(Phasor::i64 value)
-{
-	if (value == 0)
-	{
-		return nullptr;
-	}
-	void* ptr;
-	std::memcpy(&ptr, &value, sizeof(ptr));
-
-	return ptr;
-}
-
 namespace Phasor
 {
 

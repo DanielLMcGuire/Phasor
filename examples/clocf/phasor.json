@@ -1,0 +1,9 @@
+{
+    "source": "clocf.phs",
+    "out": "clocf.phsb",
+    "defines": [""],
+    "includes": [""],
+    "irMode": false,
+    "taskHandler": "",
+    "buildTask": false
+}

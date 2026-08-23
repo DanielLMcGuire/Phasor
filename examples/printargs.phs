@@ -1,7 +1,6 @@
 #!/usr/bin/env phasor
 define NO_CHECK_OS;
 include "std/io";
-include "std/sys";
 include "std/main";
 
 fn main(args: string[]) -> int {

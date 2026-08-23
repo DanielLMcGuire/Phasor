@@ -1,0 +1,10 @@
+struct buildConfig {
+    source: string,
+    out: string,
+    defines: string[],
+    includes: string[],
+    irMode: bool,
+    verbose: bool,
+    taskHandler: string,
+    buildTask: bool
+}

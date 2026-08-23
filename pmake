@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if [ ! -e src/modules/pmake/pmake.phsb ]; then
+    scripts/phasorbuild src/modules/pmake build
+fi
+phasor src/modules/pmake/pmake.phsb -- "$@"

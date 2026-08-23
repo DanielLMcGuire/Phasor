@@ -1,0 +1,49 @@
+include "../phasorbuild/include/phasorbuild/phasorbuild_task.phs";
+
+fn enum_tasks(cfg: taskStatus) {
+static_if (WIN32)
+    cfg.enum = ["start", "install", "uninstall", "clean"];
+static_endif
+}
+
+fn enum() -> taskStatus {
+    var status: taskStatus = createStatus();
+    status.enum_tasks();
+    status.code = 0;
+    return status;
+}
+
+fn task(taskName: string) -> taskStatus {
+    var status: taskStatus = createStatus();
+    status.enum_tasks();
+static_if (WIN32)
+    switch (taskName) {
+        case "start":
+            status.puts_status("Started in new window...");
+            status.code = sys_shell("start cmd /c phasorvm makemsi.phsb");
+            return status;
+        case "install":
+            status.puts_status("Installing...");
+            status.code = sys_shell("start cmd /c phasorvm makemsi.phsb install");
+            return status;
+        case "uninstall":
+            status.puts_status("Uninstalling...");
+            status.code = sys_shell("start cmd /c phasorvm makemsi.phsb uninstall");
+            return status;
+        case "clean":
+            status.puts_status("Cleaning...");
+            status.code = sys_shell("start cmd /c phasorvm makemsi.phsb clean");
+            return status;
+        default:
+            status.puts_err_status("Unknown task!");
+            status.printTasks = true;
+            status.code = 1;
+            return status;
+    }
+static_else
+    status.puts_err_status("Windows only!");
+    status.code = 1;
+    return status;
+static_endif
+    
+}

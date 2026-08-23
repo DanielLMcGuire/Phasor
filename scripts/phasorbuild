@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if [ ! -e src/modules/phasorbuild/phasorbuild.phsb ]; then
+    phasor src/modules/phasorbuild/main.phs src/modules/phasorbuild build
+fi
+phasor src/modules/phasorbuild/phasorbuild.phsb -- "$@"

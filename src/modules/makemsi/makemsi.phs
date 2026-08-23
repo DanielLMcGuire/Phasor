@@ -1,0 +1,111 @@
+#!/usr/bin/env phasor
+include "std/io";
+static_if (WIN32)
+include "std/file";
+include "std/sys";
+include "std/meta";
+include "std/type";
+include "std/ini";
+include "std/array";
+include "win32/windows.phs";
+include "types.phs";
+
+var g_config: mainConfig;
+
+fn getMainConfig(root: string) -> mainConfig {
+    var INI: INIDATA = fread("installer.ini").ini_read();
+    var WIX_DIR: string = fabsolute(root.fjoin(INI.wix.install));
+    return mainConfig{
+        INI: INI,
+        WIX_DIR: WIX_DIR,
+        WIX_EXTENSIONS: WIX_DIR.fjoin("extensions"),
+        NUGET_EXE: WIX_DIR.fjoin("nuget.exe"),
+        WIX_EXE: WIX_DIR.fjoin("wix.exe"),
+        HEAT_EXE: WIX_DIR.fjoin(["heat", "WixToolset.Heat.".concat(INI.wix.version), "tools", "net472", "x64", "heat.exe"]),
+        FILES_DIR: fabsolute(root.fjoin(INI.phasor.out)),
+        PHASOR_MSI: c_fmt(INI.phasor.name, INI.phasor.version),
+        CONFIG: WIX_DIR.fjoin("installer.json")
+    };
+}
+
+var didReset: bool = false;
+
+fn doError(msg: string) -> void {
+    puts_error(msg);
+    MessageBox(NULL_HWND, msg, sys_args()[0], MB.OK + MB.ICONERROR);
+}
+
+fn doAction(msg: string) -> bool {
+    printf("%s: ", msg);
+    var answer: bool = MessageBox(NULL_HWND, msg, sys_args()[0], MB.YESNO + MB.ICONQUESTION) == 6;
+    if (answer) puts("y"); 
+    else puts("n");
+    return answer;
+}
+
+include "core.phs";
+
+define BUILD_NO = 1;
+define CLEAN_NO = 2;
+define INSTALL_NO = 3;
+define UNINSTALL_NO = 4;
+define OPTS_NO = 4;
+
+var titles: string[] = ["build", "clean", "install", "uninstall"];
+
+fn doPath(number: int) -> int {
+    if (number != 0) {
+        switch (number) {
+            case INSTALL_NO:
+                return to_int(!install(true));
+            case CLEAN_NO: 
+                return to_int(!clean());
+            case BUILD_NO:
+                return to_int(!build());
+            case UNINSTALL_NO:
+                return to_int(!install(false));
+        }
+    }
+    return -1;
+}
+
+fn main(args: string[]) -> int {
+    var pcd: string = fcd();
+    fcd(args[0].fparent());
+    g_config = getMainConfig(fcd());
+    if (args.len() == 2) {
+        var number: int = args[1].to_int();
+        for (var i: int = 0; i < OPTS_NO; i++) {
+            if (args[1] == titles[i]) {
+                var ret: int = doPath(i + 1);
+                fcd(pcd);
+                return ret;
+            }
+        }
+        if (number > 0 && number < OPTS_NO + 1) {
+            var ret: int = doPath(number);
+            fcd(pcd);
+            return ret;
+        }
+    } else {
+        var commands: string = "";
+        for (var i: int = 0; i < OPTS_NO; i++) {
+            commands = commands.concat(i + 1, " - ", titles[i], "\n");
+        }
+        commands = commands.concat(c_fmt("Enter a command [1..%d]: ", OPTS_NO));
+        print(commands);
+        var ret: int = doPath(gets().to_int());
+        fcd(pcd);
+        return ret;
+    }
+    fcd(pcd);
+    return -1;
+}
+static_else
+fn main(args: string) -> int {
+    puts_error("This script is for Windows!");
+    return -1;
+}
+static_endif
+
+include "std/main";

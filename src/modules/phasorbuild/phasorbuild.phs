@@ -1,0 +1,35 @@
+fn build(cfg: buildConfig) -> int {
+    if (cfg.buildTask) {
+        return cfg.task("_ibuild");
+    }
+    var arguments: string[] = ["-o", fabsolute(cfg.out)];
+    if (cfg.irMode)
+        arguments = arguments.arr_push("-i");
+    if (cfg.verbose)
+        arguments = arguments.arr_push("-v");
+    if (!(cfg.includes[0].len() == 0)) {
+        arguments = arguments.arr_push("-I");
+        arguments = arguments.arr_push(cfg.includes.arr_join(","));
+    }
+    if (!(cfg.defines[0].len() == 0)) {
+        arguments = arguments.arr_push("-D");
+        arguments = arguments.arr_push(cfg.defines.arr_join(","));
+    }
+    arguments = arguments.arr_push(cfg.source);
+    return PHSC.sys_fork(arguments);
+}
+
+fn clean(cfg: buildConfig) -> int {
+    if (cfg.buildTask) {
+        return cfg.task("_iclean");
+    }
+    return to_int(!frm(cfg.out));
+}
+
+fn run(cfg: buildConfig) -> int {
+    if (!fexists(cfg.out)) {
+        var out: int = cfg.build();
+        if (out != 0) return out;
+    }
+    return RUNTIME.sys_fork(cfg.out);
+}

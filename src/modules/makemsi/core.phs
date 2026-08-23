@@ -1,0 +1,103 @@
+fn build() -> bool {
+    if (!g_config.WIX_EXE.fexists()) {
+        puts("Installing WiX...");
+        if (sys_fork("dotnet", ["tool", "install", "wix", "--version", g_config.INI.wix.version, "--tool-path", g_config.WIX_DIR]) != 0) {
+            doError("Failed to install WiX!");
+            return false;
+        }
+        fwrite(g_config.CONFIG, g_config.INI.to_json(2));
+    } else {
+        if (fexists(g_config.CONFIG)) {
+            var oldconf: INIDATA = fread(g_config.CONFIG).from_json();
+            var newconf: INIDATA = g_config.INI;
+            if (oldconf != newconf) {
+                if (didReset) {
+                    doError("Configuration failed, check your configuration...");
+                    return false;
+                }
+                if (doAction("Configuration changed, would you like to reinstall wix?")) {
+                    didReset = true;
+                    if (!g_config.WIX_DIR.frmdir(true)) {
+                        doError("Configuration failed, check your configuration...");
+                        return false;
+                    }
+                    return build();
+                }
+            }
+        }
+    }
+
+    if (!g_config.NUGET_EXE.fexists()) {
+        puts("Downloading nuget.exe...");
+        if (sys_fork("curl", ["-L", "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", "-o", g_config.NUGET_EXE]) != 0) {
+            doError("Failed to download nuget.exe!");
+            return false;
+        }
+    }
+
+    if (!g_config.HEAT_EXE.fexists()) {
+        puts("Downloading heat.exe...");
+        if (sys_fork(g_config.NUGET_EXE, ["install WixToolset.Heat", "-Version", g_config.INI.wix.version, "-OutputDirectory", g_config.WIX_DIR.fjoin("heat")]) != 0) {
+            doError("Failed to download heat.exe!");
+            return false;
+        }
+    }
+
+    if (!g_config.WIX_EXTENSIONS.fexists()) {
+        if (!fmkdir(g_config.WIX_EXTENSIONS)) {
+            doError(c_fmt("Failed to make directory %s", g_config.WIX_EXTENSIONS));
+            return false;
+        }
+        if (sys_fork(g_config.WIX_EXE, ["extension", "add", "WixToolset.UI.wixext/".concat(g_config.INI.wix.version)]) != 0) {
+            doError("Failed to install extensions!");
+            return false;
+        }
+    }
+
+    puts("Harvesting files...");
+    if (sys_fork(g_config.HEAT_EXE, ["dir", g_config.FILES_DIR, "-cg", "PhasorFiles", "-dr", "INSTALLFOLDER", "-var", "var.SourceDir", "-ag", "-sfrag", "-sreg", "-srd", "-out", g_config.INI.wix.harvest]) != 0) {
+        doError("Failed to harvest files!");
+        return false;
+    }
+
+    puts("Building MSI...");
+    if (sys_fork(g_config.WIX_EXE, ["build", g_config.INI.wix.file, g_config.INI.wix.harvest, "-d", concat("SourceDir=", g_config.FILES_DIR), "-arch", "x64", "-o", g_config.PHASOR_MSI, "-ext", "WixToolset.UI.wixext"]) != 0) {
+        doError("Failed to build MSI! Wix failed!");
+        return false;
+    }
+
+    if (!fexists(g_config.PHASOR_MSI)) {
+        doError("Failed to build MSI! File not found!");
+        return false;
+    }
+
+    return true;
+}
+
+fn clean() -> bool {
+    puts("Cleaning...");
+    if (g_config.WIX_DIR.fexists())
+        g_config.WIX_DIR.frmdir(true);
+    if (fexists(g_config.PHASOR_MSI))
+        g_config.PHASOR_MSI.frm();
+    var pdbpath: string =  fabsolute(fjoin(fcd(), g_config.PHASOR_MSI.fstem().concat(".wixpdb")));
+    if (fexists(pdbpath))
+        frm(pdbpath);
+
+    return true;
+}
+
+fn install(noRemove: bool) -> bool {
+    if (noRemove) {
+        if (!fexists(g_config.PHASOR_MSI)) build();
+        puts("Installing...");
+        return sys_fork("msiexec", ["/i", fabsolute(g_config.PHASOR_MSI)]) == 0;
+    } else {
+        if (!fexists(g_config.PHASOR_MSI)) {
+            doError(c_fmt("Failed to find MSI: %s", g_config.PHASOR_MSI));
+            return false;
+        }
+        puts("Uninstalling...");
+        return sys_fork("msiexec", ["/x", g_config.PHASOR_MSI]) == 0;
+    }
+}

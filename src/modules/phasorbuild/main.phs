@@ -1,0 +1,95 @@
+#!/usr/bin/env phasor
+include "std/type";
+include "std/file";
+include "std/sys";
+include "std/io";
+include "std/array";
+
+define RUNTIME = "phasorvm";
+define PHSC = "phasorc";
+
+include "include/phasorbuild/phasorbuild_task.phs";
+include "types.phs";
+include "phasorbuild.phs";
+include "tasks.phs";
+
+
+var COMMANDS: string[] = ["task", "list", "clean", "build", "run"];
+
+fn main(args: string[]) -> int {
+    var pcd: string = fcd();
+
+    var explicitPath: string = "";
+    var pathSet: bool = false;
+    var command: string = "";
+    var commandArgs: string[] = [];
+
+    var i: int = 1;
+    while (i < args.len()) {
+        var arg: string = args[i];
+        if (command.len() == 0 && COMMANDS.arr_find(arg)) {
+            command = arg;
+            i++;
+            while (i < args.len()) {
+                commandArgs = commandArgs.arr_push(args[i]);
+                i++;
+            }
+        } else if (!pathSet) {
+            explicitPath = arg;
+            pathSet = true;
+            i++;
+        } else {
+            puts_error(c_fmt("Unknown command: %s", arg));
+            fcd(pcd);
+            return 1;
+        }
+    }
+
+    var dir: string;
+    if (explicitPath.len() == 0) {
+        dir = fcd();
+    } else {
+        dir = explicitPath.fabsolute();
+        fcd(dir);
+    }
+
+    var path: string = fjoin(dir, "phasor.json");
+    if (!fexists(path)) {
+        fcd(pcd);
+        return -1;
+    }
+
+    var cfg: buildConfig = path.fread().from_json();
+
+    var ret: int;
+    switch (command) {
+        case "task":
+            if (cfg.taskHandler.len() == 0) {
+                puts_error("No task script!");
+                return 1;
+            }
+            var taskName: string = "";
+            if (commandArgs.len() > 0) taskName = commandArgs[0];
+            ret = cfg.task(taskName);
+        case "list":
+            if (cfg.taskHandler.len() == 0) {
+                puts_error("No task script!");
+                return 1;
+            }
+            ret = cfg.list();
+        case "clean":
+            ret = cfg.clean();
+        case "build":
+            ret = cfg.build();
+        case "run":
+            ret = cfg.run();
+        default:
+            puts_error("Unknown command!");
+            return 1;
+    }
+
+    fcd(pcd);
+    return ret;
+}
+
+include "std/main";

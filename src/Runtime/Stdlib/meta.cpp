@@ -1,10 +1,18 @@
 #include "StdLib.hpp"
 #include <version.h>
 #include <phsint.hpp>
+#include <PhasorRT.h>
 #include "../../ISA/map.hpp"
 #include "../../Codegen/PhasorStruct/PhasorStruct.hpp"
-#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
+#include "../../Language/Phasor/Lexer/Lexer.hpp"
+#include "../../Language/Phasor/Parser/Parser.hpp"
+#include "../../Language/Phasor/Parser/PlatformDefines.hpp"
+#include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/Bytecode/BytecodeSerializer.hpp"
+#include "../../Codegen/Bytecode/BytecodeDeserializer.hpp"
+#include <nativeerror.h>
+#include <filesystem>
+#include <sstream>
 
 #if defined(_WIN32)
     #include <windows.h>
@@ -20,18 +28,92 @@
 namespace Phasor
 {
 
+namespace {
+ 
+std::vector<std::filesystem::path> resolveIncludePathsFromValues(const PhsString &modulePath,
+                                                                   const std::vector<PhsString> &includePaths)
+{
+    std::vector<std::filesystem::path> finalPaths;
+ 
+#ifdef PHASOR_DEFAULT_FIRST_PATH
+    finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
+#endif
+ 
+    PhsString envIncludeDirs;
+    if (dupenv_ret ret = dupenv(envIncludeDirs, "PHASOR_INCLUDE_PATH"); ret == dupenv_ret::Success)
+    {
+        std::stringstream ss(envIncludeDirs.c_str());
+        std::string item;
+        while (std::getline(ss, item, ';'))
+        {
+            if (!item.empty())
+            {
+                finalPaths.emplace_back(item);
+            }
+        }
+    }
+ 
+    finalPaths.push_back(std::filesystem::current_path());
+ 
+    if (!modulePath.empty())
+    {
+        finalPaths.emplace_back(modulePath.c_str());
+    }
+ 
+    for (const auto &path : includePaths)
+    {
+        if (!path.empty())
+        {
+            finalPaths.emplace_back(path.c_str());
+        }
+    }
+ 
+    return finalPaths;
+}
+ 
+Defines resolveDefinesFromValues(const std::vector<PhsString> &defines)
+{
+    Defines finalDefines;
+    addDefaultDefines(finalDefines, false);
+ 
+    for (const auto &raw : defines)
+    {
+        if (raw.empty())
+            continue;
+ 
+        std::string item(raw.c_str());
+        const size_t eq = item.find('=');
+        if (eq == std::string::npos)
+        {
+            finalDefines[item] = DefineValue(DefineValueKind::Number, "1");
+        }
+        else
+        {
+            finalDefines[item.substr(0, eq)] = parseCliDefineValue(item.substr(eq + 1));
+        }
+    }
+ 
+    return finalDefines;
+}
+ 
+} // namespace
+
 void StdLib::registerMetaFunctions(VM *vm)
 {
 #ifndef SANDBOXED
 	vm->registerNativeFunction("phs_op", StdLib::meta_operation);
-	vm->registerNativeFunction("phs_stack_run", StdLib::meta_stack_run);
+	vm->registerNativeFunction("phs__stack_run", StdLib::meta_stack_run);
 	vm->registerNativeFunction("phs__phs_push", StdLib::meta_push);
 	vm->registerNativeFunction("phs__phs_pop", StdLib::meta_pop);
+
+    vm->registerNativeFunction("phs__new_vm", StdLib::meta_new_state);
+    vm->registerNativeFunction("phs__free_vm", StdLib::meta_free_state);
+    vm->registerNativeFunction("phs__compile", StdLib::meta_compile_phs);
+    vm->registerNativeFunction("phs__eval", StdLib::meta_eval_phs);
+    vm->registerNativeFunction("phs__exec", StdLib::meta_exec_phsb);
 #endif
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
 	vm->registerNativeFunction("phs__get_self", StdLib::meta_get_self);
-    vm->registerNativeFunction("phs__run_program", StdLib::meta_run_program);
-    vm->registerNativeFunction("phs__run_program_function", StdLib::meta_run_program_function);
 	vm->registerNativeFunction("get_registers", StdLib::meta_get_registers);
 	vm->registerNativeFunction("phs__load_bytecode", StdLib::meta_load_bytecode_from_file);
 	vm->registerNativeFunction("phs__save_bytecode", StdLib::meta_save_bytecode_to_file);
@@ -58,9 +140,9 @@ i64 StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
 
 Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "phs_stack_run");
+	checkArgCount(args, 1, "self_stack_run");
 	if (!args[0].isInt() && !args[0].isString())
-		PHS_ERROR("Function 'phs_stack_run' expects an OpCode (int/string) as the first argument");
+		PHS_ERROR("Function 'self_stack_run' expects an OpCode (int/string) as the first argument");
 	Phasor::OpCode opcode = args[0].isString() ? stringToOpCode(args[0].string()) : static_cast<Phasor::OpCode>(args[0].asInt());
 
 	for (size_t i = args.size(); i-- > 1;) 
@@ -96,14 +178,14 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     checkArgCount(args, 0, "phs__get_self");
     auto bc = vm->getBytecode();
 
-    return bytecodeToValue(bc, vm);
+    return bytecodeToValue(bc);
 }
 
 Value StdLib::meta_load_bytecode_from_file(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "phs__load_bytecode");
 	if (!args[0].isString())
-		PHS_ERROR("phs__load_bytecode() expects a string as its argument (file path)");
+		PHS_ERROR("phs__load_bytecode() expects a string as it's argument (file path)");
 	std::filesystem::path bcFile = args[0].stl_string();
 	BytecodeDeserializer deserializer;
 	if (!std::filesystem::exists(bcFile))
@@ -116,80 +198,13 @@ bool StdLib::meta_save_bytecode_to_file(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 2, "phs__save_bytecode");
 	if (!args[0].isStruct())
-		PHS_ERROR("phs__save_bytecode() expects a Bytecode struct as its first argument");
+		PHS_ERROR("phs__save_bytecode() expects a Bytecode struct as it's first argument");
 	if (!args[1].isString())
-		PHS_ERROR("phs__save_bytecode() expects a string as its second argument (file path)");
+		PHS_ERROR("phs__save_bytecode() expects a string as it's second argument (file path)");
 	std::filesystem::path outFile = args[1].stl_string();
 	BytecodeSerializer serializer;
 	auto bc = bytecodeFromValue(args[0]);
 	return serializer.saveToFile(bc, outFile);
-}
-
-i64 StdLib::meta_run_program(const std::vector<Value> &args, VM *)
-{
-    checkArgCount(args, 1, "phs__run_program");
-
-    const Value& program = args[0];
-    if (!program.isStruct())
-        PHS_ERROR("run_program expects a Bytecode struct");
-
-    Phasor::VM vm;
-    Phasor::Bytecode bc = bytecodeFromValue(program);
-    Phasor::StdLib::registerFunctions(vm);
-    vm.run(bc);
-    return static_cast<i64>(vm.getStatus());
-}
-
-Value StdLib::meta_run_program_function(const std::vector<Value> &args, VM *)
-{
-    // program: Bytecode, functionName: string, func_arguments: any[], cli_arguments: string[]
-    checkArgCount(args, 4, "phs__run_program_function");
-
-    if (!args[0].isStruct())
-        PHS_ERROR("run_program_function expects program to be a Bytecode struct");
-    if (!args[1].isString())
-        PHS_ERROR("run_program_function expects functionName to be a string");
-
-    const Phasor::Value& program = args[0];
-    PhsString functionName = args[1].string();
-    if (!args[2].isArray())
-        PHS_ERROR("run_program_function expects func_arguments to be an array");
-    auto func_arguments = args[2].asArray();
-
-    if (!args[3].isArray())
-        PHS_ERROR("run_program_function expects cli_arguments to be an array");
-    auto cli_arguments = args[3].asArray();
-
-    std::vector<std::string> arg_strings;
-    arg_strings.reserve(cli_arguments->size());
-    for (const auto &arg : *cli_arguments)
-    {
-        if (!arg.isString())
-            PHS_ERROR("run_program_function expects cli_arguments to contain only strings");
-        arg_strings.push_back(arg.string());
-    }
-
-    std::vector<char *> argv_data;
-    argv_data.reserve(arg_strings.size());
-    for (auto &arg_str : arg_strings) 
-    {
-        argv_data.push_back(const_cast<char *>(arg_str.c_str()));
-    }
-
-    Phasor::VM vm;
-    Phasor::Bytecode bc = bytecodeFromValue(program);
-    Phasor::StdLib::argc = static_cast<int>(arg_strings.size());
-    Phasor::StdLib::argv = argv_data.data();
-    Phasor::StdLib::registerFunctions(vm);
-
-    for (size_t i = func_arguments->size(); i-- > 0;)
-    {
-        vm.push((*func_arguments)[i]);
-    }
-    vm.push(static_cast<i64>(arg_strings.size()));
-
-    auto ret = vm.runFunction(functionName, bc, true);
-    return ret;
 }
 
 Value StdLib::meta_push(const std::vector<Value> &args, VM *vm)
@@ -204,5 +219,133 @@ Value StdLib::meta_pop(const std::vector<Value> &args, VM *vm)
 	checkArgCount(args, 0, "phs_pop");
 	return vm->pop();
 }
+
+i64 StdLib::meta_new_state(const std::vector<Value> &args, VM *) {
+    checkArgCount(args, 0, "new_vm");
+    auto *vm = new VM();
+    return pointer_to_i64(vm);
+}
+ 
+bool StdLib::meta_free_state(const std::vector<Value> &args, VM *){
+    checkArgCount(args, 2, "free_vm");
+    if (!args[0].isInt())
+        PHS_ERROR("free_vm() expects a integer (state handle) as it's first argument.");
+    auto *vm = static_cast<VM *>(i64_to_pointer(args[0].asInt()));
+    if (vm == nullptr)
+        return false;
+    delete vm;
+    return true;
+}
+ 
+i64 StdLib::meta_eval_phs(const std::vector<Value> &args, VM *){
+    checkArgCount(args, 5, "phs_eval", true);
+    if (args.size() > 6) PHS_ERROR("phs_eval() expects at least 5 arguments, at most 6 arguments.");
+    if (!args[0].isInt() && !args[0].isNull())
+        PHS_ERROR("phs_eval() expects a integer (state handle) or null as it's first argument.");
+    if (!args[1].isString())
+        PHS_ERROR("phs_eval() expects a string (source) as it's second argument.");
+    if (!args[2].isString())
+        PHS_ERROR("phs_eval() expects a string (module path) as it's third argument.");
+    if (!args[3].isArray())
+        PHS_ERROR("phs_eval() expects an array of strings (include paths) as it's fourth argument.");
+    if (!args[4].isArray())
+        PHS_ERROR("phs_eval() expects an array of strings (defines) as it's fifth argument.");
+    if (args.size() == 6 && !args[5].isBool())
+        PHS_ERROR("phs_eval() expects an optional boolean (verbose) as it's sixth argument.");
+ 
+    VM *state = nullptr;
+    if (args[0].isInt()) state = static_cast<VM *>(i64_to_pointer(args[0].asInt()));
+    PhsString script = args[1].toString();
+    PhsString moduleName = args[2].toString();
+    PhsString modulePath = args[3].toString();
+    std::vector<PhsString> includePaths = phasorStringArrayToVector(args[4]);
+    std::vector<PhsString> defines = phasorStringArrayToVector(args[5]);
+    bool verbose = args.size() == 7 ? args[6].asBool() : false;
+
+    Lexer lexer(script.str());
+    auto tokens = lexer.tokenize();
+    Parser parser(tokens, modulePath.str());
+ 
+    auto resolvedIncludes = resolveIncludePathsFromValues(modulePath, includePaths);
+    if (!resolvedIncludes.empty())
+    {
+        parser.setIncludePaths(resolvedIncludes);
+    }
+    if (!modulePath.empty())
+    {
+        parser.setSourcePath(modulePath.str());
+    }
+    parser.setDefines(resolveDefinesFromValues(defines));
+ 
+    auto program = parser.parse();
+    if (verbose)
+    {
+        program->print();
+    }
+ 
+    CodeGenerator codegen;
+    auto bytecode = codegen.generate(*program);
+ 
+    return static_cast<i64>(state->run(bytecode));
+}
+ 
+i64 StdLib::meta_exec_phsb(const std::vector<Value> &args, VM *){
+    checkArgCount(args, 2, "phs_exec");
+    if (!args[0].isInt() && !args[0].isNull())
+        PHS_ERROR("phs_exec() expects a integer (state handle) or null as it's first argument.");
+    if (!args[1].isString())
+        PHS_ERROR("phs_exec() expects a struct (bytecode) as it's second argument.");
+ 
+    VM *state = nullptr;
+    bool ownVM = false;
+    if (args[0].isInt()) state = static_cast<VM *>(i64_to_pointer(args[0].asInt()));
+    if (!state) {
+        ownVM = true;
+        state = new VM;
+    }
+ 
+    Bytecode bytecode = bytecodeFromValue(args[1]);
+    int ret = static_cast<i64>(state->run(bytecode));
+    if (ownVM) delete state;
+    return ret;
+}
+ 
+Value StdLib::meta_compile_phs(const std::vector<Value> &args, VM *){
+    checkArgCount(args, 5, "phs_compile");
+    if (!args[0].isString())
+        PHS_ERROR("phs_compile() expects a string (source) or null as it's first argument.");
+    if (!args[1].isString())
+        PHS_ERROR("phs_compile() expects a string (module path) as it's second argument.");
+    if (!args[2].isArray())
+        PHS_ERROR("phs_compile() expects a string array (include paths) as it's third argument.");
+    if (!args[3].isArray())
+        PHS_ERROR("phs_compile() expects a string array (defines) as it's fourth argument.");
+ 
+    PhsString script = args[0].toString();
+    PhsString modulePath = args[1].toString();
+    std::vector<PhsString> includePaths = phasorStringArrayToVector(args[2]);
+    std::vector<PhsString> defines = phasorStringArrayToVector(args[3]);
+ 
+    Lexer lexer(script);
+    Parser parser(lexer.tokenize(), modulePath.str());
+ 
+    auto resolvedIncludes = resolveIncludePathsFromValues(modulePath, includePaths);
+    if (!resolvedIncludes.empty())
+    {
+        parser.setIncludePaths(resolvedIncludes);
+    }
+    if (!modulePath.empty())
+    {
+        parser.setSourcePath(modulePath.str());
+    }
+    parser.setDefines(resolveDefinesFromValues(defines));
+ 
+    auto ast = parser.parse();
+    CodeGenerator codegen;
+    Bytecode bytecode = codegen.generate(*ast);
+ 
+    return bytecodeToValue(bytecode);
+}
+
 
 } // namespace Phasor

@@ -43,6 +43,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
 	vm->registerNativeFunction("sys_fork", StdLib::sys_fork);
+	vm->registerNativeFunction("sys_fork_output", StdLib::sys_fork_output);
 	vm->registerNativeFunction("sys_fork_detached", StdLib::sys_fork_detached);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
@@ -334,6 +335,101 @@ i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
     }
 
     return static_cast<i64>(PHASORstd_sys_run(executable, static_cast<int>(v_argv.size()), v_argv.data()));
+}
+
+Value StdLib::sys_fork_output(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "sys_fork_output", true);
+
+	if (!args[0].isString())
+		PHS_ERROR("sys_fork_output() expects a string as its first argument (executable)");
+
+	std::vector<std::string> v_args;
+
+	if (args.size() == 2 && args[1].isArray())
+	{
+		const auto &arr = *args[1].asArray();
+		v_args.reserve(arr.size());
+		for (const auto &val : arr)
+		{
+			if (!val.isString())
+				PHS_ERROR("sys_fork_output() expects its argument array to contain only strings");
+			v_args.push_back(val.stl_string());
+		}
+	}
+	else
+	{
+		size_t argc = args.size() - 1;
+		v_args.reserve(argc);
+		for (size_t i = 0; i < argc; ++i)
+		{
+			if (!args[i + 1].isString())
+				PHS_ERROR("sys_fork_output() expects all of its arguments to be strings");
+			v_args.push_back(args[i + 1].stl_string());
+		}
+	}
+
+	auto quoteArg = [](const std::string &s) -> std::string
+	{
+#ifdef _WIN32
+		std::string out = "\"";
+		for (char c : s)
+		{
+			if (c == '\"')
+				out += "\\\"";
+			else
+				out += c;
+		}
+		out += "\"";
+		return out;
+#else
+		std::string out = "'";
+		for (char c : s)
+		{
+			if (c == '\'')
+				out += "'\\''";
+			else
+				out += c;
+		}
+		out += "'";
+		return out;
+#endif
+	};
+
+	std::string cmd = quoteArg(args[0].stl_string());
+	for (const auto &a : v_args)
+	{
+		cmd += ' ';
+		cmd += quoteArg(a);
+	}
+
+#ifdef _WIN32
+	std::string fullCmd = "\"" + cmd + "\"";
+	FILE *pipe = _popen(fullCmd.c_str(), "r");
+#else
+	FILE *pipe = popen(cmd.c_str(), "r");
+#endif
+
+	if (!pipe)
+		PHS_ERROR("sys_fork_output() failed to start process");
+
+	std::string output;
+	char buffer[4096];
+	size_t n;
+	while ((n = fread(buffer, 1, sizeof(buffer), pipe)) > 0)
+		output.append(buffer, n);
+
+#ifdef _WIN32
+	int rc = _pclose(pipe);
+#else
+	int status = pclose(pipe);
+	int rc = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+#endif
+
+	if (rc != 0)
+		return Value(); // null
+
+	return Value(output);
 }
 
 i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)

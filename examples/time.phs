@@ -1,6 +1,5 @@
 #!/usr/bin/env phasor
 define NO_CHECK_OS;
-define NO_STACK_COOKIE;
 include "std/io";
 include "std/type";
 include "std/str";

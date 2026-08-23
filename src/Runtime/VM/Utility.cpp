@@ -7,6 +7,7 @@
 #include <cassert>
 #include "core/core.h"
 #include <phsint.hpp>
+#include "../../ISA/map.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -98,6 +99,36 @@ void VM::setup(const Bytecode &bc, const size_t initialPC)
 int VM::run(const Bytecode &bc, const size_t startPC)
 {
 	setup(bc, startPC);
+	bool singleInstruction = false;
+
+	if (m_bytecode->instructions.size() < 2) {
+		if (m_bytecode->instructions.size() == 1) {
+			Instruction instruction = m_bytecode->instructions[0];
+			std::vector<std::string> operandParts;
+			if (instruction.operand3 != 0) {
+				operandParts.push_back(std::to_string(instruction.operand1));
+				operandParts.push_back(std::to_string(instruction.operand2));
+				operandParts.push_back(std::to_string(instruction.operand3));
+			} else if (instruction.operand2 != 0) {
+				operandParts.push_back(std::to_string(instruction.operand1));
+				operandParts.push_back(std::to_string(instruction.operand2));
+			} else if (instruction.operand1 != 0) {
+				operandParts.push_back(std::to_string(instruction.operand1));
+			}
+			std::string operands;
+			for (size_t i = 0; i < operandParts.size(); ++i) {
+				if (i != 0) operands += ", ";
+				operands += operandParts[i];
+			}
+			log(std::format("Warning! Bytecode has 1 instruction:\n{} {}", opCodeToString(instruction.op), operands));
+			flush();
+			singleInstruction = true;
+		} else {
+			log(std::format("Warning! Bytecode has 0 instructions."));
+			flush();
+			return 0;
+		}
+	}
 
 #ifdef TRACING
 	log(std::format("\n{}:\n\n", PHS_SRC_LOC()));
@@ -150,6 +181,10 @@ stacklog << "disabled for now";
 		if (isDebuggerAttached())
 			assert(status == 0);
 #endif
+		if (singleInstruction) {
+			log(std::format("\nUser code exited {} with code {}\n", status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
+			flush();
+		}
 		return status;
 	}
 	catch (const std::exception &e)
@@ -159,14 +194,13 @@ stacklog << "disabled for now";
     _setmode(in_fd, old_in_mode);
 #endif
 		std::ostringstream stacklog;
-	#ifdef PHASOR_USES_BOOST
-//    	stacklog << boost::stacktrace::stacktrace();
-	#elif defined(__ANDROID__)
-//		stacklog << "'stacktrace' unsupported on NDK";
-	#else
-//		stacklog << std::stacktrace::current();
-stacklog << "disabled for now";
-	#endif
+#ifdef PHASOR_USES_BOOST
+    	stacklog << boost::stacktrace::stacktrace();
+#elif defined(__ANDROID__)
+		stacklog << "'stacktrace' unsupported on NDK";
+#else
+		stacklog << "disabled for now";
+#endif
 		logerr(std::format("\n{}: \x1B[0;31mUNCAUGHT std::exception occured in Phasor VM Runtime\x1B[0m\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
 		flusherr();
 		status = BAD_STATUS;

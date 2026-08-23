@@ -9,12 +9,13 @@
 
 namespace Phasor
 {
-/// @brief Instruction with up to 5 operands
-/// Format: instruction operand1, operand2, operand3
-/// Each instruction uses only the operands it needs
+/** @brief Instruction with up to 3 operands
+ *  Format: instruction operand1, operand2, operand3
+ *  Each instruction uses only the operands it needs
+ */ 
 struct Instruction
 {
-	OpCode  op;       ///< Operation code
+	OpCode  op;   ///< Operation code
 	i32 operand1; ///< First operand
 	i32 operand2; ///< Second operand
 	i32 operand3; ///< Third operand

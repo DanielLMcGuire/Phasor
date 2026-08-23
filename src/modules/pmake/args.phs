@@ -1,0 +1,51 @@
+fn parseArgs(argv: string[]) -> CmdArgs {
+    var args: CmdArgs = CmdArgs{
+        preset: "", src: "", install: "", out: "", 
+        doConfigure: false, doBuild: false, doInstall: false, 
+        doClean: false, doForce: false, showHelp: false, error: ""
+    };
+
+    var argStart: int = 1;
+    if (argv.len() > 1 && !argv[1].to_string().starts_with("-")) {
+        args.preset = argv[1].to_string();
+        args.doConfigure = true;
+        argStart = 2;
+    }
+
+    for (var i: int = argStart; i < argv.len(); i++) {
+        var arg: string = argv[i].to_string();
+
+        if (arg == "-s" || arg == "--src") {
+            if (i + 1 < argv.len() && !argv[i + 1].to_string().starts_with("-")) {
+                args.src = argv[i + 1].to_string();
+                i++;
+            } else {
+                args.error = "Expected source folder after " + arg;
+            }
+            
+        } else if (arg == "-i" || arg == "--install") {
+            args.doInstall = true;
+            if (i + 1 < argv.len() && !argv[i + 1].to_string().starts_with("-")) {
+                args.install = argv[i + 1].to_string();
+                i++; 
+            }
+            
+        } else if (arg == "-b" || arg == "--build") {
+            args.doBuild = true;
+            if (i + 1 < argv.len() && !argv[i + 1].to_string().starts_with("-")) {
+                args.out = argv[i + 1].to_string();
+                i++; 
+            }
+            
+        } else if (arg == "-c" || arg == "--clean") {
+            args.doClean = true;
+        } else if (arg == "-f" || arg == "--force") {
+            args.doForce = true;
+        } else if (arg == "-h" || arg == "--help") {
+            args.showHelp = true;
+        } else {
+            args.error = "Unknown argument: " + arg;
+        }
+    }
+    return args;
+}

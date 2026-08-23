@@ -71,6 +71,8 @@ namespace
 		if (!v.isBool())
 			PHS_ERROR(std::string(fnName) + "() expects a boolean as its " + what);
 	}
+
+
 }
 
 void StdLib::registerFileFunctions(VM *vm)
@@ -218,12 +220,57 @@ bool StdLib::file_is_directory(const std::vector<Value> &args, VM *)
 
 PhsString StdLib::file_join_path(const std::vector<Value> &args, VM *)
 {
-	checkArgCount(args, 2, "fjoin");
-	requireString(args[0], "fjoin", "first argument (path)");
-	requireString(args[1], "fjoin", "second argument (path)");
-	std::filesystem::path path1 = args[0].stl_string();
-	std::filesystem::path path2 = args[1].stl_string();
-	return (path1 / path2).string();
+	checkArgCount(args, 1, "fjoin", true);
+
+	auto appendComponent = [](std::filesystem::path &result, const Value &v, size_t argIndex)
+	{
+		if (v.isString())
+		{
+			result /= v.stl_string();
+			return;
+		}
+
+		if (v.isArray())
+		{
+			auto arr = v.asArray();
+			if (arr->empty())
+				PHS_ERROR(std::string("fjoin() expects a non-empty array of strings for argument ")
+				          + std::to_string(argIndex));
+
+			for (size_t i = 0; i < arr->size(); ++i)
+			{
+				const Value &elem = (*arr)[i];
+				if (!elem.isString())
+					PHS_ERROR(std::string("fjoin() expects an array of strings for argument ")
+					          + std::to_string(argIndex) + ", but element " + std::to_string(i)
+					          + " is a " + Value::typeToString(elem.getType()).stl_string());
+
+				result /= elem.stl_string();
+			}
+			return;
+		}
+
+		PHS_ERROR(std::string("fjoin() expects a string or an array of strings as argument ")
+		          + std::to_string(argIndex) + ", but got a "
+		          + Value::typeToString(v.getType()).stl_string());
+	};
+
+	std::filesystem::path result;
+
+	if (args.size() == 1)
+	{
+		if (!args[0].isArray())
+			PHS_ERROR(std::string("fjoin() with a single argument expects an array of strings"));
+
+		appendComponent(result, args[0], 0);
+	} else if (args.size() == 2) {
+		appendComponent(result, args[0], 0);
+		appendComponent(result, args[1], 1);
+	} else {
+		PHS_ERROR(std::string("fjoin() expects either a single array argument or two arguments (string or array)"));
+	}
+
+	return result.string();
 }
 
 i64 StdLib::file_get_size(const std::vector<Value> &args, VM *)

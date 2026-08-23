@@ -195,6 +195,24 @@ void Parser::synchronize()
 	}
 }
 
+static bool staticTryParseNumber(const std::string &s, double &out)
+{
+	if (s.empty())
+	{
+		return false;
+	}
+	try
+	{
+		size_t idx = 0;
+		out = std::stod(s, &idx);
+		return idx == s.size();
+	}
+	catch (...)
+	{
+		return false;
+	}
+}
+
 void Parser::declarationInto(std::vector<std::unique_ptr<AST::Statement>> &out)
 {
 	if (check(Phasor::TokenType::Keyword) && peek().lexeme == "define")
@@ -224,57 +242,22 @@ void Parser::defineDirective()
 
 	if (match(Phasor::TokenType::Symbol, "="))
 	{
-		bool  negative = false;
-		Token signTok  = peek();
+		auto expr = expression();
+		std::string text = evaluateStaticValue(expr.get());
 
-		if (check(Phasor::TokenType::Symbol) && peek().lexeme == "-")
+		DefineValueKind kind = DefineValueKind::String;
+		double d = 0.0;
+
+		if (text == "true" || text == "false")
 		{
-			signTok  = advance();
-			negative = true;
+			kind = DefineValueKind::Boolean;
+		}
+		else if (staticTryParseNumber(text, d))
+		{
+			kind = DefineValueKind::Number;
 		}
 
-		if (check(Phasor::TokenType::Number))
-		{
-			Token numTok = advance();
-			std::string text = numTok.lexeme;
-
-			if (negative)
-			{
-				text = "-" + text;
-			}
-
-			value = DefineValue(DefineValueKind::Number, text);
-		}
-		else if (negative)
-		{
-			lastError = {
-				"Expect numeric literal after '-' in 'define'.",
-				signTok.line,
-				signTok.column
-			};
-			throw std::runtime_error("Expect numeric literal after '-' in 'define'.");
-		}
-		else if (check(Phasor::TokenType::String))
-		{
-			value = DefineValue(DefineValueKind::String, advance().lexeme);
-		}
-		else if (match(Phasor::TokenType::Keyword, "true"))
-		{
-			value = DefineValue(DefineValueKind::Boolean, "true");
-		}
-		else if (match(Phasor::TokenType::Keyword, "false"))
-		{
-			value = DefineValue(DefineValueKind::Boolean, "false");
-		}
-		else
-		{
-			lastError = {
-				"Expect a literal value after '=' in 'define'.",
-				peek().line,
-				peek().column
-			};
-			throw std::runtime_error("Expect a literal value after '=' in 'define'.");
-		}
+		value = DefineValue(kind, text);
 	}
 
 	consume(Phasor::TokenType::Symbol, ";", "Expect ';' after 'define'.");
@@ -369,24 +352,6 @@ static bool staticTextTruthy(const std::string &v)
 	return !v.empty() && v != "0" && v != "false";
 }
 
-static bool staticTryParseNumber(const std::string &s, double &out)
-{
-	if (s.empty())
-	{
-		return false;
-	}
-	try
-	{
-		size_t idx = 0;
-		out = std::stod(s, &idx);
-		return idx == s.size();
-	}
-	catch (...)
-	{
-		return false;
-	}
-}
-
 std::string Parser::evaluateStaticValue(AST::Expression *expr)
 {
 	if (auto *n = dynamic_cast<AST::NumberExpr *>(expr))
@@ -444,13 +409,60 @@ std::string Parser::evaluateStaticValue(AST::Expression *expr)
 			return evaluateStaticCondition(u) ? "true" : "false";
 		}
 	}
-	if (dynamic_cast<AST::BinaryExpr *>(expr) != nullptr)
+	if (auto *bin = dynamic_cast<AST::BinaryExpr *>(expr))
 	{
+		if (bin->op == AST::BinaryOp::Add || bin->op == AST::BinaryOp::Subtract || 
+		    bin->op == AST::BinaryOp::Multiply || bin->op == AST::BinaryOp::Divide || 
+		    bin->op == AST::BinaryOp::Modulo)
+		{
+			std::string lhs = evaluateStaticValue(bin->left.get());
+			std::string rhs = evaluateStaticValue(bin->right.get());
+			
+			double lnum = 0.0;
+			double rnum = 0.0;
+			if (staticTryParseNumber(lhs, lnum) && staticTryParseNumber(rhs, rnum))
+			{
+				if (lhs.find('.') == std::string::npos && rhs.find('.') == std::string::npos)
+				{
+					try
+					{
+						long long ilhs = std::stoll(lhs);
+						long long irhs = std::stoll(rhs);
+						if (bin->op == AST::BinaryOp::Add) return std::to_string(ilhs + irhs);
+						if (bin->op == AST::BinaryOp::Subtract) return std::to_string(ilhs - irhs);
+						if (bin->op == AST::BinaryOp::Multiply) return std::to_string(ilhs * irhs);
+						if (bin->op == AST::BinaryOp::Divide) return irhs != 0 ? std::to_string(ilhs / irhs) : "0";
+						if (bin->op == AST::BinaryOp::Modulo) return irhs != 0 ? std::to_string(ilhs % irhs) : "0";
+					}
+					catch (...) {}
+				}
+
+				if (bin->op == AST::BinaryOp::Add) return std::to_string(lnum + rnum);
+				if (bin->op == AST::BinaryOp::Subtract) return std::to_string(lnum - rnum);
+				if (bin->op == AST::BinaryOp::Multiply) return std::to_string(lnum * rnum);
+				if (bin->op == AST::BinaryOp::Divide) return rnum != 0.0 ? std::to_string(lnum / rnum) : "0.0";
+				if (bin->op == AST::BinaryOp::Modulo)
+				{
+					long long ilhs = static_cast<long long>(lnum);
+					long long irhs = static_cast<long long>(rnum);
+					return irhs != 0 ? std::to_string(ilhs % irhs) : "0";
+				}
+			}
+
+			if (bin->op == AST::BinaryOp::Add)
+			{
+				return lhs + rhs;
+			}
+
+			lastError = {"Unsupported math operands in static expression.", expr->line, expr->column};
+			throw std::runtime_error("Unsupported math operands in static expression.");
+		}
+		
 		return evaluateStaticCondition(expr) ? "true" : "false";
 	}
 
-	lastError = {"Unsupported expression in 'static_if' condition.", expr->line, expr->column};
-	throw std::runtime_error("Unsupported expression in 'static_if' condition.");
+	lastError = {"Unsupported expression in 'static_if' condition or 'define'.", expr->line, expr->column};
+	throw std::runtime_error("Unsupported expression in 'static_if' condition or 'define'.");
 }
 
 bool Parser::evaluateStaticCondition(AST::Expression *expr)

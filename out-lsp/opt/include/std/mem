@@ -1,0 +1,49 @@
+// Phasor STDMEM
+// phasor-help phasorstd-mem 3
+// Copyright 2026 Daniel McGuire
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://llvm.org/LICENSE.txt
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+ffiload("stdmem");
+include "./types/mem.phs";
+
+
+fn malloc_native(size: i64) -> ManagedMemory;
+
+fn calloc_native(size: i64) -> ManagedMemory;
+
+fn realloc_native(handle: ManagedMemory, size: i64) -> ManagedMemory;
+
+fn c_stralloc_native(data: string) -> ManagedMemory;
+
+fn c_strcpy_native(handle0: ManagedMemory, handle1: ManagedMemory) -> void;
+
+fn write_native(handle: ManagedMemory, data: i64) -> void;
+
+fn write_offset_native(handle: ManagedMemory, offset: i64, data: i64) -> void;
+
+fn write_c_string_native(handle: ManagedMemory, data: string) -> void;
+
+fn write_c_string_offset_native(handle: ManagedMemory, offset: i64, data: string) -> void;
+
+fn read_native(handle: ManagedMemory) -> i64;
+
+fn read_native_offset(handle: ManagedMemory, offset: i64) -> i64;
+
+fn read_c_string_native(handle: ManagedMemory) -> string;
+
+fn read_c_string_native_offset(handle: ManagedMemory, offset: i64) -> string;
+
+fn free_native(handle: ManagedMemory) -> void;
+
+// ----
+include "../../src/std/mem.phs";

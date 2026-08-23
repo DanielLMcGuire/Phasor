@@ -1,0 +1,61 @@
+// Copyright 2026 Daniel McGuire -- conemu extensions for Phasor Standard Library
+// Licensed under the MIT License.
+
+// https://conemu.github.io/en/AnsiEscapeCodes.html#ConEmu_specific_OSC
+// Sequence | Description
+
+
+// ESC ] 9 ; 1 ; ms ST | Sleep. ms - number, milliseconds.
+fn conemu_sleep(ms: int);
+
+// ESC ] 9 ; 2 ; ”txt“ ST | Show GUI MessageBox ( txt ) for any purposes.
+fn conemu_messagebox(txt: string);
+
+// ESC ] 9 ; 3 ; ”txt“ ST | Change ConEmu Tab to txt. 
+// Set empty string to return original Tab text.
+fn conemu_title(txt: string);
+
+// ESC ] 9 ; 4 ; st ; pr ST | Set progress state on Windows 7 taskbar and ConEmu title. 
+// When st is 0: remove progress. 
+// When st is 1: set progress value to pr (number, 0-100). 
+// When st is 2: set error state in progress on Windows 7 taskbar, pr is optional. 
+// When st is 3: set indeterminate state.
+// When st is 4: set paused state, pr is optional.
+fn conemu_progress(st: int, pr: int);
+fn conemu_progress_reset();
+
+// ESC ] 9 ; 5 ST | Wait for Enter/Space/Esc. 
+// Set environment variable “ConEmuWaitKey” to “ENTER”/”SPACE”/”ESC” on exit.
+fn conemu_wait_for_input();
+
+// ESC ] 9 ; 6 ; ”txt“ ST | Execute GuiMacro ( txt ). 
+// returns: macro result from EnvVar “ConEmuMacroResult on exit.
+fn conemu_guimacro(txt: string);
+
+// ESC ] 9 ; 7 ; ”cmd“ ST | Run some process with arguments.
+fn conemu_run(cmd: string);
+
+// ESC ] 9 ; 8 ; “env” ST | Output value of environment variable.
+fn conemu_print_envvar(env: string);
+
+// ESC ] 9 ; 9 ; “cwd” ST | Inform ConEmu about shell current working directory.
+fn conemu_inform_cwd(cwd: string);
+
+// ESC ] 9 ; 10 ST | Request xterm keyboard and output emulation.
+fn conemu_request_xtermemulation();
+
+// ESC ] 9 ; 10 n ST | Specific output emulation options
+// When n is 0 turn off xterm keyboard and output emulation.
+// When n is 1 turn on xterm keyboard and output emulation.
+// When n is 2 turn off xterm output emulation.
+// When n is 3 turn on xterm output emulation.
+fn conemu_set_xtermemulation(n: int);
+
+// ESC ] 9 ; 11; “txt” ST | Just a ‘comment’, skip it.
+fn conemu_comment(txt: string);
+
+// ESC ] 9 ; 12 ST | Let ConEmu treat current cursor position as prompt start.
+fn conemu_set_prompt_start();
+
+// ----
+include "../../../src/std/extra/conemu.phs";

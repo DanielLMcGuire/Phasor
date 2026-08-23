@@ -1,0 +1,27 @@
+struct INI_phasor {
+    version: string,
+    name: string,
+    out: string
+}
+struct INI_wix {
+    install: string,
+    harvest: string,
+    version: string,
+    file: string
+}
+struct INIDATA { 
+    phasor: INI_phasor,
+    wix: INI_wix
+}
+
+struct mainConfig {
+    INI: INIDATA,
+    WIX_DIR: string,
+    WIX_EXTENSIONS: string,
+    NUGET_EXE: string,
+    WIX_EXE: string,
+    HEAT_EXE: string,
+    FILES_DIR: string,
+    PHASOR_MSI: string,
+    CONFIG: string
+}

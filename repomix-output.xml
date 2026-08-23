@@ -1,0 +1,4654 @@
+<repomix><directory_structure>Bytecode/
+  BytecodeDeserializer.cpp
+  BytecodeDeserializer.hpp
+  BytecodeSerializer.cpp
+  BytecodeSerializer.hpp
+  metadata.h
+C/
+  CCodeGenerator.cpp
+  CCodeGenerator.hpp
+IR/
+  PhasorIR.cpp
+  PhasorIR.hpp
+PhasorStruct/
+  PhasorStruct.hpp
+Bytecode.hpp
+CMakeLists.txt
+CodeGen.cpp
+CodeGen.hpp
+README.md</directory_structure><files>This section contains the contents of the repository&apos;s files.<file path="Bytecode/BytecodeDeserializer.cpp">#include &quot;BytecodeDeserializer.hpp&quot;
+#include &lt;cstring&gt;
+#include &lt;stdexcept&gt;
+#include &lt;filesystem&gt;
+#include &lt;phsint.hpp&gt;
+#include &quot;metadata.h&quot;
+// Section IDs — must match BytecodeSerializer.cpp
+const Phasor::u8 SECTION_CONSTANTS    = 0x01;
+const Phasor::u8 SECTION_VARIABLES    = 0x02;
+const Phasor::u8 SECTION_INSTRUCTIONS = 0x03;
+const Phasor::u8 SECTION_FUNCTIONS    = 0x04;
+const Phasor::u8 SECTION_STRUCTS      = 0x05;
+const Phasor::u8 SECTION_FUNC_TYPES   = 0x06;
+const Phasor::u8 SECTION_SCOPE_VARS   = 0x07;
+static Phasor::u32 crc32_table[256];
+static bool        crc32_table_initialized = false;
+void init_crc32_table_deserializer()
+{
+	for (Phasor::u32 i = 0; i &lt; 256; i++)
+	{
+		Phasor::u32 crc = i;
+		for (int j = 0; j &lt; 8; j++)
+		{
+			if ((crc &amp; 1) != 0U)
+			{
+				crc = (crc &gt;&gt; 1) ^ 0xEDB88320;
+			} else {
+				crc &gt;&gt;= 1;
+			}
+		}
+		crc32_table[i] = crc;
+	}
+	crc32_table_initialized = true;
+}
+namespace Phasor
+{
+u32 BytecodeDeserializer::calculateCRC32(const u8 *data, size_t size)
+{
+	if (!crc32_table_initialized)
+	{
+		init_crc32_table_deserializer();
+	}
+	u32 crc = 0xFFFFFFFF;
+	for (size_t i = 0; i &lt; size; i++)
+	{
+		crc = (crc &gt;&gt; 8) ^ crc32_table[(crc ^ data[i]) &amp; 0xFF];
+	}
+	return crc ^ 0xFFFFFFFF;
+}
+// ---------------------------------------------------------------------------
+// Primitive readers
+// ---------------------------------------------------------------------------
+u8 BytecodeDeserializer::readUInt8()
+{
+	if (position &gt;= dataSize)
+	{
+		throw std::runtime_error(&quot;Unexpected end of bytecode data&quot;);
+	}
+	return _data[position++];
+}
+u16 BytecodeDeserializer::readUInt16()
+{
+	u16 value = 0;
+	value |= static_cast&lt;u16&gt;(readUInt8());
+	value |= static_cast&lt;u16&gt;(readUInt8()) &lt;&lt; 8;
+	return value;
+}
+u32 BytecodeDeserializer::readUInt32()
+{
+	u32 value = 0;
+	value |= static_cast&lt;u32&gt;(readUInt8());
+	value |= static_cast&lt;u32&gt;(readUInt8()) &lt;&lt; 8;
+	value |= static_cast&lt;u32&gt;(readUInt8()) &lt;&lt; 16;
+	value |= static_cast&lt;u32&gt;(readUInt8()) &lt;&lt; 24;
+	return value;
+}
+i32 BytecodeDeserializer::readInt32()
+{
+	return static_cast&lt;i32&gt;(readUInt32());
+}
+i64 BytecodeDeserializer::readInt64()
+{
+	i64 value = 0;
+	for (int i = 0; i &lt; 8; i++)
+	{
+		value |= static_cast&lt;i64&gt;(readUInt8()) &lt;&lt; (i * 8);
+	}
+	return value;
+}
+f64 BytecodeDeserializer::readDouble()
+{
+	u64 bits = 0;
+	for (int i = 0; i &lt; 8; i++)
+	{
+		bits |= static_cast&lt;u64&gt;(readUInt8()) &lt;&lt; (i * 8);
+	}
+	f64 value;
+	std::memcpy(&amp;value, &amp;bits, sizeof(f64));
+	return value;
+}
+std::string BytecodeDeserializer::readString()
+{
+	u16         length = readUInt16();
+	std::string str;
+	str.reserve(length);
+	for (u16 i = 0; i &lt; length; i++)
+	{
+		str.push_back(static_cast&lt;char&gt;(readUInt8()));
+	}
+	return str;
+}
+// ---------------------------------------------------------------------------
+// Recursive value reader — mirrors BytecodeSerializer::writeValue exactly.
+// ---------------------------------------------------------------------------
+Value BytecodeDeserializer::readValue()
+{
+	u8 typeTag = readUInt8();
+	switch (typeTag)
+	{
+	case 0: // Null
+		return Value{};
+	case 1: // Bool
+		return Value{readUInt8() != 0};
+	case 2: // Int
+		return Value{readInt64()};
+	case 3: // Float
+		return Value{readDouble()};
+	case 4: // String
+		return Value{readString()};
+	case 5: // Struct
+	{
+		std::string typeName   = readString();
+		u32         fieldCount = readUInt32();
+		Value structVal = Value::createStruct(PhsString(typeName));
+		for (u32 i = 0; i &lt; fieldCount; ++i)
+		{
+			std::string fieldName = readString();
+			Value       fieldVal  = readValue(); // recurse
+			structVal.setField(PhsString(fieldName), std::move(fieldVal));
+		}
+		return structVal;
+	}
+	case 6: // Array
+	{
+		u32                elementCount = readUInt32();
+		std::vector&lt;Value&gt; elements;
+		elements.reserve(elementCount);
+		for (u32 i = 0; i &lt; elementCount; ++i)
+		{
+			elements.push_back(readValue()); // recurse
+		}
+		return Value::createArray(std::move(elements));
+	}
+	default:
+		throw std::runtime_error(&quot;BytecodeDeserializer::readValue: unknown type tag &quot; +
+		                         std::to_string(typeTag));
+	}
+}
+// ---------------------------------------------------------------------------
+// Section readers
+// ---------------------------------------------------------------------------
+void BytecodeDeserializer::readHeader(u32 &amp;checksum)
+{
+	u32 magic = readUInt32();
+	if (magic != MAGIC_NUMBER)
+	{
+		throw std::runtime_error(&quot;Invalid bytecode file: incorrect magic number&quot;);
+	}
+	u32 version = readUInt32();
+	if (version != VERSION)
+	{
+		throw std::runtime_error(&quot;Incompatible bytecode version&quot;);
+	}
+	u32 flags = readUInt32(); // Reserved
+	(void)flags;
+	checksum = readUInt32();
+}
+void BytecodeDeserializer::readConstantPool(Bytecode &amp;bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_CONSTANTS)
+	{
+		throw std::runtime_error(&quot;Expected constant pool section&quot;);
+	}
+	u32 count = readUInt32();
+	bytecode.constants.reserve(count);
+	for (u32 i = 0; i &lt; count; i++)
+	{
+		bytecode.constants.push_back(readValue());
+	}
+}
+void BytecodeDeserializer::readVariableMapping(Bytecode &amp;bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_VARIABLES)
+	{
+		throw std::runtime_error(&quot;Expected variable mapping section&quot;);
+	}
+	u32 count = readUInt32();
+	bytecode.nextVarIndex = readInt32();
+	for (u32 i = 0; i &lt; count; i++)
+	{
+		std::string name  = readString();
+		i32         index = readInt32();
+		bytecode.variables[name] = index;
+	}
+}
+void BytecodeDeserializer::readInstructions(Bytecode &amp;bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_INSTRUCTIONS)
+	{
+		throw std::runtime_error(&quot;Expected instructions section&quot;);
+	}
+	u32 count = readUInt32();
+	bytecode.instructions.reserve(count);
+	for (u32 i = 0; i &lt; count; i++)
+	{
+		u8  opcode = readUInt8();
+		i32 op1    = readInt32();
+		i32 op2    = readInt32();
+		i32 op3    = readInt32();
+		bytecode.instructions.emplace_back(static_cast&lt;OpCode&gt;(opcode), op1, op2, op3);
+	}
+}
+void BytecodeDeserializer::readFunctionEntries(Bytecode &amp;bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_FUNCTIONS) 
+	{
+		throw std::runtime_error(&quot;Expected function entries section&quot;);
+	}
+	u32 count = readUInt32();
+	for (u32 i = 0; i &lt; count; i++)
+	{
+		std::string name    = readString();
+		i32         address = readInt32();
+		bytecode.functionEntries[name] = address;
+	}
+}
+/**
+ * @brief Read function type signatures section (0x06).
+ *
+ * Reconstructs bytecode.functionParamTypeNames, bytecode.functionReturnTypeNames,
+ * and bytecode.functionParamCounts.
+ */
+void BytecodeDeserializer::readFunctionTypes(Bytecode &amp;bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_FUNC_TYPES)
+	{
+		throw std::runtime_error(&quot;Expected function type signatures section&quot;);
+	}
+	u32 count = readUInt32();
+	for (u32 i = 0; i &lt; count; i++)
+	{
+		std::string name           = readString();
+		std::string returnTypeName = readString();
+		u32         paramCount     = readUInt32();
+		std::vector&lt;std::string&gt; paramTypes;
+		paramTypes.reserve(paramCount);
+		for (u32 p = 0; p &lt; paramCount; p++)
+		{
+			paramTypes.push_back(readString());
+		}
+		bytecode.functionParamTypeNames[name]  = std::move(paramTypes);
+		bytecode.functionReturnTypeNames[name]  = std::move(returnTypeName);
+		bytecode.functionParamCounts[name]      = static_cast&lt;int&gt;(paramCount);
+	}
+}
+/**
+ * @brief Read struct type definitions section (0x05).
+ *
+ * Reconstructs bytecode.structs and bytecode.structEntries.
+ */
+void BytecodeDeserializer::readStructSection(Bytecode &amp;bytecode)
+{
+	u8 sectionId = readUInt8();
+	if (sectionId != SECTION_STRUCTS)
+	{
+		throw std::runtime_error(&quot;Expected struct definitions section&quot;);
+	}
+	u32 structCount = readUInt32();
+	bytecode.structs.reserve(structCount);
+	for (u32 i = 0; i &lt; structCount; i++)
+	{
+		StructInfo info;
+		info.name            = readString();
+		info.firstConstIndex = readInt32();
+		info.fieldCount      = readInt32();
+		info.fieldNames.reserve(static_cast&lt;size_t&gt;(info.fieldCount));
+		for (int f = 0; f &lt; info.fieldCount; f++)
+		{
+			info.fieldNames.push_back(readString());
+		}		
+		int index = static_cast&lt;int&gt;(bytecode.structs.size());
+		bytecode.structs.push_back(std::move(info));
+		bytecode.structEntries[bytecode.structs.back().name] = index;
+	}
+}
+/**
+ * @brief Read scope variable lists section (0x07).
+ * 
+ * Reconstructs bytecode.scopeVarLists.
+ */
+void BytecodeDeserializer::readScopeVars(Bytecode &amp;bytecode)
+{
+    u8 sectionId = readUInt8();
+    if (sectionId != SECTION_SCOPE_VARS)
+	{
+        throw std::runtime_error(&quot;Expected scope vars section&quot;);
+	}
+    u32 count = readUInt32();
+    bytecode.scopeVarLists.resize(count);
+    for (u32 i = 0; i &lt; count; i++)
+    {
+        u32 listSize = readUInt32();
+        bytecode.scopeVarLists[i].reserve(listSize);
+        for (u32 j = 0; j &lt; listSize; j++)
+        {
+            int         idx  = readInt32();
+            std::string name = readString();
+            bytecode.scopeVarLists[i].emplace_back(idx, name);
+        }
+    }
+}
+// ---------------------------------------------------------------------------
+// Top-level deserialize / loadFromFile
+// ---------------------------------------------------------------------------
+Bytecode BytecodeDeserializer::deserialize(const std::vector&lt;u8&gt; &amp;buffer)
+{
+	_data    = buffer.data();
+	dataSize = buffer.size();
+	position = 0;
+	Bytecode bytecode;
+	u32 expectedChecksum;
+	readHeader(expectedChecksum);
+	size_t dataStart      = position;
+	u32    actualChecksum = calculateCRC32(_data + dataStart, dataSize - dataStart);
+	if (actualChecksum != expectedChecksum)
+	{
+		throw std::runtime_error(&quot;Bytecode file corrupted: checksum mismatch&quot;);
+	}
+	// Sections must be read in the same order they were written.
+	readConstantPool(bytecode);
+	readVariableMapping(bytecode);
+	readScopeVars(bytecode);
+	readFunctionEntries(bytecode);
+	readFunctionTypes(bytecode);
+	readStructSection(bytecode);
+	readInstructions(bytecode);
+	return bytecode;
+}
+Bytecode BytecodeDeserializer::loadFromFile(const std::filesystem::path &amp;filename)
+{
+	std::ifstream file(filename, std::ios::binary | std::ios::ate);
+	if (!file.is_open())
+	{
+		throw std::runtime_error(&quot;Failed to open bytecode file: &quot; + filename.string());
+	}
+	std::streamsize size = file.tellg();
+	file.seekg(0, std::ios::beg);
+	std::vector&lt;u8&gt; fileBuffer(size);
+	if (!file.read(reinterpret_cast&lt;char *&gt;(fileBuffer.data()), size))
+	{
+		throw std::runtime_error(&quot;Failed to read bytecode file: &quot; + filename.string());
+	}
+	return deserialize(fileBuffer);
+}
+} // namespace Phasor</file><file path="Bytecode/BytecodeDeserializer.hpp">#pragma once
+#include &quot;../Bytecode.hpp&quot;
+#include &lt;cstdint&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;filesystem&gt;
+#include &lt;phsint.hpp&gt;
+/// @brief The Phasor Programming Language and Runtime
+namespace Phasor
+{
+/**
+ *  @class BytecodeDeserializer
+ *  @brief Bytecode binary format deserializer
+ */
+class BytecodeDeserializer
+{
+  public:
+	/// @brief Deserialize bytecode from binary buffer
+	Bytecode deserialize(const std::vector&lt;u8&gt; &amp;data);
+	/// @brief Load bytecode from .phsb file
+	Bytecode loadFromFile(const std::filesystem::path &amp;filename);
+  private:
+	const u8 *_data;
+	size_t    position;
+	size_t    dataSize;
+	u8          readUInt8();  ///&lt; Helper method to read UInt8
+	u16         readUInt16(); ///&lt; Helper method to read UInt16
+	u32         readUInt32(); ///&lt; Helper method to read UInt32
+	i32         readInt32();  ///&lt; Helper method to read Int32
+	i64         readInt64();  ///&lt; Helper method to read Int64
+	f64         readDouble(); ///&lt; Helper method to read Double
+	std::string readString(); ///&lt; Helper method to read String
+	/// @brief Read a single Value (recursive — handles nested structs/arrays)
+	Value readValue();
+	void readHeader(u32 &amp;checksum);               ///&lt; Helper method to read Header
+	void readConstantPool(Bytecode &amp;bytecode);    ///&lt; Helper method to read Constants Table
+	void readVariableMapping(Bytecode &amp;bytecode); ///&lt; Helper method to read Variable Table
+	void readInstructions(Bytecode &amp;bytecode);    ///&lt; Helper method to read Instructions Table
+	void readFunctionEntries(Bytecode &amp;bytecode); ///&lt; Helper method to read Function Entries
+	void readFunctionTypes(Bytecode &amp;bytecode);   ///&lt; Helper method to read Function Type Table
+	void readStructSection(Bytecode &amp;bytecode);   ///&lt; Helper method to read Struct Section
+	void readScopeVars(Bytecode &amp;bytecode);       ///&lt; Helper method to read Scope Vars
+	/// @brief Calculate CRC32 checksum
+	static u32 calculateCRC32(const u8 *data, size_t size);
+};
+} // namespace Phasor</file><file path="Bytecode/BytecodeSerializer.cpp">#include &quot;BytecodeSerializer.hpp&quot;
+#include &lt;cstring&gt;
+#include &lt;stdexcept&gt;
+#include &lt;filesystem&gt;
+#include &lt;fstream&gt;
+#include &quot;metadata.h&quot;
+#include &lt;phsint.hpp&gt;
+// Section IDs
+const Phasor::u8 SECTION_CONSTANTS    = 0x01;
+const Phasor::u8 SECTION_VARIABLES    = 0x02;
+const Phasor::u8 SECTION_INSTRUCTIONS = 0x03;
+const Phasor::u8 SECTION_FUNCTIONS    = 0x04;
+const Phasor::u8 SECTION_STRUCTS      = 0x05;
+const Phasor::u8 SECTION_FUNC_TYPES   = 0x06;
+const Phasor::u8 SECTION_SCOPE_VARS   = 0x07;
+static Phasor::u32 crc32_table[256];
+static bool        crc32_table_initialized = false;
+void init_crc32_table()
+{
+	for (Phasor::u32 i = 0; i &lt; 256; i++)
+	{
+		Phasor::u32 crc = i;
+		for (int j = 0; j &lt; 8; j++)
+		{
+			if ((crc &amp; 1) != 0U)
+			{
+				crc = (crc &gt;&gt; 1) ^ 0xEDB88320;
+			} else {
+				crc &gt;&gt;= 1;
+			}
+		}
+		crc32_table[i] = crc;
+	}
+	crc32_table_initialized = true;
+}
+namespace Phasor
+{
+u32 BytecodeSerializer::calculateCRC32(const std::vector&lt;u8&gt; &amp;data)
+{
+	if (!crc32_table_initialized)
+	{
+		init_crc32_table();
+	}
+	u32 crc = 0xFFFFFFFF;
+	for (u8 byte : data)
+	{
+		crc = (crc &gt;&gt; 8) ^ crc32_table[(crc ^ byte) &amp; 0xFF];
+	}
+	return crc ^ 0xFFFFFFFF;
+}
+// ---------------------------------------------------------------------------
+// Primitive writers
+// ---------------------------------------------------------------------------
+void BytecodeSerializer::writeUInt8(u8 value)
+{
+	buffer.push_back(value);
+}
+void BytecodeSerializer::writeUInt16(u16 value)
+{
+	buffer.push_back(static_cast&lt;u8&gt;(value &amp; 0xFF));
+	buffer.push_back(static_cast&lt;u8&gt;((value &gt;&gt; 8) &amp; 0xFF));
+}
+void BytecodeSerializer::writeUInt32(u32 value)
+{
+	buffer.push_back(static_cast&lt;u8&gt;(value &amp; 0xFF));
+	buffer.push_back(static_cast&lt;u8&gt;((value &gt;&gt; 8) &amp; 0xFF));
+	buffer.push_back(static_cast&lt;u8&gt;((value &gt;&gt; 16) &amp; 0xFF));
+	buffer.push_back(static_cast&lt;u8&gt;((value &gt;&gt; 24) &amp; 0xFF));
+}
+void BytecodeSerializer::writeInt32(i32 value)
+{
+	writeUInt32(static_cast&lt;u32&gt;(value));
+}
+void BytecodeSerializer::writeInt64(i64 value)
+{
+	for (int i = 0; i &lt; 8; i++)
+	{
+		buffer.push_back(static_cast&lt;u8&gt;((value &gt;&gt; (i * 8)) &amp; 0xFF));
+	}
+}
+void BytecodeSerializer::writeDouble(f64 value)
+{
+	u64 bits;
+	std::memcpy(&amp;bits, &amp;value, sizeof(f64));
+	for (int i = 0; i &lt; 8; i++)
+	{
+		buffer.push_back(static_cast&lt;u8&gt;((bits &gt;&gt; (i * 8)) &amp; 0xFF));
+	}
+}
+void BytecodeSerializer::writeString(const PhsString &amp;str)
+{
+	writeUInt16(static_cast&lt;u16&gt;(str.length()));
+	for (char c : str)
+	{
+		buffer.push_back(static_cast&lt;u8&gt;(c));
+	}
+}
+// ---------------------------------------------------------------------------
+// Recursive value writer
+//
+// Binary layout per value:
+//   Null   : u8(0)
+//   Bool   : u8(1)  u8(0|1)
+//   Int    : u8(2)  i64
+//   Float  : u8(3)  f64
+//   String : u8(4)  u16(len) chars...
+//   Struct : u8(5)  string(structName) u32(fieldCount) [string(fieldName) value]...
+//   Array  : u8(6)  u32(elementCount) [value]...
+// ---------------------------------------------------------------------------
+void BytecodeSerializer::writeValue(const Value &amp;val)
+{
+	switch (val.getType())
+	{
+	case ValueType::Null:
+		writeUInt8(0);
+		break;
+	case ValueType::Bool:
+		writeUInt8(1);
+		writeUInt8(val.asBool() ? 1 : 0);
+		break;
+	case ValueType::Int:
+		writeUInt8(2);
+		writeInt64(val.asInt());
+		break;
+	case ValueType::Float:
+		writeUInt8(3);
+		writeDouble(val.asFloat());
+		break;
+	case ValueType::String:
+		writeUInt8(4);
+		writeString(val.string());
+		break;
+	case ValueType::Struct:
+	{
+		auto s = val.asStruct();
+		writeUInt8(5);
+		writeString(s-&gt;structName.str());
+		writeUInt32(static_cast&lt;u32&gt;(s-&gt;fields.size()));
+		for (const auto &amp;[fieldName, fieldVal] : s-&gt;fields)
+		{
+			writeString(fieldName.str());
+			writeValue(fieldVal); // recurse
+		}
+		break;
+	}
+	case ValueType::Array:
+	{
+		auto a = val.asArray();
+		writeUInt8(6);
+		writeUInt32(static_cast&lt;u32&gt;(a-&gt;size()));
+		for (const auto &amp;elem : *a)
+		{
+			writeValue(elem); // recurse
+		}
+		break;
+	}
+	default:
+		throw std::runtime_error(&quot;BytecodeSerializer::writeValue: unknown ValueType&quot;);
+	}
+}
+// ---------------------------------------------------------------------------
+// Section writers
+// ---------------------------------------------------------------------------
+void BytecodeSerializer::writeHeader(u32 dataChecksum)
+{
+	writeUInt32(MAGIC_NUMBER);
+	writeUInt32(VERSION);
+	writeUInt32(0); // Flags (reserved)
+	writeUInt32(dataChecksum);
+}
+void BytecodeSerializer::writeConstantPool(const std::vector&lt;Value&gt; &amp;constants)
+{
+	writeUInt8(SECTION_CONSTANTS);
+	writeUInt32(static_cast&lt;u32&gt;(constants.size()));
+	for (const auto &amp;val : constants)
+	{
+		writeValue(val);
+	}
+}
+void BytecodeSerializer::writeVariableMapping(const std::unordered_map&lt;std::string, int&gt; &amp;variables,
+                                              int nextVarIndex)
+{
+	writeUInt8(SECTION_VARIABLES);
+	writeUInt32(static_cast&lt;u32&gt;(variables.size()));
+	writeInt32(nextVarIndex);
+	for (const auto &amp;[name, index] : variables)
+	{
+		writeString(name);
+		writeInt32(index);
+	}
+}
+void BytecodeSerializer::writeInstructions(const std::vector&lt;Instruction&gt; &amp;instructions)
+{
+	writeUInt8(SECTION_INSTRUCTIONS);
+	writeUInt32(static_cast&lt;u32&gt;(instructions.size()));
+	for (const auto &amp;instr : instructions)
+	{
+		writeUInt8(static_cast&lt;u8&gt;(instr.op));
+		writeInt32(instr.operand1);
+		writeInt32(instr.operand2);
+		writeInt32(instr.operand3);
+	}
+}
+void BytecodeSerializer::writeFunctionEntries(const std::unordered_map&lt;std::string, int&gt; &amp;functionEntries)
+{
+	writeUInt8(SECTION_FUNCTIONS);
+	writeUInt32(static_cast&lt;u32&gt;(functionEntries.size()));
+	for (const auto &amp;[name, address] : functionEntries)
+	{
+		writeString(name);
+		writeInt32(address);
+	}
+}
+/**
+ * @brief Write function type signatures section (0x06).
+ *
+ * Binary layout:
+ *   u8     section_id = 0x06
+ *   u32    functionCount
+ *   for each function:
+ *     string  name
+ *     string  returnTypeName   (&quot;any&quot; when unspecified)
+ *     u32     paramCount
+ *     string  paramTypeName[0..paramCount-1]
+ */
+void BytecodeSerializer::writeFunctionTypes(
+    const std::unordered_map&lt;std::string, std::vector&lt;std::string&gt;&gt; &amp;paramTypeNames,
+    const std::unordered_map&lt;std::string, std::string&gt;              &amp;returnTypeNames)
+{
+	writeUInt8(SECTION_FUNC_TYPES);
+	// Only emit entries that have param type info; functions without entries are unknown-typed.
+	writeUInt32(static_cast&lt;u32&gt;(paramTypeNames.size()));
+	for (const auto &amp;[name, paramTypes] : paramTypeNames)
+	{
+		writeString(name);
+		auto retIt = returnTypeNames.find(name);
+		writeString(retIt != returnTypeNames.end() ? retIt-&gt;second : &quot;any&quot;);
+		writeUInt32(static_cast&lt;u32&gt;(paramTypes.size()));
+		for (const auto &amp;typeName : paramTypes)
+		{
+			writeString(typeName);
+		}
+	}
+}
+/**
+ * @brief Write struct type definitions section (0x05).
+ *
+ * Binary layout:
+ *   u8     section_id = 0x05
+ *   u32    structCount
+ *   for each StructInfo:
+ *     string  name
+ *     i32     firstConstIndex
+ *     i32     fieldCount
+ *     string  fieldName[0..fieldCount-1]
+ */
+void BytecodeSerializer::writeStructSection(const std::vector&lt;StructInfo&gt; &amp;structs)
+{
+	writeUInt8(SECTION_STRUCTS);
+	writeUInt32(static_cast&lt;u32&gt;(structs.size()));
+	for (const auto &amp;info : structs)
+	{
+		writeString(info.name);
+		writeInt32(info.firstConstIndex);
+		writeInt32(info.fieldCount);
+		for (const auto &amp;fieldName : info.fieldNames)
+		{
+			writeString(fieldName);
+		}
+	}
+}
+void BytecodeSerializer::writeScopeVars(const std::vector&lt;std::vector&lt;std::pair&lt;int, std::string&gt;&gt;&gt; &amp;scopeVarLists)
+{
+    writeUInt8(SECTION_SCOPE_VARS);
+    writeUInt32(static_cast&lt;u32&gt;(scopeVarLists.size()));
+    for (const auto &amp;list : scopeVarLists)
+    {
+        writeUInt32(static_cast&lt;u32&gt;(list.size()));
+        for (const auto &amp;[varIndex, varName] : list)
+        {
+            writeInt32(varIndex);
+            writeString(varName);
+        }
+    }
+}
+// ---------------------------------------------------------------------------
+// Top-level serialize / saveToFile
+// ---------------------------------------------------------------------------
+std::vector&lt;u8&gt; BytecodeSerializer::serialize(const Bytecode &amp;bytecode)
+{
+	buffer.clear();
+	// Reserve 16 bytes for the header (written after checksum is known).
+	for (int i = 0; i &lt; 16; i++)
+	{
+		buffer.push_back(0);
+	}
+	size_t dataStartPos = buffer.size();
+	writeConstantPool(bytecode.constants);
+	writeVariableMapping(bytecode.variables, bytecode.nextVarIndex);
+	writeScopeVars(bytecode.scopeVarLists);
+	writeFunctionEntries(bytecode.functionEntries);
+	writeFunctionTypes(bytecode.functionParamTypeNames, bytecode.functionReturnTypeNames);
+	writeStructSection(bytecode.structs);
+	writeInstructions(bytecode.instructions);
+	std::vector&lt;u8&gt; dataSection(buffer.begin() + dataStartPos, buffer.end());
+	u32             checksum = calculateCRC32(dataSection);
+	std::vector&lt;u8&gt; tempBuffer = buffer;
+	buffer.clear();
+	writeHeader(checksum);
+	buffer.insert(buffer.end(), tempBuffer.begin() + 16, tempBuffer.end());
+	return buffer;
+}
+bool BytecodeSerializer::saveToFile(const Bytecode &amp;bytecode, const std::filesystem::path &amp;filename)
+{
+	try
+	{
+		std::vector&lt;u8&gt; data = serialize(bytecode);
+		std::ofstream   file(filename, std::ios::binary);
+		if (!file.is_open())
+		{
+			return false;
+		}
+		file.write(reinterpret_cast&lt;const char *&gt;(data.data()), data.size());
+		return true;
+	}
+	catch (const std::exception &amp;)
+	{
+		return false;
+	}
+}
+} // namespace Phasor</file><file path="Bytecode/BytecodeSerializer.hpp">#pragma once
+#include &quot;../Bytecode.hpp&quot;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;filesystem&gt;
+#include &lt;unordered_map&gt;
+#include &lt;phsint.hpp&gt;
+/// @brief The Phasor Programming Language and Runtime
+namespace Phasor
+{
+/**
+ * @class BytecodeSerializer
+ * @brief Bytecode binary format serializer
+ */
+class BytecodeSerializer
+{
+  public:
+	/// @brief Serialize bytecode to binary buffer
+	std::vector&lt;u8&gt; serialize(const Bytecode &amp;bytecode);
+	/// @brief Save bytecode to .phsb file
+	bool saveToFile(const Bytecode &amp;bytecode, const std::filesystem::path &amp;filename);
+  private:
+	std::vector&lt;u8&gt; buffer;
+	void writeUInt8(u8 value);                ///&lt; Helper method to write UInt8
+	void writeUInt16(u16 value);              ///&lt; Helper method to write UInt16
+	void writeUInt32(u32 value);              ///&lt; Helper method to write UInt32
+	void writeInt32(i32 value);               ///&lt; Helper method to write Int32
+	void writeInt64(i64 value);               ///&lt; Helper method to write Int64
+	void writeDouble(f64 value);              ///&lt; Helper method to write Double
+	void writeString(const PhsString &amp;str);   ///&lt; Helper method to write String
+	/// @brief Write a single Value (recursive — handles nested structs/arrays)
+	void writeValue(const Value &amp;val);
+	/// @brief Section writers
+	void writeHeader(u32 dataChecksum);                          ///&lt; Helper method to write header
+	void writeConstantPool(const std::vector&lt;Value&gt; &amp;constants); ///&lt; Helper method to write Constants Table
+	void writeVariableMapping(const std::unordered_map&lt;std::string, int&gt; &amp;variables,
+	                          int nextVarIndex);                          ///&lt; Helper method to write Variable Map Table
+	void writeInstructions(const std::vector&lt;Instruction&gt; &amp;instructions); ///&lt; Helper method to write Instruction Table
+	void writeFunctionEntries(
+	    const std::unordered_map&lt;std::string, int&gt; &amp;functionEntries); ///&lt; Helper method to write Function Table
+	void writeFunctionTypes(
+	    const std::unordered_map&lt;std::string, std::vector&lt;std::string&gt;&gt; &amp;paramTypeNames,
+	    const std::unordered_map&lt;std::string, std::string&gt;              &amp;returnTypeNames); ///&lt; Helper method to write Function Type Table
+	void writeStructSection(const std::vector&lt;StructInfo&gt; &amp;structs);  ///&lt; Helper method to write Struct Section
+	void writeScopeVars(const std::vector&lt;std::vector&lt;std::pair&lt;int, std::string&gt;&gt;&gt; &amp;scopeVarLists); ///&lt; Helper method to write Scope Vars
+	/// @brief Calculate CRC32 checksum
+	static u32 calculateCRC32(const std::vector&lt;u8&gt; &amp;data);
+};
+} // namespace Phasor</file><file path="Bytecode/metadata.h">#pragma once
+#include &lt;cstdint&gt;
+static constexpr uint32_t ascii_to_u32_le(const char s[4])
+{
+	return ((uint32_t)(uint8_t)s[0]) | ((uint32_t)(uint8_t)s[1] &lt;&lt; 8) | ((uint32_t)(uint8_t)s[2] &lt;&lt; 16) |
+	       ((uint32_t)(uint8_t)s[3] &lt;&lt; 24);
+}
+/**
+ * @brief Magic number (little endian)
+ *
+ * &apos;PHSB&apos;
+ */
+#define MAGIC_NUMBER ascii_to_u32_le(&quot;PHSB&quot;)
+/**
+ * @brief Version number
+ *
+ * &apos;3.0.0.0&apos;
+ */
+const uint32_t VERSION = 0x03000000;</file><file path="C/CCodeGenerator.cpp">#include &quot;CCodeGenerator.hpp&quot;
+#include &quot;../Bytecode/BytecodeSerializer.hpp&quot;
+#include &quot;../Bytecode/BytecodeDeserializer.hpp&quot;
+#include &lt;fstream&gt;
+#include &lt;iomanip&gt;
+#include &lt;sstream&gt;
+namespace Phasor
+{
+bool CCodeGenerator::generate(const Bytecode &amp;bc, const std::filesystem::path &amp;outputPath, const PhsString &amp;modName)
+{
+	try
+	{
+		bytecode = &amp;bc;
+		output.str(&quot;&quot;);
+		output.clear();
+		// Determine module name
+		if (modName.empty())
+		{
+			moduleName = sanitizeModuleName(outputPath.stem().string());
+		} else {
+			moduleName = sanitizeModuleName(modName);
+		}
+		// Serialize bytecode to binary format
+		BytecodeSerializer serializer;
+		serializedBytecode = serializer.serialize(bc);
+		// Generate header file with module name, bytecode, and size
+		generateFileHeader();
+		generateModuleName();
+		generateEmbeddedBytecode();
+		// Write to file
+		std::ofstream file(outputPath);
+		if (!file.is_open())
+		{
+			return false;
+		}
+		file &lt;&lt; output.str();
+		file.close();
+		return true;
+	}
+	catch (const std::exception &amp;)
+	{
+		return false;
+	}
+}
+Bytecode CCodeGenerator::generateBytecodeFromEmbedded(const PhsString &amp;input)
+{
+	std::vector&lt;unsigned char&gt; bytecodeData = parseEmbeddedBytecode(input);
+	BytecodeDeserializer       deserializer;
+	return deserializer.deserialize(bytecodeData);
+}
+void CCodeGenerator::generateFileHeader()
+{
+	output &lt;&lt; &quot;// Phasor VM Program\n&quot;;
+	output &lt;&lt; &quot;// Module: &quot; &lt;&lt; moduleName &lt;&lt; &quot;\n&quot;;
+	output &lt;&lt; &quot;#pragma once\n&quot;;
+	output &lt;&lt; &quot;#include &lt;stddef.h&gt;\n&quot;;
+}
+void CCodeGenerator::generateModuleName()
+{
+	output &lt;&lt; &quot;const char *moduleName = \&quot;&quot; &lt;&lt; moduleName &lt;&lt; &quot;\&quot;;\n\n&quot;;
+}
+void CCodeGenerator::generateEmbeddedBytecode()
+{
+#if defined(_WIN32)
+	const PhsString sectionPrefixPragma = &quot;#pragma section(\&quot;.phsb\&quot;, read)\n&quot;;
+	const PhsString sectionAttr = &quot;__declspec(allocate(\&quot;.phsb\&quot;)) &quot;;
+#elif defined(__APPLE__)
+	const PhsString sectionPrefixPragma = &quot;&quot;;
+	const PhsString sectionAttr = &quot;__attribute__((section(\&quot;__DATA,__phsb\&quot;))) &quot;;
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+	const PhsString sectionPrefixPragma = &quot;&quot;;
+	const PhsString sectionAttr = &quot;__attribute__((section(\&quot;.phsb\&quot;))) &quot;;
+#else
+	const PhsString sectionPrefixPragma = &quot;&quot;;
+	const PhsString sectionAttr = &quot;&quot;;
+#endif
+	if (!sectionPrefixPragma.empty())
+	{
+		output &lt;&lt; sectionPrefixPragma;
+	}
+	output &lt;&lt; sectionAttr &lt;&lt; &quot;const size_t embeddedBytecodeSize = &quot; &lt;&lt; serializedBytecode.size() &lt;&lt; &quot;;\n&quot;;
+	output &lt;&lt; sectionAttr &lt;&lt; &quot;const unsigned char embeddedBytecode[] = {\n&quot;;
+	for (size_t i = 0; i &lt; serializedBytecode.size(); i++)
+	{
+		if (i % 16 == 0)
+		{
+			output &lt;&lt; &quot;\t&quot;;
+		}
+		output &lt;&lt; &quot;0x&quot; &lt;&lt; std::hex &lt;&lt; std::setw(2) &lt;&lt; std::setfill(&apos;0&apos;) &lt;&lt; static_cast&lt;int&gt;(serializedBytecode[i]);
+		if (i &lt; serializedBytecode.size() - 1)
+		{
+			output &lt;&lt; &quot;,&quot;;
+		}
+		if (i % 16 == 15)
+		{
+			output &lt;&lt; &quot;\n&quot;;
+		}
+		else if (i &lt; serializedBytecode.size() - 1)
+		{
+			output &lt;&lt; &quot; &quot;;
+		}
+	}
+	output &lt;&lt; std::dec &lt;&lt; &quot;\n};\n&quot;;
+}
+std::vector&lt;unsigned char&gt; CCodeGenerator::parseEmbeddedBytecode(const PhsString &amp;input)
+{
+	std::vector&lt;unsigned char&gt; result;
+	std::istringstream         stream(input);
+	std::string                token;
+	while (stream &gt;&gt; token)
+	{
+		if (token.size() &gt;= 3 &amp;&amp; token[0] == &apos;0&apos; &amp;&amp; (token[1] == &apos;x&apos; || token[1] == &apos;X&apos;))
+		{
+			unsigned int       byte;
+			std::istringstream hexStream(token);
+			hexStream &gt;&gt; std::hex &gt;&gt; byte;
+			result.push_back(static_cast&lt;unsigned char&gt;(byte));
+		}
+	}
+	return result;
+}
+PhsString CCodeGenerator::escapeString(const PhsString &amp;str)
+{
+	std::ostringstream escaped;
+	for (char c : str)
+	{
+		switch (c)
+		{
+		case &apos;\\&apos;:
+			escaped &lt;&lt; &quot;\\\\&quot;;
+			break;
+		case &apos;\&quot;&apos;:
+			escaped &lt;&lt; &quot;\\\&quot;&quot;;
+			break;
+		case &apos;\n&apos;:
+			escaped &lt;&lt; &quot;\\n&quot;;
+			break;
+		case &apos;\r&apos;:
+			escaped &lt;&lt; &quot;\\r&quot;;
+			break;
+		case &apos;\t&apos;:
+			escaped &lt;&lt; &quot;\\t&quot;;
+			break;
+		default:
+			if (c &gt;= 32 &amp;&amp; c &lt;= 126)
+			{
+				escaped &lt;&lt; c;
+			} else {
+				escaped &lt;&lt; &quot;\\x&quot; &lt;&lt; std::hex &lt;&lt; std::setw(2) &lt;&lt; std::setfill(&apos;0&apos;)
+				        &lt;&lt; static_cast&lt;int&gt;(static_cast&lt;unsigned char&gt;(c));
+			}
+			break;
+		}
+	}
+	return escaped.str();
+}
+PhsString CCodeGenerator::getValueTypeString(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Null:
+		return &quot;Null&quot;;
+	case ValueType::Bool:
+		return &quot;Bool&quot;;
+	case ValueType::Int:
+		return &quot;Int&quot;;
+	case ValueType::Float:
+		return &quot;Float&quot;;
+	case ValueType::String:
+		return &quot;String&quot;;
+	default:
+		return &quot;Unknown&quot;;
+	}
+}
+PhsString CCodeGenerator::sanitizeModuleName(const PhsString &amp;name)
+{
+	PhsString result;
+	for (char c : name)
+	{
+		if ((std::isalnum(c) != 0) || c == &apos;_&apos;)
+		{
+			result += c;
+		} else {
+			result += &apos;_&apos;;
+		}
+	}
+	// Ensure it starts with a letter or underscore
+	if (!result.empty() &amp;&amp; (std::isdigit(result[0]) != 0))
+	{
+		result = &quot;_&quot; + result;
+	}
+	return result.empty() ? &quot;PhasorModule&quot; : result;
+}
+} // namespace Phasor</file><file path="C/CCodeGenerator.hpp">#pragma once
+#include &quot;../Bytecode.hpp&quot;
+#include &lt;filesystem&gt;
+#include &lt;sstream&gt;
+#include &lt;PhasorString.hpp&gt;
+#include &lt;phsint.hpp&gt;
+/// @brief The Phasor Programming Language and Runtime
+namespace Phasor
+{
+/**
+ * @class CCodeGenerator
+ * @brief Generates C++ header files with embedded Phasor bytecode
+ *
+ * This class takes compiled Phasor bytecode and generates a C++ header file
+ * that embeds the bytecode as inline data. The header is designed to be
+ * included in CppRuntime_main.cpp to provide the module name, bytecode array,
+ * and bytecode size.
+ */
+class CCodeGenerator
+{
+  public:
+	/**
+	 * @brief Generate C++ header file from bytecode
+	 *
+	 * @param bytecode The compiled bytecode to embed
+	 * @param outputPath Path to the output header file
+	 * @param moduleName Optional module name (defaults to filename without extension)
+	 * @return true if generation succeeded, false otherwise
+	 */
+	bool generate(const Bytecode &amp;bytecode, const std::filesystem::path &amp;outputPath,
+	              const PhsString &amp;moduleName = &quot;&quot;);
+	/**
+	 * @brief Generate Bytecode object from embedded bytecode string
+	 * @param input The string containing the embedded bytecode array
+	 * @return Deserialized Bytecode object
+	 *
+	 */
+	static Bytecode generateBytecodeFromEmbedded(const PhsString &amp;input);
+  private:
+	std::ostringstream   output; ///&lt; Output stream for generated code
+	const Bytecode      *bytecode = nullptr;
+	PhsString          moduleName;
+	std::vector&lt;u8&gt; serializedBytecode; ///&lt; Serialized bytecode in .phsb format
+	// Code generation methods
+	void generateFileHeader();
+	void generateModuleName();
+	void generateIncludes();
+	void generateEmbeddedBytecode();
+	void generateTempFileWriter();
+	void generateMainFunction();
+	// Deserialization helper
+	static std::vector&lt;unsigned char&gt; parseEmbeddedBytecode(const PhsString &amp;input);
+	// Helper methods
+	static PhsString escapeString(const PhsString &amp;str);
+	static PhsString getValueTypeString(ValueType type);
+	static PhsString sanitizeModuleName(const PhsString &amp;name);
+};
+} // namespace Phasor</file><file path="IR/PhasorIR.cpp">#include &quot;PhasorIR.hpp&quot;
+#include &quot;../../ISA/map.hpp&quot;
+#include &lt;cstring&gt;
+#include &lt;fstream&gt;
+#include &lt;iomanip&gt;
+#include &lt;iostream&gt;
+#include &lt;sstream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;utility&gt;
+#include &lt;functional&gt;
+#include &lt;map&gt;
+#include &lt;filesystem&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;phsint.hpp&gt;
+namespace Phasor
+{
+int PhasorIR::getOperandCount(OpCode op)
+{
+    switch (op)
+    {
+    // 0 operands
+    case OpCode::POP:
+    case OpCode::IADD:
+    case OpCode::ISUBTRACT:
+    case OpCode::IMULTIPLY:
+    case OpCode::IDIVIDE:
+    case OpCode::IMODULO:
+    case OpCode::FLADD:
+    case OpCode::FLSUBTRACT:
+    case OpCode::FLMULTIPLY:
+    case OpCode::FLDIVIDE:
+    case OpCode::FLMODULO:
+    case OpCode::SQRT:
+    case OpCode::POW:
+    case OpCode::LOG:
+    case OpCode::EXP:
+    case OpCode::SIN:
+    case OpCode::COS:
+    case OpCode::TAN:
+    case OpCode::NEGATE:
+    case OpCode::NOT:
+    case OpCode::IAND:
+    case OpCode::IOR:
+    case OpCode::IEQUAL:
+    case OpCode::INOT_EQUAL:
+    case OpCode::ILESS_THAN:
+    case OpCode::IGREATER_THAN:
+    case OpCode::ILESS_EQUAL:
+    case OpCode::IGREATER_EQUAL:
+    case OpCode::FLEQUAL:
+    case OpCode::FLNOT_EQUAL:
+    case OpCode::FLLESS_THAN:
+    case OpCode::FLGREATER_THAN:
+    case OpCode::FLLESS_EQUAL:
+    case OpCode::FLGREATER_EQUAL:
+    case OpCode::PRINT:
+    case OpCode::PRINTERROR:
+    case OpCode::READLINE:
+    case OpCode::HALT:
+    case OpCode::RETURN:
+    case OpCode::TRUE_P:
+    case OpCode::FALSE_P:
+    case OpCode::NULL_VAL:
+    case OpCode::LEN:
+    case OpCode::CHAR_AT:
+    case OpCode::SUBSTR:
+    case OpCode::NEW_ARR:
+    case OpCode::LOAD_ARR:
+    case OpCode::STORE_ARR:
+    case OpCode::GET_FIELD_DYN:
+        return 0;
+    // 1 operand
+    case OpCode::PUSH_CONST:
+    case OpCode::JUMP:
+    case OpCode::JUMP_IF_FALSE:
+    case OpCode::JUMP_IF_TRUE:
+    case OpCode::JUMP_BACK:
+    case OpCode::STORE_VAR:
+    case OpCode::LOAD_VAR:
+    case OpCode::CALL_NATIVE:
+    case OpCode::CALL:
+    case OpCode::SYSTEM:
+    case OpCode::SYSTEM_OUT:
+    case OpCode::SYSTEM_ERR:
+    case OpCode::PUSH_R:
+    case OpCode::POP_R:
+    case OpCode::PRINT_R:
+    case OpCode::PRINTERROR_R:
+    case OpCode::READLINE_R:
+    case OpCode::SYSTEM_R:
+    case OpCode::SYSTEM_OUT_R:
+    case OpCode::SYSTEM_ERR_R:
+    case OpCode::NEW_STRUCT:
+    case OpCode::GET_FIELD:
+    case OpCode::SET_FIELD:
+    case OpCode::NEW_STRUCT_INSTANCE_STATIC:
+    case OpCode::EXIT_SCOPE:
+        return 1;
+    // 2 operands
+    case OpCode::MOV:
+    case OpCode::LOAD_CONST_R:
+    case OpCode::LOAD_VAR_R:
+    case OpCode::STORE_VAR_R:
+    case OpCode::SQRT_R:
+    case OpCode::LOG_R:
+    case OpCode::EXP_R:
+    case OpCode::SIN_R:
+    case OpCode::COS_R:
+    case OpCode::TAN_R:
+    case OpCode::NEG_R:
+    case OpCode::NOT_R:
+    case OpCode::PUSH2_R:
+    case OpCode::POP2_R:
+    case OpCode::GET_FIELD_STATIC:
+    case OpCode::SET_FIELD_STATIC:
+        return 2;
+    // 3 operands
+    case OpCode::IADD_R:
+    case OpCode::ISUB_R:
+    case OpCode::IMUL_R:
+    case OpCode::IDIV_R:
+    case OpCode::IMOD_R:
+    case OpCode::FLADD_R:
+    case OpCode::FLSUB_R:
+    case OpCode::FLMUL_R:
+    case OpCode::FLDIV_R:
+    case OpCode::FLMOD_R:
+    case OpCode::POW_R:
+    case OpCode::IAND_R:
+    case OpCode::IOR_R:
+    case OpCode::IEQ_R:
+    case OpCode::INE_R:
+    case OpCode::ILT_R:
+    case OpCode::IGT_R:
+    case OpCode::ILE_R:
+    case OpCode::IGE_R:
+    case OpCode::FLAND_R:
+    case OpCode::FLOR_R:
+    case OpCode::FLEQ_R:
+    case OpCode::FLNE_R:
+    case OpCode::FLLT_R:
+    case OpCode::FLGT_R:
+    case OpCode::FLLE_R:
+    case OpCode::FLGE_R:
+        return 3;
+    default:
+        return 0;
+    }
+}
+PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
+{
+    // Stack operations with special indices
+    if (op == OpCode::PUSH_CONST &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::CONSTANT_IDX;
+    }
+    if (op == OpCode::STORE_VAR &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::VARIABLE_IDX;
+    }
+    if (op == OpCode::LOAD_VAR &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::VARIABLE_IDX;
+    }
+    if (op == OpCode::CALL_NATIVE &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::CONSTANT_IDX;
+    }
+    if (op == OpCode::CALL &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::FUNCTION_IDX;
+    }
+    if (op == OpCode::SYSTEM &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::CONSTANT_IDX;
+    }
+    if (op == OpCode::EXIT_SCOPE &amp;&amp; operandIndex == 0)
+    {
+        return OperandType::SCOPE_IDX;
+    }
+    // Register operations with mixed types
+    if (op == OpCode::LOAD_CONST_R)
+    {
+        if (operandIndex == 0) 
+        {
+            return OperandType::REGISTER;
+        }
+        if (operandIndex == 1)
+        {
+            return OperandType::CONSTANT_IDX;
+        }
+    }
+    if (op == OpCode::LOAD_VAR_R)
+    {
+        if (operandIndex == 0)
+        { 
+            return OperandType::REGISTER;
+        }
+        if (operandIndex == 1)
+        {
+            return OperandType::VARIABLE_IDX;
+        }
+    }
+    if (op == OpCode::STORE_VAR_R)
+    {
+        if (operandIndex == 0)
+        {
+            return OperandType::REGISTER;
+        }
+        if (operandIndex == 1) 
+        { 
+            return OperandType::VARIABLE_IDX;
+        }
+    }
+    // JUMP instructions take an offset (INT)
+    if (op == OpCode::JUMP || op == OpCode::JUMP_IF_FALSE ||
+        op == OpCode::JUMP_IF_TRUE || op == OpCode::JUMP_BACK) 
+    {
+        return OperandType::INT;
+    }
+    // Register ops use REGISTER for all operands
+    if (static_cast&lt;int&gt;(op) &gt;= static_cast&lt;int&gt;(OpCode::MOV))
+    {
+        return OperandType::REGISTER;
+    }
+    return OperandType::INT;
+}
+PhsString PhasorIR::escapeString(const PhsString &amp;str)
+{
+    std::stringstream ss;
+    for (unsigned char c : str)
+    {
+        switch (c)
+        {
+        case &apos;\a&apos;:   ss &lt;&lt; &quot;\\a&quot;;   break;
+        case &apos;\b&apos;:   ss &lt;&lt; &quot;\\b&quot;;   break;
+        case &apos;\f&apos;:   ss &lt;&lt; &quot;\\f&quot;;   break;
+        case &apos;\n&apos;:   ss &lt;&lt; &quot;\\n&quot;;   break;
+        case &apos;\r&apos;:   ss &lt;&lt; &quot;\\r&quot;;   break;
+        case &apos;\t&apos;:   ss &lt;&lt; &quot;\\t&quot;;   break;
+        case &apos;\v&apos;:   ss &lt;&lt; &quot;\\v&quot;;   break;
+        case &apos;\x1b&apos;: ss &lt;&lt; &quot;\\e&quot;;   break;
+        case &apos;\\&apos;:   ss &lt;&lt; &quot;\\\\&quot;;  break;
+        case &apos;&quot;&apos;:    ss &lt;&lt; &quot;\\\&quot;&quot;;  break;
+        default:
+            if (c &lt; 0x20 || c == 0x7F)
+            {
+                ss &lt;&lt; &quot;\\x&quot;
+                   &lt;&lt; &quot;0123456789abcdef&quot;[c &gt;&gt; 4]
+                   &lt;&lt; &quot;0123456789abcdef&quot;[c &amp; 0xF];
+            }
+            else
+            {
+                ss &lt;&lt; static_cast&lt;char&gt;(c);
+            }
+            break;
+        }
+    }
+    return ss.str();
+}
+PhsString PhasorIR::unescapeString(const PhsString &amp;str)
+{
+    PhsString result;
+    size_t      len = str.length();
+    auto hexVal = [](char c) -&gt; int 
+    {
+        if (c &gt;= &apos;0&apos; &amp;&amp; c &lt;= &apos;9&apos;)
+        {
+            return c - &apos;0&apos;;
+        }
+        if (c &gt;= &apos;a&apos; &amp;&amp; c &lt;= &apos;f&apos;)
+        {
+            return c - &apos;a&apos; + 10;
+        }
+        if (c &gt;= &apos;A&apos; &amp;&amp; c &lt;= &apos;F&apos;)
+        { 
+            return c - &apos;A&apos; + 10;
+        }
+        return -1;
+    };
+    for (size_t i = 0; i &lt; len; ++i)
+    {
+        if (str[i] != &apos;\\&apos; || i + 1 &gt;= len)
+        {
+            result += str[i];
+            continue;
+        }
+        char esc = str[++i];
+        switch (esc)
+        {
+        case &apos;a&apos;:  result += &apos;\a&apos;; break;
+        case &apos;b&apos;:  result += &apos;\b&apos;; break;
+        case &apos;f&apos;:  result += &apos;\f&apos;; break;
+        case &apos;n&apos;:  result += &apos;\n&apos;; break;
+        case &apos;r&apos;:  result += &apos;\r&apos;; break;
+        case &apos;t&apos;:  result += &apos;\t&apos;; break;
+        case &apos;v&apos;:  result += &apos;\v&apos;; break;
+        case &apos;\\&apos;: result += &apos;\\&apos;; break;
+        case &apos;\&apos;&apos;: result += &apos;\&apos;&apos;; break;
+        case &apos;&quot;&apos;:  result += &apos;&quot;&apos;;  break;
+        case &apos;e&apos;:
+        case &apos;E&apos;:  result += &apos;\x1b&apos;; break;
+        case &apos;0&apos;: case &apos;1&apos;: case &apos;2&apos;: case &apos;3&apos;:
+        case &apos;4&apos;: case &apos;5&apos;: case &apos;6&apos;: case &apos;7&apos;:
+        {
+            u32 val = static_cast&lt;u32&gt;(esc - &apos;0&apos;);
+            for (int k = 1; k &lt; 3 &amp;&amp; i + 1 &lt; len; ++k)
+            {
+                char d = str[i + 1];
+                if (d &lt; &apos;0&apos; || d &gt; &apos;7&apos;)
+                {
+                    break;
+                }
+                val = val * 8 + static_cast&lt;u32&gt;(d - &apos;0&apos;);
+                ++i;
+            }
+            result += static_cast&lt;char&gt;(val &amp; 0xFF);
+            break;
+        }
+        case &apos;x&apos;:
+        {
+            if (i + 1 &gt;= len || hexVal(str[i + 1]) &lt; 0)
+            { 
+                result += esc;
+                break;
+            }
+            int val = hexVal(str[++i]);
+            if (i + 1 &lt; len &amp;&amp; hexVal(str[i + 1]) &gt;= 0)
+            {
+                val = (val &lt;&lt; 4) | hexVal(str[++i]);
+            }
+            result += static_cast&lt;char&gt;(val);
+            break;
+        }
+        case &apos;u&apos;:
+        case &apos;U&apos;:
+        {
+            int  ndigits = (esc == &apos;u&apos;) ? 4 : 8;
+            u32  cp      = 0;
+            bool ok      = true;
+            for (int k = 0; k &lt; ndigits; ++k)
+            {
+                if (i + 1 &gt;= len || hexVal(str[i + 1]) &lt; 0)
+                {
+                    ok = false; 
+                    break;
+                }
+                cp = (cp &lt;&lt; 4) | static_cast&lt;u32&gt;(hexVal(str[++i]));
+            }
+            if (!ok || cp &gt; 0x10FFFF || (cp &gt;= 0xD800 &amp;&amp; cp &lt;= 0xDFFF))
+            {
+                result += esc; break;
+            }
+            if (cp &lt;= 0x7F)
+            { 
+                result += static_cast&lt;char&gt;(cp);
+            } else if (cp &lt;= 0x7FF)  { 
+                result += static_cast&lt;char&gt;(0xC0 | (cp &gt;&gt; 6));
+                result += static_cast&lt;char&gt;(0x80 | (cp &amp; 0x3F));
+            } else if (cp &lt;= 0xFFFF) { 
+                result += static_cast&lt;char&gt;(0xE0 | (cp &gt;&gt; 12));
+                result += static_cast&lt;char&gt;(0x80 | ((cp &gt;&gt; 6) &amp; 0x3F));
+                result += static_cast&lt;char&gt;(0x80 | (cp &amp; 0x3F));
+            } else { 
+                result += static_cast&lt;char&gt;(0xF0 | (cp &gt;&gt; 18));
+                result += static_cast&lt;char&gt;(0x80 | ((cp &gt;&gt; 12) &amp; 0x3F));
+                result += static_cast&lt;char&gt;(0x80 | ((cp &gt;&gt; 6) &amp; 0x3F));
+                result += static_cast&lt;char&gt;(0x80 | (cp &amp; 0x3F)); }
+            break;
+        }
+        default:
+            result += &apos;\\&apos;;
+            result += esc;
+            break;
+        }
+    }
+    return result;
+}
+// ---------------------------------------------------------------------------
+// Helper: write a single Value to a stringstream
+// ---------------------------------------------------------------------------
+static void writeIRValue(std::stringstream &amp;ss, const Value &amp;val,
+                         const std::function&lt;std::string(const std::string &amp;)&gt; &amp;escape)
+{
+    switch (val.getType())
+    {
+    case ValueType::Null:
+        ss &lt;&lt; &quot;NULL\n&quot;;
+        break;
+    case ValueType::Bool:
+        ss &lt;&lt; &quot;BOOL &quot; &lt;&lt; (val.asBool() ? &quot;true&quot; : &quot;false&quot;) &lt;&lt; &quot;\n&quot;;
+        break;
+    case ValueType::Int:
+        ss &lt;&lt; &quot;INT &quot; &lt;&lt; val.asInt() &lt;&lt; &quot;\n&quot;;
+        break;
+    case ValueType::Float:
+        ss &lt;&lt; &quot;FLOAT &quot; &lt;&lt; val.asFloat() &lt;&lt; &quot;\n&quot;;
+        break;
+    case ValueType::String:
+        ss &lt;&lt; &quot;STRING \&quot;&quot; &lt;&lt; escape(val.string()) &lt;&lt; &quot;\&quot;\n&quot;;
+        break;
+    case ValueType::Struct:
+    {
+        auto structPtr = val.asStruct();
+        if (!structPtr)
+        {
+            throw std::runtime_error(&quot;PhasorIR::serialize: null struct pointer&quot;);
+        }
+        ss &lt;&lt; &quot;STRUCT \&quot;&quot; &lt;&lt; escape(structPtr-&gt;structName) &lt;&lt; &quot;\&quot; &quot; &lt;&lt; structPtr-&gt;fields.size() &lt;&lt; &quot;\n&quot;;
+        for (const auto &amp;[fieldName, fieldVal] : structPtr-&gt;fields)
+        {
+            ss &lt;&lt; &quot;  FIELD &quot; &lt;&lt; fieldName &lt;&lt; &quot; &quot;;
+            writeIRValue(ss, fieldVal, escape);
+        }
+        break;
+    }
+    case ValueType::Array:
+    {
+        auto arrayPtr = val.asArray();
+        if (!arrayPtr)
+        {
+            throw std::runtime_error(&quot;PhasorIR::serialize: null array pointer&quot;);
+        }
+        ss &lt;&lt; &quot;ARRAY &quot; &lt;&lt; arrayPtr-&gt;size() &lt;&lt; &quot;\n&quot;;
+        for (const auto &amp;elem : *arrayPtr)
+        {
+            ss &lt;&lt; &quot;  ELEM &quot;;
+            writeIRValue(ss, elem, escape);
+        }
+        break;
+    }
+    default:
+        throw std::runtime_error(&quot;PhasorIR::serialize: unknown ValueType&quot;);
+    }
+}
+// ---------------------------------------------------------------------------
+// Helper: read a single Value from a stringstream
+// ---------------------------------------------------------------------------
+static Value readIRValue(const std::string &amp;type, std::stringstream &amp;ss,
+                         const std::function&lt;std::string(const std::string &amp;)&gt; &amp;unescape)
+{
+    if (type == &quot;NULL&quot;)
+    {
+        return Value{};
+    }
+    if (type == &quot;BOOL&quot;)
+    {
+        std::string b;
+        ss &gt;&gt; b;
+        return Value{b == &quot;true&quot;};
+    }
+    else if (type == &quot;INT&quot;)
+    {
+        i64 v;
+        ss &gt;&gt; v;
+        return Value{v};
+    }
+    else if (type == &quot;FLOAT&quot;)
+    {
+        f64 v;
+        ss &gt;&gt; v;
+        return Value{v};
+    }
+    else if (type == &quot;STRING&quot;)
+    {
+        std::string s;
+        char        c;
+        while (ss.get(c) &amp;&amp; c != &apos;&quot;&apos;) {}
+        std::getline(ss, s, &apos;&quot;&apos;);
+        return Value{unescape(s)};
+    }
+    else if (type == &quot;STRUCT&quot;)
+    {
+        std::string typeName;
+        int         fieldCount = 0;
+        char qc;
+        while (ss.get(qc) &amp;&amp; qc != &apos;&quot;&apos;) {}
+        std::getline(ss, typeName, &apos;&quot;&apos;);
+        typeName = unescape(typeName);
+        ss &gt;&gt; fieldCount;
+        auto structInstance = std::make_shared&lt;Value::StructInstance&gt;();
+        structInstance-&gt;structName = PhsString(typeName);
+        for (int f = 0; f &lt; fieldCount; ++f)
+        {
+            std::string keyword, fieldName, fieldType;
+            ss &gt;&gt; keyword;   // &quot;FIELD&quot;
+            ss &gt;&gt; fieldName;
+            ss &gt;&gt; fieldType;
+            structInstance-&gt;fields[fieldName] = readIRValue(fieldType, ss, unescape);
+        }
+        return Value{std::move(structInstance)};
+    }
+    else if (type == &quot;ARRAY&quot;)
+    {
+        int elementCount = 0;
+        ss &gt;&gt; elementCount;
+        auto arrayInstance = std::make_shared&lt;Value::ArrayInstance&gt;();
+        arrayInstance-&gt;reserve(static_cast&lt;size_t&gt;(elementCount));
+        for (int e = 0; e &lt; elementCount; ++e)
+        {
+            std::string keyword, elemType;
+            ss &gt;&gt; keyword;  // &quot;ELEM&quot;
+            ss &gt;&gt; elemType;
+            arrayInstance-&gt;push_back(readIRValue(elemType, ss, unescape));
+        }
+        return Value{std::move(arrayInstance)};
+    }
+    else
+    {
+        throw std::runtime_error(&quot;PhasorIR: unknown value type tag: &quot; + type);
+    }
+}
+// ---------------------------------------------------------------------------
+// serialize
+// ---------------------------------------------------------------------------
+std::vector&lt;u8&gt; PhasorIR::serialize(const Bytecode &amp;bytecode)
+{
+    std::stringstream ss;
+    // Header
+    ss &lt;&lt; &quot;.PHIR 3.0.0\n&quot;;
+    // Build reverse lookup maps for inline comments
+    std::map&lt;int, std::string&gt; indexToVarName;
+    for (const auto &amp;[name, index] : bytecode.variables)
+    {
+        indexToVarName[index] = name;
+    }
+    std::map&lt;int, std::string&gt; addressToFuncName;
+    for (const auto &amp;[name, address] : bytecode.functionEntries)
+    {
+        addressToFuncName[address] = name;
+    }
+    // Constants Section
+    ss &lt;&lt; &quot;.CONSTANTS &quot; &lt;&lt; bytecode.constants.size() &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;val : bytecode.constants)
+    {
+        writeIRValue(ss, val, escapeString);
+    }
+    // Variables Section
+    ss &lt;&lt; &quot;.VARIABLES &quot; &lt;&lt; bytecode.variables.size() &lt;&lt; &quot; &quot; &lt;&lt; bytecode.nextVarIndex &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;[name, index] : bytecode.variables)
+    {
+        ss &lt;&lt; name &lt;&lt; &quot; &quot; &lt;&lt; index &lt;&lt; &quot;\n&quot;;
+    }
+    // Scopes Section
+    ss &lt;&lt; &quot;.SCOPES &quot; &lt;&lt; bytecode.scopeVarLists.size() &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;varList : bytecode.scopeVarLists)
+    {
+        ss &lt;&lt; varList.size();
+        for (const auto &amp;[idx, name] : varList)
+        {
+            ss &lt;&lt; &quot; &quot; &lt;&lt; idx &lt;&lt; &quot; &quot; &lt;&lt; name;
+        }
+        ss &lt;&lt; &quot;\n&quot;;
+    }
+    // Functions Section
+    ss &lt;&lt; &quot;.FUNCTIONS &quot; &lt;&lt; bytecode.functionEntries.size() &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;[name, address] : bytecode.functionEntries)
+    {
+        ss &lt;&lt; name &lt;&lt; &quot; &quot; &lt;&lt; address &lt;&lt; &quot;\n&quot;;
+    }
+    // Function Type Signatures Section
+    // Format per line: &lt;name&gt; &lt;returnType&gt; &lt;paramCount&gt; [&lt;paramType&gt;...]
+    ss &lt;&lt; &quot;.FUNCTYPES &quot; &lt;&lt; bytecode.functionParamTypeNames.size() &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;[name, paramTypes] : bytecode.functionParamTypeNames)
+    {
+        auto retIt = bytecode.functionReturnTypeNames.find(name);
+        const std::string &amp;retType = (retIt != bytecode.functionReturnTypeNames.end()) ? retIt-&gt;second : &quot;any&quot;;
+        ss &lt;&lt; name &lt;&lt; &quot; &quot; &lt;&lt; retType &lt;&lt; &quot; &quot; &lt;&lt; paramTypes.size();
+        for (const auto &amp;typeName : paramTypes)
+        {
+            ss &lt;&lt; &quot; &quot; &lt;&lt; typeName;
+        }
+        ss &lt;&lt; &quot;\n&quot;;
+    }
+    // Structs Section
+    ss &lt;&lt; &quot;.STRUCTS &quot; &lt;&lt; bytecode.structs.size() &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;info : bytecode.structs)
+    {
+        ss &lt;&lt; info.name &lt;&lt; &quot; &quot; &lt;&lt; info.firstConstIndex &lt;&lt; &quot; &quot; &lt;&lt; info.fieldCount;
+        for (const auto &amp;fieldName : info.fieldNames)
+        {
+            ss &lt;&lt; &quot; &quot; &lt;&lt; fieldName;
+        }
+        ss &lt;&lt; &quot;\n&quot;;
+    }
+    // Instructions Section
+    ss &lt;&lt; &quot;.INSTRUCTIONS &quot; &lt;&lt; bytecode.instructions.size() &lt;&lt; &quot;\n&quot;;
+    for (const auto &amp;instr : bytecode.instructions)
+    {
+        std::stringstream instrLine;
+        instrLine &lt;&lt; opCodeToString(instr.op);
+        int     operandCount       = getOperandCount(instr.op);
+        i32     operands[3]        = {instr.operand1, instr.operand2, instr.operand3};
+        PhsString comment;
+        for (int i = 0; i &lt; operandCount; ++i)
+        {
+            OperandType type = getOperandType(instr.op, i);
+            if (i &gt; 0)
+            { 
+                instrLine &lt;&lt; &quot;,&quot;;
+            }
+            instrLine &lt;&lt; &quot; &quot;;
+            switch (type)
+            {
+            case OperandType::REGISTER:
+                instrLine &lt;&lt; &quot;r&quot; &lt;&lt; operands[i];
+                break;
+            case OperandType::CONSTANT_IDX:
+                instrLine &lt;&lt; operands[i];
+                if (operands[i] &gt;= 0 &amp;&amp; std::cmp_less(operands[i], bytecode.constants.size()))
+                {
+                    const Value &amp;v = bytecode.constants[operands[i]];
+                    if (v.getType() == ValueType::String)
+                    {
+                        PhsString str = v.string();
+                        if (str.length() &gt; 20) 
+                        {
+                            str = str.substr(0, 20) + &quot;...&quot;;
+                        }
+                        comment = &quot;const[&quot; + std::to_string(operands[i]) + &quot;]=\&quot;&quot; + escapeString(str) + &quot;\&quot;&quot;;
+                    } else if (v.getType() == ValueType::Int) {
+                        comment = PhsString(&quot;const[&quot; + std::to_string(operands[i]) + &quot;]=&quot; + std::to_string(v.asInt()));
+                    } else if (v.getType() == ValueType::Float) {
+                        comment = PhsString(&quot;const[&quot; + std::to_string(operands[i]) + &quot;]=&quot; + std::to_string(v.asFloat()));
+}
+                }
+                break;
+            case OperandType::VARIABLE_IDX:
+                instrLine &lt;&lt; operands[i];
+                if (indexToVarName.contains(operands[i]))
+                {
+                    comment = PhsString(&quot;var=&quot; + indexToVarName[operands[i]]);
+                }
+                break;
+            case OperandType::FUNCTION_IDX:
+                instrLine &lt;&lt; operands[i];
+                if (addressToFuncName.contains(operands[i]))
+                {
+                    comment = PhsString(&quot;func=&quot; + addressToFuncName[operands[i]]);
+                }
+                break;
+            case OperandType::SCOPE_IDX:
+                instrLine &lt;&lt; operands[i];
+                break;
+            default:
+                instrLine &lt;&lt; operands[i];
+                break;
+            }
+        }
+        PhsString lineStr = instrLine.str();
+        if (!comment.empty())
+        {
+            const size_t commentColumn = 40;
+            if (lineStr.length() &lt; commentColumn)
+            {
+                lineStr.append(commentColumn - lineStr.length(), &apos; &apos;);
+            } else {
+                lineStr += &quot; &quot;;
+            }
+            lineStr += &quot;; &quot; + comment;
+        }
+        ss &lt;&lt; lineStr &lt;&lt; &quot;\n&quot;;
+    }
+    PhsString     textData = ss.str();
+    std::vector&lt;u8&gt; buffer;
+    buffer.insert(buffer.end(), textData.begin(), textData.end());
+    return buffer;
+}
+// ---------------------------------------------------------------------------
+// deserialize
+// ---------------------------------------------------------------------------
+Bytecode PhasorIR::deserialize(const std::vector&lt;u8&gt; &amp;data)
+{
+    if (data.size() &lt; 8)
+    {
+        throw std::runtime_error(&quot;Invalid Phasor IR file: too small&quot;);
+    }
+    std::string       textData(data.begin() + 8, data.end());
+    std::stringstream ss(textData);
+    std::string       section;
+    Bytecode          bytecode;
+    while (ss &gt;&gt; section)
+    {
+        if (section == &quot;.PHIR&quot;)
+        {
+            std::string version;
+            ss &gt;&gt; version;
+            if (version &lt; &quot;3.0.0&quot;)
+            {
+                throw std::runtime_error(&quot;Incompatible Phasor IR version&quot;);
+            }
+        }
+        else if (section == &quot;.CONSTANTS&quot;)
+        {
+            int count;
+            ss &gt;&gt; count;
+            bytecode.constants.reserve(count);
+            for (int i = 0; i &lt; count; ++i)
+            {
+                std::string type;
+                ss &gt;&gt; type;
+                bytecode.constants.push_back(readIRValue(type, ss, unescapeString));
+            }
+        }
+        else if (section == &quot;.VARIABLES&quot;)
+        {
+            int count;
+            ss &gt;&gt; count &gt;&gt; bytecode.nextVarIndex;
+            for (int i = 0; i &lt; count; ++i)
+            {
+                std::string name;
+                int         index;
+                ss &gt;&gt; name &gt;&gt; index;
+                bytecode.variables[name] = index;
+            }
+        }
+        else if (section == &quot;.SCOPES&quot;)
+        {
+            int count;
+            ss &gt;&gt; count;
+            bytecode.scopeVarLists.resize(count);
+            for (int i = 0; i &lt; count; ++i)
+            {
+                int varCount;
+                ss &gt;&gt; varCount;
+                bytecode.scopeVarLists[i].reserve(varCount);
+                for (int j = 0; j &lt; varCount; ++j)
+                {
+                    int idx;
+                    std::string name;
+                    ss &gt;&gt; idx &gt;&gt; name;
+                    bytecode.scopeVarLists[i].emplace_back(idx, name);
+                }
+            }
+        }
+        else if (section == &quot;.FUNCTIONS&quot;)
+        {
+            int count;
+            ss &gt;&gt; count;
+            for (int i = 0; i &lt; count; ++i)
+            {
+                std::string name;
+                int         address;
+                ss &gt;&gt; name &gt;&gt; address;
+                bytecode.functionEntries[name] = address;
+            }
+        }
+        else if (section == &quot;.FUNCTYPES&quot;)
+        {
+            int count;
+            ss &gt;&gt; count;
+            for (int i = 0; i &lt; count; ++i)
+            {
+                std::string name;
+                std::string retType;
+                int         paramCount;
+                ss &gt;&gt; name &gt;&gt; retType &gt;&gt; paramCount;
+                std::vector&lt;std::string&gt; paramTypes;
+                paramTypes.reserve(static_cast&lt;size_t&gt;(paramCount));
+                for (int p = 0; p &lt; paramCount; ++p)
+                {
+                    std::string typeName;
+                    ss &gt;&gt; typeName;
+                    paramTypes.push_back(std::move(typeName));
+                }
+                bytecode.functionParamTypeNames[name]  = std::move(paramTypes);
+                bytecode.functionReturnTypeNames[name]  = std::move(retType);
+                bytecode.functionParamCounts[name]      = paramCount;
+            }
+        }
+        else if (section == &quot;.STRUCTS&quot;)
+        {
+            int count;
+            ss &gt;&gt; count;
+            for (int i = 0; i &lt; count; ++i)
+            {
+                StructInfo info;
+                ss &gt;&gt; info.name &gt;&gt; info.firstConstIndex &gt;&gt; info.fieldCount;
+                info.fieldNames.clear();
+                for (int f = 0; f &lt; info.fieldCount; ++f)
+                {
+                    std::string fieldName;
+                    ss &gt;&gt; fieldName;
+                    info.fieldNames.push_back(fieldName);
+                }
+                int index = static_cast&lt;int&gt;(bytecode.structs.size());
+                bytecode.structs.push_back(std::move(info));
+                bytecode.structEntries[bytecode.structs.back().name] = index;
+            }
+        }
+        else if (section == &quot;.INSTRUCTIONS&quot;)
+        {
+            int count;
+            ss &gt;&gt; count;
+            bytecode.instructions.reserve(count);
+            for (int i = 0; i &lt; count; ++i)
+            {
+                std::string opStr;
+                ss &gt;&gt; opStr;
+                OpCode  op           = stringToOpCode(opStr);
+                int     operandCount = getOperandCount(op);
+                i32     operands[3]  = {0, 0, 0};
+                for (int j = 0; j &lt; operandCount; ++j)
+                {
+                    std::string token;
+                    ss &gt;&gt; token;
+                    if (token.empty() || token[0] == &apos;;&apos;)
+                    {
+                        std::getline(ss, token);
+                        break;
+                    }
+                    if (!token.empty() &amp;&amp; token.back() == &apos;,&apos;)
+                    {
+                        token.pop_back();
+                    }
+                    if (!token.empty() &amp;&amp; token[0] == &apos;r&apos;)
+                    {
+                        operands[j] = std::stoi(token.substr(1));
+                    } else {
+                        operands[j] = std::stoi(token);
+                    }
+                }
+                // Skip any remaining content on the line (comments)
+                char c;
+                while (ss.get(c) &amp;&amp; c != &apos;\n&apos;) {}
+                bytecode.instructions.emplace_back(op, operands[0], operands[1], operands[2]);
+            }
+        }
+    }
+    return bytecode;
+}
+// ---------------------------------------------------------------------------
+// saveToFile / loadFromFile
+// ---------------------------------------------------------------------------
+bool PhasorIR::saveToFile(const Bytecode &amp;bytecode, const std::filesystem::path &amp;filename)
+{
+    try
+    {
+        std::vector&lt;u8&gt; data = serialize(bytecode);
+        std::ofstream   file(filename, std::ios::binary);
+        if (!file.is_open())
+        {
+            return false;
+        }
+        file.write(reinterpret_cast&lt;const char *&gt;(data.data()), (std::streamsize)data.size());
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+Bytecode PhasorIR::loadFromFile(const std::filesystem::path &amp;filename)
+{
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if (!file.is_open())
+    {
+        throw std::runtime_error(&quot;Cannot open file&quot;);
+    }
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    std::vector&lt;u8&gt; buffer(size);
+    if (!file.read(reinterpret_cast&lt;char *&gt;(buffer.data()), size))
+    {
+        throw std::runtime_error(&quot;Cannot read file&quot;);
+    }
+    return deserialize(buffer);
+}
+} // namespace Phasor</file><file path="IR/PhasorIR.hpp">#pragma once
+#include &quot;../Bytecode.hpp&quot;
+#include &lt;cstdint&gt;
+#include &lt;filesystem&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+#include &lt;vector&gt;
+#include &lt;phsint.hpp&gt;
+/// @brief The Phasor Programming Language and Runtime
+namespace Phasor
+{
+/**
+ * @class PhasorIR
+ * @brief Phasor IR Serializer/Deserializer
+ */
+class PhasorIR
+{
+  public:
+	/// @brief Serialize bytecode to Phasor IR format
+	static std::vector&lt;u8&gt; serialize(const Bytecode &amp;bytecode);
+	/// @brief Deserialize Phasor IR format to bytecode
+	static Bytecode deserialize(const std::vector&lt;u8&gt; &amp;data);
+	/// @brief Save bytecode to .phir file
+	static bool saveToFile(const Bytecode &amp;bytecode, const std::filesystem::path &amp;filename);
+	/// @brief Load bytecode from .phir file
+	static Bytecode loadFromFile(const std::filesystem::path &amp;filename);
+	/// @brief Helper to escape strings for text format
+	static PhsString escapeString(const PhsString &amp;str);
+	/// @brief Helper to unescape strings from text format
+	static PhsString unescapeString(const PhsString &amp;str);
+  private:
+	/// @brief Operand types for instructions
+	enum class OperandType : u8
+	{
+		NONE,         ///&lt; No operand
+		INT,          ///&lt; Integer operand
+		REGISTER,     ///&lt; Register operand
+		CONSTANT_IDX, ///&lt; Index into constant pool
+		VARIABLE_IDX, ///&lt; Index into variable mapping
+		FUNCTION_IDX,  ///&lt; Index into function entries
+		SCOPE_IDX
+	};
+	static int         getOperandCount(OpCode op);
+	static OperandType getOperandType(OpCode op, int operandIndex);
+	static const std::unordered_map&lt;OpCode, PhsString&gt; opCodeToStringMap;
+	static const std::unordered_map&lt;PhsString, OpCode&gt; stringToOpCodeMap;
+};
+} // namespace Phasor</file><file path="PhasorStruct/PhasorStruct.hpp">#include &quot;../../Runtime/VM/VM.hpp&quot;
+#include &quot;../../Runtime/Stdlib/StdLib.hpp&quot;
+#include &quot;../../ISA/map.hpp&quot;
+namespace Phasor 
+{
+inline Value bytecodeToValue(const Bytecode &amp;bc)
+{
+	Value root = Value::createStruct(&quot;Bytecode&quot;);
+	std::vector&lt;Value&gt; instrElems;
+	instrElems.reserve(bc.instructions.size());
+	for (const auto &amp;instr : bc.instructions)
+	{
+		Value iv = Value::createStruct(&quot;Instruction&quot;);
+		iv[&quot;op&quot;] = Value(static_cast&lt;i64&gt;(static_cast&lt;int&gt;(instr.op)));
+		iv[&quot;o1&quot;] = Value(static_cast&lt;i64&gt;(instr.operand1));
+		iv[&quot;o2&quot;] = Value(static_cast&lt;i64&gt;(instr.operand2));
+		iv[&quot;o3&quot;] = Value(static_cast&lt;i64&gt;(instr.operand3));
+		instrElems.push_back(std::move(iv));
+	}
+	root[&quot;instructions&quot;] = Value::createArray(std::move(instrElems));
+	root[&quot;constants&quot;] = Value::createArray(bc.constants);
+	Value variablesMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[varKey, varVal] : bc.variables)
+		variablesMap[PhsString(varKey)] = Value(static_cast&lt;i64&gt;(varVal));
+	root[&quot;variables&quot;] = variablesMap;
+	std::vector&lt;Value&gt; scopeOuter;
+	scopeOuter.reserve(bc.scopeVarLists.size());
+	for (const auto &amp;scope : bc.scopeVarLists)
+	{
+		std::vector&lt;Value&gt; scopeInner;
+		scopeInner.reserve(scope.size());
+		for (const auto &amp;[scopeIdx, scopeName] : scope)
+		{
+			Value pair = Value::createStruct(&quot;ScopeVar&quot;);
+			pair[&quot;index&quot;] = Value(static_cast&lt;i64&gt;(scopeIdx));
+			pair[&quot;name&quot;]  = Value(scopeName);
+			scopeInner.push_back(std::move(pair));
+		}
+		scopeOuter.push_back(Value::createArray(std::move(scopeInner)));
+	}
+	root[&quot;scopeVarLists&quot;] = Value::createArray(std::move(scopeOuter));
+	Value functionEntriesMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[feKey, feVal] : bc.functionEntries)
+		functionEntriesMap[PhsString(feKey)] = Value(static_cast&lt;i64&gt;(feVal));
+	root[&quot;functionEntries&quot;] = functionEntriesMap;
+	Value functionParamCountsMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[fpcKey, fpcVal] : bc.functionParamCounts)
+		functionParamCountsMap[PhsString(fpcKey)] = Value(static_cast&lt;i64&gt;(fpcVal));
+	root[&quot;functionParamCounts&quot;] = functionParamCountsMap;
+	Value functionParamTypeNamesMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[fptnKey, fptnVec] : bc.functionParamTypeNames)
+	{
+		std::vector&lt;Value&gt; fptnElems;
+		fptnElems.reserve(fptnVec.size());
+		for (const auto &amp;fptnStr : fptnVec)
+			fptnElems.emplace_back(fptnStr);
+		functionParamTypeNamesMap[PhsString(fptnKey)] = Value::createArray(std::move(fptnElems));
+	}
+	root[&quot;functionParamTypeNames&quot;] = functionParamTypeNamesMap;
+	Value functionParamArrayDimsMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[fpadKey, fpadOuterVec] : bc.functionParamArrayDims)
+	{
+		std::vector&lt;Value&gt; fpadOuter;
+		fpadOuter.reserve(fpadOuterVec.size());
+		for (const auto &amp;fpadInnerVec : fpadOuterVec)
+		{
+			std::vector&lt;Value&gt; fpadInner;
+			fpadInner.reserve(fpadInnerVec.size());
+			for (int fpadDim : fpadInnerVec)
+				fpadInner.emplace_back(static_cast&lt;i64&gt;(fpadDim));
+			fpadOuter.push_back(Value::createArray(std::move(fpadInner)));
+		}
+		functionParamArrayDimsMap[PhsString(fpadKey)] = Value::createArray(std::move(fpadOuter));
+	}
+	root[&quot;functionParamArrayDims&quot;] = functionParamArrayDimsMap;
+	Value functionReturnTypeNamesMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[frtnKey, frtnVal] : bc.functionReturnTypeNames)
+		functionReturnTypeNamesMap[PhsString(frtnKey)] = Value(frtnVal);
+	root[&quot;functionReturnTypeNames&quot;] = functionReturnTypeNamesMap;
+	Value functionReturnArrayDimsMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[fradKey, fradVec] : bc.functionReturnArrayDims)
+	{
+		std::vector&lt;Value&gt; fradElems;
+		fradElems.reserve(fradVec.size());
+		for (int fradDim : fradVec)
+			fradElems.emplace_back(static_cast&lt;i64&gt;(fradDim));
+		functionReturnArrayDimsMap[PhsString(fradKey)] = Value::createArray(std::move(fradElems));
+	}
+	root[&quot;functionReturnArrayDims&quot;] = functionReturnArrayDimsMap;
+	root[&quot;nextVarIndex&quot;] = Value(static_cast&lt;i64&gt;(bc.nextVarIndex));
+	std::vector&lt;Value&gt; structElems;
+	structElems.reserve(bc.structs.size());
+	for (const auto &amp;si : bc.structs)
+	{
+		Value sv = Value::createStruct(&quot;StructInfo&quot;);
+		sv[&quot;name&quot;]            = Value(si.name);
+		sv[&quot;firstConstIndex&quot;] = Value(static_cast&lt;i64&gt;(si.firstConstIndex));
+		sv[&quot;fieldCount&quot;]      = Value(static_cast&lt;i64&gt;(si.fieldCount));
+		std::vector&lt;Value&gt; fieldNamesElems;
+		fieldNamesElems.reserve(si.fieldNames.size());
+		for (const auto &amp;fn : si.fieldNames)
+			fieldNamesElems.emplace_back(fn);
+		sv[&quot;fieldNames&quot;] = Value::createArray(std::move(fieldNamesElems));
+		std::vector&lt;Value&gt; fieldArrayDimsElems;
+		fieldArrayDimsElems.reserve(si.fieldArrayDims.size());
+		for (const auto &amp;dims : si.fieldArrayDims)
+		{
+			std::vector&lt;Value&gt; dimElems;
+			dimElems.reserve(dims.size());
+			for (int d : dims)
+				dimElems.emplace_back(static_cast&lt;i64&gt;(d));
+			fieldArrayDimsElems.push_back(Value::createArray(std::move(dimElems)));
+		}
+		sv[&quot;fieldArrayDims&quot;] = Value::createArray(std::move(fieldArrayDimsElems));
+		std::vector&lt;Value&gt; fieldTypeNamesElems;
+		fieldTypeNamesElems.reserve(si.fieldTypeNames.size());
+		for (const auto &amp;ftn : si.fieldTypeNames)
+			fieldTypeNamesElems.emplace_back(ftn);
+		sv[&quot;fieldTypeNames&quot;] = Value::createArray(std::move(fieldTypeNamesElems));
+		structElems.push_back(std::move(sv));
+	}
+	root[&quot;structs&quot;] = Value::createArray(std::move(structElems));
+	Value structEntriesMap = Value::createStruct(&quot;Map&quot;);
+	for (const auto &amp;[seKey, seVal] : bc.structEntries)
+		structEntriesMap[PhsString(seKey)] = Value(static_cast&lt;i64&gt;(seVal));
+	root[&quot;structEntries&quot;] = structEntriesMap;
+	return root;
+}
+inline Bytecode bytecodeFromValue(const Value &amp;root)
+{
+	Bytecode bc;
+	auto instrArr = root.getField(&quot;instructions&quot;).asArray();
+	bc.instructions.reserve(instrArr-&gt;size());
+	for (const auto &amp;iv : *instrArr)
+	{
+		Instruction instr;
+		instr.op       = static_cast&lt;OpCode&gt;(iv.getField(&quot;op&quot;).asInt());
+		instr.operand1 = static_cast&lt;i32&gt;(iv.getField(&quot;o1&quot;).asInt());
+		instr.operand2 = static_cast&lt;i32&gt;(iv.getField(&quot;o2&quot;).asInt());
+		instr.operand3 = static_cast&lt;i32&gt;(iv.getField(&quot;o3&quot;).asInt());
+		bc.instructions.push_back(instr);
+	}
+	auto constArr = root.getField(&quot;constants&quot;).asArray();
+	bc.constants.reserve(constArr-&gt;size());
+	for (const auto &amp;cv : *constArr)
+		bc.constants.push_back(cv);
+	auto variablesStruct = root.getField(&quot;variables&quot;).asStruct();
+	for (const auto &amp;[varKey, varVal] : variablesStruct-&gt;fields)
+		bc.variables[varKey.str()] = static_cast&lt;int&gt;(varVal.asInt());
+	auto scopeOuterArr = root.getField(&quot;scopeVarLists&quot;).asArray();
+	bc.scopeVarLists.reserve(scopeOuterArr-&gt;size());
+	for (const auto &amp;scopeVal : *scopeOuterArr)
+	{
+		std::vector&lt;std::pair&lt;int, std::string&gt;&gt; scope;
+		auto scopeInnerArr = scopeVal.asArray();
+		scope.reserve(scopeInnerArr-&gt;size());
+		for (const auto &amp;pairVal : *scopeInnerArr)
+			scope.emplace_back(static_cast&lt;int&gt;(pairVal.getField(&quot;index&quot;).asInt()),
+			                    pairVal.getField(&quot;name&quot;).stl_string());
+		bc.scopeVarLists.push_back(std::move(scope));
+	}
+	auto functionEntriesStruct = root.getField(&quot;functionEntries&quot;).asStruct();
+	for (const auto &amp;[feKey, feVal] : functionEntriesStruct-&gt;fields)
+		bc.functionEntries[feKey.str()] = static_cast&lt;int&gt;(feVal.asInt());
+	auto functionParamCountsStruct = root.getField(&quot;functionParamCounts&quot;).asStruct();
+	for (const auto &amp;[fpcKey, fpcVal] : functionParamCountsStruct-&gt;fields)
+		bc.functionParamCounts[fpcKey.str()] = static_cast&lt;int&gt;(fpcVal.asInt());
+	auto functionParamTypeNamesStruct = root.getField(&quot;functionParamTypeNames&quot;).asStruct();
+	for (const auto &amp;[fptnKey, fptnVal] : functionParamTypeNamesStruct-&gt;fields)
+	{
+		std::vector&lt;std::string&gt; fptnVec;
+		auto fptnArr = fptnVal.asArray();
+		fptnVec.reserve(fptnArr-&gt;size());
+		for (const auto &amp;fptnElem : *fptnArr)
+			fptnVec.push_back(fptnElem.stl_string());
+		bc.functionParamTypeNames[fptnKey.str()] = std::move(fptnVec);
+	}
+	auto functionParamArrayDimsStruct = root.getField(&quot;functionParamArrayDims&quot;).asStruct();
+	for (const auto &amp;[fpadKey, fpadVal] : functionParamArrayDimsStruct-&gt;fields)
+	{
+		std::vector&lt;std::vector&lt;int&gt;&gt; fpadOuterVec;
+		auto fpadOuterArr = fpadVal.asArray();
+		fpadOuterVec.reserve(fpadOuterArr-&gt;size());
+		for (const auto &amp;fpadInnerVal : *fpadOuterArr)
+		{
+			std::vector&lt;int&gt; fpadInnerVec;
+			auto fpadInnerArr = fpadInnerVal.asArray();
+			fpadInnerVec.reserve(fpadInnerArr-&gt;size());
+			for (const auto &amp;fpadDimVal : *fpadInnerArr)
+				fpadInnerVec.push_back(static_cast&lt;int&gt;(fpadDimVal.asInt()));
+			fpadOuterVec.push_back(std::move(fpadInnerVec));
+		}
+		bc.functionParamArrayDims[fpadKey.str()] = std::move(fpadOuterVec);
+	}
+	auto functionReturnTypeNamesStruct = root.getField(&quot;functionReturnTypeNames&quot;).asStruct();
+	for (const auto &amp;[frtnKey, frtnVal] : functionReturnTypeNamesStruct-&gt;fields)
+		bc.functionReturnTypeNames[frtnKey.str()] = frtnVal.stl_string();
+	auto functionReturnArrayDimsStruct = root.getField(&quot;functionReturnArrayDims&quot;).asStruct();
+	for (const auto &amp;[fradKey, fradVal] : functionReturnArrayDimsStruct-&gt;fields)
+	{
+		std::vector&lt;int&gt; fradVec;
+		auto fradArr = fradVal.asArray();
+		fradVec.reserve(fradArr-&gt;size());
+		for (const auto &amp;fradElem : *fradArr)
+			fradVec.push_back(static_cast&lt;int&gt;(fradElem.asInt()));
+		bc.functionReturnArrayDims[fradKey.str()] = std::move(fradVec);
+	}
+	bc.nextVarIndex = static_cast&lt;int&gt;(root.getField(&quot;nextVarIndex&quot;).asInt());
+	auto structsArr = root.getField(&quot;structs&quot;).asArray();
+	bc.structs.reserve(structsArr-&gt;size());
+	for (const auto &amp;sv : *structsArr)
+	{
+		StructInfo si;
+		si.name            = sv.getField(&quot;name&quot;).stl_string();
+		si.firstConstIndex = static_cast&lt;int&gt;(sv.getField(&quot;firstConstIndex&quot;).asInt());
+		si.fieldCount      = static_cast&lt;int&gt;(sv.getField(&quot;fieldCount&quot;).asInt());
+		auto fieldNamesArr = sv.getField(&quot;fieldNames&quot;).asArray();
+		si.fieldNames.reserve(fieldNamesArr-&gt;size());
+		for (const auto &amp;fnVal : *fieldNamesArr)
+			si.fieldNames.push_back(fnVal.stl_string());
+		auto fieldArrayDimsArr = sv.getField(&quot;fieldArrayDims&quot;).asArray();
+		si.fieldArrayDims.reserve(fieldArrayDimsArr-&gt;size());
+		for (const auto &amp;dimsVal : *fieldArrayDimsArr)
+		{
+			std::vector&lt;int&gt; dims;
+			auto dimsInnerArr = dimsVal.asArray();
+			dims.reserve(dimsInnerArr-&gt;size());
+			for (const auto &amp;dimVal : *dimsInnerArr)
+				dims.push_back(static_cast&lt;int&gt;(dimVal.asInt()));
+			si.fieldArrayDims.push_back(std::move(dims));
+		}
+		auto fieldTypeNamesArr = sv.getField(&quot;fieldTypeNames&quot;).asArray();
+		si.fieldTypeNames.reserve(fieldTypeNamesArr-&gt;size());
+		for (const auto &amp;ftnVal : *fieldTypeNamesArr)
+			si.fieldTypeNames.push_back(ftnVal.stl_string());
+		bc.structs.push_back(std::move(si));
+	}
+	auto structEntriesStruct = root.getField(&quot;structEntries&quot;).asStruct();
+	for (const auto &amp;[seKey, seVal] : structEntriesStruct-&gt;fields)
+		bc.structEntries[seKey.str()] = static_cast&lt;int&gt;(seVal.asInt());
+	return bc;
+}
+}</file><file path="Bytecode.hpp">#pragma once
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;unordered_set&gt;
+#include &lt;unordered_map&gt;
+#include &lt;phsint.hpp&gt;
+#include &quot;../ISA/ISA.hpp&quot;
+#include &lt;Value.hpp&gt;
+namespace Phasor
+{
+/** @brief Instruction with up to 3 operands
+ *  Format: instruction operand1, operand2, operand3
+ *  Each instruction uses only the operands it needs
+ */ 
+struct Instruction
+{
+	OpCode  op;   ///&lt; Operation code
+	i32 operand1; ///&lt; First operand
+	i32 operand2; ///&lt; Second operand
+	i32 operand3; ///&lt; Third operand
+	// Default constructor
+	Instruction() : op(OpCode::HALT), operand1(0), operand2(0), operand3(0)
+	{
+	}
+	// Full constructor
+	Instruction(OpCode op, i32 op1 = 0, i32 op2 = 0, i32 op3 = 0)
+	    : op(op), operand1(op1), operand2(op2), operand3(op3)
+	{
+	}
+};
+/// @brief Struct metadata stored alongside bytecode (struct section)
+struct StructInfo
+{
+    std::string              name;
+    int                      firstConstIndex;
+    int                      fieldCount;
+    std::vector&lt;std::string&gt; fieldNames;
+    std::vector&lt;std::vector&lt;int&gt;&gt; fieldArrayDims;
+    std::vector&lt;std::string&gt;      fieldTypeNames;
+};
+/// @brief Complete bytecode structure
+struct Bytecode
+{
+	std::vector&lt;Instruction&gt;             instructions;        ///&lt; List of instructions
+	std::vector&lt;Value&gt;                   constants;           ///&lt; Constant pool
+	std::unordered_map&lt;std::string, int&gt; variables;           ///&lt; Variable name -&gt; index mapping
+	std::vector&lt;std::vector&lt;std::pair&lt;int, std::string&gt;&gt;&gt; scopeVarLists; ///&lt; Per-scope var indices to free on EXIT_SCOPE
+	std::unordered_map&lt;std::string, int&gt; functionEntries;     ///&lt; Function name -&gt; instruction index mapping
+	std::unordered_map&lt;std::string, int&gt; functionParamCounts; ///&lt; Function name -&gt; parameter count
+	std::unordered_map&lt;std::string, std::vector&lt;std::string&gt;&gt; functionParamTypeNames; ///&lt; Function name -&gt; parameter type names
+	std::unordered_map&lt;std::string, std::vector&lt;std::vector&lt;int&gt;&gt;&gt; functionParamArrayDims;
+	std::unordered_map&lt;std::string, std::string&gt; functionReturnTypeNames; ///&lt; Function name -&gt; return type name
+	std::unordered_map&lt;std::string, std::vector&lt;int&gt;&gt; functionReturnArrayDims; ///&lt; Function name -&gt; return array dims
+	int                                  nextVarIndex = 0;    ///&lt; Next available variable index
+	// Struct section (planned usage by future struct codegen)
+	std::vector&lt;StructInfo&gt;              structs;       ///&lt; List of struct descriptors
+	std::unordered_map&lt;std::string, int&gt; structEntries; ///&lt; Struct name -&gt; index in structs
+	/// @brief Add a constant to the pool and return its index
+	int addConstant(const Value &amp;value)
+	{
+		constants.push_back(value);
+		return static_cast&lt;int&gt;(constants.size()) - 1;
+	}
+	/// @brief Add a string constant with deduplication
+	int addStringConstant(const std::string &amp;s)
+	{
+		auto it = stringConstantCache.find(s);
+		if (it != stringConstantCache.end())
+		{
+			return it-&gt;second;
+		}
+		int idx = addConstant(Value(s));
+		stringConstantCache[s] = idx;
+		return idx;
+	}
+	std::unordered_map&lt;std::string, int&gt; stringConstantCache; ///&lt; Dedup cache for string constants
+	/// @brief Get or create a variable index
+	int getOrCreateVar(const std::string &amp;name)
+	{
+		auto it = variables.find(name);
+		if (it != variables.end())
+		{
+			return it-&gt;second;
+		}
+		int index = nextVarIndex++;
+		variables[name] = index;
+		return index;
+	}
+	/// @brief Emit an instruction with operands
+	void emit(OpCode op, i32 op1 = 0, i32 op2 = 0, i32 op3 = 0)
+	{
+		instructions.emplace_back(op, op1, op2, op3);
+	}
+};
+}</file><file path="CodeGen.cpp">#include &quot;CodeGen.hpp&quot;
+#include &lt;algorithm&gt;
+#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;queue&gt;
+#include &lt;ranges&gt;
+#include &lt;unordered_map&gt;
+#include &lt;unordered_set&gt;
+#include &lt;algorithm&gt;
+#include &lt;phsint.hpp&gt;
+namespace Phasor
+{
+static void collectCallsExpr(const AST::Expression *expr, std::unordered_set&lt;std::string&gt; &amp;out);
+static void collectCallsStmt(const AST::Statement  *stmt, std::unordered_set&lt;std::string&gt; &amp;out);
+static void collectCallsExpr(const AST::Expression *expr, std::unordered_set&lt;std::string&gt; &amp;out)
+{
+	if (expr == nullptr)
+	{ 
+		return;
+	}
+	if (const auto *e = dynamic_cast&lt;const AST::CallExpr *&gt;(expr))
+	{
+		out.insert(e-&gt;callee);
+		for (const auto &amp;a : e-&gt;arguments)
+		{	
+			collectCallsExpr(a.get(), out);
+		}
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::BinaryExpr *&gt;(expr))
+	{
+		collectCallsExpr(e-&gt;left.get(), out);
+		collectCallsExpr(e-&gt;right.get(), out);
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::UnaryExpr *&gt;(expr))
+	{
+		collectCallsExpr(e-&gt;operand.get(), out);
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::PostfixExpr *&gt;(expr))
+	{
+		collectCallsExpr(e-&gt;operand.get(), out);
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::AssignmentExpr *&gt;(expr))
+	{
+		collectCallsExpr(e-&gt;target.get(), out);
+		collectCallsExpr(e-&gt;value.get(), out);
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::FieldAccessExpr *&gt;(expr))
+	{
+		collectCallsExpr(e-&gt;object.get(), out);
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::ArrayAccessExpr *&gt;(expr))
+	{
+		collectCallsExpr(e-&gt;array.get(), out);
+		collectCallsExpr(e-&gt;index.get(), out);
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::ArrayLiteralExpr *&gt;(expr))
+	{
+		for (const auto &amp;elem : e-&gt;elements)
+		{
+			collectCallsExpr(elem.get(), out);
+		}
+	}
+	else if (const auto *e = dynamic_cast&lt;const AST::StructInstanceExpr *&gt;(expr))
+	{
+		for (const auto &amp;[fname, fval] : e-&gt;fieldValues)
+		{ 
+			collectCallsExpr(fval.get(), out);
+		}
+	}
+}
+static void collectCallsStmt(const AST::Statement *stmt, std::unordered_set&lt;std::string&gt; &amp;out)
+{
+	if (stmt == nullptr){ return;
+}
+	if (const auto *s = dynamic_cast&lt;const AST::BlockStmt *&gt;(stmt))
+	{
+		for (const auto &amp;inner : s-&gt;statements)
+		{
+			collectCallsStmt(inner.get(), out);
+		}
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::UnsafeBlockStmt *&gt;(stmt))
+	{
+		collectCallsStmt(s-&gt;block.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::ExpressionStmt *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;expression.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::VarDecl *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;initializer.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::PrintStmt *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;expression.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::IfStmt *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;condition.get(), out);
+		collectCallsStmt(s-&gt;thenBranch.get(), out);
+		collectCallsStmt(s-&gt;elseBranch.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::WhileStmt *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;condition.get(), out);
+		collectCallsStmt(s-&gt;body.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::ForStmt *&gt;(stmt))
+	{
+		collectCallsStmt(s-&gt;initializer.get(), out);
+		collectCallsExpr(s-&gt;condition.get(), out);
+		collectCallsExpr(s-&gt;increment.get(), out);
+		collectCallsStmt(s-&gt;body.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::ReturnStmt *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;value.get(), out);
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::SwitchStmt *&gt;(stmt))
+	{
+		collectCallsExpr(s-&gt;expr.get(), out);
+		for (const auto &amp;c : s-&gt;cases)
+		{
+			collectCallsExpr(c.value.get(), out);
+			for (const auto &amp;cs : c.statements)
+			{
+				collectCallsStmt(cs.get(), out);
+			}
+		}
+		for (const auto &amp;ds : s-&gt;defaultStmts)
+		{ 
+			collectCallsStmt(ds.get(), out);
+		}
+	}
+	else if (const auto *s = dynamic_cast&lt;const AST::ExportStmt *&gt;(stmt))
+	{
+		if (dynamic_cast&lt;const AST::FunctionDecl *&gt;(s-&gt;declaration.get()) == nullptr)
+		{
+			collectCallsStmt(s-&gt;declaration.get(), out);
+		}
+	}
+}
+Bytecode CodeGenerator::generate(const AST::Program &amp;program, const std::unordered_map&lt;std::string, int&gt; &amp;existingVars,
+                                 int nextVarIdx, bool replMode)
+{
+	bytecode = Bytecode(); // Reset bytecode
+	bytecode.variables = existingVars;
+	bytecode.nextVarIndex = nextVarIdx;
+	isRepl = replMode;
+	declaredTypes.clear();
+	inferredTypes.clear();
+	inferredFieldTypes.clear();
+	arrayDimensions.clear();
+	arrayBaseTypes.clear();
+	currentFunctionReturnType.clear();
+	currentFunctionReturnDims.clear();
+	currentFunctionHasReturn = false;
+	liveFunctions.clear();
+	forwardDecls.clear();
+	std::unordered_map&lt;std::string, const AST::FunctionDecl *&gt; allFunctions;
+	for (const auto &amp;stmt : program.statements)
+	{
+		const auto *fd = dynamic_cast&lt;const AST::FunctionDecl *&gt;(stmt.get());
+		if (fd == nullptr)
+		{
+			if (const auto *es = dynamic_cast&lt;const AST::ExportStmt *&gt;(stmt.get()))
+			{
+				fd = dynamic_cast&lt;const AST::FunctionDecl *&gt;(es-&gt;declaration.get());
+			}
+		}
+		if (fd != nullptr) 
+		{ 
+			allFunctions[fd-&gt;name] = fd;
+		}
+	}
+	if (!isRepl)
+	{
+		std::unordered_map&lt;std::string, std::unordered_set&lt;std::string&gt;&gt; callGraph;
+		for (const auto &amp;[name, fd] : allFunctions)
+		{
+			std::unordered_set&lt;std::string&gt; called;
+			collectCallsStmt(fd-&gt;body.get(), called);
+			callGraph[name] = std::move(called);
+		}
+		if (allFunctions.contains(&quot;main&quot;) != 0u)
+		{
+			liveFunctions.insert(&quot;main&quot;);
+		}
+		for (const auto &amp;stmt : program.statements)
+		{
+			if (const auto *es = dynamic_cast&lt;const AST::ExportStmt *&gt;(stmt.get()))
+			{
+				if (const auto *fd = dynamic_cast&lt;const AST::FunctionDecl *&gt;(es-&gt;declaration.get()))
+				{
+					liveFunctions.insert(fd-&gt;name);
+				}
+			}
+		}
+		for (const auto &amp;[name, fd] : allFunctions)
+		{
+			if (fd-&gt;keep)
+			{
+				liveFunctions.insert(name);
+			}
+		}
+		for (const auto &amp;stmt : program.statements)
+		{
+			bool isFuncDecl    = (dynamic_cast&lt;const AST::FunctionDecl *&gt;(stmt.get()) != nullptr);
+			bool isExportedFn  = false;
+			if (const auto *es = dynamic_cast&lt;const AST::ExportStmt *&gt;(stmt.get()))
+			{
+				isExportedFn = (dynamic_cast&lt;const AST::FunctionDecl *&gt;(es-&gt;declaration.get()) != nullptr);
+			}
+			if (!isFuncDecl &amp;&amp; !isExportedFn)
+			{
+				collectCallsStmt(stmt.get(), liveFunctions);
+			}
+		}
+		std::queue&lt;std::string&gt; worklist;
+		for (const auto &amp;name : liveFunctions)
+		{
+			worklist.push(name);
+		}
+		while (!worklist.empty())
+		{
+			std::string fn = worklist.front();
+			worklist.pop();
+			auto it = callGraph.find(fn);
+			if (it == callGraph.end())
+			{
+				continue;
+			}
+			for (const auto &amp;callee : it-&gt;second)
+			{
+				if ((allFunctions.contains(callee) != 0u) &amp;&amp; (liveFunctions.contains(callee) == 0u))
+				{
+					liveFunctions.insert(callee);
+					worklist.push(callee);
+				}
+			}
+		}
+#ifdef _DEBUG
+		for (const auto &amp;[name, fd] : allFunctions)
+		{
+			if (!liveFunctions.count(name))
+			{
+				std::cerr &lt;&lt; &quot;\033[33m&quot; &lt;&lt; &quot;WARNING: &quot; &quot;\033[0m&quot; &lt;&lt; &quot;[UNUSED-FUNCTION] function &apos;&quot; &lt;&lt; name &lt;&lt; &quot;&apos; is unused and will not be emitted&quot;
+				          &lt;&lt; &quot; (line &quot; &lt;&lt; fd-&gt;line &lt;&lt; &quot;, column &quot; &lt;&lt; fd-&gt;column &lt;&lt; &quot;)\n&quot;;
+			}
+		}
+#endif
+	}
+	for (const auto &amp;stmt : program.statements)
+	{
+		generateStatement(stmt.get());
+	}
+	for (const auto &amp;name : forwardDecls)
+	{
+		if (!allFunctions.contains(name))
+		{
+			throw std::runtime_error(&quot;Function &apos;&quot; + name + &quot;&apos; was declared but never defined.&quot;);
+		}
+	}
+	bytecode.emit(OpCode::HALT);
+	return bytecode;
+}
+bool CodeGenerator::isLiteralExpression(const AST::Expression *expr, Value &amp;outValue)
+{
+	if (const auto *numExpr = dynamic_cast&lt;const AST::NumberExpr *&gt;(expr))
+	{
+		try
+		{
+			if (numExpr-&gt;value.find(&apos;.&apos;) != std::string::npos)
+			{
+				outValue = Value(std::stod(numExpr-&gt;value));
+			} else {
+				outValue = Value(static_cast&lt;i64&gt;(std::stoll(numExpr-&gt;value)));
+			}
+			return true;
+		}
+		catch (...)
+		{
+			return false;
+		}
+	}
+	if (const auto *strExpr = dynamic_cast&lt;const AST::StringExpr *&gt;(expr))
+	{
+		outValue = Value(strExpr-&gt;value);
+		return true;
+	}
+	if (const auto *boolExpr = dynamic_cast&lt;const AST::BooleanExpr *&gt;(expr))
+	{
+		outValue = Value(boolExpr-&gt;value);
+		return true;
+	}
+	if (dynamic_cast&lt;const AST::NullExpr *&gt;(expr) != nullptr)
+	{
+		outValue = Value();
+		return true;
+	}
+	if (const auto *unaryExpr = dynamic_cast&lt;const AST::UnaryExpr *&gt;(expr))
+	{
+		Value operandVal;
+		if (unaryExpr-&gt;op == AST::UnaryOp::Negate &amp;&amp; isLiteralExpression(unaryExpr-&gt;operand.get(), operandVal))
+		{
+			ValueType operandType = operandVal.getType();
+			if (operandType == ValueType::Int || operandType == ValueType::Float)
+			{
+				try
+				{
+					outValue = Value(static_cast&lt;i64&gt;(0)) - operandVal;
+					return true;
+				}
+				catch (...)
+				{
+					return false;
+				}
+			}
+			return false;
+		}
+		if (unaryExpr-&gt;op == AST::UnaryOp::Not &amp;&amp; isLiteralExpression(unaryExpr-&gt;operand.get(), operandVal))
+		{
+			if (operandVal.isBool())
+			{
+				outValue = Value(!operandVal.asBool());
+				return true;
+			}
+			return false;
+		}
+	}
+	return false;
+}
+ValueType CodeGenerator::inferExpressionType(const AST::Expression *expr, bool &amp;known)
+{
+	// If literal, we know the type immediately
+	Value lit;
+	if (isLiteralExpression(expr, lit))
+	{
+		known = true;
+		return lit.getType();
+	}
+	// If identifier and we&apos;ve inferred its type previously, return that
+	if (const auto *ident = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(expr))
+	{
+		auto it = inferredTypes.find(ident-&gt;name);
+		if (it != inferredTypes.end())
+		{
+			known = true;
+			return it-&gt;second;
+		}
+	}
+	// Unary expression
+	if (const auto *unaryExpr = dynamic_cast&lt;const AST::UnaryExpr *&gt;(expr))
+	{
+		if (unaryExpr-&gt;op == AST::UnaryOp::Not)
+		{
+			known = true;
+			return ValueType::Bool;
+		}
+		if (unaryExpr-&gt;op == AST::UnaryOp::Negate)
+		{
+			return inferExpressionType(unaryExpr-&gt;operand.get(), known);
+		}
+	}
+	// Binary expression
+	if (const auto *binExpr = dynamic_cast&lt;const AST::BinaryExpr *&gt;(expr))
+	{
+		if (binExpr-&gt;op == AST::BinaryOp::And || binExpr-&gt;op == AST::BinaryOp::Or ||
+		    binExpr-&gt;op == AST::BinaryOp::Equal || binExpr-&gt;op == AST::BinaryOp::NotEqual ||
+		    binExpr-&gt;op == AST::BinaryOp::LessThan || binExpr-&gt;op == AST::BinaryOp::GreaterThan ||
+		    binExpr-&gt;op == AST::BinaryOp::LessEqual || binExpr-&gt;op == AST::BinaryOp::GreaterEqual)
+		{
+			known = true;
+			return ValueType::Bool;
+		}
+		bool leftKnown = false;
+		bool rightKnown = false;
+		ValueType leftType = inferExpressionType(binExpr-&gt;left.get(), leftKnown);
+		ValueType rightType = inferExpressionType(binExpr-&gt;right.get(), rightKnown);
+		if (leftKnown &amp;&amp; rightKnown)
+		{
+			if (leftType == ValueType::Int &amp;&amp; rightType == ValueType::Int)
+			{
+				known = true;
+				return ValueType::Int;
+			}
+			if (leftType == ValueType::Float || rightType == ValueType::Float)
+			{
+				known = true;
+				return ValueType::Float;
+			}
+			if (leftType == ValueType::String || rightType == ValueType::String)
+			{
+				known = true;
+				return ValueType::String;
+			}
+		}
+		else if (leftKnown)
+		{
+			if (leftType == ValueType::Float)
+			{
+				known = true;
+				return ValueType::Float;
+			}
+		}
+		else if (rightKnown)
+		{
+			if (rightType == ValueType::Float)
+			{
+				known = true;
+				return ValueType::Float;
+			}
+		}
+	}
+	// Postfix expression
+	if (const auto *postfixExpr = dynamic_cast&lt;const AST::PostfixExpr *&gt;(expr))
+	{
+		return inferExpressionType(postfixExpr-&gt;operand.get(), known);
+	}
+	// Assignment expression
+	if (const auto *assignExpr = dynamic_cast&lt;const AST::AssignmentExpr *&gt;(expr))
+	{
+		return inferExpressionType(assignExpr-&gt;value.get(), known);
+	}
+	// Call expression
+	if (const auto *callExpr = dynamic_cast&lt;const AST::CallExpr *&gt;(expr))
+	{
+		if (callExpr-&gt;callee == &quot;len&quot;)
+		{
+			known = true;
+			return ValueType::Int;
+		}
+		if (callExpr-&gt;callee == &quot;starts_with&quot; || callExpr-&gt;callee == &quot;ends_with&quot;)
+		{
+			known = true;
+			return ValueType::Bool;
+		}
+		auto retTypeIt = bytecode.functionReturnTypeNames.find(callExpr-&gt;callee);
+		if (retTypeIt != bytecode.functionReturnTypeNames.end()) 
+		{
+			if (retTypeIt-&gt;second != &quot;any&quot;) 
+			{
+				known = true;
+				auto dimsIt = bytecode.functionReturnArrayDims.find(callExpr-&gt;callee);
+				if (dimsIt != bytecode.functionReturnArrayDims.end() &amp;&amp; !dimsIt-&gt;second.empty()) 
+				{
+					return ValueType::Array;
+				}
+				return mapTypeNameToValueType(retTypeIt-&gt;second);
+			}
+		}
+	}
+	if (dynamic_cast&lt;const AST::ArrayLiteralExpr *&gt;(expr) != nullptr)
+	{
+		known = true;
+		return ValueType::Array;
+	}
+	if (dynamic_cast&lt;const AST::StructInstanceExpr *&gt;(expr) != nullptr)
+	{
+		known = true;
+		return ValueType::Struct;
+	}
+	if (const auto *arrayAccess = dynamic_cast&lt;const AST::ArrayAccessExpr *&gt;(expr))
+	{
+		const AST::Expression *cursor = arrayAccess;
+		size_t accessDepth = 0;
+		while (const auto *currentAccess = dynamic_cast&lt;const AST::ArrayAccessExpr *&gt;(cursor))
+		{
+			++accessDepth;
+			cursor = currentAccess-&gt;array.get();
+		}
+		if (const auto *ident = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(cursor))
+		{
+			auto arrayIt = arrayBaseTypes.find(ident-&gt;name);
+			auto dimIt = arrayDimensions.find(ident-&gt;name);
+			if (arrayIt != arrayBaseTypes.end() &amp;&amp; arrayIt-&gt;second != &quot;any&quot;)
+			{
+				known = true;
+				if (dimIt != arrayDimensions.end() &amp;&amp; accessDepth &lt; dimIt-&gt;second.size())
+				{
+					return ValueType::Array;
+				}
+				return mapTypeNameToValueType(arrayIt-&gt;second);
+			}
+		}
+		else if (const auto *fieldExpr = dynamic_cast&lt;const AST::FieldAccessExpr *&gt;(cursor))
+		{
+			if (const auto *objIdent = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(fieldExpr-&gt;object.get()))
+			{
+				std::string structName;
+				auto declIt = declaredTypes.find(objIdent-&gt;name);
+				if (declIt != declaredTypes.end())
+				{
+					structName = declIt-&gt;second;
+				}
+				for (const auto &amp;s : bytecode.structs)
+				{
+					if (!structName.empty() &amp;&amp; s.name != structName)
+					{
+						continue;
+					}
+					for (size_t i = 0; i &lt; s.fieldNames.size(); ++i)
+					{
+						if (s.fieldNames[i] == fieldExpr-&gt;fieldName)
+						{
+							if (s.fieldTypeNames[i] == &quot;any&quot;)
+							{
+								// not known
+								known = false;
+								return ValueType::Float; // unused: known is false
+							}
+							known = true;
+							return mapTypeNameToValueType(s.fieldTypeNames[i]);
+						}
+					}
+				}
+			}
+		}
+	}
+	if (const auto *fieldExpr = dynamic_cast&lt;const AST::FieldAccessExpr *&gt;(expr))
+	{
+		// field on a named variable we have field-type records for
+		if (const auto *objIdent = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(fieldExpr-&gt;object.get()))
+		{
+			auto varIt = inferredFieldTypes.find(objIdent-&gt;name);
+			if (varIt != inferredFieldTypes.end())
+			{
+				auto fieldIt = varIt-&gt;second.find(fieldExpr-&gt;fieldName);
+				if (fieldIt != varIt-&gt;second.end())
+				{
+					known = true;
+					return fieldIt-&gt;second;
+				}
+			}
+			// named struct type, need to look up StructInfo
+			auto typeIt = inferredTypes.find(objIdent-&gt;name);
+			if (typeIt != inferredTypes.end() &amp;&amp; typeIt-&gt;second == ValueType::Struct)
+			{
+				std::string structName;
+				auto declIt = declaredTypes.find(objIdent-&gt;name);
+				if (declIt != declaredTypes.end())
+				{
+					structName = declIt-&gt;second;
+				}
+				for (const auto &amp;s : bytecode.structs)
+				{
+					if (!structName.empty() &amp;&amp; s.name != structName)
+					{
+						continue;
+					}
+					for (size_t i = 0; i &lt; s.fieldNames.size(); ++i)
+					{
+						if (s.fieldNames[i] == fieldExpr-&gt;fieldName)
+						{
+							if (!s.fieldArrayDims[i].empty())
+							{
+								known = true;
+								return ValueType::Array;
+							}
+							if (s.fieldTypeNames[i] == &quot;any&quot;)
+							{
+								// not known
+								known = false;
+								return ValueType::Float;
+							}
+							known = true;
+							return mapTypeNameToValueType(s.fieldTypeNames[i]);
+						}
+					}
+				}
+			}
+		}
+	}
+	// Unknown
+	known = false;
+	return ValueType::Float;
+}
+void CodeGenerator::generateStatement(const AST::Statement *stmt)
+{
+	if (const auto *forwardDecl = dynamic_cast&lt;const AST::ForwardDecl *&gt;(stmt))
+	{
+		forwardDecls.insert(forwardDecl-&gt;name);
+		return;
+	}
+	if (const auto *varDecl = dynamic_cast&lt;const AST::VarDecl *&gt;(stmt))
+	{
+		generateVarDecl(varDecl);
+	}
+	else if (const auto *exprStmt = dynamic_cast&lt;const AST::ExpressionStmt *&gt;(stmt))
+	{
+		generateExpressionStmt(exprStmt);
+	}
+	else if (const auto *printStmt = dynamic_cast&lt;const AST::PrintStmt *&gt;(stmt))
+	{
+		generatePrintStmt(printStmt);
+	}
+	else if (dynamic_cast&lt;const AST::IncludeStmt *&gt;(stmt) != nullptr)
+	{
+		// preprocessor include
+	}
+	else if (const auto *blockStmt = dynamic_cast&lt;const AST::BlockStmt *&gt;(stmt))
+	{
+		generateBlockStmt(blockStmt);
+	}
+	else if (const auto *ifStmt = dynamic_cast&lt;const AST::IfStmt *&gt;(stmt))
+	{
+		generateIfStmt(ifStmt);
+	}
+	else if (const auto *whileStmt = dynamic_cast&lt;const AST::WhileStmt *&gt;(stmt))
+	{
+		generateWhileStmt(whileStmt);
+	}
+	else if (const auto *forStmt = dynamic_cast&lt;const AST::ForStmt *&gt;(stmt))
+	{
+		generateForStmt(forStmt);
+	}
+	else if (const auto *returnStmt = dynamic_cast&lt;const AST::ReturnStmt *&gt;(stmt))
+	{
+		generateReturnStmt(returnStmt);
+	}
+	else if (const auto *unsafeStmt = dynamic_cast&lt;const AST::UnsafeBlockStmt *&gt;(stmt))
+	{
+		generateUnsafeBlockStmt(unsafeStmt);
+	}
+	else if (const auto *funcDecl = dynamic_cast&lt;const AST::FunctionDecl *&gt;(stmt))
+	{
+		generateFunctionDecl(funcDecl);
+	}
+	else if (const auto *structDecl = dynamic_cast&lt;const AST::StructDecl *&gt;(stmt))
+	{
+		generateStructDecl(structDecl);
+	}
+	else if (dynamic_cast&lt;const AST::BreakStmt *&gt;(stmt) != nullptr)
+	{
+		generateBreakStmt();
+	}
+	else if (dynamic_cast&lt;const AST::ContinueStmt *&gt;(stmt) != nullptr)
+	{
+		generateContinueStmt();
+	}
+	else if (const auto *switchStmt = dynamic_cast&lt;const AST::SwitchStmt *&gt;(stmt))
+	{
+		generateSwitchStmt(switchStmt);
+	} else {
+		throw std::runtime_error(&quot;Unknown statement type in code generation&quot;);
+	}
+}
+void CodeGenerator::generateExpression(const AST::Expression *expr, bool resultNeeded)
+{
+	if (const auto *numExpr = dynamic_cast&lt;const AST::NumberExpr *&gt;(expr))
+	{
+		generateNumberExpr(numExpr);
+	}
+	else if (const auto *strExpr = dynamic_cast&lt;const AST::StringExpr *&gt;(expr))
+	{
+		generateStringExpr(strExpr);
+	}
+	else if (const auto *identExpr = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(expr))
+	{
+		generateIdentifierExpr(identExpr);
+	}
+	else if (const auto *unaryExpr = dynamic_cast&lt;const AST::UnaryExpr *&gt;(expr))
+	{
+		generateUnaryExpr(unaryExpr);
+	}
+	else if (const auto *callExpr = dynamic_cast&lt;const AST::CallExpr *&gt;(expr))
+	{
+		generateCallExpr(callExpr);
+	}
+	else if (const auto *binExpr = dynamic_cast&lt;const AST::BinaryExpr *&gt;(expr))
+	{
+		generateBinaryExpr(binExpr);
+	}
+	else if (const auto *boolExpr = dynamic_cast&lt;const AST::BooleanExpr *&gt;(expr))
+	{
+		generateBooleanExpr(boolExpr);
+	}
+	else if (const auto *nullExpr = dynamic_cast&lt;const AST::NullExpr *&gt;(expr))
+	{
+		generateNullExpr(nullExpr);
+	}
+	else if (const auto *assignExpr = dynamic_cast&lt;const AST::AssignmentExpr *&gt;(expr))
+	{
+		generateAssignmentExpr(assignExpr);
+	}
+	else if (const auto *structExpr = dynamic_cast&lt;const AST::StructInstanceExpr *&gt;(expr))
+	{
+		generateStructInstanceExpr(structExpr);
+	}
+	else if (const auto *fieldAccessExpr = dynamic_cast&lt;const AST::FieldAccessExpr *&gt;(expr))
+	{
+		generateFieldAccessExpr(fieldAccessExpr);
+	}
+	else if (const auto *postfixExpr = dynamic_cast&lt;const AST::PostfixExpr *&gt;(expr))
+	{
+		generatePostfixExpr(postfixExpr, resultNeeded);
+	}
+	else if (const auto *arrayLit = dynamic_cast&lt;const AST::ArrayLiteralExpr *&gt;(expr))
+	{
+		generateArrayLiteralExpr(arrayLit, resultNeeded);
+	}
+	else if (const auto *arrayAccess = dynamic_cast&lt;const AST::ArrayAccessExpr *&gt;(expr))
+	{
+		generateArrayAccessExpr(arrayAccess, resultNeeded);
+	} else {
+		throw std::runtime_error(&quot;Unknown expression type in code generation&quot;);
+	}
+}
+void CodeGenerator::generateVarDecl(const AST::VarDecl *varDecl)
+{
+	bool hasExplicitType = (varDecl-&gt;type != nullptr);
+	bool isAny = (hasExplicitType &amp;&amp; varDecl-&gt;type-&gt;name == &quot;any&quot;);
+	bool isArrayType = (hasExplicitType &amp;&amp; !varDecl-&gt;type-&gt;arrayDimensions.empty());
+	// default to null, not float
+	ValueType declaredType = ValueType::Null;
+	if (hasExplicitType)
+	{
+		declaredTypes[varDecl-&gt;name] = varDecl-&gt;type-&gt;name;
+		if (isAny)
+		{
+			if (isArrayType)
+			{
+				arrayBaseTypes[varDecl-&gt;name] = &quot;any&quot;;
+			}
+			if (varDecl-&gt;initializer)
+			{
+				bool known = false;
+				ValueType inferred = inferExpressionType(varDecl-&gt;initializer.get(), known);
+				if (known)
+				{
+					inferredTypes[varDecl-&gt;name] = inferred;
+				}
+				if (const auto *structExpr = dynamic_cast&lt;const AST::StructInstanceExpr *&gt;(varDecl-&gt;initializer.get()))
+				{
+					inferredTypes[varDecl-&gt;name] = ValueType::Struct;
+					for (const auto &amp;[fieldName, fieldValue] : structExpr-&gt;fieldValues)
+					{
+						bool fKnown = false;
+						ValueType fType = inferExpressionType(fieldValue.get(), fKnown);
+						if (fKnown)
+						{
+							inferredFieldTypes[varDecl-&gt;name][fieldName] = fType;
+						}
+					}
+				}
+			}
+		}
+		else if (isArrayType)
+		{
+			arrayBaseTypes[varDecl-&gt;name] = varDecl-&gt;type-&gt;name;
+			arrayDimensions[varDecl-&gt;name] = varDecl-&gt;type-&gt;arrayDimensions;
+			declaredType = ValueType::Array;
+			inferredTypes[varDecl-&gt;name] = declaredType;
+		}
+		else if (bytecode.structEntries.contains(varDecl-&gt;type-&gt;name))
+		{
+			declaredType = ValueType::Struct;
+			inferredTypes[varDecl-&gt;name] = declaredType;
+		} else {
+			declaredType = mapTypeNameToValueType(varDecl-&gt;type-&gt;name);
+			inferredTypes[varDecl-&gt;name] = declaredType;
+		}
+	}
+	auto declareVar = [&amp;](const std::string &amp;name) -&gt; int {
+		if (!scopeStack.empty())
+		{
+			ScopeFrame &amp;frame = scopeStack.back();
+			auto existing = bytecode.variables.find(name);
+			if (!frame.savedBindings.contains(name))
+			{
+				frame.savedBindings[name] = (existing != bytecode.variables.end())
+												? existing-&gt;second : -1;
+			}
+			if (!frame.savedInferredTypes.contains(name))
+			{
+				auto it = inferredTypes.find(name);
+				frame.savedInferredTypes[name] = (it != inferredTypes.end())
+													? std::optional&lt;ValueType&gt;(it-&gt;second)
+													: std::nullopt;
+			}
+			if (!frame.savedArrayBaseTypes.contains(name))
+			{
+				auto it = arrayBaseTypes.find(name);
+				frame.savedArrayBaseTypes[name] = (it != arrayBaseTypes.end())
+													? std::optional&lt;std::string&gt;(it-&gt;second)
+													: std::nullopt;
+			}
+			if (!frame.savedArrayDimensions.contains(name))
+			{
+				auto it = arrayDimensions.find(name);
+				frame.savedArrayDimensions[name] = (it != arrayDimensions.end())
+													? std::optional&lt;std::vector&lt;int&gt;&gt;(it-&gt;second)
+													: std::nullopt;
+			}
+			if (!frame.savedDeclaredTypes.contains(name))
+			{
+				auto it = declaredTypes.find(name);
+				frame.savedDeclaredTypes[name] = (it != declaredTypes.end())
+													? std::optional&lt;std::string&gt;(it-&gt;second)
+													: std::nullopt;
+			}
+			int idx = bytecode.nextVarIndex++;
+			bytecode.variables[name] = idx;
+			frame.declaredIndices.emplace_back(idx, name);
+			return idx;
+		}
+		return bytecode.getOrCreateVar(name);
+	};
+	if (varDecl-&gt;initializer)
+	{
+		const auto *arrayLit = dynamic_cast&lt;const AST::ArrayLiteralExpr *&gt;(varDecl-&gt;initializer.get());
+		if (hasExplicitType &amp;&amp; !isAny)
+		{
+			if (!isArrayType &amp;&amp; (arrayLit != nullptr))
+			{
+				throw std::runtime_error(&quot;Variable &apos;&quot; + varDecl-&gt;name +
+				                         &quot;&apos; is declared as a scalar type but assigned an array literal.&quot;);
+			}
+			if (isArrayType &amp;&amp; (arrayLit != nullptr))
+			{
+				if (!varDecl-&gt;type-&gt;arrayDimensions.empty() &amp;&amp; varDecl-&gt;type-&gt;arrayDimensions[0] != -1)
+				{
+					if (arrayLit-&gt;elements.size() != static_cast&lt;size_t&gt;(varDecl-&gt;type-&gt;arrayDimensions[0]))
+					{
+						throw std::runtime_error(&quot;Array bounds error: variable &apos;&quot; + varDecl-&gt;name +
+                                                 &quot;&apos; expects &quot; + std::to_string(varDecl-&gt;type-&gt;arrayDimensions[0]) +
+                                                 &quot; elements, but got &quot; + std::to_string(arrayLit-&gt;elements.size()));
+					}
+				}
+				if (bytecode.structEntries.contains(varDecl-&gt;type-&gt;name))
+				{
+					const std::string &amp;expectedStruct = varDecl-&gt;type-&gt;name;
+					auto expectedIt = bytecode.structEntries.find(expectedStruct);
+					const StructInfo &amp;expectedInfo = bytecode.structs[expectedIt-&gt;second];
+					for (const auto &amp; element : arrayLit-&gt;elements)
+					{
+						auto *structExpr = dynamic_cast&lt;AST::StructInstanceExpr *&gt;(element.get());
+						if (structExpr == nullptr)
+						{ 
+							continue;
+						}
+						if (structExpr-&gt;structName != &quot;__anon&quot; &amp;&amp; structExpr-&gt;structName != expectedStruct)
+						{
+							throw std::runtime_error(&quot;Array element has wrong struct type: expected &apos;&quot; +
+							                         expectedStruct + &quot;&apos;, got &apos;&quot; + structExpr-&gt;structName + &quot;&apos;&quot;);
+						}
+						if (structExpr-&gt;structName == &quot;__anon&quot;)
+						{
+							if (structExpr-&gt;fieldValues.size() != expectedInfo.fieldNames.size())
+							{
+								throw std::runtime_error(&quot;Field count mismatch for struct &apos;&quot; + expectedStruct + &quot;&apos;&quot;);
+							}
+							for (const auto &amp;[fname, fval] : structExpr-&gt;fieldValues)
+							{
+								if (std::ranges::find(expectedInfo.fieldNames, fname) ==
+								    expectedInfo.fieldNames.end())
+								{
+									throw std::runtime_error(&quot;Unknown field &apos;&quot; + fname + &quot;&apos; in struct &apos;&quot; + expectedStruct + &quot;&apos;&quot;);
+								}
+							}
+						}
+					}
+				}
+				if (!bytecode.structEntries.contains(varDecl-&gt;type-&gt;name))
+				{
+					bool isMultiDim = varDecl-&gt;type-&gt;arrayDimensions.size() &gt; 1;
+					ValueType expectedElemType = isMultiDim
+						? ValueType::Array
+						: mapTypeNameToValueType(varDecl-&gt;type-&gt;name);
+					for (size_t i = 0; i &lt; arrayLit-&gt;elements.size(); ++i)
+					{
+						bool known = false;
+						ValueType elemType = inferExpressionType(arrayLit-&gt;elements[i].get(), known);
+						if (known &amp;&amp; elemType != expectedElemType)
+						{
+							throw std::runtime_error(&quot;Type mismatch in array initialization: element at index &quot; +
+													std::to_string(i) + &quot; is not of expected type &apos;&quot; +
+													varDecl-&gt;type-&gt;name + &quot;&apos;.&quot;);
+						}
+					}
+				}
+			}
+		}
+		if (const auto *binExpr = dynamic_cast&lt;const AST::BinaryExpr *&gt;(varDecl-&gt;initializer.get()))
+		{
+			generateBinaryExpr(binExpr, declaredType);
+		} else {
+			generateExpression(varDecl-&gt;initializer.get(), true);
+		}
+		int varIndex = declareVar(varDecl-&gt;name);
+		bytecode.emit(OpCode::STORE_VAR, varIndex);
+	} else {
+		if (isArrayType)
+		{
+			// Automatically generate bytecode to instantiate default arrays
+			generateDefaultArray(varDecl-&gt;type-&gt;arrayDimensions, 0, varDecl-&gt;type-&gt;name);
+		} else {
+			// Keep standard default scalar initialization (null)
+			int constIndex = bytecode.addConstant(Value());
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		}
+		int varIndex = declareVar(varDecl-&gt;name);
+		bytecode.emit(OpCode::STORE_VAR, varIndex);
+	}
+}
+void CodeGenerator::generateExpressionStmt(const AST::ExpressionStmt *exprStmt)
+{
+	if (isRepl)
+	{
+		generateExpression(exprStmt-&gt;expression.get(), true);
+		bytecode.emit(OpCode::PRINT);
+		return;
+	}
+	if (const auto *postfix = dynamic_cast&lt;const AST::PostfixExpr *&gt;(exprStmt-&gt;expression.get()))
+	{
+		generatePostfixExpr(postfix, false);
+	} else {
+		generateExpression(exprStmt-&gt;expression.get());
+		bytecode.emit(OpCode::POP);
+	}
+}
+void CodeGenerator::generatePrintStmt(const AST::PrintStmt *printStmt)
+{
+	generateExpression(printStmt-&gt;expression.get());
+	bytecode.emit(OpCode::PRINT);
+}
+void CodeGenerator::generateExportStmt(const AST::ExportStmt *exportStmt)
+{
+	generateStatement(exportStmt-&gt;declaration.get());
+}
+void CodeGenerator::generateNumberExpr(const AST::NumberExpr *numExpr)
+{
+	try
+	{
+		if (numExpr-&gt;value.find(&apos;.&apos;) != std::string::npos)
+		{
+			f64 d = std::stod(numExpr-&gt;value);
+			int constIndex = bytecode.addConstant(Value(d));
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		} else {
+			i64 i = std::stoll(numExpr-&gt;value);
+			int     constIndex = bytecode.addConstant(Value(i));
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		}
+	}
+	catch (...)
+	{
+		throw std::runtime_error(&quot;Invalid number format: &quot; + numExpr-&gt;value);
+	}
+}
+void CodeGenerator::generateStringExpr(const AST::StringExpr *strExpr)
+{
+	int constIndex = bytecode.addConstant(Value(strExpr-&gt;value));
+	bytecode.emit(OpCode::PUSH_CONST, constIndex);
+}
+void CodeGenerator::generateIdentifierExpr(const AST::IdentifierExpr *identExpr)
+{
+	int varIndex = bytecode.getOrCreateVar(identExpr-&gt;name);
+	bytecode.emit(OpCode::LOAD_VAR, varIndex);
+}
+void CodeGenerator::generateUnaryExpr(const AST::UnaryExpr *unaryExpr)
+{
+	// fold literal unary
+	Value folded;
+	if (isLiteralExpression(unaryExpr, folded))
+	{
+		if (folded.isBool())
+		{
+			bytecode.emit(folded.asBool() ? OpCode::TRUE_P : OpCode::FALSE_P);
+		}
+		else if (folded.isNull())
+		{
+			bytecode.emit(OpCode::NULL_VAL);
+		} else {
+			int constIndex = bytecode.addConstant(folded);
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+		}
+		return;
+	}
+	generateExpression(unaryExpr-&gt;operand.get());
+	switch (unaryExpr-&gt;op)
+	{
+	case AST::UnaryOp::Negate:
+		bytecode.emit(OpCode::NEGATE);
+		break;
+	case AST::UnaryOp::Not:
+		bytecode.emit(OpCode::NOT);
+		break;
+	case AST::UnaryOp::AddressOf:
+		throw std::runtime_error(&quot;Address of not supported&quot;);
+	case AST::UnaryOp::Dereference:
+		throw std::runtime_error(&quot;Dereference not supported&quot;);
+	}
+}
+void CodeGenerator::generateCallExpr(const AST::CallExpr *callExpr)
+{
+	if (callExpr-&gt;callee == &quot;len&quot; &amp;&amp; callExpr-&gt;arguments.size() == 1)
+	{
+		if (const auto *strExpr = dynamic_cast&lt;const AST::StringExpr *&gt;(callExpr-&gt;arguments[0].get()))
+		{
+			auto len = (i64)strExpr-&gt;value.length();
+			int  constIndex = bytecode.addConstant(Value(len));
+			bytecode.emit(OpCode::PUSH_CONST, constIndex);
+			return;
+		}
+		generateExpression(callExpr-&gt;arguments[0].get());
+		bytecode.emit(OpCode::LEN);
+		return;
+	}
+	if (callExpr-&gt;callee == &quot;substr&quot; &amp;&amp; callExpr-&gt;arguments.size() == 3)
+	{
+		if (const auto *numExpr = dynamic_cast&lt;const AST::NumberExpr *&gt;(callExpr-&gt;arguments[2].get()))
+		{
+			if (numExpr-&gt;value == &quot;1&quot; || numExpr-&gt;value == &quot;1.0&quot;)
+			{
+				generateExpression(callExpr-&gt;arguments[0].get());
+				generateExpression(callExpr-&gt;arguments[1].get());
+				bytecode.emit(OpCode::CHAR_AT);
+				return;
+			}
+		}
+	}
+	if (callExpr-&gt;callee == &quot;char_at&quot; &amp;&amp; callExpr-&gt;arguments.size() == 2)
+	{
+		generateExpression(callExpr-&gt;arguments[0].get());
+		generateExpression(callExpr-&gt;arguments[1].get());
+		bytecode.emit(OpCode::CHAR_AT);
+		return;
+	}
+	if (callExpr-&gt;callee == &quot;starts_with&quot; &amp;&amp; callExpr-&gt;arguments.size() == 2)
+	{
+		const auto *s = dynamic_cast&lt;const AST::StringExpr *&gt;(callExpr-&gt;arguments[0].get());
+		const auto *p = dynamic_cast&lt;const AST::StringExpr *&gt;(callExpr-&gt;arguments[1].get());
+		if ((s != nullptr) &amp;&amp; (p != nullptr))
+		{
+			bool result = s-&gt;value.length() &gt;= p-&gt;value.length() &amp;&amp; s-&gt;value.starts_with(p-&gt;value);
+			bytecode.emit(result ? OpCode::TRUE_P : OpCode::FALSE_P);
+			return;
+		}
+	}
+	if (callExpr-&gt;callee == &quot;ends_with&quot; &amp;&amp; callExpr-&gt;arguments.size() == 2)
+	{
+		const auto *s = dynamic_cast&lt;const AST::StringExpr *&gt;(callExpr-&gt;arguments[0].get());
+		const auto *suffix = dynamic_cast&lt;const AST::StringExpr *&gt;(callExpr-&gt;arguments[1].get());
+		if ((s != nullptr) &amp;&amp; (suffix != nullptr))
+		{
+			bool result = s-&gt;value.length() &gt;= suffix-&gt;value.length() &amp;&amp; s-&gt;value.ends_with(suffix-&gt;value);
+			bytecode.emit(result ? OpCode::TRUE_P : OpCode::FALSE_P);
+			return;
+		}
+	}
+	for (const auto &amp;arg : callExpr-&gt;arguments)
+	{
+		generateExpression(arg.get());
+	}
+	int constIndex = bytecode.addConstant(Value(static_cast&lt;i64&gt;(callExpr-&gt;arguments.size())));
+	bytecode.emit(OpCode::PUSH_CONST, constIndex);
+	bool isUserFunction = (bytecode.functionEntries.contains(callExpr-&gt;callee)) || 
+	                      (forwardDecls.contains(callExpr-&gt;callee));
+	if (isUserFunction)
+	{
+		int nameIndex = bytecode.addStringConstant(callExpr-&gt;callee);
+		auto itParam = bytecode.functionParamCounts.find(callExpr-&gt;callee);
+		if (itParam != bytecode.functionParamCounts.end())
+		{
+			int expected = itParam-&gt;second;
+			int got = static_cast&lt;int&gt;(callExpr-&gt;arguments.size());
+			if (expected != got)
+			{
+				throw std::runtime_error(&quot;Calling function &apos;&quot; + callExpr-&gt;callee + &quot;&apos; with &quot; + std::to_string(got)
+				          + &quot; arguments but it expects &quot; + std::to_string(expected) + &quot;\n&quot;);
+			}
+		}
+		auto typeIt = bytecode.functionParamTypeNames.find(callExpr-&gt;callee);
+		if (typeIt != bytecode.functionParamTypeNames.end())
+		{
+			const auto &amp;paramTypes = typeIt-&gt;second;
+			for (size_t i = 0; i &lt; callExpr-&gt;arguments.size() &amp;&amp; i &lt; paramTypes.size(); ++i)
+			{
+				const std::string &amp;expectedTypeName = paramTypes[i];
+				if (expectedTypeName == &quot;any&quot;)
+				{
+					continue;
+				}
+				bool      known   = false;
+				ValueType argType = inferExpressionType(callExpr-&gt;arguments[i].get(), known);
+				if (!known)
+				{
+					continue;
+				}
+				if (argType == ValueType::Array)
+				{
+					auto dimsIt = bytecode.functionParamArrayDims.find(callExpr-&gt;callee);
+					if (dimsIt != bytecode.functionParamArrayDims.end() &amp;&amp; i &lt; dimsIt-&gt;second.size())
+					{
+						const auto &amp;expectedDims = dimsIt-&gt;second[i];
+						if (expectedDims.empty())
+						{
+							throw std::runtime_error(&quot;Argument &quot; + std::to_string(i + 1) + &quot; to &apos;&quot; + callExpr-&gt;callee
+							          + &quot;&apos; expects scalar &apos;&quot; + expectedTypeName + &quot;&apos;, got array (line &quot;
+							          + std::to_string(callExpr-&gt;line) + &quot;, column &quot; + std::to_string(callExpr-&gt;column) + &quot;).\n&quot;);
+						}
+						if (expectedDims[0] != -1)
+						{
+							if (const auto *arrayLit = dynamic_cast&lt;const AST::ArrayLiteralExpr *&gt;(callExpr-&gt;arguments[i].get()))
+							{
+								if (arrayLit-&gt;elements.size() != static_cast&lt;size_t&gt;(expectedDims[0]))
+								{
+									throw std::runtime_error(&quot;Argument &quot; + std::to_string(i + 1) + &quot; to &apos;&quot; + callExpr-&gt;callee
+									          + &quot;&apos; has wrong size: expected &quot; + std::to_string(expectedDims[0])
+									          + &quot; elements, got &quot; + std::to_string(arrayLit-&gt;elements.size())
+									          + &quot; (line &quot; + std::to_string(callExpr-&gt;line) + &quot;, column &quot; + std::to_string(callExpr-&gt;column) + &quot;).\n&quot;);
+								}
+							}
+						}
+					}
+					continue;
+				} else {
+					auto dimsIt = bytecode.functionParamArrayDims.find(callExpr-&gt;callee);
+					if (dimsIt != bytecode.functionParamArrayDims.end() &amp;&amp; i &lt; dimsIt-&gt;second.size())
+					{
+						const auto &amp;expectedDims = dimsIt-&gt;second[i];
+						if (!expectedDims.empty())
+						{
+							throw std::runtime_error(&quot;Argument &quot; + std::to_string(i + 1) + &quot; to &apos;&quot; + callExpr-&gt;callee
+							          + &quot;&apos; expects array, got scalar (line &quot; + std::to_string(callExpr-&gt;line) + &quot;, column &quot; + std::to_string(callExpr-&gt;column) + &quot;).\n&quot;);
+						}
+					}
+				}
+				ValueType expectedType = mapTypeNameToValueType(expectedTypeName);
+				if (argType != expectedType &amp;&amp; expectedType != ValueType::Struct)
+				{
+					throw std::runtime_error(&quot;Argument &quot; + std::to_string(i + 1) + &quot; to &apos;&quot; + callExpr-&gt;callee
+					          + &quot;&apos; has wrong type: expected &apos;&quot; + expectedTypeName
+					          + &quot;&apos; (line &quot; + std::to_string(callExpr-&gt;line) + &quot;, column &quot; + std::to_string(callExpr-&gt;column) + &quot;).\n&quot;);
+				}
+			}
+		}
+		bytecode.emit(OpCode::CALL, nameIndex);
+	} else {
+		int nameIndex = bytecode.addStringConstant(callExpr-&gt;callee);
+		bytecode.emit(OpCode::CALL_NATIVE, nameIndex);
+	}
+}
+void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType hint)
+{
+	Value leftVal;
+	Value rightVal;
+	if (isLiteralExpression(binExpr-&gt;left.get(), leftVal) &amp;&amp; isLiteralExpression(binExpr-&gt;right.get(), rightVal))
+	{
+		try
+		{
+			Value result;
+			switch (binExpr-&gt;op)
+			{
+			case AST::BinaryOp::Add:
+				result = leftVal + rightVal;
+				break;
+			case AST::BinaryOp::Subtract:
+				result = leftVal - rightVal;
+				break;
+			case AST::BinaryOp::Multiply:
+				result = leftVal * rightVal;
+				break;
+			case AST::BinaryOp::Divide:
+				result = leftVal / rightVal;
+				break;
+			case AST::BinaryOp::Modulo:
+				result = leftVal % rightVal;
+				break;
+			case AST::BinaryOp::And:
+				result = leftVal.logicalAnd(rightVal);
+				break;
+			case AST::BinaryOp::Or:
+				result = leftVal.logicalOr(rightVal);
+				break;
+			case AST::BinaryOp::Equal:
+				result = Value(leftVal == rightVal);
+				break;
+			case AST::BinaryOp::NotEqual:
+				result = Value(leftVal != rightVal);
+				break;
+			case AST::BinaryOp::LessThan:
+				result = Value(leftVal &lt; rightVal);
+				break;
+			case AST::BinaryOp::GreaterThan:
+				result = Value(leftVal &gt; rightVal);
+				break;
+			case AST::BinaryOp::LessEqual:
+				result = Value(leftVal &lt;= rightVal);
+				break;
+			case AST::BinaryOp::GreaterEqual:
+				result = Value(leftVal &gt;= rightVal);
+				break;
+			}
+			if (result.isBool())
+			{
+				if (result.asBool())
+				{
+					bytecode.emit(OpCode::TRUE_P);
+				} else {
+					bytecode.emit(OpCode::FALSE_P);
+				}
+			} else if (result.isNull())
+			{
+				bytecode.emit(OpCode::NULL_VAL);
+			} else {
+				int constIndex = bytecode.addConstant(result);
+				bytecode.emit(OpCode::PUSH_CONST, constIndex);
+			}
+			return;
+		}
+		catch (...)
+		{
+			std::cerr &lt;&lt; &quot;Unknown error in Phasor::CodeGenerator::generateBinaryExpr().\n&quot;;
+		}
+	}
+	if (binExpr-&gt;op == AST::BinaryOp::And)
+	{
+		generateExpression(binExpr-&gt;left.get());
+		int jumpToFalseIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
+		generateExpression(binExpr-&gt;right.get());
+		int jumpToEndIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP, 0);
+		bytecode.instructions[jumpToFalseIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::FALSE_P);
+		bytecode.instructions[jumpToEndIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+		return;
+	}
+	if (binExpr-&gt;op == AST::BinaryOp::Or)
+	{
+		generateExpression(binExpr-&gt;left.get());
+		int jumpToTrueIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP_IF_TRUE, 0);
+		generateExpression(binExpr-&gt;right.get());
+		int jumpToEndIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP, 0);
+		bytecode.instructions[jumpToTrueIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::TRUE_P);
+		bytecode.instructions[jumpToEndIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+		return;
+	}
+	u8 rLeft = allocateRegister();
+	u8 rRight = allocateRegister();
+	u8 rResult = allocateRegister();
+	Value leftLiteral;
+	bool  leftIsLiteral = isLiteralExpression(binExpr-&gt;left.get(), leftLiteral);
+	if (leftIsLiteral)
+	{
+		int constIndex = bytecode.addConstant(leftLiteral);
+		bytecode.emit(OpCode::LOAD_CONST_R, rLeft, constIndex);
+	} else {
+		generateExpression(binExpr-&gt;left.get());
+		bytecode.emit(OpCode::POP_R, rLeft);
+	}
+	Value rightLiteral;
+	bool  rightIsLiteral = isLiteralExpression(binExpr-&gt;right.get(), rightLiteral);
+	if (rightIsLiteral)
+	{
+		int constIndex = bytecode.addConstant(rightLiteral);
+		bytecode.emit(OpCode::LOAD_CONST_R, rRight, constIndex);
+	} else {
+		generateExpression(binExpr-&gt;right.get());
+		bytecode.emit(OpCode::POP_R, rRight);
+	}
+	auto exprIsKnownInt = [&amp;](const AST::Expression *e, bool isLiteral, const Value &amp;lit) -&gt; bool {
+		if (isLiteral)
+		{
+			return lit.isInt();
+		}
+		bool known = false;
+		ValueType type = inferExpressionType(e, known);
+		return known &amp;&amp; type == ValueType::Int;
+	};
+	bool leftKnownInt  = exprIsKnownInt(binExpr-&gt;left.get(), leftIsLiteral, leftLiteral);
+	bool rightKnownInt = exprIsKnownInt(binExpr-&gt;right.get(), rightIsLiteral, rightLiteral);
+	bool leftKnownArray = false;
+	bool rightKnownArray = false;
+	if (!leftIsLiteral)
+	{
+		bool leftKnown = false;
+		ValueType leftType = inferExpressionType(binExpr-&gt;left.get(), leftKnown);
+		leftKnownArray = leftKnown &amp;&amp; leftType == ValueType::Array;
+	}
+	if (!rightIsLiteral)
+	{
+		bool rightKnown = false;
+		ValueType rightType = inferExpressionType(binExpr-&gt;right.get(), rightKnown);
+		rightKnownArray = rightKnown &amp;&amp; rightType == ValueType::Array;
+	}
+	if (leftKnownArray &amp;&amp; rightKnownArray)
+	{
+		switch (binExpr-&gt;op)
+		{
+		case AST::BinaryOp::Add:
+			bytecode.emit(OpCode::MADD_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Subtract:
+			bytecode.emit(OpCode::MSUB_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Multiply:
+			bytecode.emit(OpCode::MMUL_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Divide:
+			bytecode.emit(OpCode::MDIV_R, rResult, rLeft, rRight);
+			break;
+		default:
+			throw std::runtime_error(&quot;Unsupported array operation&quot;);
+		}
+	}
+	else if (leftKnownInt &amp;&amp; rightKnownInt &amp;&amp; hint != ValueType::Float)
+	{
+		switch (binExpr-&gt;op)
+		{
+		case AST::BinaryOp::Add:
+			bytecode.emit(OpCode::IADD_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Subtract:
+			bytecode.emit(OpCode::ISUB_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Multiply:
+			bytecode.emit(OpCode::IMUL_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Divide:
+			bytecode.emit(OpCode::IDIV_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Modulo:
+			bytecode.emit(OpCode::IMOD_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::And:
+			bytecode.emit(OpCode::IAND_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Or:
+			bytecode.emit(OpCode::IOR_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Equal:
+			bytecode.emit(OpCode::IEQ_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::NotEqual:
+			bytecode.emit(OpCode::INE_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::LessThan:
+			bytecode.emit(OpCode::ILT_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::GreaterThan:
+			bytecode.emit(OpCode::IGT_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::LessEqual:
+			bytecode.emit(OpCode::ILE_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::GreaterEqual:
+			bytecode.emit(OpCode::IGE_R, rResult, rLeft, rRight);
+			break;
+		}
+	} else {
+		switch (binExpr-&gt;op)
+		{
+		case AST::BinaryOp::Add:
+			bytecode.emit(OpCode::FLADD_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Subtract:
+			bytecode.emit(OpCode::FLSUB_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Multiply:
+			bytecode.emit(OpCode::FLMUL_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Divide:
+			bytecode.emit(OpCode::FLDIV_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Modulo:
+			bytecode.emit(OpCode::FLMOD_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::And:
+			bytecode.emit(OpCode::FLAND_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Or:
+			bytecode.emit(OpCode::FLOR_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::Equal:
+			bytecode.emit(OpCode::FLEQ_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::NotEqual:
+			bytecode.emit(OpCode::FLNE_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::LessThan:
+			bytecode.emit(OpCode::FLLT_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::GreaterThan:
+			bytecode.emit(OpCode::FLGT_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::LessEqual:
+			bytecode.emit(OpCode::FLLE_R, rResult, rLeft, rRight);
+			break;
+		case AST::BinaryOp::GreaterEqual:
+			bytecode.emit(OpCode::FLGE_R, rResult, rLeft, rRight);
+			break;
+		}
+	}
+	freeRegister(rLeft);
+	freeRegister(rRight);
+	bytecode.emit(OpCode::PUSH_R, rResult);
+	freeRegister(rResult);
+}
+void CodeGenerator::generateBlockStmt(const AST::BlockStmt *blockStmt)
+{
+    scopeStack.push_back({});
+    for (const auto &amp;stmt : blockStmt-&gt;statements)
+	{
+        generateStatement(stmt.get());
+	}
+    ScopeFrame &amp;frame = scopeStack.back();
+    for (auto &amp;[name, oldIdx] : frame.savedBindings)
+    {
+        if (oldIdx == -1)
+		{
+            bytecode.variables.erase(name);
+        } else {
+            bytecode.variables[name] = oldIdx;
+		}
+    }
+    for (auto &amp;[name, oldType] : frame.savedInferredTypes)
+    {
+        if (!oldType.has_value())
+		{
+            inferredTypes.erase(name);
+        } else {
+            inferredTypes[name] = *oldType;
+		}
+    }
+    for (auto &amp;[name, oldBase] : frame.savedArrayBaseTypes)
+    {
+        if (!oldBase.has_value())
+		{
+            arrayBaseTypes.erase(name);
+        } else {
+            arrayBaseTypes[name] = *oldBase;
+		}
+    }
+    for (auto &amp;[name, oldDims] : frame.savedArrayDimensions)
+    {
+        if (!oldDims.has_value())
+		{
+            arrayDimensions.erase(name);
+        } else {
+            arrayDimensions[name] = *oldDims;
+		}
+    }
+    for (auto &amp;[name, oldDeclType] : frame.savedDeclaredTypes)
+    {
+        if (!oldDeclType.has_value())
+		{
+            declaredTypes.erase(name);
+        } else {
+            declaredTypes[name] = *oldDeclType;
+		}
+    }
+    if (!frame.declaredIndices.empty())
+    {
+        int scopeId = static_cast&lt;int&gt;(bytecode.scopeVarLists.size());
+        bytecode.scopeVarLists.push_back(frame.declaredIndices);
+        bytecode.emit(OpCode::EXIT_SCOPE, scopeId);
+    }
+    scopeStack.pop_back();
+}
+void CodeGenerator::generateIfStmt(const AST::IfStmt *ifStmt)
+{
+	generateExpression(ifStmt-&gt;condition.get());
+	int jumpToElseIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
+	generateStatement(ifStmt-&gt;thenBranch.get());
+	if (ifStmt-&gt;elseBranch)
+	{
+		int jumpToEndIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP, 0);
+		bytecode.instructions[jumpToElseIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+		generateStatement(ifStmt-&gt;elseBranch.get());
+		bytecode.instructions[jumpToEndIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+	} else {
+		bytecode.instructions[jumpToElseIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+	}
+}
+void CodeGenerator::generateWhileStmt(const AST::WhileStmt *whileStmt)
+{
+	int loopStartIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	loopStartStack.push_back(loopStartIndex);
+	breakJumpsStack.emplace_back();
+	continueJumpsStack.emplace_back();
+	generateExpression(whileStmt-&gt;condition.get());
+	int jumpToEndIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
+	generateStatement(whileStmt-&gt;body.get());
+	for (int continueJump : continueJumpsStack.back())
+	{
+		bytecode.instructions[continueJump].operand1 = loopStartIndex;
+	}
+	bytecode.emit(OpCode::JUMP_BACK, loopStartIndex);
+	int endIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.instructions[jumpToEndIndex].operand1 = endIndex;
+	for (int breakJump : breakJumpsStack.back())
+	{
+		bytecode.instructions[breakJump].operand1 = endIndex;
+	}
+	loopStartStack.pop_back();
+	breakJumpsStack.pop_back();
+	continueJumpsStack.pop_back();
+}
+void CodeGenerator::generateForStmt(const AST::ForStmt *forStmt)
+{
+	if (forStmt-&gt;initializer)
+	{
+		generateStatement(forStmt-&gt;initializer.get());
+	}
+	int loopStartIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	loopStartStack.push_back(loopStartIndex);
+	breakJumpsStack.emplace_back();
+	continueJumpsStack.emplace_back();
+	int jumpToEndIndex = -1;
+	if (forStmt-&gt;condition)
+	{
+		generateExpression(forStmt-&gt;condition.get());
+		jumpToEndIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP_IF_FALSE, 0);
+	}
+	generateStatement(forStmt-&gt;body.get());
+	int incrementIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	for (int continueJump : continueJumpsStack.back())
+	{
+		bytecode.instructions[continueJump].operand1 = incrementIndex;
+	}
+	if (forStmt-&gt;increment)
+	{
+		if (const auto *postfix = dynamic_cast&lt;const AST::PostfixExpr *&gt;(forStmt-&gt;increment.get()))
+		{
+			generatePostfixExpr(postfix, false);
+		} else {
+			generateExpression(forStmt-&gt;increment.get());
+			bytecode.emit(OpCode::POP);
+		}
+	}
+	bytecode.emit(OpCode::JUMP_BACK, loopStartIndex);
+	int endIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	if (jumpToEndIndex != -1)
+	{
+		bytecode.instructions[jumpToEndIndex].operand1 = endIndex;
+	}
+	for (int breakJump : breakJumpsStack.back())
+	{
+		bytecode.instructions[breakJump].operand1 = endIndex;
+	}
+	loopStartStack.pop_back();
+	breakJumpsStack.pop_back();
+	continueJumpsStack.pop_back();
+}
+void CodeGenerator::generateBreakStmt()
+{
+	if (breakJumpsStack.empty())
+	{
+		throw std::runtime_error(&quot;&apos;break&apos; statement outside of loop&quot;);
+	}
+	int jumpIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.emit(OpCode::JUMP, 0);
+	breakJumpsStack.back().push_back(jumpIndex);
+}
+void CodeGenerator::generateContinueStmt()
+{
+	if (continueJumpsStack.empty())
+	{
+		throw std::runtime_error(&quot;&apos;continue&apos; statement outside of loop&quot;);
+	}
+	int jumpIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.emit(OpCode::JUMP, 0);
+	continueJumpsStack.back().push_back(jumpIndex);
+}
+void CodeGenerator::generateReturnStmt(const AST::ReturnStmt *returnStmt)
+{
+	currentFunctionHasReturn = true;
+	if (returnStmt-&gt;value)
+	{
+		if (!currentFunctionReturnType.empty() &amp;&amp;
+		    currentFunctionReturnType != &quot;any&quot;  &amp;&amp;
+		    currentFunctionReturnType != &quot;void&quot;)
+		{
+			bool      known   = false;
+			ValueType retType = inferExpressionType(returnStmt-&gt;value.get(), known);
+			if (known)
+			{
+				bool expectedIsArray = !currentFunctionReturnDims.empty();
+				if (retType == ValueType::Array &amp;&amp; !expectedIsArray)
+				{
+					throw std::runtime_error(&quot;Return type mismatch: function declared to return scalar &apos;&quot;
+					          + currentFunctionReturnType + &quot;&apos; but returning array&quot;
+					          + &quot; (line &quot; + std::to_string(returnStmt-&gt;line) + &quot;, column &quot; + std::to_string(returnStmt-&gt;column) + &quot;).\n&quot;);
+				}
+				if (retType != ValueType::Array &amp;&amp; expectedIsArray)
+				{
+					throw std::runtime_error(&quot;Return type mismatch: function declared to return array &apos;&quot;
+					          + currentFunctionReturnType + &quot;[]&apos; but returning scalar&quot;
+					          + &quot; (line &quot; + std::to_string(returnStmt-&gt;line) + &quot;, column &quot; + std::to_string(returnStmt-&gt;column) + &quot;).\n&quot;);
+				}
+				else if (!expectedIsArray)
+				{
+					ValueType expectedType = mapTypeNameToValueType(currentFunctionReturnType);
+					if (retType != expectedType &amp;&amp; expectedType != ValueType::Struct)
+					{
+						throw std::runtime_error(&quot;Return type mismatch: function declared to return &apos;&quot;
+						          + currentFunctionReturnType + &quot;&apos; but returning a different type&quot;
+						          + &quot; (line &quot; + std::to_string(returnStmt-&gt;line) + &quot;, column &quot; + std::to_string(returnStmt-&gt;column) + &quot;).\n&quot;);
+					}
+				}
+			}
+		}
+		generateExpression(returnStmt-&gt;value.get());
+	} else {
+		if (!currentFunctionReturnType.empty() &amp;&amp;
+		    currentFunctionReturnType != &quot;any&quot;  &amp;&amp;
+		    currentFunctionReturnType != &quot;void&quot;)
+		{
+			throw std::runtime_error(&quot;Bare &apos;return&apos; in function declared to return &apos;&quot;
+			          + currentFunctionReturnType + &quot;&apos;&quot;
+			          + &quot; (line &quot; + std::to_string(returnStmt-&gt;line) + &quot;, column &quot; + std::to_string(returnStmt-&gt;column) + &quot;).\n&quot;);
+		}
+		bytecode.emit(OpCode::NULL_VAL);
+	}
+	bytecode.emit(OpCode::RETURN);
+}
+void CodeGenerator::generateUnsafeBlockStmt(const AST::UnsafeBlockStmt *unsafeStmt)
+{
+	generateBlockStmt(unsafeStmt-&gt;block.get());
+}
+void CodeGenerator::generateFunctionDecl(const AST::FunctionDecl *funcDecl)
+{
+	if (!isRepl &amp;&amp; (liveFunctions.contains(funcDecl-&gt;name) == 0u))
+	{
+		return;
+	}
+	int jumpOverIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.emit(OpCode::JUMP, 0);
+	int entryPoint = static_cast&lt;int&gt;(bytecode.instructions.size());
+	bytecode.functionEntries[funcDecl-&gt;name] = entryPoint;
+	bytecode.functionParamCounts[funcDecl-&gt;name] = static_cast&lt;int&gt;(funcDecl-&gt;params.size());
+	std::vector&lt;std::string&gt; paramTypeNames;
+	std::vector&lt;std::vector&lt;int&gt;&gt; paramArrayDims; 
+	paramTypeNames.reserve(funcDecl-&gt;params.size());
+	paramArrayDims.reserve(funcDecl-&gt;params.size()); 
+	for (const auto &amp;p : funcDecl-&gt;params)
+	{
+		paramTypeNames.push_back(p.type ? p.type-&gt;name : &quot;any&quot;);
+		paramArrayDims.push_back(p.type ? p.type-&gt;arrayDimensions : std::vector&lt;int&gt;{}); 
+	}
+	bytecode.functionParamTypeNames[funcDecl-&gt;name] = std::move(paramTypeNames);
+	bytecode.functionParamArrayDims[funcDecl-&gt;name] = std::move(paramArrayDims); 
+	std::string prevReturnType = currentFunctionReturnType;
+	std::vector&lt;int&gt; prevReturnDims = currentFunctionReturnDims;
+	bool prevHasReturn = currentFunctionHasReturn;
+	currentFunctionReturnType = (funcDecl-&gt;returnType ? funcDecl-&gt;returnType-&gt;name : &quot;any&quot;);
+	currentFunctionReturnDims = (funcDecl-&gt;returnType ? funcDecl-&gt;returnType-&gt;arrayDimensions : std::vector&lt;int&gt;{});
+	currentFunctionHasReturn = false;
+	bytecode.functionReturnTypeNames[funcDecl-&gt;name] = currentFunctionReturnType;
+	bytecode.functionReturnArrayDims[funcDecl-&gt;name] = currentFunctionReturnDims;
+	bytecode.emit(OpCode::POP);
+	for (const auto &amp; param : std::ranges::reverse_view(funcDecl-&gt;params))
+	{
+		int varIndex = bytecode.getOrCreateVar(param.name);
+		bytecode.emit(OpCode::STORE_VAR, varIndex);
+		if (param.type &amp;&amp; param.type-&gt;name != &quot;any&quot;)
+		{
+			bool isArrayParam = !param.type-&gt;arrayDimensions.empty();
+			if (isArrayParam)
+			{
+				arrayBaseTypes[param.name] = param.type-&gt;name;
+				arrayDimensions[param.name] = param.type-&gt;arrayDimensions; 
+				inferredTypes[param.name]  = ValueType::Array;
+			} else {
+				inferredTypes[param.name] = mapTypeNameToValueType(param.type-&gt;name);
+			}
+		}
+	}
+	generateBlockStmt(funcDecl-&gt;body.get());
+	if (!currentFunctionHasReturn)
+	{
+		if (!currentFunctionReturnType.empty() &amp;&amp;
+		    currentFunctionReturnType != &quot;any&quot;  &amp;&amp;
+		    currentFunctionReturnType != &quot;void&quot;)
+		{
+			throw std::runtime_error(&quot;Function &apos;&quot; + funcDecl-&gt;name + &quot;&apos; is declared to return &apos;&quot;
+			          + currentFunctionReturnType + &quot;&apos; but has no return statement.\n&quot;);
+		}
+	}
+	if (bytecode.instructions.empty() || bytecode.instructions.back().op != OpCode::RETURN)
+	{
+		bytecode.emit(OpCode::NULL_VAL);
+		bytecode.emit(OpCode::RETURN);
+	}
+	currentFunctionReturnType = prevReturnType;
+	currentFunctionReturnDims = prevReturnDims;
+	currentFunctionHasReturn = prevHasReturn;
+	bytecode.instructions[jumpOverIndex].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+}
+void CodeGenerator::generateBooleanExpr(const AST::BooleanExpr *boolExpr)
+{
+	if (boolExpr-&gt;value)
+	{
+		bytecode.emit(OpCode::TRUE_P);
+	} else {
+		bytecode.emit(OpCode::FALSE_P);
+	}
+}
+void CodeGenerator::generateNullExpr(const AST::NullExpr *)
+{
+	bytecode.emit(OpCode::NULL_VAL);
+}
+void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr)
+{
+    if (const auto *identExpr = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(assignExpr-&gt;target.get()))
+    {
+        auto declIt = declaredTypes.find(identExpr-&gt;name);
+        bool isAny = (declIt == declaredTypes.end() || declIt-&gt;second == &quot;any&quot;);
+        auto arrayIt = arrayBaseTypes.find(identExpr-&gt;name);
+        bool isArrayTarget = (arrayIt != arrayBaseTypes.end());
+        bool knownValType = false;
+        ValueType valType = inferExpressionType(assignExpr-&gt;value.get(), knownValType);
+        if (!isAny)
+        {
+            if (isArrayTarget)
+            {
+                if (knownValType &amp;&amp; valType != ValueType::Array)
+				{
+                    throw std::runtime_error(&quot;Type mismatch: cannot assign non-array to array variable &apos;&quot; + identExpr-&gt;name + &quot;&apos;&quot;);
+                }
+                std::string expectedBaseType = arrayIt-&gt;second;
+				if (expectedBaseType != &quot;any&quot;)
+				{
+					if (const auto *arrayLit = dynamic_cast&lt;const AST::ArrayLiteralExpr *&gt;(assignExpr-&gt;value.get()))
+					{
+						auto dimsIt = arrayDimensions.find(identExpr-&gt;name);
+						if (dimsIt != arrayDimensions.end() &amp;&amp; !dimsIt-&gt;second.empty() &amp;&amp; dimsIt-&gt;second[0] != -1)
+						{
+							if (arrayLit-&gt;elements.size() != static_cast&lt;size_t&gt;(dimsIt-&gt;second[0]))
+							{
+								throw std::runtime_error(&quot;Array bounds error: assigning &quot; + std::to_string(arrayLit-&gt;elements.size()) +
+								                         &quot; elements to array &apos;&quot; + identExpr-&gt;name + &quot;&apos; of size &quot; + std::to_string(dimsIt-&gt;second[0]));
+							}
+						}
+						bool isMultiDim = (dimsIt != arrayDimensions.end() &amp;&amp; dimsIt-&gt;second.size() &gt; 1);
+						ValueType expectedElemType = isMultiDim
+							? ValueType::Array
+							: mapTypeNameToValueType(expectedBaseType);
+						for (size_t i = 0; i &lt; arrayLit-&gt;elements.size(); ++i)
+						{
+							bool elemKnown = false;
+							ValueType elemType = inferExpressionType(arrayLit-&gt;elements[i].get(), elemKnown);
+							if (elemKnown &amp;&amp; elemType != expectedElemType)
+							{
+								throw std::runtime_error(&quot;Type mismatch in array assignment: element at index &quot; +
+								                         std::to_string(i) + &quot; does not match expected base type &apos;&quot; +
+								                         expectedBaseType + &quot;&apos;.&quot;);
+							}
+						}
+					}
+				}
+            }
+            else
+            {
+                if (knownValType &amp;&amp; valType == ValueType::Array)
+				{
+                    throw std::runtime_error(&quot;Type mismatch: cannot assign array to scalar variable &apos;&quot; + identExpr-&gt;name + &quot;&apos;&quot;);
+                }
+                ValueType expectedType = mapTypeNameToValueType(declIt-&gt;second);
+                if (knownValType &amp;&amp; valType != expectedType &amp;&amp; expectedType != ValueType::Null &amp;&amp; expectedType != ValueType::Struct)
+                {
+                    throw std::runtime_error(&quot;Type mismatch: cannot assign value of mismatching type to variable &apos;&quot; + identExpr-&gt;name + &quot;&apos; of type &apos;&quot; + declIt-&gt;second + &quot;&apos;&quot;);
+                }
+            }
+        }
+        ValueType targetType = ValueType::Null;
+        auto typeIt = inferredTypes.find(identExpr-&gt;name);
+        if (typeIt != inferredTypes.end())
+		{
+            targetType = typeIt-&gt;second;
+		}
+        if (const auto *binExpr = dynamic_cast&lt;const AST::BinaryExpr *&gt;(assignExpr-&gt;value.get()))
+        {
+            generateBinaryExpr(binExpr, targetType);
+        }
+        else
+        {
+            generateExpression(assignExpr-&gt;value.get());
+        }
+        Value val;
+        if (isLiteralExpression(assignExpr-&gt;value.get(), val))
+        {
+            inferredTypes[identExpr-&gt;name] = val.getType();
+        }
+        int varIndex = bytecode.getOrCreateVar(identExpr-&gt;name);
+        bytecode.emit(OpCode::STORE_VAR, varIndex);
+        bytecode.emit(OpCode::LOAD_VAR, varIndex);
+    }
+    else if (const auto *fieldExpr = dynamic_cast&lt;const AST::FieldAccessExpr *&gt;(assignExpr-&gt;target.get()))
+    {
+        generateExpression(fieldExpr-&gt;object.get());
+        generateExpression(assignExpr-&gt;value.get());
+        std::string tempName = &quot;__assign_val_&quot; + std::to_string(switchCounter++);
+        int tempVar = bytecode.getOrCreateVar(tempName);
+        bytecode.emit(OpCode::STORE_VAR, tempVar); 
+        bytecode.emit(OpCode::LOAD_VAR, tempVar);  
+        int fieldNameIndex = bytecode.addStringConstant(fieldExpr-&gt;fieldName);
+        bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
+        bytecode.emit(OpCode::POP); 
+        bytecode.emit(OpCode::LOAD_VAR, tempVar); 
+    }
+    else if (const auto *arrayAccess = dynamic_cast&lt;const AST::ArrayAccessExpr *&gt;(assignExpr-&gt;target.get()))
+    {
+        if (const auto *identExpr = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(arrayAccess-&gt;array.get()))
+        {
+            auto dimsIt = arrayDimensions.find(identExpr-&gt;name);
+            if (dimsIt != arrayDimensions.end() &amp;&amp; !dimsIt-&gt;second.empty() &amp;&amp; dimsIt-&gt;second[0] != -1)
+            {
+                Value idxVal;
+                if (isLiteralExpression(arrayAccess-&gt;index.get(), idxVal) &amp;&amp; idxVal.isInt())
+                {
+                    i64 idx = idxVal.asInt();
+                    if (idx &lt; 0 || idx &gt;= dimsIt-&gt;second[0])
+                    {
+                        throw std::runtime_error(&quot;Compile-time bounds error: index &quot; + std::to_string(idx) +
+                                                 &quot; is out of bounds for array &apos;&quot; + identExpr-&gt;name +
+                                                 &quot;&apos; of size &quot; + std::to_string(dimsIt-&gt;second[0]));
+                    }
+                }
+            }
+            auto arrayIt = arrayBaseTypes.find(identExpr-&gt;name);
+            if (arrayIt != arrayBaseTypes.end())
+            {
+                std::string expectedBaseType = arrayIt-&gt;second;
+                if (expectedBaseType != &quot;any&quot;)
+                {
+                    ValueType expectedElemType = mapTypeNameToValueType(expectedBaseType);
+                    bool      known = false;
+                    ValueType valType = inferExpressionType(assignExpr-&gt;value.get(), known);
+                    if (known &amp;&amp; valType != expectedElemType)
+                    {
+                        throw std::runtime_error(&quot;Type mismatch: cannot assign value of mismatching type to array element of type &apos;&quot; +
+                                                 expectedBaseType + &quot;&apos;.&quot;);
+                    }
+                }
+            }
+        }
+        generateExpression(arrayAccess-&gt;array.get());
+        generateExpression(arrayAccess-&gt;index.get());
+        generateExpression(assignExpr-&gt;value.get());
+        bytecode.emit(OpCode::STORE_ARR);
+    }
+    else
+    {
+        throw std::runtime_error(&quot;Invalid assignment target.&quot;);
+    }
+}
+void CodeGenerator::generateStructInstanceExpr(const AST::StructInstanceExpr *expr)
+{
+	auto it = bytecode.structEntries.find(expr-&gt;structName);
+	if (it != bytecode.structEntries.end())
+	{
+		int structIndex = it-&gt;second;
+		bytecode.emit(OpCode::NEW_STRUCT_INSTANCE_STATIC, structIndex);
+		for (const auto &amp;[fieldName, fieldValue] : expr-&gt;fieldValues)
+		{
+			generateExpression(fieldValue.get());
+			int fieldNameIndex = bytecode.addStringConstant(fieldName);
+			bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
+		}
+	} else {
+		int structNameIndex = bytecode.addStringConstant(expr-&gt;structName);
+		bytecode.emit(OpCode::NEW_STRUCT, structNameIndex);
+		for (const auto &amp;[fieldName, fieldValue] : expr-&gt;fieldValues)
+		{
+			generateExpression(fieldValue.get());
+			int fieldNameIndex = bytecode.addStringConstant(fieldName);
+			bytecode.emit(OpCode::SET_FIELD, fieldNameIndex);
+		}
+	}
+}
+void CodeGenerator::generateFieldAccessExpr(const AST::FieldAccessExpr *expr)
+{
+	generateExpression(expr-&gt;object.get());
+	int fieldNameIndex = bytecode.addStringConstant(expr-&gt;fieldName);
+	bytecode.emit(OpCode::GET_FIELD, fieldNameIndex);
+}
+void CodeGenerator::generatePostfixExpr(const AST::PostfixExpr *expr, bool resultNeeded)
+{
+    const auto *identExpr = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(expr-&gt;operand.get());
+    if (identExpr == nullptr)
+	{
+        throw std::runtime_error(&quot;Postfix operators only supported on variables&quot;);
+	}
+    int varIndex = bytecode.getOrCreateVar(identExpr-&gt;name);
+    if (resultNeeded)
+	{
+        bytecode.emit(OpCode::LOAD_VAR, varIndex);
+	}
+    bytecode.emit(OpCode::LOAD_VAR, varIndex);
+    int oneIndex = bytecode.addConstant(Value(static_cast&lt;i64&gt;(1)));
+    bytecode.emit(OpCode::PUSH_CONST, oneIndex);
+    auto it = inferredTypes.find(identExpr-&gt;name);
+    bool varIsInt = (it != inferredTypes.end() &amp;&amp; it-&gt;second == ValueType::Int);
+    if (expr-&gt;op == AST::PostfixOp::Increment)
+	{
+        bytecode.emit(varIsInt ? OpCode::IADD : OpCode::FLADD);
+    } else {
+        bytecode.emit(varIsInt ? OpCode::ISUBTRACT : OpCode::FLSUBTRACT);
+	}
+    bytecode.emit(OpCode::STORE_VAR, varIndex);
+}
+void CodeGenerator::generateStructDecl(const AST::StructDecl *decl)
+{
+	std::string structDef = &quot;struct &quot; + decl-&gt;name + &quot; {&quot;;
+	for (const auto &amp;field : decl-&gt;fields)
+	{
+		structDef += &quot; &quot; + field.name + &quot;:&quot; + field.type-&gt;name + &quot;,&quot;;
+	}
+	if (!decl-&gt;fields.empty())
+	{
+		structDef.pop_back();
+	}
+	structDef += &quot; }&quot;;
+	bytecode.addConstant(Value(structDef));
+	int firstConstIndex = static_cast&lt;int&gt;(bytecode.constants.size());
+	for (const auto &amp;field : decl-&gt;fields)
+	{
+		(void)field;
+		bytecode.addConstant(Value());
+	}
+	StructInfo info;
+	info.name = decl-&gt;name;
+	info.firstConstIndex = firstConstIndex;
+	info.fieldCount = static_cast&lt;int&gt;(decl-&gt;fields.size());
+	for (const auto &amp;field : decl-&gt;fields)
+	{
+		info.fieldNames.push_back(field.name);
+		info.fieldArrayDims.push_back(field.type-&gt;arrayDimensions);
+		info.fieldTypeNames.push_back(field.type-&gt;name);
+	}
+	if (!bytecode.structEntries.contains(decl-&gt;name))
+	{
+		int index = static_cast&lt;int&gt;(bytecode.structs.size());
+		bytecode.structs.push_back(std::move(info));
+		bytecode.structEntries[decl-&gt;name] = index;
+	}
+}
+void CodeGenerator::generateSwitchStmt(const AST::SwitchStmt *switchStmt)
+{
+	generateExpression(switchStmt-&gt;expr.get());
+	std::string tempName = &quot;__switch_&quot; + std::to_string(switchCounter++);
+	int         tempVarIndex = bytecode.getOrCreateVar(tempName);
+	bytecode.emit(OpCode::STORE_VAR, tempVarIndex);
+	bool known = false;
+	ValueType inferred = inferExpressionType(switchStmt-&gt;expr.get(), known);
+	if (known)
+	{
+		inferredTypes[tempName] = inferred;
+	}
+	std::vector&lt;int&gt; endJumps; 
+	for (const auto &amp;caseClause : switchStmt-&gt;cases)
+	{
+		bytecode.emit(OpCode::LOAD_VAR, tempVarIndex);
+		generateExpression(caseClause.value.get());
+		bytecode.emit(OpCode::FLEQUAL);
+		int skipJump = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP_IF_FALSE, 0); 
+		for (const auto &amp;stmt : caseClause.statements)
+		{
+			generateStatement(stmt.get());
+		}
+		int endJump = static_cast&lt;int&gt;(bytecode.instructions.size());
+		bytecode.emit(OpCode::JUMP, 0); 
+		endJumps.push_back(endJump);
+		bytecode.instructions[skipJump].operand1 = static_cast&lt;int&gt;(bytecode.instructions.size());
+	}
+	for (const auto &amp;stmt : switchStmt-&gt;defaultStmts)
+	{
+		generateStatement(stmt.get());
+	}
+	int endIndex = static_cast&lt;int&gt;(bytecode.instructions.size());
+	for (int jumpIdx : endJumps)
+	{
+		bytecode.instructions[jumpIdx].operand1 = endIndex;
+	}
+}
+void CodeGenerator::generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded)
+{
+    for (const auto &amp;elem : arrayLit-&gt;elements)
+	{
+        generateExpression(elem.get());
+	}
+    int count = static_cast&lt;int&gt;(arrayLit-&gt;elements.size());
+    int countIdx = bytecode.addConstant(Value(static_cast&lt;i64&gt;(count)));
+    bytecode.emit(OpCode::PUSH_CONST, countIdx);
+    bytecode.emit(OpCode::NEW_ARR);
+    if (!resultNeeded)
+	{
+        bytecode.emit(OpCode::POP);
+	}
+}
+void CodeGenerator::generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded)
+{
+    if (const auto *identExpr = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(arrayAccess-&gt;array.get()))
+	{
+        auto dimsIt = arrayDimensions.find(identExpr-&gt;name);
+        if (dimsIt != arrayDimensions.end() &amp;&amp; !dimsIt-&gt;second.empty() &amp;&amp; dimsIt-&gt;second[0] != -1)
+		{
+            Value idxVal;
+            if (isLiteralExpression(arrayAccess-&gt;index.get(), idxVal) &amp;&amp; idxVal.isInt())
+			{
+                i64 idx = idxVal.asInt();
+                if (idx &lt; 0 || idx &gt;= dimsIt-&gt;second[0])
+				{
+                    throw std::runtime_error(&quot;Compile-time bounds error: index &quot; + std::to_string(idx) +
+                                             &quot; is out of bounds for array &apos;&quot; + identExpr-&gt;name +
+                                             &quot;&apos; of size &quot; + std::to_string(dimsIt-&gt;second[0]));
+                }
+            }
+        }
+    }
+    else if (const auto *fieldExpr = dynamic_cast&lt;const AST::FieldAccessExpr *&gt;(arrayAccess-&gt;array.get()))
+    {
+        if (const auto *objIdent = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(fieldExpr-&gt;object.get()))
+        {
+            std::string structName;
+            auto declIt = declaredTypes.find(objIdent-&gt;name);
+            if (declIt != declaredTypes.end())
+            {
+                structName = declIt-&gt;second;
+            }
+            for (const auto &amp;s : bytecode.structs)
+            {
+                if (!structName.empty() &amp;&amp; s.name != structName)
+				{
+                    continue;
+				}
+                for (size_t i = 0; i &lt; s.fieldNames.size(); ++i)
+                {
+                    if (s.fieldNames[i] == fieldExpr-&gt;fieldName)
+                    {
+                        const auto &amp;dims = s.fieldArrayDims[i];
+                        if (!dims.empty() &amp;&amp; dims[0] != -1)
+                        {
+                            Value idxVal;
+                            if (isLiteralExpression(arrayAccess-&gt;index.get(), idxVal) &amp;&amp; idxVal.isInt())
+                            {
+                                i64 idx = idxVal.asInt();
+                                if (idx &lt; 0 || idx &gt;= dims[0])
+                                {
+                                    throw std::runtime_error(&quot;Compile-time bounds error: index &quot; + std::to_string(idx) +
+                                                             &quot; is out of bounds for field array &apos;&quot; + fieldExpr-&gt;fieldName +
+                                                             &quot;&apos; of size &quot; + std::to_string(dims[0]));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    bool isStructAccess = false;
+    if (const auto *identExpr = dynamic_cast&lt;const AST::IdentifierExpr *&gt;(arrayAccess-&gt;array.get()))
+    {
+        auto it = inferredTypes.find(identExpr-&gt;name);
+        if (it != inferredTypes.end() &amp;&amp; it-&gt;second == ValueType::Struct)
+		{
+            isStructAccess = true;
+		}
+    }
+    generateExpression(arrayAccess-&gt;array.get());
+    generateExpression(arrayAccess-&gt;index.get());
+    bytecode.emit(isStructAccess ? OpCode::GET_FIELD_DYN : OpCode::LOAD_ARR);
+    if (!resultNeeded)
+	{
+        bytecode.emit(OpCode::POP);
+	}
+}
+ValueType CodeGenerator::mapTypeNameToValueType(const std::string &amp;typeName)
+{
+    if (typeName == &quot;int&quot; || typeName == &quot;i64&quot;)
+	{
+		return ValueType::Int;
+	}
+    if (typeName == &quot;float&quot; || typeName == &quot;f64&quot;)
+	{
+		return ValueType::Float;
+	}
+    if (typeName == &quot;string&quot;)
+	{
+		return ValueType::String;
+	}
+    if (typeName == &quot;bool&quot;)
+	{
+		return ValueType::Bool;
+	}
+    if (typeName == &quot;struct&quot;)
+	{ [[unlikely]]
+		return ValueType::Struct;
+	}
+    if (bytecode.structEntries.contains(typeName))
+    { [[likely]] 
+		return ValueType::Struct;
+	}
+    if (typeName == &quot;void&quot;)
+	{
+		return ValueType::Null;
+	}
+    if (typeName == &quot;any&quot;)
+	{
+		return ValueType::Null;
+	}
+    throw std::runtime_error(&quot;Unknown type name &apos;&quot; + typeName +
+                              &quot;&apos; (if this is a struct, make sure it is declared before its first use).&quot;);
+}
+void CodeGenerator::generateDefaultArray(const std::vector&lt;int&gt; &amp;dims, size_t dimIdx, const std::string &amp;baseTypeName)
+{
+	if (dimIdx &gt;= dims.size())
+	{
+		return;
+	}
+	int count = dims[dimIdx];
+	count = std::max(count, 0);
+	if (dimIdx == dims.size() - 1)
+	{
+		Value defaultValue;
+		if (baseTypeName == &quot;int&quot; || baseTypeName == &quot;i64&quot;)
+		{
+			defaultValue = Value(static_cast&lt;i64&gt;(0));
+		} else if (baseTypeName == &quot;float&quot; || baseTypeName == &quot;f64&quot;) {
+			defaultValue = Value(0.0);
+		} else if (baseTypeName == &quot;string&quot;) {
+			defaultValue = Value(std::string(&quot;&quot;));
+		} else if (baseTypeName == &quot;bool&quot;) {
+			defaultValue = Value(false);
+		} else {
+			defaultValue = Value();
+		}
+		for (int i = 0; i &lt; count; ++i)
+		{
+			int constIdx = bytecode.addConstant(defaultValue);
+			bytecode.emit(OpCode::PUSH_CONST, constIdx);
+		}
+	} else {
+		for (int i = 0; i &lt; count; ++i)
+		{
+			generateDefaultArray(dims, dimIdx + 1, baseTypeName);
+		}
+	}
+	int countIdx = bytecode.addConstant(Value(static_cast&lt;i64&gt;(count)));
+	bytecode.emit(OpCode::PUSH_CONST, countIdx);
+	bytecode.emit(OpCode::NEW_ARR);
+}
+} // namespace Phasor</file><file path="CodeGen.hpp">#pragma once
+#include &quot;../AST/AST.hpp&quot;
+#ifndef CMAKE_PCH
+#include &lt;Value.hpp&gt;
+#endif
+#include &lt;phsint.hpp&gt;
+#include &lt;map&gt;
+#include &lt;unordered_set&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;optional&gt;
+#include &lt;platform.h&gt;
+#include &quot;Bytecode.hpp&quot;
+namespace Phasor
+{
+/**
+ * @brief Code generator for Phasor VM
+ */
+class CodeGenerator
+{
+  public:
+	/**
+	 * @brief Generate bytecode from program
+	 *
+	 * @param program Program to generate bytecode for
+	 * @param existingVars Existing variables to use
+	 * @param nextVarIdx Next available variable index
+	 * @param replMode REPL mode
+	 * @return Bytecode Generated bytecode
+	 */
+	Bytecode generate(const AST::Program &amp;program, const std::unordered_map&lt;std::string, int&gt; &amp;existingVars = {},
+	                  int nextVarIdx = 0, bool replMode = false);
+  private:
+	Bytecode bytecode;       ///&lt; Generated bytecode
+	bool     isRepl = false; ///&lt; REPL mode
+	/// @brief Functions that survive dead-code elimination (empty = DCE not yet run).
+	std::unordered_set&lt;std::string&gt; liveFunctions;
+	// Inferred types for variables (simple, flow-insensitive mapping)
+	std::unordered_map&lt;std::string, ValueType&gt; inferredTypes;
+	std::unordered_map&lt;std::string, std::unordered_map&lt;std::string, ValueType&gt;&gt; inferredFieldTypes;
+	std::unordered_map&lt;std::string, std::string&gt; declaredTypes;
+	std::string currentFunctionReturnType;
+	std::vector&lt;int&gt; currentFunctionReturnDims;
+	bool currentFunctionHasReturn = false;
+	std::unordered_map&lt;std::string, std::vector&lt;int&gt;&gt; arrayDimensions;
+	std::unordered_map&lt;std::string, std::string&gt; arrayBaseTypes;
+	std::unordered_set&lt;std::string&gt; forwardDecls;
+	// Register allocation for v2.0
+	u8           nextRegister = 0; ///&lt; Next available register
+	std::vector&lt;bool&gt; registerInUse;    ///&lt; Track which registers are in use
+	struct ScopeFrame {
+		std::vector&lt;std::pair&lt;int, std::string&gt;&gt;                    declaredIndices;
+		std::unordered_map&lt;std::string, int&gt;                        savedBindings;
+		std::unordered_map&lt;std::string, std::optional&lt;ValueType&gt;&gt;   savedInferredTypes;
+		std::unordered_map&lt;std::string, std::optional&lt;std::string&gt;&gt; savedArrayBaseTypes;
+		std::unordered_map&lt;std::string, std::optional&lt;std::vector&lt;int&gt;&gt;&gt; savedArrayDimensions;
+		std::unordered_map&lt;std::string, std::optional&lt;std::string&gt;&gt; savedDeclaredTypes;
+	};
+	std::vector&lt;ScopeFrame&gt; scopeStack;
+	/// @brief Allocate a new register
+	u8 allocateRegister()
+	{
+		for (size_t i = 0; i &lt; MAX_REGISTERS; i++)
+		{
+			if (i &gt;= registerInUse.size())
+			{
+				registerInUse.resize(i + 1, false);
+			}
+			if (!registerInUse[i])
+			{
+				registerInUse[i] = true;
+				return static_cast&lt;u8&gt;(i);
+			}
+		}
+		throw std::runtime_error(&quot;Out of registers&quot;);
+	}
+	/// @brief Free a register
+	void freeRegister(u8 reg)
+	{
+		if (reg &lt; registerInUse.size())
+		{
+			registerInUse[reg] = false;
+		}
+	}
+	/// @brief Reset register allocator
+	void resetRegisters()
+	{
+		registerInUse.clear();
+		nextRegister = 0;
+	}
+	/// @brief Check if expression is a compile-time literal
+	static bool isLiteralExpression(const AST::Expression *expr, Value &amp;outValue);
+	/// @brief Simple expression type inference (conservative)
+	/// @param expr expression to inspect
+	/// @param known set to true when a type is known
+	/// @return inferred ValueType (valid only when known == true)
+	ValueType inferExpressionType(const AST::Expression *expr, bool &amp;known);
+	void generateStatement(const AST::Statement *stmt);                          ///&lt; Generate bytecode from Statement
+	void generateExpression(const AST::Expression *expr, bool resultNeeded = true); ///&lt; Generate bytecode from Expression
+	void generateVarDecl(const AST::VarDecl *varDecl);                 ///&lt; Generate bytecode from Variable Declaration
+	void generateExpressionStmt(const AST::ExpressionStmt *exprStmt);  ///&lt; Generate bytecode from Expression Statement
+	void generatePrintStmt(const AST::PrintStmt *printStmt);           ///&lt; Generate bytecode from Print Statement
+	void generateImportStmt(const AST::ImportStmt *importStmt);        ///&lt; Generate bytecode from Import Statement
+	void generateExportStmt(const AST::ExportStmt *exportStmt);        ///&lt; Generate bytecode from Export Statement
+	void generateNumberExpr(const AST::NumberExpr *numExpr);           ///&lt; Generate bytecode from Numeral Expression
+	void generateStringExpr(const AST::StringExpr *strExpr);           ///&lt; Generate bytecode from String Expression
+	void generateIdentifierExpr(const AST::IdentifierExpr *identExpr); ///&lt; Generate bytecode from Identifier Expression
+	void generateUnaryExpr(const AST::UnaryExpr *unaryExpr);           ///&lt; Generate bytecode from Unary Expression
+	void generateCallExpr(const AST::CallExpr *callExpr);              ///&lt; Generate bytecode from Call Expression
+	void generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType hint = ValueType::Null);           ///&lt; Generate bytecode from Binary Expression
+	void generateBlockStmt(const AST::BlockStmt *blockStmt);           ///&lt; Generate bytecode from Block Statement
+	void generateIfStmt(const AST::IfStmt *ifStmt);                    ///&lt; Generate bytecode from If Statement
+	void generateWhileStmt(const AST::WhileStmt *whileStmt);           ///&lt; Generate bytecode from While Statement
+	void generateForStmt(const AST::ForStmt *forStmt);                 ///&lt; Generate bytecode from For Statement
+	void generateReturnStmt(const AST::ReturnStmt *returnStmt);        ///&lt; Generate bytecode from Return Statement
+	void generateUnsafeBlockStmt(
+	    const AST::UnsafeBlockStmt *unsafeStmt);                  ///&lt; Generate bytecode from Unsafe Block Statement
+	void generateFunctionDecl(const AST::FunctionDecl *funcDecl); ///&lt; Generate bytecode from Function Declaration
+	void generateBooleanExpr(const AST::BooleanExpr *boolExpr);   ///&lt; Generate bytecode from Boolean Expression
+	void generateNullExpr(const AST::NullExpr *nullExpr);         ///&lt; Generate bytecode from Null Expression
+	void generateAssignmentExpr(
+	    const AST::AssignmentExpr *assignExpr); ///&lt; Generate bytecode from Assignment Expression
+	void generateStructDecl(const AST::StructDecl *decl);
+	void generateStructInstanceExpr(const AST::StructInstanceExpr *expr);
+	void generateFieldAccessExpr(const AST::FieldAccessExpr *expr);
+	void generatePostfixExpr(const AST::PostfixExpr *expr, bool resultNeeded = true);
+	void generateBreakStmt();
+	void generateContinueStmt();
+	void generateSwitchStmt(const AST::SwitchStmt *switchStmt);
+	void generateDefaultArray(const std::vector&lt;int&gt; &amp;dims, size_t dimIdx, const std::string &amp;baseTypeName);
+	void generateArrayLiteralExpr(const AST::ArrayLiteralExpr *arrayLit, bool resultNeeded);
+	void generateArrayAccessExpr(const AST::ArrayAccessExpr *arrayAccess, bool resultNeeded);
+	ValueType mapTypeNameToValueType(const std::string &amp;typeName);
+	// Loop context for break/continue
+	std::vector&lt;int&gt;              loopStartStack;     // Stack of loop start positions
+	std::vector&lt;std::vector&lt;int&gt;&gt; breakJumpsStack;    // Stack of break jump positions to patch
+	std::vector&lt;std::vector&lt;int&gt;&gt; continueJumpsStack; // Stack of continue jump positions to patch
+	int switchCounter = 0; // Monotonic counter for unique switch temp variable names
+};
+} // namespace Phasor</file><file path="CMakeLists.txt">set(CODEGEN_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/CodeGen.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeSerializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../ISA/map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/C/CCodeGenerator.cpp
+)
+
+set(CODEGEN_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/CodeGen.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeSerializer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/C/CCodeGenerator.hpp
+    ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
+)
+
+add_library(PhasorCodegen STATIC ${CODEGEN_SOURCES} ${CODEGEN_HEADERS})
+
+target_link_libraries(PhasorCodegen PUBLIC &quot;$&lt;$&lt;PLATFORM_ID:Darwin&gt;:-framework CoreFoundation&gt;&quot; &quot;$&lt;$&lt;PLATFORM_ID:Darwin&gt;:-framework Security&gt;&quot;)</file><file path="README.md">`CodeGen.hpp/.cpp` - Code generator. Walks the AST and emits Instruction objects into a Bytecode struct (constant pool, variable map, function entries, struct metadata). Does constant folding on literal binary expressions and basic type inference to pick integer vs. float opcodes. Uses a small register allocator for binary expressions, with loop context stacks for break/continue jump patching.
+
+`Bytecode/` - Binary `.phsb` serializer/deserializer. 4-section layout: constants → variables → functions → instructions, with a CRC32 integrity check in the header. Also has a python module in `../Extensions`.
+
+`IR/` — Assembly `.phir` serializer/deserializer. Includes inline comments in the output (e.g. ; var=x, ; const[0]=&quot;hello&quot;).
+
+`Cpp/` — Generates a C++ header with the bytecode embedded as a `constexpr unsigned char[]`, placed in a named executable section (.phsb). Used by the native compiler output and is also supported by the bytecode Python module.</file></files></repomix>

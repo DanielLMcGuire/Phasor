@@ -1,0 +1,8 @@
+{
+    "name": "Phasor",
+    "version": "4.0.0",
+    "command": "git rev-parse --short HEAD",
+    "install": "out",
+    "src": ".",
+    "cache": ".pmake"
+}

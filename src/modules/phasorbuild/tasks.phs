@@ -1,0 +1,46 @@
+fn compileTask(cfg: buildConfig, newContent: string, defines: string) -> string {
+    var outFile: string = "temp.phsb";
+    var tempFd: int = fopen("temp.phs", "w");
+    var content: string = cfg.taskHandler.fread();
+    content = c_fmt("%s\n\n%s", content, newContent);
+    tempFd.fwrite(content); tempFd.fclose();
+    PHSC.sys_fork(["-D", defines, "-o", outFile, "temp.phs"]); frm("temp.phs");
+    return outFile.fabsolute();
+}
+
+fn runTask(filePath: string) -> taskStatus {
+    var output: string = RUNTIME.sys_fork_output(filePath);
+    frm(filePath);
+    var status: taskStatus = output.from_json();
+    print(status.out);
+    if (status.error)
+        print_error(status.errOut);
+    return status;
+}
+
+fn list(cfg: buildConfig) -> int {
+    if (!fexists(cfg.out)) {
+        var out: int = cfg.build();
+        if (out != 0) return out;
+    }
+    var task: string = cfg.compileTask("print enum();", "TASK_ENUM");
+    var status: taskStatus = task.runTask();
+    if (status.enum.len() == 0) {
+        puts("No tasks!");
+        return status.code;
+    }
+    puts("Tasks:\n".concat(status.enum.arr_join("\n")));
+    return status.code;
+}
+
+fn task(cfg: buildConfig, taskName: string) -> int {
+    if (!fexists(cfg.out)) {
+        var out: int = cfg.build();
+        if (out != 0) return out;
+    }
+    var task: string = cfg.compileTask(c_fmt("print task(\"%s\");", taskName), "TASK_RUN");
+    var status: taskStatus = task.runTask();
+    if (status.printTasks)
+        puts("Tasks:\n".concat(status.enum.arr_join("\n")));
+    return status.code;
+}

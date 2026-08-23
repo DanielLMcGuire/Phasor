@@ -14,6 +14,7 @@ void StdLib::registerArrayFunctions(VM *vm)
     vm->registerNativeFunction("arr_pop", array_pop);
     vm->registerNativeFunction("arr_insert", array_insert);
     vm->registerNativeFunction("arr_join", array_join);
+    vm->registerNativeFunction("arr_find", array_find);
 }
 
 Value StdLib::array_resize(const std::vector<Value> &args, VM *)
@@ -77,6 +78,21 @@ Value StdLib::array_pop(const std::vector<Value> &args, VM *)
     return val;
 }
 
+Value StdLib::array_peek(const std::vector<Value> &args, VM *)
+{
+    checkArgCount(args, 1, "arr_peek");
+    if (!args[0].isArray())
+        PHS_ERROR("arr_peek() expects an array as its first argument");
+    auto arr = const_cast<Value &>(args[0]).asArray();
+
+
+    if (arr->empty())
+        PHS_ERROR("arr_peek() called on empty array");
+
+    Value val = arr->back();
+    return val;
+}
+
 Value StdLib::array_insert(const std::vector<Value> &args, VM *)
 {
     checkArgCount(args, 3, "arr_insert");
@@ -126,6 +142,26 @@ Value StdLib::array_join(const std::vector<Value> &args, VM *)
     }
 
     return Value(result);
+}
+
+Value StdLib::array_find(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 2, "arr_find");
+
+	if (!args[0].isArray())
+		PHS_ERROR(std::string("arr_find() expects an array as its first argument, but got a ")
+		          + Value::typeToString(args[0].getType()).stl_string());
+
+	auto arr = args[0].asArray();
+	const Value &needle = args[1];
+
+	for (const Value &elem : *arr)
+	{
+		if (elem == needle)
+			return Value(true);
+	}
+
+	return Value(false);
 }
 
 }

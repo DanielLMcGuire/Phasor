@@ -1,0 +1,229 @@
+#!/usr/bin/env phasor
+define NO_CHECK_OS;
+include "std/sys";
+include "std/type"; 
+include "std/io"; 
+include "std/file"; 
+include "std/ini"; 
+include "std/str";
+include "types.phs";
+include "args.phs";
+include "ui.phs";
+include "build.phs";
+include "cache.phs";
+include "lockfile.phs";
+
+define PROJECT_JSON = "pmake.json";
+
+var proj: ProjectConfig = ProjectConfig{ name: "<project>", version: "0.0.0", subcmd: "" };
+var paths: ProjectPaths = ProjectPaths{
+    src: fcd(), install: "out", cache: ".pmake", 
+    out: ".pmake/CMakeBuild", cacheTpl: ".pmake/%s.cache", lock: ".pmake/%s.lock"
+};
+
+fn printHelp(program: string, configured: bool) {
+    var presetMsg: string;
+    if (configured) 
+        presetMsg = "required only if regenerating";
+    else 
+        presetMsg = "required to generate build files";
+    
+    if (configured) {
+        putf("Usage: [runtime] %s [preset] [options]", program);
+    } else {
+        putf("Usage: [runtime] %s <preset> [options]\n", program);
+        sys_fork("cmake", "--list-presets"); 
+    }
+    
+    printf(`
+Options:
+  preset           The CMake preset to use for configuration (%s)
+  -h, --help       Show this help message
+  -i, --install    Install the built files to the specified prefix (default: out)
+  -b, --build      Build the project to the specified output folder (default: .pmake/CMakeBuild)
+  -s, --src        Specify the source folder (default: current directory)
+  -c, --clean      Clean the build and cache folders before building
+`, presetMsg);
+}
+
+fn main_pmake(argv: string[]) -> int {
+    proj = ProjectConfig{ name: "<project>", version: "0.0.0", subcmd: "" };
+    paths = ProjectPaths{
+        src: fcd(), install: "out", cache: ".pmake", 
+        out: ".pmake/CMakeBuild", cacheTpl: ".pmake/%s.cache", lock: ".pmake/%s.lock"
+    };
+
+    var pid: int = sys_pid();
+
+    if (PROJECT_JSON.fexists()) {
+        var data: ProjectJson = PROJECT_JSON.fread().from_json();
+        proj.name    = data.name;
+        proj.version = data.version;
+        proj.subcmd  = data.command;
+        
+        paths.install = fabsolute(data.install);
+        paths.src     = fabsolute(data.src);
+        paths.cache   = fabsolute(data.cache);
+        
+        paths.cacheTpl = "%s/%%s.cache".c_fmt(paths.cache);
+        paths.lockTpl  = "%s/%%s.lock".c_fmt(paths.cache);
+        paths.out      = "%s/CMakeBuild".c_fmt(paths.cache);
+    } else {
+        puts_error(PROJECT_JSON.concat(" file not found, using defaults"));
+    }
+
+    printf("pmake - Portable CMake Wrapper (%s)\n%s %s", proj.name, proj.name, proj.version);
+    if (proj.subcmd != "") { 
+        print("-");
+        sys_shell(proj.subcmd);
+    } else {
+        puts("");
+    }
+    
+    if (!paths.cache.fexists() && !paths.cache.fmkdir()) {
+        puts_error("Failed to create cache directory");
+        return -1;
+    }
+
+    var args: CmdArgs = parseArgs(argv);
+
+    if (args.error != "") {
+        putf_error("%s", args.error);
+        printHelp(sys_argv(0), true);
+        return 1;
+    }
+
+    if (args.showHelp) {
+        printHelp(sys_argv(0), true);
+        return 0;
+    }
+
+    if (args.doForce) {
+        clearStatus(paths, proj);
+        paths.out.frmdir(true);
+    }
+
+    if (args.preset == "") {
+        if (paths.cacheTpl.c_fmt("preset").fexists()) {
+            args.preset = paths.readCache("preset");
+            putf("Using cached preset: %s\n", args.preset);
+        } else {
+            puts("");
+            printHelp(sys_argv(0), false);
+            paths.cache.frmdir(true);
+            return -1;
+        }
+    }
+
+    if (paths.cacheTpl.c_fmt("install").fexists()) paths.install = paths.readCache("install");
+    if (paths.cacheTpl.c_fmt("build").fexists()) paths.out = paths.readCache("build");
+    if (paths.cacheTpl.c_fmt("src").fexists()) paths.src = paths.readCache("src");
+
+    if (args.src != "") {
+        paths.src = args.src;
+        paths.writeCache(paths.src.fabsolute(), "src");
+    }
+    if (args.install != "") {
+        paths.install = args.install;
+        paths.writeCache(paths.install.fabsolute(), "install");
+    }
+    if (args.out != "") {
+        paths.out = args.out;
+        paths.writeCache(paths.out.fabsolute(), "build");
+    }
+
+    var l_statusFile: string =  paths.lockTpl.c_fmt(proj.name);
+    if (l_statusFile.fexists()) {
+        var l_pid: int = l_statusFile.freadln(1).to_int();
+        if (l_pid != pid) {
+            putf_error("pmake locked by another process %d", l_pid);
+            shutdown(2); 
+        }
+    }
+    
+    if (!args.doClean) writeStatus("init", paths, proj);
+    if (!args.doClean) paths.writeCache(args.preset, "preset");
+
+    if (args.doClean && paths.cache.fexists()) {
+        update_win_progress(3, 0);
+        if (paths.cacheTpl.c_fmt("configure").fexists() || paths.out.fexists()) {
+            args.doConfigure = false;
+            if (!paths.out.frmdir(true)) {
+                update_win_progress(0, 0);
+                putf_error("Failed to clean output folder %s", paths.out);
+                return 1;
+            }
+        }
+        clearStatus(paths, proj);
+        paths.cache.frmdir(true);
+        if (!args.doBuild && !args.doInstall) {
+            puts("Cleaned build and cache folders");
+            update_win_progress(0, 0);
+            return 0;
+        }
+    }
+
+    if (!args.doClean && !args.doConfigure && !args.doBuild && !args.doInstall) args.doBuild = true;
+
+    if (!args.doClean && !args.doConfigure && !paths.out.fexists()) { 
+        puts("Output missing, configuring...");
+        args.doConfigure = true;
+    }
+
+    if (args.doConfigure || !paths.cacheTpl.c_fmt("configure").fexists()) {
+        update_win_progress(3, 0);
+        writeStatus("config", paths, proj);
+        putf("Configuring %s...", proj.name);
+        
+        if (!paths.configure(args.preset)) {
+            update_win_progress(0, 0);
+            puts_error("Configuration failed");
+            return 1;
+        }
+        
+        paths.writeCache(paths.out.fabsolute(), "build");
+        paths.writeCache(paths.src.fabsolute(), "src");
+        paths.writeCache(args.preset, "preset");
+        paths.writeCache(paths.install.fabsolute(), "install");
+        paths.writeCache("", "configure");
+        writeStatus("idle", paths, proj);
+        update_win_progress(0, 0);
+    }
+
+    if (args.doBuild) {
+        update_win_progress(3, 0);
+        writeStatus("build", paths, proj);
+        putf("Building %s...", proj.name);
+        
+        if (!paths.build()) {
+            update_win_progress(0, 0);
+            puts_error("Build failed");
+            return 1;
+        }
+        
+        writeStatus("idle", paths, proj);
+        update_win_progress(0, 0);
+    }
+
+    if (args.doInstall) {
+        writeStatus("install", paths, proj);
+        putf("Installing %s...", proj.name);
+        
+        if (!paths.install()) {
+            update_win_progress(0, 0);
+            puts_error("Installation failed");
+            return 1;
+        }
+        writeStatus("idle", paths, proj);
+    }
+    
+    return 0;
+}
+
+fn main(args: string[]) -> int {
+    var stat: int = main_pmake(args);
+    clearStatus(paths, proj);
+    return stat;
+}
+
+include "std/main";

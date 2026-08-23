@@ -1,5 +1,4 @@
 #!/usr/bin/env phasor
-include "std/sys";
 include "std/io";
 include "std/smain";
 

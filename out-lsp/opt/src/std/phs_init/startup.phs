@@ -1,0 +1,41 @@
+// Copyright 2026 Daniel McGuire -- Phasor Runtime
+// src/std/phs_init/startup.phs
+// Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// https://llvm.org/LICENSE.txt
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+ffiload("__phs_init");
+
+define PHSRT_CANARY_SIZE = 2;
+
+include "./corruptioncheck.phs";
+include "./common.phs";
+include "./util.phs";
+
+fn start() -> void
+{
+static_if (PHS_DEBUG)
+    print "start()\n";
+static_endif // (PHS_DEBUG)
+    phsrt_check_support();
+static_if (!NO_STACK_COOKIE)
+    // int64_t *cookie = malloc(PHSRT_CANARY_SIZE * sizeof(int64_t));
+    var cookiePtr: i64 = phs__memory_malloc_native(PHSRT_CANARY_SIZE * 8);
+    phsrt_init_canary(cookiePtr);
+    phs_push(phs__argv_ptr());
+    phs_push(phs__argc_ptr());
+    var ret: i64 = phsrt__common_init();
+    phsrt__chk_and_free_canary(cookiePtr);
+    shutdown(ret);
+static_else // (NO_STACK_COOKIE)
+    phs_push(phs__argv_ptr());
+    phs_push(phs__argc_ptr());
+    shutdown(phsrt__common_init());
+static_endif // (!NO_STACK_COOKIE)
+}

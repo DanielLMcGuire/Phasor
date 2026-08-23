@@ -1,0 +1,9 @@
+{
+    "source": "rule110.phs",
+    "out": "rule110.phsb",
+    "defines": [""],
+    "includes": [""],
+    "irMode": false,
+    "taskHandler": "",
+    "buildTask": false
+}

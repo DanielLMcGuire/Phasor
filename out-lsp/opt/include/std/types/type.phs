@@ -1,0 +1,56 @@
+// Phasor STDTYPE
+// phasor-help phasorstd-type 3
+// Copyright 2026 Daniel McGuire
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://llvm.org/LICENSE.txt
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// enum class ValueType : u8
+struct phs_type_def {
+    void: int,
+    bool: int,
+    int: int,
+    i64: int,
+    float: int,
+    f64: int,
+    string: int,
+    object: int,
+    array: int
+}
+
+var phs_type: phs_type_def = {
+    // ValueType::Null
+    void: 0, 
+    // ValueType::Bool
+    bool: 1, 
+    // ValueType::Int
+    int: 2,  
+    i64: 2,  
+    // ValueType::Float
+    float: 3,
+    f64: 3, 
+    // ValueType::String
+    string: 4,
+    // ValueType::Struct
+    object: 5, 
+    // ValueType::Array
+    array: 6
+};
+
+var phs_type_map: string[] = [
+    "void",
+    "bool",
+    "i64",
+    "f64",
+    "string",
+    "object",
+    "array"
+];

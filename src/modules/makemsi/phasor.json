@@ -1,0 +1,9 @@
+{
+    "source": "makemsi.phs",
+    "out": "makemsi.phsb",
+    "defines": [""],
+    "includes": [""],
+    "irMode": false,
+    "taskHandler": "tasks.phs",
+    "buildTask": false
+}

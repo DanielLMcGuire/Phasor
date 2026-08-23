@@ -14,7 +14,6 @@ void StdLib::registerIOFunctions(VM *vm)
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
 	vm->registerNativeFunction("printf", StdLib::io_printf);
 	vm->registerNativeFunction("putf", StdLib::io_putf);
-	vm->registerNativeFunction("puts_error", StdLib::io_puts_error);
 	vm->registerNativeFunction("print_error", StdLib::io_print_error);
 	vm->registerNativeFunction("putf_error", StdLib::io_putf_error);
 #ifndef SANDBOXED
@@ -88,19 +87,11 @@ Value StdLib::io_get_input(const std::vector<Value> &args, VM *)
 }
 #endif
 
-PhsString StdLib::io_puts_error(const std::vector<Value> &args, VM *vm)
-{
-	checkArgCount(args, 1, "puts_error", true);
-	PhsString input = args[0].toString();
-	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
-	return "";
-}
-
 PhsString StdLib::io_print_error(const std::vector<Value> &args, VM *vm)
 {
-	checkArgCount(args, 1, "puts_error", true);
+	checkArgCount(args, 1, "print_error", true);
 	PhsString input = args[0].toString();
-	vm->regRun(OpCode::PRINTERROR_R, input.str());
+	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
 	return "";
 }
 

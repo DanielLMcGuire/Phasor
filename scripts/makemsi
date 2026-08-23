@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+if [ "$1" == "list" ]; then
+    scripts/phasorbuild src/modules/makemsi list
+else
+    scripts/phasorbuild src/modules/makemsi task "$1"
+fi

@@ -1,0 +1,37 @@
+struct ProjectConfig {
+    name: string,
+    version: string,
+    subcmd: string
+}
+
+struct ProjectJson {
+    name: string,
+    version: string,
+    command: string,
+    install: string,
+    src: string,
+    cache: string
+}
+
+struct ProjectPaths {
+    src: string,
+    install: string,
+    cache: string,
+    out: string,
+    cacheTpl: string,
+    lockTpl: string
+}
+
+struct CmdArgs {
+    preset: string,
+    src: string,
+    install: string,
+    out: string,
+    doConfigure: bool,
+    doBuild: bool,
+    doInstall: bool,
+    doClean: bool,
+    doForce: bool,
+    showHelp: bool,
+    error: string
+}

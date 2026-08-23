@@ -84,6 +84,79 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 char **StdLib::argv = nullptr;
 int    StdLib::argc = 0;
 
+Phasor::i64 StdLib::pointer_to_i64(void* ptr)
+{
+	if (ptr == nullptr)
+	{
+		return 0;
+	}
+
+	static_assert(sizeof(void*) <= sizeof(Phasor::i64));
+
+	Phasor::i64 value;
+	std::memcpy(&value, &ptr, sizeof(ptr));
+
+	return value;
+}
+
+void* StdLib::i64_to_pointer(Phasor::i64 value)
+{
+	if (value == 0)
+	{
+		return nullptr;
+	}
+	void* ptr;
+	std::memcpy(&ptr, &value, sizeof(ptr));
+
+	return ptr;
+}
+
+std::vector<Phasor::PhsString> StdLib::phasorStringArrayToVector(const Phasor::Value &arr)
+{
+	if (!arr.isArray())
+		PHS_ERROR("phasorStringArrayToVector() expects an array value");
+
+	auto elements = arr.asArray();
+
+	std::vector<Phasor::PhsString> result;
+	result.reserve(elements->size());
+
+	for (const auto &elem : *elements)
+	{
+		if (!elem.isString())
+			PHS_ERROR("phasorStringArrayToVector() expects an array of strings");
+
+		result.push_back(elem.string());
+	}
+
+	return result;
+}
+
+std::vector<char *> StdLib::phasorStringArrayToCharArray(const Phasor::Value &arr, bool nullTerminate)
+{
+	if (!arr.isArray())
+		PHS_ERROR("phasorStringArrayToCharArray() expects an array value");
+
+	auto elements = arr.asArray();
+
+	std::vector<char *> result;
+	result.reserve(elements->size() + (nullTerminate ? 1 : 0));
+
+	for (const auto &elem : *elements)
+	{
+		if (!elem.isString())
+			PHS_ERROR("phasorStringArrayToCharArray() expects an array of strings");
+
+		result.push_back(const_cast<char *>(elem.c_str()));
+	}
+
+	if (nullTerminate)
+		result.push_back(nullptr);
+
+	return result;
+}
+
+
 void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
 {

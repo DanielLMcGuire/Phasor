@@ -1,0 +1,25 @@
+fn writeCache(paths: ProjectPaths, text: string, cacheName: string) -> bool {
+    var fileName: string = paths.cacheTpl.c_fmt(cacheName);
+    
+    if (fileName.fexists()) {
+        if (!fileName.frm()) {
+            puts_error("Failed to delete old cache file");
+            return false;
+        }
+    }
+    
+    if (!fileName.fwrite(text.concat("\n", sys_pid()))) {
+        puts_error("Failed to write cache file");
+        return false;
+    }
+    return true;
+}
+
+fn readCache(paths: ProjectPaths, cacheName: string) -> string {
+    var fileName: string = paths.cacheTpl.c_fmt(cacheName);
+    
+    if (!fileName.fexists()) {
+        return "";
+    }
+    return fileName.freadln(0);
+}

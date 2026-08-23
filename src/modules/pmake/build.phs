@@ -1,0 +1,11 @@
+fn configure(paths: ProjectPaths, preset: string) -> bool {
+    return sys_fork("cmake", ["-S", paths.src, "-B", paths.out, "--preset", preset]) == 0;
+}
+
+fn build(paths: ProjectPaths) -> bool {
+    return sys_fork("ninja", ["-C", paths.out]) == 0;
+}
+
+fn install(paths: ProjectPaths) -> bool {
+    return sys_fork("cmake", ["--install", paths.out, "--prefix", paths.install]) == 0;
+}

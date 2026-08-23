@@ -27,7 +27,6 @@
 
 #define PHS_ERROR(x) throw std::runtime_error(std::format("\"{}\" thrown in {}", x, PHS_SRC_LOC()));
 
-
 /// @brief The Phasor Programming Language and Runtime
 namespace Phasor
 {
@@ -61,6 +60,10 @@ class StdLib
 
 	static void checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
+	static Phasor::i64 pointer_to_i64(void* ptr);
+	static void* i64_to_pointer(Phasor::i64 value);
+	static std::vector<Phasor::PhsString> phasorStringArrayToVector(const Phasor::Value &arr);
+	static std::vector<char *> phasorStringArrayToCharArray(const Phasor::Value &arr, bool nullTerminate = false);
 
   private:
   	static std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> modules;
@@ -96,11 +99,14 @@ class StdLib
 #endif
 	static PhsString meta_get_version(const std::vector<Value> &args, VM *vm);
 	static Value     meta_get_self(const std::vector<Value> &args, VM *vm);
-	static i64       meta_run_program(const std::vector<Value> &args, VM *vm);
-	static Value     meta_run_program_function(const std::vector<Value> &args, VM *vm);
 	static Value     meta_get_registers(const std::vector<Value> &args, VM *vm);
 	static Value     meta_load_bytecode_from_file(const std::vector<Value> &args, VM *vm);
 	static bool      meta_save_bytecode_to_file(const std::vector<Value> &args, VM *vm);
+	static i64       meta_new_state(const std::vector<Value> &args, VM *vm);
+	static bool      meta_free_state(const std::vector<Value> &args, VM *vm);
+	static i64       meta_eval_phs(const std::vector<Value> &args, VM *vm);
+	static i64       meta_exec_phsb(const std::vector<Value> &args, VM *vm);
+	static Value     meta_compile_phs(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 #pragma region stdmemory
@@ -175,6 +181,7 @@ class StdLib
 	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm);  ///< Wait for input
 	static Value sys_shell(const std::vector<Value> &args, VM *vm);           ///< Run a shell command
 	static i64   sys_fork(const std::vector<Value> &args, VM *vm);            ///< Run a native program
+	static Value sys_fork_output(const std::vector<Value> &args, VM *vm);            ///< Run a native program
 	static i64   sys_fork_detached(const std::vector<Value> &args, VM *vm);   ///< Run a native program detached
 	static Value sys_crash(const std::vector<Value> &args, VM *vm);           ///< Crash the VM / Program
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);           ///< Reset the VM
@@ -226,9 +233,11 @@ class StdLib
 	static i64   array_length(const std::vector<Value> &args, VM *vm); ///< Get array length
 	static Value array_push(const std::vector<Value> &args, VM *vm);   ///< Push to array
 	static Value array_pop(const std::vector<Value> &args, VM *vm);    ///< Pop from array
+	static Value array_peek(const std::vector<Value> &args, VM *vm);    ///< Peek from array
 	static Value array_insert(const std::vector<Value> &args, VM *vm); ///< Insert into array
 	static Value array_resize(const std::vector<Value> &args, VM *vm); ///< Resize array
 	static Value array_join(const std::vector<Value> &args, VM *vm);
+	static Value array_find(const std::vector<Value> &args, VM *vm);
 #pragma endregion
 
 #pragma region stdobject
@@ -280,10 +289,8 @@ class StdLib
 #endif
 	static PhsString io_putf_error(const std::vector<Value> &args,
 	                                 VM *vm); ///< Print formatted string with newline to error output
-	static PhsString io_puts_error(const std::vector<Value> &args,
-	                                 VM                       *vm); ///< Print string with newline to error output
-									 static PhsString io_print_error(const std::vector<Value> &args,
-	                                 VM                       *vm); ///< Print string to error output
+	static PhsString io_print_error(const std::vector<Value> &args,
+	                                 VM                       *vm);
 #pragma endregion
 };
 

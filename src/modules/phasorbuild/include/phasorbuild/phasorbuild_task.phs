@@ -1,0 +1,45 @@
+include "std/type";
+include "std/file";
+include "std/str";
+include "std/sys";
+include "std/io";
+
+struct taskStatus {
+    code: int,
+    out: string,
+    error: bool,
+    errOut: string,
+    enum: string[],
+    printTasks: bool
+}
+
+fn createStatus() -> taskStatus {
+    return taskStatus{
+        code: 0,
+        out: "",
+        error: false,
+        errOut: "",
+        enum: [],
+        printTasks: false
+    };
+}
+
+fn print_status(s: taskStatus, msg: string) {
+    if (s.out.len() == 0) s.out = msg;
+    else s.out = s.out.concat(msg);
+}
+
+fn print_err_status(s: taskStatus, msg: string) {
+    if (s.out.len() == 0) {
+        s.out = msg;
+        s.error = true;
+    } else s.errOut = s.errOut.concat(msg);
+}
+
+fn puts_status(s: taskStatus, msg: string) {
+    s.print_status(concat(msg, "\n"));
+}
+
+fn puts_err_status(s: taskStatus, msg: string) {
+    s.print_err_status(concat(msg, "\n"));
+}

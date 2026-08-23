@@ -1,0 +1,3 @@
+fn update_win_progress(mode: int, value: int) {
+    printf("\e]9;4;%d;%d\a", mode, value);
+}
