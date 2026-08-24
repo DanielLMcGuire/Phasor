@@ -32,8 +32,9 @@ fn printHelp(program: string, configured: bool) {
     if (configured) {
         putf("Usage: [runtime] %s [preset] [options]", program);
     } else {
+        var p: sys_fork_out = sys_fork("cmake", ["--list-presets"], true);
         putf("Usage: [runtime] %s <preset> [options]\n", program);
-        sys_fork("cmake", "--list-presets"); 
+        if (p.status == 0) puts(p.output);
     }
     
     printf(`

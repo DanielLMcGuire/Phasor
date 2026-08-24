@@ -386,6 +386,8 @@ struct SDLWindow {
     handle: i64
 }
 
+var NULL_SDLWINDOW: SDLWindow = SDLWindow{ handle: 0 };
+
 struct SDLEvent {
     type: i64,
     timestamp: i64,
@@ -415,3 +417,5 @@ struct SDLEvent {
 struct SDLRenderer {
     handle: i64
 }
+
+var NULL_SDLRENDERER: SDLRenderer = SDLRenderer{ handle: 0 };

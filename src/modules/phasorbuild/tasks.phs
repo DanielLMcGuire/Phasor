@@ -4,14 +4,17 @@ fn compileTask(cfg: buildConfig, newContent: string, defines: string) -> string 
     var content: string = cfg.taskHandler.fread();
     content = c_fmt("%s\n\n%s", content, newContent);
     tempFd.fwrite(content); tempFd.fclose();
-    PHSC.sys_fork(["-D", defines, "-o", outFile, "temp.phs"]); frm("temp.phs");
+    var p: sys_fork_out = PHSC.sys_fork(["-D", defines, "-o", outFile, "temp.phs"]); 
+    if (p.status != 0) error("Failed to compile task!");
+    frm("temp.phs");
     return outFile.fabsolute();
 }
 
 fn runTask(filePath: string) -> taskStatus {
-    var output: string = RUNTIME.sys_fork_output(filePath);
+    var p: sys_fork_out = RUNTIME.sys_fork([filePath], true);
+    if (p.status != 0) error("Failed to run task!");
     frm(filePath);
-    var status: taskStatus = output.from_json();
+    var status: taskStatus = p.output.from_json();
     print(status.out);
     if (status.error)
         print_error(status.errOut);

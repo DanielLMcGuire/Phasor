@@ -2,9 +2,43 @@
 #include <cassert>
 #include <cstdlib>
 #include <platform.h>
+#include <mutex>
+#include <thread>
+#include <chrono>
 
 namespace Phasor
 {
+
+namespace {
+void processReaperLoop()
+{
+	using namespace std::chrono_literals;
+	for (;;)
+	{
+		std::this_thread::sleep_for(100ms);
+		std::lock_guard<std::mutex> lock(Phasor::StdLib::getProcessPoolMutex());
+		for (auto &entry : Phasor::StdLib::getProcessPool())
+		{
+			if (!entry.handle) continue;
+			Phasor::StdLib::pollProcessExitLocked(*entry.handle);
+			if (entry.handle->exited && entry.handle->forgotten)
+			{
+#if defined(_WIN32)
+				if (entry.handle->nativeHandle) CloseHandle(static_cast<HANDLE>(entry.handle->nativeHandle));
+#endif
+				entry.handle.reset();
+			}
+		}
+	}
+}
+} // namespace
+
+void StdLib::ensureReaperStarted()
+{
+	static std::once_flag once;
+	std::call_once(once, [] { std::thread(processReaperLoop).detach(); });
+}
+
 void StdLib::registerInternalFunctions(VM *vm)
 {
 	vm->registerNativeFunction("phs__is_32", [](const std::vector<Value> &, VM *)
@@ -44,6 +78,121 @@ void StdLib::registerInternalFunctions(VM *vm)
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
 	vm->registerNativeFunction("sys_arch", StdLib::sys_arch);
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);
+}
+
+std::mutex& StdLib::getProcessPoolMutex()
+{
+	static std::mutex m;
+	return m;
+}
+
+std::vector<StdLib::ProcessEntry>& StdLib::getProcessPool()
+{
+	static std::vector<StdLib::ProcessEntry> pool;
+	return pool;
+}
+
+i64 StdLib::allocProcessHandle(std::unique_ptr<ProcessHandle> h)
+{
+	std::lock_guard<std::mutex> lock(getProcessPoolMutex());
+	auto& pool = getProcessPool();
+	for (size_t i = 0; i < pool.size(); ++i)
+		if (!pool[i].handle) { pool[i].handle = std::move(h); ensureReaperStarted(); return static_cast<i64>(i); }
+	pool.push_back({std::move(h)});
+	ensureReaperStarted();
+	return static_cast<i64>(pool.size() - 1);
+}
+
+StdLib::ProcessHandle* StdLib::getProcessHandleLocked(i64 h)
+{
+	auto& pool = getProcessPool();
+	if (h >= 0 && std::cmp_less(h, pool.size()) && pool[h].handle)
+		return pool[h].handle.get();
+	return nullptr;
+}
+
+bool StdLib::pollProcessExitLocked(ProcessHandle &proc)
+{
+	if (proc.exited) return true;
+#if defined(_WIN32)
+	if (WaitForSingleObject(static_cast<HANDLE>(proc.nativeHandle), 0) != WAIT_OBJECT_0)
+		return false;
+	DWORD code = 0;
+	GetExitCodeProcess(static_cast<HANDLE>(proc.nativeHandle), &code);
+	proc.exitCode = static_cast<int>(code);
+#else
+	int status = 0;
+	pid_t r = waitpid(static_cast<pid_t>(proc.pid), &status, WNOHANG);
+	if (r <= 0) return false;
+	proc.exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+#endif
+	proc.exited = true;
+	return true;
+}
+
+void StdLib::releaseProcessHandleLocked(i64 h)
+{
+	auto& pool = getProcessPool();
+	if (h < 0 || std::cmp_greater_equal(h, pool.size()) || !pool[h].handle) return;
+#if defined(_WIN32)
+	if (pool[h].handle->nativeHandle) CloseHandle(static_cast<HANDLE>(pool[h].handle->nativeHandle));
+#endif
+	pool[h].handle.reset();
+}
+
+std::vector<StdLib::FileHandle>& StdLib::getFilePool()
+{
+	static std::vector<FileHandle> pool;
+	return pool;
+}
+
+std::iostream* StdLib::getFileDescriptor(i64 fd)
+{
+	auto& pool = StdLib::getFilePool();
+	if (fd >= 0 && std::cmp_less(fd, pool.size()) && pool[fd].stream)
+		return pool[fd].stream.get();
+	return nullptr;
+}
+
+i64 StdLib::allocFileDescriptor(std::unique_ptr<std::iostream> stream, StreamKind kind, i64 ownerProcess)
+{
+	auto& pool = getFilePool();
+	i64 fd = -1;
+	for (size_t i = 0; i < pool.size(); ++i)
+	{
+		if (!pool[i].stream)
+		{
+			pool[i].stream = std::move(stream);
+			pool[i].kind = kind;
+			pool[i].ownerProcess = ownerProcess;
+			fd = static_cast<i64>(i);
+			break;
+		}
+	}
+	if (fd < 0)
+	{
+		pool.push_back({std::move(stream), kind, ownerProcess});
+		fd = static_cast<i64>(pool.size() - 1);
+	}
+	return fd;
+}
+
+void StdLib::requireString(const Value &v, const char *fnName, const char *what)
+{
+	if (!v.isString())
+		PHS_ERROR(std::string(fnName) + "() expects a string as its " + what);
+}
+
+void StdLib::requireInt(const Value &v, const char *fnName, const char *what)
+{
+	if (!v.isInt())
+		PHS_ERROR(std::string(fnName) + "() expects an integer as its " + what);
+}
+
+void StdLib::requireBool(const Value &v, const char *fnName, const char *what)
+{
+	if (!v.isBool())
+		PHS_ERROR(std::string(fnName) + "() expects a boolean as its " + what);
 }
 
 std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules{

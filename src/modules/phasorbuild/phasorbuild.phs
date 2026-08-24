@@ -16,7 +16,8 @@ fn build(cfg: buildConfig) -> int {
         arguments = arguments.arr_push(cfg.defines.arr_join(","));
     }
     arguments = arguments.arr_push(cfg.source);
-    return PHSC.sys_fork(arguments);
+    var p: sys_fork_out = PHSC.sys_fork(arguments);
+    return p.status;
 }
 
 fn clean(cfg: buildConfig) -> int {
@@ -31,5 +32,6 @@ fn run(cfg: buildConfig) -> int {
         var out: int = cfg.build();
         if (out != 0) return out;
     }
-    return RUNTIME.sys_fork(cfg.out);
+    var p: sys_fork_out = RUNTIME.sys_fork([cfg.out]);
+    return p.status;
 }

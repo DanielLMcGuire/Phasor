@@ -8,10 +8,14 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <iostream>
+#include <mutex>
 #include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
 #include <phsint.hpp>
+
+#include "core/process.h"
 
 #include "../VM/VM.hpp"
 #ifndef CMAKE_PCH
@@ -54,6 +58,53 @@ class StdLib
 		vm.registerNativeFunction("assert", std_assert);
 #endif
 	}
+
+	enum class StreamKind
+	{
+		File,
+		Memory,
+		Pipe
+	};
+
+	struct FileHandle
+	{
+		std::unique_ptr<std::iostream> stream;
+		StreamKind                     kind = StreamKind::File;
+		i64                            ownerProcess = -1;
+	};
+
+	static std::vector<FileHandle>& getFilePool();
+	static i64 allocFileDescriptor(std::unique_ptr<std::iostream> stream,
+	                                StreamKind kind = StreamKind::File,
+	                                i64 ownerProcess = -1);
+	static std::iostream* getFileDescriptor(i64 fd);
+
+	struct ProcessHandle
+	{
+#if defined(_WIN32)
+		void*         nativeHandle = nullptr;
+		unsigned long processId    = 0;
+#else
+		long          pid = -1;
+#endif
+		bool exited    = false;
+		int  exitCode  = -1;
+		bool isolated  = false;
+		bool forgotten = false;
+	};
+	struct ProcessEntry { std::unique_ptr<ProcessHandle> handle; };
+
+	static std::mutex&                getProcessPoolMutex();
+	static std::vector<ProcessEntry>& getProcessPool();
+	static i64                        allocProcessHandle(std::unique_ptr<ProcessHandle> h);
+	static ProcessHandle*             getProcessHandleLocked(i64 h); ///< assumes mutex already held
+	static bool                       pollProcessExitLocked(ProcessHandle &proc); ///< assumes mutex already held
+	static void                       releaseProcessHandleLocked(i64 h); ///< assumes mutex already held
+	static void                       ensureReaperStarted();
+
+	static void requireString(const Value &v, const char *fnName, const char *what);
+	static void requireInt(const Value &v, const char *fnName, const char *what);
+	static void requireBool(const Value &v, const char *fnName, const char *what);
 
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
@@ -175,15 +226,22 @@ class StdLib
 	static bool      file_is_directory(const std::vector<Value> &args, VM *vm); ///< Check if path is directory
 	static PhsString file_parent(const std::vector<Value> &args, VM *vm);       ///< Get the parent of a path
 	static i64       file_get_size(const std::vector<Value> &args, VM *vm);
+	static Value     file_memory_open(const std::vector<Value> &args, VM *vm); ///< Open an in-memory buffer as a stream
+	static Value     file_pipe_open(const std::vector<Value> &args, VM *vm);   ///< Create a native pipe pair -> [readFd, writeFd]
+	static PhsString file_descriptor_kind(const std::vector<Value> &args, VM *vm); ///< "file" | "memory" | "pipe"
 #pragma endregion
 
 #pragma region stdsys
 	static i64   sys_get_free_memory(const std::vector<Value> &args, VM *vm); ///< Get current free memory
 	static Value sys_wait_for_input(const std::vector<Value> &args, VM *vm);  ///< Wait for input
 	static Value sys_shell(const std::vector<Value> &args, VM *vm);           ///< Run a shell command
-	static i64   sys_fork(const std::vector<Value> &args, VM *vm);            ///< Run a native program
-	static Value sys_fork_output(const std::vector<Value> &args, VM *vm);            ///< Run a native program
-	static i64   sys_fork_detached(const std::vector<Value> &args, VM *vm);   ///< Run a native program detached
+	static Value sys_fork(const std::vector<Value> &args, VM *vm);          ///< blocking: {status, output|null}
+	static Value sys_fork_detached(const std::vector<Value> &args, VM *vm); ///< non-blocking: {pid, handle, stdin, stdout, stderr}
+	static i64   proc_wait(const std::vector<Value> &args, VM *vm);
+	static Value proc_status(const std::vector<Value> &args, VM *vm);
+	static bool  proc_kill(const std::vector<Value> &args, VM *vm);
+	static bool  proc_forget(const std::vector<Value> &args, VM *vm); ///< fire-and-forget: free once it exits, no status/handle needed
+	static bool  proc_free(const std::vector<Value> &args, VM *vm);   ///< blocks until exit, then frees
 	static Value sys_crash(const std::vector<Value> &args, VM *vm);           ///< Crash the VM / Program
 	static Value sys_reset(const std::vector<Value> &args, VM *vm);           ///< Reset the VM
 	static i64   sys_pid(const std::vector<Value> &args, VM *vm);             ///< Get the current process ID

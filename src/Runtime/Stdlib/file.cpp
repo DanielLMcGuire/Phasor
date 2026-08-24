@@ -9,77 +9,38 @@
 
 #include "StdLib.hpp"
 #include "core/file_properties.h"
+#include "core/pipe_streambuf.h"
 
 namespace Phasor
 {
 
-namespace
+namespace {
+std::ios_base::openmode parseOpenMode(const PhsString &mode)
 {
-	struct FileHandle
-	{
-		std::unique_ptr<std::fstream> stream;
-	};
+	if (mode == "r")  return std::ios::in;
+	if (mode == "w")  return std::ios::out | std::ios::trunc;
+	if (mode == "a")  return std::ios::out | std::ios::app;
+	if (mode == "r+") return std::ios::in | std::ios::out;
+	if (mode == "w+") return std::ios::in | std::ios::out | std::ios::trunc;
+	if (mode == "a+") return std::ios::in | std::ios::out | std::ios::app;
 
-	std::vector<FileHandle>& getFilePool()
+	auto omode = (std::ios_base::openmode)0;
+	if (mode.find('r') != std::string::npos) omode |= std::ios::in;
+	if (mode.find('w') != std::string::npos) omode |= std::ios::out | std::ios::trunc;
+	if (mode.find('a') != std::string::npos) omode |= std::ios::out | std::ios::app;
+	if (mode.find('+') != std::string::npos)
 	{
-		static std::vector<FileHandle> pool;
-		return pool;
+		omode |= std::ios::in | std::ios::out;
+		if (mode.find('w') == std::string::npos) omode &= ~std::ios::trunc;
 	}
-
-	i64 allocFileDescriptor(std::unique_ptr<std::fstream> fs)
-	{
-		auto& pool = getFilePool();
-		for (size_t i = 0; i < pool.size(); ++i)
-		{
-			if (!pool[i].stream)
-			{
-				pool[i].stream = std::move(fs);
-				return static_cast<i64>(i);
-			}
-		}
-		pool.push_back({std::move(fs)});
-		return static_cast<i64>(pool.size() - 1);
-	}
-
-	std::fstream* getFileDescriptor(i64 fd)
-	{
-		auto& pool = getFilePool();
-		if (fd >= 0 && std::cmp_less(fd ,pool.size()) && pool[fd].stream)
-		{
-			return pool[fd].stream.get();
-		}
-		return nullptr;
-	}
-
-	/// @brief Require that a Value is a string, throwing a descriptive error otherwise.
-	void requireString(const Value &v, const char *fnName, const char *what)
-	{
-		if (!v.isString())
-			PHS_ERROR(std::string(fnName) + "() expects a string as its " + what);
-	}
-
-	/// @brief Require that a Value is an integer, throwing a descriptive error otherwise.
-	void requireInt(const Value &v, const char *fnName, const char *what)
-	{
-		if (!v.isInt())
-			PHS_ERROR(std::string(fnName) + "() expects an integer as its " + what);
-	}
-
-	/// @brief Require that a Value is a boolean, throwing a descriptive error otherwise.
-	void requireBool(const Value &v, const char *fnName, const char *what)
-	{
-		if (!v.isBool())
-			PHS_ERROR(std::string(fnName) + "() expects a boolean as its " + what);
-	}
-
-
+	return omode;
 }
+} // namespace
 
 void StdLib::registerFileFunctions(VM *vm)
 {
 	vm->registerNativeFunction("fopen", StdLib::file_open);
 	vm->registerNativeFunction("fclose", StdLib::file_close);
-	
 	vm->registerNativeFunction("fabsolute", StdLib::file_absolute);
 	vm->registerNativeFunction("frelative", StdLib::file_relative);
 	vm->registerNativeFunction("fstem", StdLib::file_stem);
@@ -106,6 +67,9 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("freaddir", StdLib::file_read_directory);
 	vm->registerNativeFunction("fjoin", StdLib::file_join_path);
 	vm->registerNativeFunction("fsize", StdLib::file_get_size);
+	vm->registerNativeFunction("fmemopen", StdLib::file_memory_open);
+	vm->registerNativeFunction("fpipe", StdLib::file_pipe_open);
+	vm->registerNativeFunction("fkind", StdLib::file_descriptor_kind);
 }
 
 Value StdLib::file_open(const std::vector<Value> &args, VM *)
@@ -114,52 +78,11 @@ Value StdLib::file_open(const std::vector<Value> &args, VM *)
 	requireString(args[0], "fopen", "first argument (path)");
 	requireString(args[1], "fopen", "second argument (mode)");
 	PhsString path = args[0].string();
-	PhsString mode = args[1].string();
-
-	auto omode = (std::ios_base::openmode)0;
-	
-	if (mode == "r")
-	{
-		omode = std::ios::in;
-	} else if (mode == "w") {
-		omode = std::ios::out | std::ios::trunc;
-	} else if (mode == "a") {
-		omode = std::ios::out | std::ios::app;
-	} else if (mode == "r+") {
-		omode = std::ios::in | std::ios::out;
-	} else if (mode == "w+") {
-		omode = std::ios::in | std::ios::out | std::ios::trunc;
-	} else if (mode == "a+") {
-		omode = std::ios::in | std::ios::out | std::ios::app;
-	} else {
-		if (mode.find('r') != std::string::npos) 
-		{ 
-			omode |= std::ios::in;
-		}
-		if (mode.find('w') != std::string::npos)
-		{ 
-			omode |= std::ios::out | std::ios::trunc;
-		}
-		if (mode.find('a') != std::string::npos)
-		{ 
-			omode |= std::ios::out | std::ios::app;
-		}
-		if (mode.find('+') != std::string::npos)
-		{
-			omode |= std::ios::in | std::ios::out;
-			if (mode.find('w') == std::string::npos)
-			{ 
-				omode &= ~std::ios::trunc;
-			}
-		}
-	}
+	auto omode = parseOpenMode(args[1].string());
 
 	auto fs = std::make_unique<std::fstream>(path, omode);
-	if (!fs->is_open())
-	{
-		return phsnull;
-	}
-	return allocFileDescriptor(std::move(fs));
+	if (!fs->is_open()) return phsnull;
+	return allocFileDescriptor(std::move(fs), StreamKind::File);
 }
 
 bool StdLib::file_close(const std::vector<Value> &args, VM *)
@@ -168,13 +91,78 @@ bool StdLib::file_close(const std::vector<Value> &args, VM *)
 	requireInt(args[0], "fclose", "argument (file descriptor)");
 	i64 fd = args[0].asInt();
 	auto& pool = getFilePool();
-	if (fd >= 0 && std::cmp_less(fd ,pool.size()) && pool[fd].stream)
+	if (fd >= 0 && std::cmp_less(fd, pool.size()) && pool[fd].stream)
 	{
-		pool[fd].stream->close();
+		if (pool[fd].kind == StreamKind::File)
+			static_cast<std::fstream*>(pool[fd].stream.get())->close();
 		pool[fd].stream.reset();
+		pool[fd].kind = StreamKind::File;
+		pool[fd].ownerProcess = -1;
 		return true;
 	}
 	return false;
+}
+
+Value StdLib::file_memory_open(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fmemopen", true);
+	if (args.size() > 2) PHS_ERROR("fmemopen() expects at most 2 arguments");
+
+	requireString(args[0], "fmemopen", "first argument (mode)");
+	auto omode = parseOpenMode(args[0].string());
+
+	std::unique_ptr<std::stringstream> ss;
+	if (args.size() == 2)
+	{
+		requireString(args[1], "fmemopen", "second argument (initial content)");
+		ss = std::make_unique<std::stringstream>(args[1].stl_string(), omode);
+	}
+	else
+	{
+		ss = std::make_unique<std::stringstream>(omode);
+	}
+	return allocFileDescriptor(std::move(ss), StreamKind::Memory);
+}
+
+Value StdLib::file_pipe_open(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 0, "fpipe", true);
+
+#if defined(_WIN32)
+	HANDLE readHandle = nullptr, writeHandle = nullptr;
+	SECURITY_ATTRIBUTES sa{ sizeof(sa), nullptr, TRUE };
+	if (!CreatePipe(&readHandle, &writeHandle, &sa, 0)) return phsnull;
+#else
+	int fds[2];
+	if (::pipe(fds) != 0) return phsnull;
+	int readHandle = fds[0], writeHandle = fds[1];
+#endif
+
+	auto readStream  = std::make_unique<OwningIOStream>(std::make_unique<NativePipeStreamBuf>(readHandle, true));
+	auto writeStream = std::make_unique<OwningIOStream>(std::make_unique<NativePipeStreamBuf>(writeHandle, false));
+
+	i64 readFd  = allocFileDescriptor(std::move(readStream), StreamKind::Pipe);
+	i64 writeFd = allocFileDescriptor(std::move(writeStream), StreamKind::Pipe);
+
+	std::vector<Value> result{ readFd, writeFd };
+	return Value::createArray(std::move(result));
+}
+
+PhsString StdLib::file_descriptor_kind(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "fkind");
+	requireInt(args[0], "fkind", "argument (file descriptor)");
+	i64 fd = args[0].asInt();
+	auto& pool = getFilePool();
+	if (fd < 0 || std::cmp_greater_equal(fd, pool.size()) || !pool[fd].stream)
+		PHS_ERROR("fkind() invalid file descriptor");
+	switch (pool[fd].kind)
+	{
+		case StreamKind::File:   return "file";
+		case StreamKind::Memory: return "memory";
+		case StreamKind::Pipe:   return "pipe";
+	}
+	return "unknown";
 }
 
 PhsString StdLib::file_absolute(const std::vector<Value> &args, VM *)
@@ -301,7 +289,7 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *)
 
 	if (args[0].isInt())
 	{
-		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		std::iostream* fs = getFileDescriptor(args[0].asInt());
 		if (fs == nullptr) 
 		{
 			return phsnull;
@@ -334,7 +322,7 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 	if (args.size() == 1)
 	{
 		if (!args[0].isInt()) PHS_ERROR("freadln with 1 arg requires an FD");
-		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		std::iostream* fs = getFileDescriptor(args[0].asInt());
 		if (fs == nullptr)
 		{
 			return phsnull;
@@ -355,7 +343,7 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 
 	if (args[0].isInt())
 	{
-		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		std::iostream* fs = getFileDescriptor(args[0].asInt());
 		if (fs == nullptr)
 		{
 			return phsnull;
@@ -453,7 +441,7 @@ bool StdLib::file_write(const std::vector<Value> &args, VM *)
 
 	if (args[0].isInt())
 	{
-		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		std::iostream* fs = getFileDescriptor(args[0].asInt());
 		if (fs == nullptr)
 		{
 			return false;
@@ -489,7 +477,7 @@ bool StdLib::file_append(const std::vector<Value> &args, VM *)
 
 	if (args[0].isInt())
 	{
-		std::fstream* fs = getFileDescriptor(args[0].asInt());
+		std::iostream* fs = getFileDescriptor(args[0].asInt());
 		if (fs == nullptr)
 		{
 			return false;

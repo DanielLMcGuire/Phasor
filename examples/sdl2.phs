@@ -9,10 +9,54 @@ include "std/io";
 include "std/array";
 include "sdl2/sdl2.phs";
 
-define screenW = 800;
-define screenH = 600;
+var screenW: int = 800;
+var screenH: int = 600;
+
 define FPS = 60;
 define FRAMETIME = 1000 / FPS;
+
+define SIZE = 100;
+
+var phasor_logo_col: Vec4 = rgb(124, 169, 253).matrixvec4();
+
+static_if (DEBUG)
+define TIMEF = "%Y-%m-%dT%I:%M:%SZ";
+
+fn formatColor(color: Vec4) -> string {
+    if (color.w >= 255)
+        return c_fmt("rgb(%d, %d, %d)", color.x, color.y, color.z);
+    return c_fmt("rgba(%d, %d, %d, %d)", color.x, color.y, color.z, color.w);
+}
+
+fn debugPrint(msg: string) {
+    putf(localtimef(TIMEF).concat(" - ", msg));
+}
+
+static_endif
+
+fn normalizeColor(color: Vec4) -> Vec4 {
+    if (color.x > 255) color.x = 255;
+    if (color.x < 0) color.x = 0;
+    if (color.y > 255) color.y = 255;
+    if (color.y < 0) color.y = 0;
+    if (color.z > 255) color.z = 255;
+    if (color.z < 0) color.z = 0;
+    if (color.w > 255) color.w = 255;
+    if (color.w < 0) color.w = 0;
+    return color;
+}
+
+fn getRandColor(alpha: bool, range: int) -> Vec4 {
+    if (range > 255) range = 255;
+    var a: i64 = 255;
+    if (alpha) a = rand_next_range(0, range);
+    return Vec4{
+        x: rand_next_range(0, range),
+        y: rand_next_range(0, range),
+        z: rand_next_range(0, range),
+        w: a
+    };
+}
 
 fn main(args: string[]) -> int {
     var seedA: i64 = rand_crypto_int();
@@ -28,25 +72,31 @@ fn main(args: string[]) -> int {
         return 1;
     }
 
-    var window: SDLWindow = sdl_create_window("Phasor SDL2 Demo", 100, 100, screenW, screenH, SDLC.WINDOW_SHOWN);
-    if (window.handle == 0) {
+    var window: SDLWindow = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenW, screenH, SDLC.WINDOW_RESIZABLE);
+    if (window == NULL_SDLWINDOW) {
         puts_error("Failed to create window");
         sdl_quit();
         return 1;
     }
 
     var renderer: SDLRenderer = window.sdl_create_renderer(-1, SDLC.RENDERER_PRESENTVSYNC);
-    if (renderer.handle == 0) {
+    if (window == NULL_SDLRENDERER) {
         puts_error("Failed to create renderer");
-        sdl_destroy_window(window);
+        if (window != NULL_SDLWINDOW)
+            sdl_destroy_window(window);
         sdl_quit();
         return 1;
     }
 
-    var rectSize: Vec2 = Vec2{x: 100, y: 100};
-    var rect: Vec2 = Vec2{x: rand_next_range(0, screenW - rectSize.x), y: rand_next_range(0, screenH - rectSize.y)};
+    var rect: Vec4 = Vec4{
+        x: rand_next_range(0, screenW - SIZE),
+        y: rand_next_range(0, screenH - SIZE),
+        z: SIZE,
+        w: SIZE
+    };
     var vel: Vec2 = Vec2{x: 240, y: 180};
-    var color: Vec3 = Vec3{x: 121, y: 165, z: 249};
+    var color: Vec4 = phasor_logo_col;
+    var backCol: Vec4 = getRandColor(false, 100);
 
     var running: bool = true;
 
@@ -62,51 +112,72 @@ fn main(args: string[]) -> int {
 
         var event: SDLEvent = sdl_poll_event();
         while (event.type != 0) {
-            if (event.type == SDLC.QUIT)
-                running = false;
-
+            switch (event.type) {
+                case SDLC.QUIT:
+                    running = false;
+                case SDLC.KEYDOWN:
+                    switch (event.key_sym) {
+                        case SDLC.K_ESCAPE:
+                            running = false;
+                    }
+                case SDLC.WINDOWEVENT:
+                    switch (event.window_event_id) {
+                        case SDLC.WINDOWEVENT_SIZE_CHANGED:
+                            screenW = event.window_data1;
+                            screenH = event.window_data2;
+                    }
+            }
             event = sdl_poll_event();
         }
     
         rect.x = rect.x + (vel.x * deltaMs) / 1000;
         rect.y = rect.y + (vel.y * deltaMs) / 1000;
 
-       if (rect.x <= 0) {
+        if (rect.x <= 0) {
             rect.x = 0;
             vel.x = -vel.x;
-            color.x = rand_next_range(0, 255);
-            color.y = rand_next_range(0, 255);
-            color.z = rand_next_range(0, 255);
-        } else if (rect.x + rectSize.x >= screenW) {
-            rect.x = screenW - rectSize.x;
+            color = getRandColor(true, 255);
+            backCol = getRandColor(false, 100);
+static_if (DEBUG)
+            debugPrint(c_fmt("ran into left wall, changed cube to %s, background to %s", color.formatColor(), backCol.formatColor()));
+static_endif
+        } else if (rect.x + rect.z >= screenW) {
+            rect.x = screenW - rect.z;
             vel.x = -vel.x;
-            color.x = rand_next_range(0, 255);
-            color.y = rand_next_range(0, 255);
-            color.z = rand_next_range(0, 255);
+            color = getRandColor(true, 255);
+            backCol = getRandColor(false, 100);
+static_if (DEBUG)
+            debugPrint(c_fmt("ran into right wall, changed cube to %s, background to %s", color.formatColor(), backCol.formatColor()));
+static_endif
         }
 
         if (rect.y <= 0) {
             rect.y = 0;
             vel.y = -vel.y;
-            color.x = rand_next_range(0, 255);
-            color.y = rand_next_range(0, 255);
-            color.z = rand_next_range(0, 255);
-        } else if (rect.y + rectSize.y >= screenH) {
-            rect.y = screenH - rectSize.y;
+            color = getRandColor(true, 255);
+            backCol = getRandColor(false, 100);
+static_if (DEBUG)
+            debugPrint(c_fmt("ran into top wall, changed cube to %s, background to %s", color.formatColor(), backCol.formatColor()));
+static_endif
+        } else if (rect.y + rect.w >= screenH) {
+            rect.y = screenH - rect.w;
             vel.y = -vel.y;
-            color.x = rand_next_range(0, 255);
-            color.y = rand_next_range(0, 255);
-            color.z = rand_next_range(0, 255);
+            color = getRandColor(true, 255);
+            backCol = getRandColor(false, 100);
+static_if (DEBUG)
+            debugPrint(c_fmt("ran into bottom wall, changed cube to %s, background to %s", color.formatColor(), backCol.formatColor()));
+static_endif
         }
 
-        renderer.sdl_set_render_draw_color(0, 0, 0, 255);
+        
+        renderer.sdl_set_render_draw_color_vec(backCol);
         renderer.sdl_render_clear();
 
-        renderer.sdl_set_render_draw_color(color.x, color.y, color.z, 255);
-        renderer.sdl_render_fill_rect(rect.x, rect.y, rectSize.x, rectSize.y);
+        renderer.sdl_set_render_draw_color_vec(color);
+        renderer.sdl_render_fill_rect_vec(rect);
 
-        renderer.sdl_set_render_draw_color(255, 255, 255, 255);
-        renderer.sdl_render_draw_rect(rect.x, rect.y, rectSize.x, rectSize.y);
+        renderer.sdl_set_render_draw_color_vec(vec4add(color, matrixvec4([60, 60, 60, 0])).normalizeColor());
+        renderer.sdl_render_draw_rect_vec(rect);
 
         renderer.sdl_render_present();
 
@@ -120,8 +191,10 @@ fn main(args: string[]) -> int {
         lastTime = currentTime; 
     }
 
-    renderer.sdl_destroy_renderer();
-    window.sdl_destroy_window();
+    if (renderer != NULL_SDLRENDERER)
+        renderer.sdl_destroy_renderer();
+    if (window != NULL_SDLWINDOW)
+        window.sdl_destroy_window();
     sdl_quit();
 
     return 0;

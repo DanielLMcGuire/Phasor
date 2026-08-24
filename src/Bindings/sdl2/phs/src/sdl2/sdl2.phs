@@ -49,6 +49,11 @@ fn sdl_set_render_draw_color(renderer: SDLRenderer, r: i64, g: i64, b: i64, a: i
     SDL_SetRenderDrawColor(renderer.handle, r, g, b, a);
 }
 
+fn sdl_set_render_draw_color_vec(renderer: SDLRenderer, color: Vec4)
+{
+    SDL_SetRenderDrawColor(renderer.handle, color.x, color.y, color.z, color.w);
+}
+
 fn sdl_render_clear(renderer: SDLRenderer)
 {
     SDL_RenderClear(renderer.handle);
@@ -64,14 +69,29 @@ fn sdl_render_draw_line(renderer: SDLRenderer, x1: i64, y1: i64, x2: i64, y2: i6
     SDL_RenderDrawLine(renderer.handle, x1, y1, x2, y2);
 }
 
+fn sdl_render_draw_line_vec(renderer: SDLRenderer, line: Vec4)
+{
+    SDL_RenderDrawLine(renderer.handle, line.x, line.y, line.z, line.w);
+}
+
 fn sdl_render_draw_rect(renderer: SDLRenderer, x: i64, y: i64, w: i64, h: i64)
 {
     SDL_RenderDrawRect(renderer.handle, x, y, w, h);
 }
 
+fn sdl_render_draw_rect_vec(renderer: SDLRenderer, rect: Vec4)
+{
+    SDL_RenderDrawRect(renderer.handle, rect.x, rect.y, rect.z, rect.w);
+}
+
 fn sdl_render_fill_rect(renderer: SDLRenderer, x: i64, y: i64, w: i64, h: i64)
 {
     SDL_RenderFillRect(renderer.handle, x, y, w, h);
+}
+
+fn sdl_render_fill_rect_vec(renderer: SDLRenderer, rect: Vec4)
+{
+    SDL_RenderFillRect(renderer.handle, rect.x, rect.y, rect.z, rect.w);
 }
 
 fn sdl_quit()

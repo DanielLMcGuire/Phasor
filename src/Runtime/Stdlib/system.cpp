@@ -43,8 +43,12 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);
 	vm->registerNativeFunction("sys_fork", StdLib::sys_fork);
-	vm->registerNativeFunction("sys_fork_output", StdLib::sys_fork_output);
 	vm->registerNativeFunction("sys_fork_detached", StdLib::sys_fork_detached);
+	vm->registerNativeFunction("procwait", StdLib::proc_wait);
+	vm->registerNativeFunction("procstatus", StdLib::proc_status);
+	vm->registerNativeFunction("prockill", StdLib::proc_kill);
+	vm->registerNativeFunction("procforget", StdLib::proc_forget);
+	vm->registerNativeFunction("procfree", StdLib::proc_free);
 	vm->registerNativeFunction("error", StdLib::sys_crash);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
@@ -299,156 +303,310 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-i64 StdLib::sys_fork(const std::vector<Value> &args, VM *)
+Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
 {
-    checkArgCount(args, 1, "sys_fork", true);
+	checkArgCount(args, 1, "sys_fork", true);
+	if (args.size() > 5)
+		PHS_ERROR("sys_fork() expects at most 5 arguments (program, args, pipe, input, isolate)");
 
-    if (!args[0].isString())
-        PHS_ERROR("sys_fork() expects a string as its first argument (executable)");
+	requireString(args[0], "sys_fork", "first argument (program)");
+	std::string program = args[0].stl_string();
 
-    const char *executable = args[0].c_str();
-    std::vector<char *> v_argv;
-
-    if (args.size() == 2 && args[1].isArray()) 
-    {
-        const auto& arr = *args[1].asArray(); 
-        
-        v_argv.reserve(arr.size());
-        
-        for (const auto& val : arr) 
-        {
-            if (!val.isString())
-                PHS_ERROR("sys_fork() expects its argument array to contain only strings");
-            v_argv.push_back(const_cast<char *>(val.c_str()));
-        }
-    }
-    else 
-    {
-        int argc = (int)args.size() - 1;
-        v_argv.reserve(argc);
-        for (int i = 0; i < argc; ++i)
-        {
-            if (!args[i + 1].isString())
-                PHS_ERROR("sys_fork() expects all of its arguments to be strings");
-            v_argv.push_back(const_cast<char *>(args[i + 1].c_str()));
-        }
-    }
-
-    return static_cast<i64>(PHASORstd_sys_run(executable, static_cast<int>(v_argv.size()), v_argv.data()));
-}
-
-Value StdLib::sys_fork_output(const std::vector<Value> &args, VM *)
-{
-	checkArgCount(args, 1, "sys_fork_output", true);
-
-	if (!args[0].isString())
-		PHS_ERROR("sys_fork_output() expects a string as its first argument (executable)");
-
-	std::vector<std::string> v_args;
-
-	if (args.size() == 2 && args[1].isArray())
+	std::vector<std::string> procArgs;
+	if (args.size() >= 2 && !args[1].isNull())
 	{
-		const auto &arr = *args[1].asArray();
-		v_args.reserve(arr.size());
-		for (const auto &val : arr)
+		if (!args[1].isArray())
+			PHS_ERROR("sys_fork() expects an array of strings as its second argument (args)");
+		for (const auto &v : *args[1].asArray())
 		{
-			if (!val.isString())
-				PHS_ERROR("sys_fork_output() expects its argument array to contain only strings");
-			v_args.push_back(val.stl_string());
-		}
-	}
-	else
-	{
-		size_t argc = args.size() - 1;
-		v_args.reserve(argc);
-		for (size_t i = 0; i < argc; ++i)
-		{
-			if (!args[i + 1].isString())
-				PHS_ERROR("sys_fork_output() expects all of its arguments to be strings");
-			v_args.push_back(args[i + 1].stl_string());
+			if (!v.isString())
+				PHS_ERROR("sys_fork() expects an array of strings as its second argument (args)");
+			procArgs.push_back(v.stl_string());
 		}
 	}
 
-	auto quoteArg = [](const std::string &s) -> std::string
+	bool pipe = false;
+	if (args.size() >= 3)
 	{
-#ifdef _WIN32
-		std::string out = "\"";
-		for (char c : s)
-		{
-			if (c == '\"')
-				out += "\\\"";
-			else
-				out += c;
-		}
-		out += "\"";
-		return out;
-#else
-		std::string out = "'";
-		for (char c : s)
-		{
-			if (c == '\'')
-				out += "'\\''";
-			else
-				out += c;
-		}
-		out += "'";
-		return out;
-#endif
-	};
-
-	std::string cmd = quoteArg(args[0].stl_string());
-	for (const auto &a : v_args)
-	{
-		cmd += ' ';
-		cmd += quoteArg(a);
+		requireBool(args[2], "sys_fork", "third argument (pipe)");
+		pipe = args[2].asBool();
 	}
 
-#ifdef _WIN32
-	std::string fullCmd = "\"" + cmd + "\"";
-	FILE *pipe = _popen(fullCmd.c_str(), "r");
-#else
-	FILE *pipe = popen(cmd.c_str(), "r");
-#endif
+	std::string input;
+	if (args.size() >= 4 && !args[3].isNull())
+	{
+		requireString(args[3], "sys_fork", "fourth argument (input)");
+		input = args[3].stl_string();
+	}
 
-	if (!pipe)
-		PHS_ERROR("sys_fork_output() failed to start process");
+	bool isolate = false;
+	if (args.size() >= 5)
+	{
+		requireBool(args[4], "sys_fork", "fifth argument (isolate)");
+		isolate = args[4].asBool();
+	}
+
+	ProcessLaunchOptions opts;
+	opts.wantStdin  = pipe && !input.empty();
+	opts.wantStdout = pipe;
+	opts.isolate    = isolate;
+
+	LaunchedProcess proc;
+	try
+	{
+		proc = launchProcess(program, procArgs, opts);
+	}
+	catch (const std::exception &)
+	{
+		return phsnull;
+	}
+
+	std::thread stdinWriter;
+	if (opts.wantStdin && proc.stdinWrite)
+	{
+		stdinWriter = std::thread([stream = std::move(proc.stdinWrite), input]() mutable {
+			(*stream) << input;
+			stream->flush();
+			stream.reset();
+		});
+	}
 
 	std::string output;
-	char buffer[4096];
-	size_t n;
-	while ((n = fread(buffer, 1, sizeof(buffer), pipe)) > 0)
-		output.append(buffer, n);
+	if (pipe && proc.stdoutRead)
+	{
+		std::stringstream buffer;
+		buffer << proc.stdoutRead->rdbuf();
+		output = buffer.str();
+	}
+	if (stdinWriter.joinable())
+		stdinWriter.join();
 
-#ifdef _WIN32
-	int rc = _pclose(pipe);
+	int exitCode = -1;
+#if defined(_WIN32)
+	HANDLE nh = static_cast<HANDLE>(proc.nativeHandle);
+	WaitForSingleObject(nh, INFINITE);
+	DWORD code = 0;
+	GetExitCodeProcess(nh, &code);
+	CloseHandle(nh);
+	exitCode = static_cast<int>(code);
 #else
-	int status = pclose(pipe);
-	int rc = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+	int status = 0;
+	waitpid(static_cast<pid_t>(proc.pid), &status, 0);
+	exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 #endif
 
-	if (rc != 0)
-		return Value(); // null
-
-	return Value(output);
+	Value result = Value::createStruct("ProcessResult");
+	result.setField("status", Value(static_cast<i64>(exitCode)));
+	result.setField("output", pipe ? Value(output) : phsnull);
+	return result;
 }
 
-i64 StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
+Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork_detached", true);
+	if (args.size() > 5)
+		PHS_ERROR("sys_fork_detached() expects at most 5 arguments (program, args, pipe, stream, isolate)");
 
-	if (!args[0].isString())
-		PHS_ERROR("sys_fork_detached() expects a string as its first argument (executable)");
+	requireString(args[0], "sys_fork_detached", "first argument (program)");
+	std::string program = args[0].stl_string();
 
-	const char         *executable = args[0].c_str();
-	int                 argc = (int)args.size() - 1;
-	std::vector<char *> v_argv(argc);
-	for (int i = 0; i < argc; ++i)
+	std::vector<std::string> procArgs;
+	if (args.size() >= 2 && !args[1].isNull())
 	{
-		if (!args[i + 1].isString())
-			PHS_ERROR("sys_fork_detached() expects all of its arguments to be strings");
-		v_argv[i] = const_cast<char *>(args[i + 1].c_str());
+		if (!args[1].isArray())
+			PHS_ERROR("sys_fork_detached() expects an array of strings as its second argument (args)");
+		for (const auto &v : *args[1].asArray())
+		{
+			if (!v.isString())
+				PHS_ERROR("sys_fork_detached() expects an array of strings as its second argument (args)");
+			procArgs.push_back(v.stl_string());
+		}
 	}
-	return static_cast<i64>(PHASORstd_sys_run_detached(executable, argc, v_argv.data()));
+
+	bool pipe = false;
+	if (args.size() >= 3)
+	{
+		requireBool(args[2], "sys_fork_detached", "third argument (pipe)");
+		pipe = args[2].asBool();
+	}
+
+	i64 stream = 1;
+	if (args.size() >= 4 && !args[3].isNull())
+	{
+		requireInt(args[3], "sys_fork_detached", "fourth argument (stream)");
+		stream = args[3].asInt();
+		if (stream < 0 || stream > 3)
+			PHS_ERROR("sys_fork_detached() stream must be 0 (stdin), 1 (stdout), 2 (stderr), or 3 (stdout+stderr)");
+	}
+
+	bool isolate = false;
+	if (args.size() >= 5)
+	{
+		requireBool(args[4], "sys_fork_detached", "fifth argument (isolate)");
+		isolate = args[4].asBool();
+	}
+
+	ProcessLaunchOptions opts;
+	if (pipe)
+	{
+		opts.wantStdin  = (stream == 0);
+		opts.wantStdout = (stream == 1 || stream == 3);
+		opts.wantStderr = (stream == 2 || stream == 3);
+	}
+	opts.isolate = isolate;
+
+	LaunchedProcess proc;
+	try
+	{
+		proc = launchProcess(program, procArgs, opts);
+	}
+	catch (const std::exception &)
+	{
+		return phsnull;
+	}
+
+	auto handle = std::make_unique<ProcessHandle>();
+#if defined(_WIN32)
+	handle->nativeHandle = proc.nativeHandle;
+	handle->processId    = proc.processId;
+#else
+	handle->pid = proc.pid;
+#endif
+	handle->isolated = isolate;
+	i64 poolHandle = allocProcessHandle(std::move(handle));
+
+	Value result = Value::createStruct("ProcessHandle");
+#if defined(_WIN32)
+	result.setField("pid", Value(static_cast<i64>(proc.processId)));
+#else
+	result.setField("pid", Value(static_cast<i64>(proc.pid)));
+#endif
+	result.setField("handle", Value(poolHandle));
+	result.setField("stdin",  proc.stdinWrite ? Value(allocFileDescriptor(std::move(proc.stdinWrite), StreamKind::Pipe)) : phsnull);
+	result.setField("stdout", proc.stdoutRead ? Value(allocFileDescriptor(std::move(proc.stdoutRead), StreamKind::Pipe)) : phsnull);
+	result.setField("stderr", proc.stderrRead ? Value(allocFileDescriptor(std::move(proc.stderrRead), StreamKind::Pipe)) : phsnull);
+	return result;
+}
+
+i64 StdLib::proc_wait(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "procwait");
+	requireInt(args[0], "procwait", "argument (process handle)");
+	i64 h = args[0].asInt();
+
+	std::unique_lock<std::mutex> lock(getProcessPoolMutex());
+	auto *proc = getProcessHandleLocked(h);
+	if (!proc) PHS_ERROR("procwait() invalid process handle");
+
+	if (!proc->exited)
+	{
+#if defined(_WIN32)
+		HANDLE nh = static_cast<HANDLE>(proc->nativeHandle);
+		lock.unlock();
+		WaitForSingleObject(nh, INFINITE);
+		lock.lock();
+		proc = getProcessHandleLocked(h);
+		if (!proc) PHS_ERROR("procwait() process handle was freed while waiting");
+		DWORD code = 0;
+		GetExitCodeProcess(nh, &code);
+		proc->exitCode = static_cast<int>(code);
+#else
+		long pid = proc->pid;
+		lock.unlock();
+		int status = 0;
+		pid_t wr = waitpid(static_cast<pid_t>(pid), &status, 0);
+		lock.lock();
+		proc = getProcessHandleLocked(h);
+		if (!proc) PHS_ERROR("procwait() process handle was freed while waiting");
+		if (wr > 0) proc->exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+#endif
+		proc->exited = true;
+	}
+	return static_cast<i64>(proc->exitCode);
+}
+
+Value StdLib::proc_status(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "procstatus");
+	requireInt(args[0], "procstatus", "argument (process handle)");
+
+	std::lock_guard<std::mutex> lock(getProcessPoolMutex());
+	auto *proc = getProcessHandleLocked(args[0].asInt());
+	if (!proc) PHS_ERROR("procstatus() invalid process handle");
+	if (!pollProcessExitLocked(*proc)) return phsnull;
+	return Value(static_cast<i64>(proc->exitCode));
+}
+
+bool StdLib::proc_kill(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "prockill", true);
+	if (args.size() > 2) PHS_ERROR("prockill() expects at most 2 arguments (handle, signal)");
+	requireInt(args[0], "prockill", "first argument (process handle)");
+	i64 sig = 15;
+	if (args.size() == 2) { requireInt(args[1], "prockill", "second argument (signal)"); sig = args[1].asInt(); }
+
+	std::lock_guard<std::mutex> lock(getProcessPoolMutex());
+	auto *proc = getProcessHandleLocked(args[0].asInt());
+	if (!proc) PHS_ERROR("prockill() invalid process handle");
+	if (proc->exited) return false;
+
+#if defined(_WIN32)
+	HANDLE nh = static_cast<HANDLE>(proc->nativeHandle);
+	if (sig == 9 || !proc->isolated)
+		return TerminateProcess(nh, 1) != 0;
+	return GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, proc->processId) != 0;
+#else
+	pid_t target = proc->isolated ? -static_cast<pid_t>(proc->pid) : static_cast<pid_t>(proc->pid);
+	return ::kill(target, static_cast<int>(sig)) == 0;
+#endif
+}
+
+bool StdLib::proc_forget(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "procforget");
+	requireInt(args[0], "procforget", "argument (process handle)");
+	i64 h = args[0].asInt();
+
+	std::lock_guard<std::mutex> lock(getProcessPoolMutex());
+	auto *proc = getProcessHandleLocked(h);
+	if (!proc) return false;
+
+	if (pollProcessExitLocked(*proc))
+		releaseProcessHandleLocked(h);
+	else
+		proc->forgotten = true;
+	return true;
+}
+
+bool StdLib::proc_free(const std::vector<Value> &args, VM *)
+{
+	checkArgCount(args, 1, "procfree");
+	requireInt(args[0], "procfree", "argument (process handle)");
+	i64 h = args[0].asInt();
+
+	std::unique_lock<std::mutex> lock(getProcessPoolMutex());
+	auto *proc = getProcessHandleLocked(h);
+	if (!proc) return false;
+
+	if (!proc->exited)
+	{
+#if defined(_WIN32)
+		HANDLE nh = static_cast<HANDLE>(proc->nativeHandle);
+		lock.unlock();
+		WaitForSingleObject(nh, INFINITE);
+		lock.lock();
+#else
+		long pid = proc->pid;
+		lock.unlock();
+		int status = 0;
+		waitpid(static_cast<pid_t>(pid), &status, 0);
+		lock.lock();
+#endif
+		proc = getProcessHandleLocked(h);
+		if (!proc) return true;
+	}
+	releaseProcessHandleLocked(h);
+	return true;
 }
 
 Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)

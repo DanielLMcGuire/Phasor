@@ -1,4 +1,5 @@
 include "./types/sdl2.phs";
+include "std/types/math.phs";
 
 fn sdl_init(flags: i64) -> i64;
 
@@ -11,11 +12,15 @@ fn sdl_poll_event() -> SDLEvent;
 fn sdl_create_renderer(window: SDLWindow, index: i64, flags: i64) -> SDLRenderer;
 fn sdl_destroy_renderer(renderer: SDLRenderer);
 fn sdl_set_render_draw_color(renderer: SDLRenderer, r: i64, g: i64, b: i64, a: i64);
+fn sdl_set_render_draw_color_vec(renderer: SDLRenderer, color: Vec4);
 fn sdl_render_clear(renderer: SDLRenderer);
 fn sdl_render_present(renderer: SDLRenderer);
 fn sdl_render_draw_line(renderer: SDLRenderer, x1: i64, y1: i64, x2: i64, y2: i64);
+fn sdl_render_draw_line_vec(renderer: SDLRenderer, line: Vec4);
 fn sdl_render_draw_rect(renderer: SDLRenderer, x: i64, y: i64, w: i64, h: i64);
+fn sdl_render_draw_rect_vec(renderer: SDLRenderer, rect: Vec4);
 fn sdl_render_fill_rect(renderer: SDLRenderer, x: i64, y: i64, w: i64, h: i64);
+fn sdl_render_fill_rect_vec(renderer: SDLRenderer, rect: Vec4);
 
 fn sdl_quit();
 

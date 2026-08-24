@@ -83,3 +83,14 @@ var sys_arch_map: string[] = [
     "unknown",
     "sandbox"
 ];
+
+struct sys_fork_out {
+    status: i64,
+    output: any
+}
+
+struct sys_fork_detached_out {
+    pid: i64,
+    handle: i64,
+    stdin: i64,
+}

@@ -20,13 +20,23 @@ fn vec2matrix(in: Vec2) -> int[2];
 
 fn matrixvec2(in: int[2]) -> Vec2;
 
+fn vec2add(Vec2: a, Vec2: b) -> Vec2;
+
 fn vec3matrix(in: Vec3) -> int[3];
 
 fn matrixvec3(in: int[3]) -> Vec3;
 
-fn vec2add(Vec2: a, Vec2: b) -> Vec2;
-
 fn vec3add(Vec3: a, Vec3: b) -> Vec3;
+
+fn vec4matrix(in: Vec4) -> int[4];
+
+fn matrixvec4(in: int[4]) -> Vec4;
+
+fn vec4add(Vec4: a, Vec4: b) -> Vec4;
+
+fn rgb(r: i64, g: i64, b: i64) -> int[4] {return [r, g, b, 255];}
+
+fn rgba(r: i64, g: i64, b: i64, a: i64) -> int[4] {return [r, g, b, a];}
 
 // ----
 include "../../src/std/math.phs";

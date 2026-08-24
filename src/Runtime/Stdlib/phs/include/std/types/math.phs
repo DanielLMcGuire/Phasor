@@ -8,3 +8,10 @@ struct Vec3 {
     y: i64,
     z: i64
 }
+
+struct Vec4 {
+    x: i64,
+    y: i64,
+    z: i64,
+    w: i64
+}

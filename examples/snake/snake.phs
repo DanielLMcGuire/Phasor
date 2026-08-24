@@ -1,6 +1,7 @@
 #!/usr/bin/env phasor
 
 include "std/type";
+include "std/ini";
 include "std/math";
 include "std/file";
 include "std/rand";
@@ -66,6 +67,39 @@ fn is_corner_turn(dx1: i64, dy1: i64, dx2: i64, dy2: i64) -> bool {
     return dx1 != dx2 || dy1 != dy2;
 }
 
+struct snake_palette {
+    gameOverBack: Vec4,
+    normalBack: Vec4,
+    food: Vec4,
+    snake_head: Vec4,
+    snake_body: Vec4,
+    led_on: Vec4,
+    led_off: Vec4
+}
+
+var palette: snake_palette;
+
+static_if (EMBEDDED)
+palette = snake_palette{
+    gameOverBack: rgb(40, 8, 8).matrixvec4(),
+    normalBack: rgb(18, 18, 18).matrixvec4(),
+    food: rgb(255, 60, 70).matrixvec4(),
+    snake_head: rgb(140, 230, 140).matrixvec4(),
+    snake_body: rgb(60, 180, 60).matrixvec4(),
+    led_on: rgb(40, 40, 220).matrixvec4(),
+    led_off: rgb(12, 24, 60).matrixvec4()
+};
+static_endif
+
+define DIGIT_W = 26;
+define DIGIT_H = 46;
+define SEG_THICK = 6;
+define DIGIT_GAP = 10;
+define SCORE_Y = 12;
+define SCORE_X = (screenW - (DIGIT_W * 3 + DIGIT_GAP * 2)) / 2;
+
+include "led.phs";
+
 fn render_frame(
     renderer: SDLRenderer,
     segX: i64[], segY: i64[], prevSegX: i64[], prevSegY: i64[], segLength: i64,
@@ -75,20 +109,20 @@ fn render_frame(
     tScaled: i64
 ) {
     if (gameOver) {
-        sdl_set_render_draw_color(renderer, 40, 8, 8, 255);
+        renderer.sdl_set_render_draw_color_vec(palette.gameOverBack);
     } else {
-        sdl_set_render_draw_color(renderer, 18, 18, 18, 255);
+        renderer.sdl_set_render_draw_color_vec(palette.normalBack);
     }
     sdl_render_clear(renderer);
 
-    sdl_set_render_draw_color(renderer, 255, 70, 70, 255);
-    sdl_render_fill_rect(renderer, food.x * CELL, food.y * CELL, CELL, CELL);
+    renderer.sdl_set_render_draw_color_vec(palette.food);
+    renderer.sdl_render_fill_rect(food.x * CELL, food.y * CELL, CELL, CELL);
 
-    sdl_set_render_draw_color(renderer, 60, 180, 60, 255);
+    renderer.sdl_set_render_draw_color_vec(palette.snake_body);
     var c: i64 = 0;
     while (c < cornerCount) {
-        sdl_render_fill_rect(renderer, corners[c][0] * CELL, corners[c][1] * CELL, CELL, CELL);
-        c = c + 1;
+        renderer.sdl_render_fill_rect(corners[c][0] * CELL, corners[c][1] * CELL, CELL, CELL);
+        c++;
     }
 
     var s: i64 = 0;
@@ -97,27 +131,27 @@ fn render_frame(
         var drawY: i64 = prevSegY[s] * CELL + ((segY[s] - prevSegY[s]) * CELL * tScaled) / 1000;
 
         if (s == 0) {
-            sdl_set_render_draw_color(renderer, 140, 230, 140, 255);
+            renderer.sdl_set_render_draw_color_vec(palette.snake_head);
         } else {
-            sdl_set_render_draw_color(renderer, 60, 180, 60, 255);
+            renderer.sdl_set_render_draw_color_vec(palette.snake_body);
         }
-        sdl_render_fill_rect(renderer, drawX, drawY, CELL, CELL);
+        renderer.sdl_render_fill_rect(drawX, drawY, CELL, CELL);
         s = s + 1;
     }
 
-    var pip: i64 = 0;
-    var pipsToShow: i64 = score;
-    if (pipsToShow > 40) pipsToShow = 40;
-    while (pip < pipsToShow) {
-        sdl_set_render_draw_color(renderer, 220, 220, 60, 255);
-        sdl_render_fill_rect(renderer, 8 + pip * 14, 8, 10, 10);
-        pip = pip + 1;
-    }
+    renderer.draw_score(score, SCORE_X, palette.led_on, palette.led_off);
 
-    sdl_render_present(renderer);
+    renderer.sdl_render_present();
 }
 
+
 fn main(args: string[]) -> int {
+static_if (!EMBEDDED)
+    var scriptPath: string = args[0].fabsolute().fparent();
+    var palettePath: string = scriptPath.fjoin("palette.json");
+    palette = palettePath.fread().from_json();
+    if (palette == null) error(c_fmt("Failed to load %s", palettePath.frelative())); 
+static_endif
 static_if (DEBUG)
     putf("%s - Started!", localtimef(TIMEF));
 static_endif
@@ -134,16 +168,17 @@ static_endif
     }
 
     var window: SDLWindow = sdl_create_window("Snake", 100, 100, screenW, screenH, SDLC.WINDOW_SHOWN);
-    if (window.handle == 0) {
+    if (window == NULL_SDLWINDOW) {
         puts_error("Failed to create window");
         sdl_quit();
         return 1;
     }
 
     var renderer: SDLRenderer = window.sdl_create_renderer(-1, SDLC.RENDERER_PRESENTVSYNC);
-    if (renderer.handle == 0) {
+    if (renderer == NULL_SDLRENDERER) {
         puts_error("Failed to create renderer");
-        window.sdl_destroy_window();
+        if (window != NULL_SDLWINDOW)
+            window.sdl_destroy_window();
         sdl_quit();
         return 1;
     }
@@ -193,40 +228,42 @@ static_endif
                 running = false;
             }
             else if (event.type == SDLC.KEYDOWN) {
-                if (event.key_sym == SDLC.K_ESCAPE) {
-                    running = false;
-                }
-                else if (event.key_sym == SDLC.K_SPACE && gameOver) {
-                    segX[0] = startX;     segY[0] = startY;
-                    segX[1] = startX - 1; segY[1] = startY;
-                    segX[2] = startX - 2; segY[2] = startY;
-                    segLength = 3;
+                switch (event.key_sym) {
+                    case SDLC.K_ESCAPE: 
+                        running = false;
+                
+                    case SDLC.K_SPACE: 
+                        if (gameOver) {
+                            segX[0] = startX;     segY[0] = startY;
+                            segX[1] = startX - 1; segY[1] = startY;
+                            segX[2] = startX - 2; segY[2] = startY;
+                            segLength = 3;
 
-                    var resetIdx: i64 = 0;
-                    while (resetIdx < segLength) {
-                        prevSegX[resetIdx] = segX[resetIdx];
-                        prevSegY[resetIdx] = segY[resetIdx];
-                        segDir[resetIdx][0] = 1;
-                        segDir[resetIdx][1] = 0;
-                        resetIdx = resetIdx + 1;
-                    }
-                    cornerCount = 0;
+                            var resetIdx: i64 = 0;
+                            while (resetIdx < segLength) {
+                                prevSegX[resetIdx] = segX[resetIdx];
+                                prevSegY[resetIdx] = segY[resetIdx];
+                                segDir[resetIdx][0] = 1;
+                                segDir[resetIdx][1] = 0;
+                                resetIdx = resetIdx + 1;
+                            }
+                            cornerCount = 0;
 
-                    dir.x = 1; dir.y = 0;
-                    nextDir.x = 1; nextDir.y = 0;
+                            dir.x = 1; dir.y = 0;
+                            nextDir.x = 1; nextDir.y = 0;
 
-                    score = 0;
-                    gameOver = false;
-                    lastMoveTime = time();
+                            score = 0;
+                            gameOver = false;
+                            lastMoveTime = time();
 
-                    var newFood: Vec2 = place_food(segX, segY, segLength);
-                    food.x = newFood.x;
-                    food.y = newFood.y;
-                }
-                else {
-                    var d: Vec2 = dir_from_key(event.key_sym, dir.x, dir.y, nextDir.x, nextDir.y);
-                    nextDir.x = d.x;
-                    nextDir.y = d.y;
+                            var newFood: Vec2 = place_food(segX, segY, segLength);
+                            food.x = newFood.x;
+                            food.y = newFood.y;
+                        }
+                    default:
+                        var d: Vec2 = dir_from_key(event.key_sym, dir.x, dir.y, nextDir.x, nextDir.y);
+                        nextDir.x = d.x;
+                        nextDir.y = d.y;
                 }
             }
 
@@ -333,9 +370,10 @@ static_endif
             sdl_delay(delayTime);
         }
     }
-
-    renderer.sdl_destroy_renderer();
-    window.sdl_destroy_window();
+    if (renderer != NULL_SDLRENDERER)
+        renderer.sdl_destroy_renderer();
+    if (window != NULL_SDLWINDOW)
+        window.sdl_destroy_window();
     sdl_quit();
 
     return 0;
