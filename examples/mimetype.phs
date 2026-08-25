@@ -1,0 +1,12 @@
+var g_mimeTypes: any = {};
+
+fn mimetype(ext: string) -> HTTPHeader {
+    var extension: string = ext;
+    if (extension.char_at(0) != ".")
+        extension = concat(".", extension);
+    return HTTPHeader{key: "Content-Type", value: g_mimeTypes[extension]};
+}
+
+fn load_mimetypes(path: string) {
+    g_mimeTypes = fread(path).from_json();
+}

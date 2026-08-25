@@ -1,5 +1,5 @@
-// Phasor STDFILE
-// phasor-help phasorstd-file 3
+// Phasor STDNET
+// phasor-help phasorstd-net 3
 // Copyright 2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with LLVM-Exceptions), Version 2.0 (the "License");
@@ -13,14 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdfile");
-include "./types/file.phs";
-
-// Copy files with progress
-// files: File path array (source)
-// dest: Destination directory path
-// returns: true on success, false on failure
-fn fcp_progress(files: string[], dest: string) -> bool;
-
-// ----
-include "../../src/std/file.phs";
+ffiload("stdnet");
+include "./types/net.phs";
+include "./http";

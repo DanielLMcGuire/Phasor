@@ -41,7 +41,7 @@ void StdLib::ensureReaperStarted()
 
 void StdLib::registerInternalFunctions(VM *vm)
 {
-	vm->registerNativeFunction("phs__is_32", [](const std::vector<Value> &, VM *)
+	vm->registerNativeFunction("phs__is_32", [](const Value::ArrayInstance &, VM *)
 	{
 #if defined(PHS_IS_32)
 		return true
@@ -49,7 +49,7 @@ void StdLib::registerInternalFunctions(VM *vm)
 		return false;
 #endif		
 	});
-	vm->registerNativeFunction("phs__trace", [](const std::vector<Value> &, VM *)
+	vm->registerNativeFunction("phs__trace", [](const Value::ArrayInstance &, VM *)
 	{
 #if defined(TRACING)
 		return true;
@@ -208,6 +208,8 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 		{"stdstruct", registerObjectFunctions},
 		{"stdini", registerIniFunctions},
 #ifndef SANDBOXED
+		{"stdnet", registerNetFunctions},
+		{"stdhttp", registerHttpFunctions},
 	    {"stdfile", registerFileFunctions},
 #endif
 	    {"std*",
@@ -225,6 +227,8 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 			 registerObjectFunctions(vm);
 #ifndef SANDBOXED
 		     registerFileFunctions(vm);
+			 registerNetFunctions(vm);
+			 registerHttpFunctions(vm);
 #endif
 	     }},
 		 {"__phs_init", registerInternalFunctions},
@@ -306,7 +310,7 @@ std::vector<char *> StdLib::phasorStringArrayToCharArray(const Phasor::Value &ar
 }
 
 
-void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArguments, const std::string &name,
+void StdLib::checkArgCount(const Value::ArrayInstance &args, size_t minimumArguments, const std::string &name,
                            bool allowMoreArguments)
 {
 	if (args.size() < minimumArguments)
@@ -321,7 +325,7 @@ void StdLib::checkArgCount(const std::vector<Value> &args, size_t minimumArgumen
 	}
 }
 
-bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
+bool StdLib::std_import(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "ffiload", true);
 
@@ -340,9 +344,9 @@ bool StdLib::std_import(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 #if defined(_DEBUG) || defined(TRACING)
-Value StdLib::std_assert(const std::vector<Value> &args, VM *vm)
+Value StdLib::std_assert(const Value::ArrayInstance &args, VM *vm)
 #else
-Value StdLib::std_assert(const std::vector<Value> &args, VM *)
+Value StdLib::std_assert(const Value::ArrayInstance &args, VM *)
 #endif
 {
 	checkArgCount(args, 1, "assert", true);

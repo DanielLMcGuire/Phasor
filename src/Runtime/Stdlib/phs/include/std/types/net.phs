@@ -1,0 +1,18 @@
+struct Connection {
+    fd: int,
+    host: string,
+    port: int
+}
+
+struct Address {
+    host: string,
+    port: int
+}
+
+struct UDPPacket {
+    data: string,
+    host: string,
+    port: int
+}
+
+include "./http.phs";

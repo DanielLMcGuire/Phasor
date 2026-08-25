@@ -1,0 +1,10 @@
+struct HTTPHeader {
+    key: string,
+    value: string
+}
+
+struct HTTPResponse {
+    status: int,
+    headers: HTTPHeader[],
+    body: string
+}

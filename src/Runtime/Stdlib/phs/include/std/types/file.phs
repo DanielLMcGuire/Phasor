@@ -1,0 +1,20 @@
+struct fkind_def {
+    file: int,
+    memory: int,
+    pipe: int,
+    socket: int
+}
+
+var fkind: fkind_def = fkind_def{
+    file: 0,
+    memory: 1,
+    pipe: 2,
+    socket: 3,
+};
+
+var fkind_map: string[] = [
+    "file",
+    "memory",
+    "pipe",
+    "socket"
+];

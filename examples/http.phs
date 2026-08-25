@@ -1,0 +1,29 @@
+#!/usr/bin/env phasor
+
+include "std/array";
+include "std/io";
+include "std/type";
+include "std/str";
+include "std/file";
+include "std/http";
+
+include "./mimetype.phs";
+
+fn main(args: string[]) -> i64 {
+    var parentDir: string = fabsolute(args[0]).fparent();
+    load_mimetypes(parentDir.fjoin(["extra", "mimetypes.json"]));
+    var input: string[] = [];
+    for (var i: i64 = 1; i < args.len(); i++)
+        input.arr_push(args[i]);
+    var res: HTTPResponse = http_post("http://httpbin.org/post", input.to_json(), [mimetype("json")], 1500);
+    if (res != null && res.status == 200) {
+        puts(res.body.from_json().to_json(2));
+    } else {
+        putf_error("Failed with error: %d", res.status);
+        return res.status;
+    }
+
+    return 0;
+}
+
+include "std/main";

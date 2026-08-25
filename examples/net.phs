@@ -1,0 +1,136 @@
+#!/usr/bin/env phasor
+
+include "std/array";
+include "std/io";
+include "std/type";
+include "std/str";
+include "std/file";
+include "std/net";
+
+include "./mimetype.phs";
+
+fn demo_dns() {
+    puts("== DNS ==");
+    var ips: Address[] = net_resolve("google.com");
+    if (ips != null) {
+        assert(ips.len() >= 1);
+        for (var i: int = 0; i < ips.len(); i++) {
+            putf("Resolved IP %d: %s", i, ips[i]);
+        }
+    }
+}
+
+fn demo_tcp_client() {
+    puts("\n== TCP Client ==");
+    
+    var fd: int = net_connect("example.com", 80, 5000);
+    if (fd == null) {
+        puts("Failed to connect.");
+        return;
+    }
+
+    net_set_timeout(fd, 2000);
+    net_set_option(fd, "nodelay", true);
+    net_set_option(fd, "keepalive", true);
+
+    var local: string = net_local_address(fd);
+    var peer: string = net_peer_address(fd);
+    putf("Local: %s:%d -> Peer: %s:%d", local.host, local.port, peer.host, peer.port);
+
+    var request: string = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
+    fwrite(fd, request);
+
+    var line: string = freadln(fd);
+    putf("Server response: %s", line);
+
+    net_shutdown(fd, "both");
+    fclose(fd);
+}
+
+fn demo_tcp_server() {
+    puts("\n== TCP Server ==");
+
+    var listener: int = net_listen("0.0.0.0", 12345, 128);
+    if (listener == null) {
+        puts("Could not start listener.");
+        return;
+    }
+
+    puts("Listening on port 12345... (Waiting 10 seconds for a connection)");
+
+    var client: Connection = net_accept(listener, 10000); 
+    if (client != null) {
+        putf("Accepted connection from %s:%d", client.host, client.port);
+        
+        fwrite(client.fd, "Hello from Phasor Server!\n");
+
+        var msg: string = freadln(client.fd);
+        putf("Client said: %s", msg);
+        
+        fclose(client.fd);
+    } else {
+        puts("No connection received within timeout.");
+    }
+
+    net_close_listener(listener);
+}
+
+fn demo_udp() {
+    puts("\n== UDP ==");
+
+    var udp: int = net_udp_open("0.0.0.0", 5678); 
+    if (udp == null) return;
+
+    var sent: int = net_udp_send_to(udp, "127.0.0.1", 5678, "Phasor UDP Ping!");
+    putf("Sent %d bytes via UDP", sent);
+
+    var packet: UDPPacket = net_udp_recv_from(udp, 1024, 1000);
+    if (packet != null) {
+        putf("UDP Received from %s:%d: %s", packet.host, packet.port, packet.data);
+    } else {
+        puts("No UDP packet received.");
+    }
+
+    net_udp_close(udp);
+}
+
+fn demo_http() {
+    puts("\n== HTTP ==");
+
+    var get_res: HTTPResponse = http_get("http://example.com", [], 1500);
+    if (get_res != null) {
+        assert(get_res.status == 200);
+        putf("GET:\n%0.02O", get_res);
+    }
+
+    var headers: HTTPHeader[] = [
+        mimetype("json"),
+        HTTPHeader{key: "X-Phasor-Client", value: "1.0"}
+    ];
+    var body: any = {message: "Hello World"}.to_json();
+    
+    var post_res: HTTPResponse = http_post("http://httpbin.org/post", body, headers, 1500);
+    if (post_res != null) {
+        assert(post_res.status == 200);
+        putf("POST:\n%0.02O", post_res);
+    }
+
+    var req_res: HTTPResponse = http_request("DELETE", "http://httpbin.org/delete", null, {}, 5000);
+    if (req_res != null) {
+        assert(req_res.status == 200);
+        putf("Manual Request:\n%0.02O", req_res);
+    }
+}
+
+fn main(args: string[]) -> int {
+    var parentDir: string = fabsolute(args[0]).fparent();
+    load_mimetypes(parentDir.fjoin(["extra", "mimetypes.json"]));
+    demo_dns();
+    demo_tcp_client();
+    demo_tcp_server();
+    demo_udp();
+    demo_http();
+    return 0;
+}
+
+include "std/main";
