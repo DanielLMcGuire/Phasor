@@ -1,6 +1,7 @@
 #!/usr/bin/env phasor
 
 include "std/array";
+include "std/io";
 include "std/type";
 include "std/str";
 include "std/math";
@@ -28,7 +29,7 @@ fn chat_loop(fd: int, is_host: bool) {
     
     while (true) {
         if (my_turn) {
-            fappend(std_stream.out, "You: ");
+            print("You: ");
             var message: string = gets();
             var disconnect: bool = message.len() == 0;
             var pkt: Packet = Packet{
@@ -38,7 +39,7 @@ fn chat_loop(fd: int, is_host: bool) {
             fwrite(fd, pkt.to_json().concat("\n")); 
             my_turn = false;
         } else {
-            fwrite(std_stream.out, "Waiting for response...\n");
+            puts("Waiting for response...");
             var res: string = freadln(fd);
             if (res == null) res = freadln(fd);
             for (var i: i64 = 0; i < 5; i++) {
@@ -48,15 +49,15 @@ fn chat_loop(fd: int, is_host: bool) {
             }
             if (res == null) {
                 var msg: string;
-                if (is_host) msg = "[Client disconnected!]\n";
-                else msg = "[Host disconnected!]\n";
-                fwrite(std_stream.err, msg);
+                if (is_host) msg = "[Client disconnected!]";
+                else msg = "[Host disconnected!]";
+                puts_error(msg);
                 break;
             }
 
             var peer_msg: Packet = res.from_json();
             
-            fwrite(std_stream.out, c_fmt("Peer: %s", peer_msg.msg));
+            putf("Peer: %s", peer_msg.msg);
             my_turn = true;
         }
     }
@@ -67,35 +68,35 @@ fn chat_loop(fd: int, is_host: bool) {
 fn run_host(port: int) {
     var listener: int = net_listen("0.0.0.0", port, 10);
     if (listener == null) {
-        fwrite(std_stream.out, "Error: Could not start server.\n");
+        puts("Error: Could not start server.");
         return;
     }
 
-    fwrite(std_stream.out, c_fmt("Hosting chat on port %d. Waiting for someone to join...\n", port));
+    putf("Hosting chat on port %d. Waiting for someone to join...", port);
     
     var client: Connection = net_accept(listener, 3600000); 
     if (client == null) {
-        fwrite(std_stream.out, "Timeout waiting for connection.\n");
+        puts("Timeout waiting for connection.");
         net_close_listener(listener);
         return;
     }
 
-    fwrite(std_stream.out, c_fmt("User joined from %s:%d! Type a message and press Enter.\n", client.host, client.port));
+    putf("User joined from %s:%d! Type a message and press Enter.", client.host, client.port);
     net_close_listener(listener);
 
     chat_loop(client.fd, true);
 }
 
 fn run_joiner(host: string, port: int) {
-    fwrite(std_stream.out, c_fmt("Connecting to %s:%d...\n", host, port));
+    putf("Connecting to %s:%d...", host, port);
     var fd: int = net_connect(host, port, 5000);
     
     if (fd == null) {
-        fwrite(std_stream.out, "Failed to connect to host.\n");
+        puts("Failed to connect to host.");
         return;
     }
 
-    fwrite(std_stream.out, "Connected! Waiting for Host to speak first...\n");
+    puts("Connected! Waiting for Host to speak first...");
     chat_loop(fd, false);
 }
 
@@ -106,9 +107,9 @@ fn main(args: string[]) -> int {
     while (seedB < 1) seedB = rand_crypto_int();
 
     if (args.len() < 3) {
-        fwrite(std_stream.out, "Usage:\n");
-        fwrite(std_stream.out, "  chat host <port>\n");
-        fwrite(std_stream.out, "  chat join <ip> <port>\n");
+        puts("Usage:");
+        puts("  chat host <port>");
+        puts("  chat join <ip> <port>");
         return 1;
     }
 
@@ -119,7 +120,7 @@ fn main(args: string[]) -> int {
         case "join":
             run_joiner(args[2], args[3].to_int());
         default:
-            fwrite(std_stream.out, "Unknown mode. Use 'host' or 'join'.\n");
+            puts("Unknown mode. Use 'host' or 'join'.");
             return 1;
     }
 
