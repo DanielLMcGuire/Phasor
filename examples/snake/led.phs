@@ -39,68 +39,26 @@ fn draw_seven_seg_digit(
     var innerW: i64 = outerW - margin * 2;
     var innerH: i64 = outerH - margin * 2;
 
-    if (SEVEN_SEG_DIGITS[digit][0] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
-
+    renderer.set_seg_color(digit, 0, onColor, offColor);
     renderer.sdl_render_fill_rect(innerX, outerY, innerW, margin);
 
-    if (SEVEN_SEG_DIGITS[digit][1] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
-
+    renderer.set_seg_color(digit, 1, onColor, offColor);
     renderer.sdl_render_fill_rect(innerX + innerW, innerY, margin, (innerH - margin) / 2);
 
-    if (SEVEN_SEG_DIGITS[digit][2] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
-
+    renderer.set_seg_color(digit, 2, onColor, offColor);
     renderer.sdl_render_fill_rect(innerX + innerW, middle + margin / 2, margin, innerH / 2);
 
-    if (SEVEN_SEG_DIGITS[digit][3] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
+    renderer.set_seg_color(digit, 3, onColor, offColor);
+    renderer.sdl_render_fill_rect(innerX, innerY + innerH + margin / 2, innerW, margin);
 
-    renderer.sdl_render_fill_rect(innerX, innerY + innerH, innerW, margin);
-
-    if (SEVEN_SEG_DIGITS[digit][4] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
-
+    renderer.set_seg_color(digit, 4, onColor, offColor);
     renderer.sdl_render_fill_rect(outerX, middle + margin / 2, margin, innerH / 2);
 
-    if (SEVEN_SEG_DIGITS[digit][5] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
+    renderer.set_seg_color(digit, 5, onColor, offColor);
+    renderer.sdl_render_fill_rect(outerX, innerY, margin, (innerH - margin) / 2);
 
-    renderer.sdl_render_fill_rect(
-        outerX, innerY, margin, (innerH - margin) / 2);
-
-    if (SEVEN_SEG_DIGITS[digit][6] == 1) {
-        renderer.sdl_set_render_draw_color_vec(onColor);
-    } else {
-        renderer.sdl_set_render_draw_color_vec(offColor);
-    }
-
-    sdl_render_fill_rect(
-        renderer,
-        innerX,
-        middle - margin / 2,
-        innerW,
-        margin
-    );
+    renderer.set_seg_color(digit, 6, onColor, offColor);
+    renderer.sdl_render_fill_rect(innerX, middle - margin / 2, innerW, margin);
 }
 
 fn draw_score(
@@ -111,14 +69,8 @@ fn draw_score(
     offColor: Vec4
 ) {
     var clamped: i64 = score;
-
-    if (clamped > 999) {
-        clamped = 999;
-    }
-
-    if (clamped < 0) {
-        clamped = 0;
-    }
+    if (clamped > 999) clamped = 999;
+    if (clamped < 0) clamped = 0;
 
     var hundreds: i64 = clamped / 100;
     var tens: i64 = (clamped / 10) % 10;
@@ -130,27 +82,7 @@ fn draw_score(
     var x1: i64 = x0 + digitStep;
     var x2: i64 = x1 + digitStep;
 
-    draw_seven_seg_digit(
-        renderer,
-        hundreds,
-        x0,
-        onColor,
-        offColor
-    );
-
-    draw_seven_seg_digit(
-        renderer,
-        tens,
-        x1,
-        onColor,
-        offColor
-    );
-
-    draw_seven_seg_digit(
-        renderer,
-        ones,
-        x2,
-        onColor,
-        offColor
-    );
+    renderer.draw_seven_seg_digit(hundreds, x0, onColor, offColor);
+    renderer.draw_seven_seg_digit(tens, x1, onColor, offColor);
+    renderer.draw_seven_seg_digit(ones, x2, onColor, offColor);
 }

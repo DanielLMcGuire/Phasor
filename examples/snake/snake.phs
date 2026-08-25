@@ -1,5 +1,4 @@
 #!/usr/bin/env phasor
-
 include "std/type";
 include "std/ini";
 include "std/math";
@@ -10,25 +9,37 @@ include "std/io";
 include "std/array";
 include "sdl2/sdl2.phs";
 
-define screenW = 800;
-define screenH = 700;
+static_if (PHASOR_NATIVE)
+    static_if (WIN32)
+load_plugin("sdl2_phs.dll");
+load_plugin("winapi_phs.dll");
+    static_else (DARWIN)
+load_plugin("sdl2_phs.dylib");
+load_plugin("posix_phs.dylib");
+    static_else // (!DARWIN && !WIN32)
+load_plugin("sdl2_phs.so");
+load_plugin("posix_phs.so");
+    static_endif // (WIN32 || DARWIN)
+static_endif // (PHASOR_NATIVE)
+
+define screenW = 900;
+define screenH = 900;
 define FPS = 60;
 define FRAMETIME = 1000 / FPS;
 
-define CELL = 25;
+define CELL = 30;
 define GRID_W = screenW / CELL;
 define GRID_H = screenH / CELL;
 define MOVE_MS = 110;
 define TIMEF = "%Y-%m-%dT%I:%M:%SZ";
 
+var title: string = "snake game";
+
 fn is_on_snake(pos: Vec2, segX: i64[], seqY: i64[], length: i64) -> bool {
-    var i: i64 = 0;
-    while (i < length) {
-        if (segX[i] == pos.x && segY[i] == pos.y) {
+    
+    for (var i: i64 = 0; i < length; i++)
+        if (segX[i] == pos.x && segY[i] == pos.y)
             return true;
-        }
-        i = i + 1;
-    }
     return false;
 }
 
@@ -89,6 +100,11 @@ palette = snake_palette{
     led_on: rgb(40, 40, 220).matrixvec4(),
     led_off: rgb(12, 24, 60).matrixvec4()
 };
+static_else
+struct config_json {
+    name: string,
+    palette: snake_palette
+}
 static_endif
 
 define DIGIT_W = 26;
@@ -119,14 +135,11 @@ fn render_frame(
     renderer.sdl_render_fill_rect(food.x * CELL, food.y * CELL, CELL, CELL);
 
     renderer.sdl_set_render_draw_color_vec(palette.snake_body);
-    var c: i64 = 0;
-    while (c < cornerCount) {
+    for (var c: i64 = 0; c < cornerCount; c++)
         renderer.sdl_render_fill_rect(corners[c][0] * CELL, corners[c][1] * CELL, CELL, CELL);
-        c++;
-    }
 
-    var s: i64 = 0;
-    while (s < segLength) {
+    
+    for (var s: i64 = 0; s < segLength; s++) {
         var drawX: i64 = prevSegX[s] * CELL + ((segX[s] - prevSegX[s]) * CELL * tScaled) / 1000;
         var drawY: i64 = prevSegY[s] * CELL + ((segY[s] - prevSegY[s]) * CELL * tScaled) / 1000;
 
@@ -136,7 +149,6 @@ fn render_frame(
             renderer.sdl_set_render_draw_color_vec(palette.snake_body);
         }
         renderer.sdl_render_fill_rect(drawX, drawY, CELL, CELL);
-        s = s + 1;
     }
 
     renderer.draw_score(score, SCORE_X, palette.led_on, palette.led_off);
@@ -148,9 +160,13 @@ fn render_frame(
 fn main(args: string[]) -> int {
 static_if (!EMBEDDED)
     var scriptPath: string = args[0].fabsolute().fparent();
-    var palettePath: string = scriptPath.fjoin("palette.json");
-    palette = palettePath.fread().from_json();
-    if (palette == null) error(c_fmt("Failed to load %s", palettePath.frelative())); 
+    var configPath: string = scriptPath.fjoin("game.json");
+    var configFile: int = configPath.fopen("r");
+    if (!fexists(configPath)) error(c_fmt("File not found: %s", configPath.frelative()));
+    var config: config_json = configFile.fread().from_json();
+    if (config == null) error(c_fmt("Failed to load %s", configPath.frelative()));
+    title = config.name;
+    palette = config.palette; 
 static_endif
 static_if (DEBUG)
     putf("%s - Started!", localtimef(TIMEF));
@@ -164,32 +180,35 @@ static_endif
     var initResult: i64 = sdl_init(SDLC.INIT_VIDEO);
     if (initResult < 0) {
         puts_error("Failed to initialize SDL");
+        fclose(configFile);
         return 1;
     }
 
-    var window: SDLWindow = sdl_create_window("Snake", 100, 100, screenW, screenH, SDLC.WINDOW_SHOWN);
+    var window: SDLWindow = sdl_create_window(title, 100, 100, screenW, screenH, SDLC.WINDOW_SHOWN);
     if (window == NULL_SDLWINDOW) {
         puts_error("Failed to create window");
         sdl_quit();
+        fclose(configFile);
         return 1;
     }
 
-    var renderer: SDLRenderer = window.sdl_create_renderer(-1, SDLC.RENDERER_PRESENTVSYNC);
+    var renderer: SDLRenderer = window.sdl_create_renderer(-1, SDLC.RENDERER_ACCELERATED + SDLC.RENDERER_PRESENTVSYNC);
     if (renderer == NULL_SDLRENDERER) {
         puts_error("Failed to create renderer");
         if (window != NULL_SDLWINDOW)
             window.sdl_destroy_window();
         sdl_quit();
+        fclose(configFile);
         return 1;
     }
 
-    var segX: i64[896]; 
-    var segY: i64[896];
-    var prevSegX: i64[896];
-    var prevSegY: i64[896];
-    var segDir: i64[896][2];
+    var segX: i64[800]; 
+    var segY: i64[800];
+    var prevSegX: i64[800];
+    var prevSegY: i64[800];
+    var segDir: i64[800][2];
 
-    var corners: i64[896][2];
+    var corners: i64[800][2];
     var cornerCount: i64 = 0;
 
     var startX: i64 = GRID_W / 2;
@@ -200,17 +219,15 @@ static_endif
     segX[2] = startX - 2; segY[2] = startY;
     var segLength: i64 = 3;
 
-    var initIdx: i64 = 0;
-    while (initIdx < segLength) {
+    for (var initIdx: i64 = 0; initIdx < segLength; initIdx++) {
         prevSegX[initIdx] = segX[initIdx];
         prevSegY[initIdx] = segY[initIdx];
         segDir[initIdx][0] = 1;
         segDir[initIdx][1] = 0;
-        initIdx = initIdx + 1;
     }
 
-    var dir: Vec2 = Vec2{x: 1, y: 0};
-    var nextDir: Vec2 = Vec2{x: 1, y: 0};
+    var dir: Vec2 = [1, 0].matrixvec2();
+    var nextDir: Vec2 = [1, 0].matrixvec2();
 
     var food: Vec2 = place_food(segX, segY, segLength);
 
@@ -239,26 +256,21 @@ static_endif
                             segX[2] = startX - 2; segY[2] = startY;
                             segLength = 3;
 
-                            var resetIdx: i64 = 0;
-                            while (resetIdx < segLength) {
+                            for ( var resetIdx: i64 = 0; resetIdx < segLength; resetIdx++) {
                                 prevSegX[resetIdx] = segX[resetIdx];
                                 prevSegY[resetIdx] = segY[resetIdx];
                                 segDir[resetIdx][0] = 1;
                                 segDir[resetIdx][1] = 0;
-                                resetIdx = resetIdx + 1;
                             }
                             cornerCount = 0;
-
-                            dir.x = 1; dir.y = 0;
-                            nextDir.x = 1; nextDir.y = 0;
+                            dir = [1, 0].matrixvec2();
+                            nextDir = [1, 0].matrixvec2();
 
                             score = 0;
                             gameOver = false;
                             lastMoveTime = time();
 
-                            var newFood: Vec2 = place_food(segX, segY, segLength);
-                            food.x = newFood.x;
-                            food.y = newFood.y;
+                            food = place_food(segX, segY, segLength);
                         }
                     default:
                         var d: Vec2 = dir_from_key(event.key_sym, dir.x, dir.y, nextDir.x, nextDir.y);
@@ -275,11 +287,9 @@ static_endif
             if (now - lastMoveTime >= MOVE_MS) {
                 lastMoveTime = now;
 
-                var snapIdx: i64 = 0;
-                while (snapIdx < segLength) {
+                for (var snapIdx: i64 = 0; snapIdx < segLength; snapIdx++) {
                     prevSegX[snapIdx] = segX[snapIdx];
-                    prevSegY[snapIdx] = segY[snapIdx];
-                    snapIdx = snapIdx + 1;
+                    prevSegY[snapIdx] = segY[snapIdx];   
                 }
 
                 var oldSegLength: i64 = segLength;
@@ -319,14 +329,14 @@ static_endif
 static_if (DEBUG)
                         putf("%s - ate apple...", localtimef(TIMEF));
 static_endif
-                        segLength = segLength + 1;
+                        segLength++;
 
                         prevSegX[segLength - 1] = segX[segLength - 1];
                         prevSegY[segLength - 1] = segY[segLength - 1];
                         segDir[segLength - 1][0] = dir.x;
                         segDir[segLength - 1][1] = dir.y;
 
-                        score = score + 1;
+                        score++;
 
                         var newFood: Vec2 = place_food(segX, segY, segLength);
                         food.x = newFood.x;
@@ -334,21 +344,18 @@ static_endif
                     }
 
                     cornerCount = 0;
-                    var ci: i64 = 0;
-                    while (ci < oldSegLength) {
+                    for (var ci: i64 = 0; ci < oldSegLength; ci++) {
                         var stepDX: i64 = segX[ci] - prevSegX[ci];
                         var stepDY: i64 = segY[ci] - prevSegY[ci];
 
                         if (is_corner_turn(stepDX, stepDY, segDir[ci][0], segDir[ci][1])) {
                             corners[cornerCount][0] = prevSegX[ci];
                             corners[cornerCount][1] = prevSegY[ci];
-                            cornerCount = cornerCount + 1;
+                            cornerCount++;
                         }
 
                         segDir[ci][0] = stepDX;
                         segDir[ci][1] = stepDY;
-
-                        ci = ci + 1;
                     }
                 }
             }
@@ -375,7 +382,7 @@ static_endif
     if (window != NULL_SDLWINDOW)
         window.sdl_destroy_window();
     sdl_quit();
-
+    fclose(configFile);
     return 0;
 }
 
