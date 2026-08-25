@@ -30,3 +30,8 @@ Phasor::i64 PHASORstd_rand_next_range(Phasor::i64 min, Phasor::i64 max)
 {
 	return min + (Phasor::i64)(PHASORstd_rand_next() % (Phasor::u64)(max - min + 1));
 }
+
+Phasor::f64 PHASORstd_rand_next_double_range(Phasor::f64 min, Phasor::f64 max)
+{
+	return min + PHASORstd_rand_next_double() * (max - min);
+}

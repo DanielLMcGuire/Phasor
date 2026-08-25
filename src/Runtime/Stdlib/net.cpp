@@ -752,6 +752,7 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 		*stream << "Host: " << url.host.str() << "\r\n";
 		*stream << "Connection: close\r\n";
 		*stream << "User-Agent: " << useragent << "\r\n";
+		*stream << "Accept: */*\r\n";
 
 		bool hasContentLength = false;
 		for (const auto& [k, v] : customHeaders) {

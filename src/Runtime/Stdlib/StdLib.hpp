@@ -358,6 +358,8 @@ class StdLib
 	static i64   rand_next_range(const Value::ArrayInstance &args, VM *vm); ///< Get a random number in range
 	static f64   rand_next_float(const Value::ArrayInstance &args,
 	                               VM *vm); ///< Get a random float
+	static f64   rand_next_float_range(const Value::ArrayInstance &args,
+	                               VM *vm);  
 	static Value rand_get_crypto_int(const Value::ArrayInstance &args, VM *);
 	static Value rand_get_crypto_float(const Value::ArrayInstance &args, VM *);
 #pragma endregion

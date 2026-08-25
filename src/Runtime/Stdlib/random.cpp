@@ -121,6 +121,7 @@ void StdLib::registerRandomFunctions(VM *vm)
 	vm->registerNativeFunction("rand_next_float", StdLib::rand_next_float);
 	vm->registerNativeFunction("rand_crypto_int", StdLib::rand_get_crypto_int);
 	vm->registerNativeFunction("rand_crypto_float", StdLib::rand_get_crypto_float);
+    vm->registerNativeFunction("rand_next_float_range", StdLib::rand_next_float_range);
 }
 
 Value StdLib::rand_seed(const Value::ArrayInstance &args, VM *)
@@ -194,6 +195,26 @@ Value StdLib::rand_get_crypto_float(const Value::ArrayInstance &args, VM *)
         return phsnull;
     }
 	return static_cast<f64>(val & 0x1FFFFFFFFFFFFF) / 9007199254740992.0;
+}
+
+f64 StdLib::rand_next_float_range(const Value::ArrayInstance &args, VM *)
+{
+	checkArgCount(args, 2, "rand_next_float_range");
+
+	if (!args[0].isFloat() && !args[0].isInt())
+		PHS_ERROR("rand_next_float_range() expects a number as its first argument (min)");
+	if (!args[1].isFloat() && !args[1].isInt())
+		PHS_ERROR("rand_next_float_range() expects a number as its second argument (max)");
+
+	f64 min = args[0].isInt() ? static_cast<f64>(args[0].asInt()) : args[0].asFloat();
+	f64 max = args[1].isInt() ? static_cast<f64>(args[1].asInt()) : args[1].asFloat();
+
+	if (min > max)
+	{
+		PHS_ERROR("rand_next_float_range(): min value cannot be greater than max value");
+	}
+
+	return PHASORstd_rand_next_double_range(min, max);
 }
 
 } // namespace Phasor
