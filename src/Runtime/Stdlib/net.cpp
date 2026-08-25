@@ -428,7 +428,9 @@ bool StdLib::net_set_timeout(const Value::ArrayInstance &args, VM *)
 	::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
 	::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
 #else
-	timeval tv{static_cast<long>(ms / 1000), static_cast<long>((ms % 1000) * 1000)};
+	timeval tv{};
+	tv.tv_sec = static_cast<decltype(tv.tv_sec)>(ms / 1000);
+	tv.tv_usec = static_cast<decltype(tv.tv_usec)>((ms % 1000) * 1000);
 	::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 	::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 #endif
