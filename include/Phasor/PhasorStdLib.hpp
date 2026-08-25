@@ -85,11 +85,83 @@ class StdLib
 #endif
 	}
 
+	enum class StreamKind
+	{
+		File,
+		Memory,
+		Pipe,
+		Socket
+	};
+
+	struct FileHandle
+	{
+		std::unique_ptr<std::iostream> stream;
+		StreamKind                     kind = StreamKind::File;
+		i64                            ownerProcess = -1;
+	};
+
+	static std::vector<FileHandle>& getFilePool();
+	static i64 allocFileDescriptor(std::unique_ptr<std::iostream> stream,
+	                                StreamKind kind = StreamKind::File,
+	                                i64 ownerProcess = -1);
+	static std::iostream* getFileDescriptor(i64 fd);
+
+	struct ProcessHandle
+	{
+#if defined(_WIN32)
+		void*         nativeHandle = nullptr;
+		unsigned long processId    = 0;
+#else
+		long          pid = -1;
+#endif
+		bool exited    = false;
+		int  exitCode  = -1;
+		bool isolated  = false;
+		bool forgotten = false;
+	};
+	struct ProcessEntry { std::unique_ptr<ProcessHandle> handle; };
+
+	static std::mutex&                getProcessPoolMutex();
+	static std::vector<ProcessEntry>& getProcessPool();
+	static i64                        allocProcessHandle(std::unique_ptr<ProcessHandle> h);
+	static ProcessHandle*             getProcessHandleLocked(i64 h); ///< assumes mutex already held
+	static bool                       pollProcessExitLocked(ProcessHandle &proc); ///< assumes mutex already held
+	static void                       releaseProcessHandleLocked(i64 h); ///< assumes mutex already held
+	static void                       ensureReaperStarted();
+	enum class SocketProtocol { TCP, UDP };
+	enum class SocketRole     { Listener, UdpSocket };
+
+	struct SocketHandle
+	{
+		std::uintptr_t nativeSocket = 0;
+		SocketProtocol  protocol = SocketProtocol::TCP;
+		SocketRole      role     = SocketRole::Listener;
+		std::string     boundHost;
+		int             boundPort = 0;
+		bool            closed    = false;
+	};
+	struct SocketEntry { std::unique_ptr<SocketHandle> handle; };
+
+	static std::mutex&               getSocketPoolMutex();
+	static std::vector<SocketEntry>& getSocketPool();
+	static i64                       allocSocketHandle(std::unique_ptr<SocketHandle> h);
+	static SocketHandle*             getSocketHandleLocked(i64 h); ///< assumes mutex already held
+	static void                      closeSocketHandleLocked(i64 h); ///< assumes mutex already held
+	static void                      ensureNetworkingInitialized(); ///< WSAStartup on win32
+
+	static void requireString(const Value &v, const char *fnName, const char *what);
+	static void requireInt(const Value &v, const char *fnName, const char *what);
+	static void requireBool(const Value &v, const char *fnName, const char *what);
+
 	static char **argv; ///< Command line arguments
 	static int    argc; ///< Number of command line arguments
 
 	static void checkArgCount(const Value::ArrayInstance &args, size_t minimumArguments, const std::string &name,
 	                          bool allowMoreArguments = false);
+	static Phasor::i64 pointer_to_i64(void* ptr);
+	static void* i64_to_pointer(Phasor::i64 value);
+	static std::vector<Phasor::PhsString> phasorStringArrayToVector(const Phasor::Value &arr);
+	static std::vector<char *> phasorStringArrayToCharArray(const Phasor::Value &arr, bool nullTerminate = false);
 
   private:
   	static std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> modules;
@@ -108,6 +180,9 @@ class StdLib
 	static void registerTypeConvFunctions(VM *vm);
 #ifndef SANDBOXED
 	static void registerFileFunctions(VM *vm);
+	static void registerIniFunctions(VM* vm);
+	static void registerNetFunctions(VM *vm);
+	static void registerHttpFunctions(VM *vm);
 #endif
 	static void registerSysFunctions(VM *vm);
 	static void registerIOFunctions(VM *vm);
@@ -124,13 +199,15 @@ class StdLib
 #endif
 	static PhsString meta_get_version(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_get_self(const Value::ArrayInstance &args, VM *vm);
-	static i64       meta_run_program(const Value::ArrayInstance &args, VM *vm);
-	static Value     meta_run_program_function(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_get_registers(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_load_bytecode_from_file(const Value::ArrayInstance &args, VM *vm);
 	static bool      meta_save_bytecode_to_file(const Value::ArrayInstance &args, VM *vm);
-
-#pragma endregion stdmeta
+	static i64       meta_new_state(const Value::ArrayInstance &args, VM *vm);
+	static bool      meta_free_state(const Value::ArrayInstance &args, VM *vm);
+	static i64       meta_eval_phs(const Value::ArrayInstance &args, VM *vm);
+	static i64       meta_exec_phsb(const Value::ArrayInstance &args, VM *vm);
+	static Value     meta_compile_phs(const Value::ArrayInstance &args, VM *vm);
+#pragma endregion
 
 #pragma region stdmemory
 	static Value var_free(const Value::ArrayInstance &args, VM *vm); ///< Free a variable
@@ -173,6 +250,7 @@ class StdLib
 	static Value     file_open(const Value::ArrayInstance &args, VM *vm); ///< Get file descriptor
 	static bool      file_close(const Value::ArrayInstance &args, VM *vm); ///< Close file descriptor
 	static PhsString file_absolute(const Value::ArrayInstance &args, VM *vm);   ///< Get full path to relative path
+	static PhsString file_relative(const Value::ArrayInstance &args, VM *vm);   ///< Get relative path to given path
 	static Value     file_read(const Value::ArrayInstance &args, VM *vm);       ///< Read file
 	static bool      file_write(const Value::ArrayInstance &args, VM *vm);      ///< Write to file
 	static bool      file_exists(const Value::ArrayInstance &args, VM *vm);     ///< Check if file exists
@@ -197,14 +275,46 @@ class StdLib
 	static bool      file_is_directory(const Value::ArrayInstance &args, VM *vm); ///< Check if path is directory
 	static PhsString file_parent(const Value::ArrayInstance &args, VM *vm);       ///< Get the parent of a path
 	static i64       file_get_size(const Value::ArrayInstance &args, VM *vm);
+	static Value     file_memory_open(const Value::ArrayInstance &args, VM *vm); ///< Open an in-memory buffer as a stream
+	static Value     file_pipe_open(const Value::ArrayInstance &args, VM *vm);   ///< Create a native pipe pair -> [readFd, writeFd]
+	static i64       file_descriptor_kind(const Value::ArrayInstance &args, VM *vm);
+#pragma endregion
+
+#pragma region stdnet
+#ifndef SANDBOXED
+	static Value net_connect(const Value::ArrayInstance &args, VM *vm);       ///< (host, port, [timeoutMs]) -> fd | null
+	static Value net_listen(const Value::ArrayInstance &args, VM *vm);        ///< (host, port, [backlog]) -> listener handle | null
+	static Value net_accept(const Value::ArrayInstance &args, VM *vm);        ///< (listenerHandle, [timeoutMs]) -> {fd, host, port} | null
+	static bool  net_close_listener(const Value::ArrayInstance &args, VM *vm);
+	static bool  net_set_timeout(const Value::ArrayInstance &args, VM *vm);   ///< (fd, ms) -- send/recv timeout on a connected socket
+	static bool  net_set_option(const Value::ArrayInstance &args, VM *vm);    ///< (fd, "nodelay"|"keepalive", value)
+	static bool  net_shutdown(const Value::ArrayInstance &args, VM *vm);      ///< (fd, ["read"|"write"|"both"]) -- half-close
+	static Value net_peer_address(const Value::ArrayInstance &args, VM *vm); ///< (fd) -> {host, port} | null
+	static Value net_local_address(const Value::ArrayInstance &args, VM *vm);///< (fd) -> {host, port} | null
+	static Value net_resolve(const Value::ArrayInstance &args, VM *vm);       ///< (host) -> addresses: string[] | null
+
+	static Value net_udp_open(const Value::ArrayInstance &args, VM *vm);      ///< ([bindHost, bindPort]) -> handle | null
+	static i64   net_udp_send_to(const Value::ArrayInstance &args, VM *vm);   ///< (handle, host, port, data) -> bytes sent
+	static Value net_udp_recv_from(const Value::ArrayInstance &args, VM *vm);///< (handle, maxLen, [timeoutMs]) -> {data, host, port} | null
+	static bool  net_udp_close(const Value::ArrayInstance &args, VM *vm);
+
+#pragma endregion
+#pragma region stdhttp
+	static Value http_request(const Value::ArrayInstance &args, VM *vm); ///< (method, url, [body], [headers], [timeoutMs]) -> {status, headers, body}
+#endif
 #pragma endregion
 
 #pragma region stdsys
 	static i64   sys_get_free_memory(const Value::ArrayInstance &args, VM *vm); ///< Get current free memory
 	static Value sys_wait_for_input(const Value::ArrayInstance &args, VM *vm);  ///< Wait for input
 	static Value sys_shell(const Value::ArrayInstance &args, VM *vm);           ///< Run a shell command
-	static i64   sys_fork(const Value::ArrayInstance &args, VM *vm);            ///< Run a native program
-	static i64   sys_fork_detached(const Value::ArrayInstance &args, VM *vm);   ///< Run a native program detached
+	static Value sys_fork(const Value::ArrayInstance &args, VM *vm);          ///< blocking: {status, output|null}
+	static Value sys_fork_detached(const Value::ArrayInstance &args, VM *vm); ///< non-blocking: {pid, handle, stdin, stdout, stderr}
+	static i64   proc_wait(const Value::ArrayInstance &args, VM *vm);
+	static Value proc_status(const Value::ArrayInstance &args, VM *vm);
+	static bool  proc_kill(const Value::ArrayInstance &args, VM *vm);
+	static bool  proc_forget(const Value::ArrayInstance &args, VM *vm); ///< fire-and-forget: free once it exits, no status/handle needed
+	static bool  proc_free(const Value::ArrayInstance &args, VM *vm);   ///< blocks until exit, then frees
 	static Value sys_crash(const Value::ArrayInstance &args, VM *vm);           ///< Crash the VM / Program
 	static Value sys_reset(const Value::ArrayInstance &args, VM *vm);           ///< Reset the VM
 	static i64   sys_pid(const Value::ArrayInstance &args, VM *vm);             ///< Get the current process ID
@@ -224,6 +334,20 @@ class StdLib
 	static Value sys_shutdown(const Value::ArrayInstance &args, VM *vm);       ///< Shutdown the VM
 #pragma endregion
 
+#pragma region stdini
+	static Value     ini_read(const Value::ArrayInstance &args, VM *);
+	static PhsString ini_write(const Value::ArrayInstance &args, VM *);
+	static PhsString ini_read_entry(const Value::ArrayInstance &args, VM *);
+	static PhsString ini_write_entry(const Value::ArrayInstance &args, VM *);
+	static Value     ini_read_section(const Value::ArrayInstance &args, VM *);
+	static PhsString ini_write_section(const Value::ArrayInstance &args, VM *);
+	static bool      ini_has_section(const Value::ArrayInstance &args, VM *);
+	static bool      ini_has_entry(const Value::ArrayInstance &args, VM *);
+	static PhsString ini_remove_section(const Value::ArrayInstance &args, VM *);
+	static PhsString ini_remove_entry(const Value::ArrayInstance &args, VM *);
+	static bool      ini_empty(const Value::ArrayInstance &args, VM *);
+#pragma endregion
+
 #pragma region stdtype
 	static i64         to_int(const Value::ArrayInstance &args, VM *vm);    ///< Convert to integer
 	static f64         to_float(const Value::ArrayInstance &args, VM *vm);  ///< Convert to float
@@ -241,8 +365,11 @@ class StdLib
 	static i64   array_length(const Value::ArrayInstance &args, VM *vm); ///< Get array length
 	static Value array_push(const Value::ArrayInstance &args, VM *vm);   ///< Push to array
 	static Value array_pop(const Value::ArrayInstance &args, VM *vm);    ///< Pop from array
+	static Value array_peek(const Value::ArrayInstance &args, VM *vm);    ///< Peek from array
 	static Value array_insert(const Value::ArrayInstance &args, VM *vm); ///< Insert into array
 	static Value array_resize(const Value::ArrayInstance &args, VM *vm); ///< Resize array
+	static Value array_join(const Value::ArrayInstance &args, VM *vm);
+	static Value array_find(const Value::ArrayInstance &args, VM *vm);
 #pragma endregion
 
 #pragma region stdobject
@@ -289,12 +416,13 @@ class StdLib
 	static PhsString io_printf(const Value::ArrayInstance &args, VM *vm); ///< Print formatted string
 	static PhsString io_putf(const Value::ArrayInstance &args, VM *vm);   ///< Print formatted string with newline
 #ifndef SANDBOXED
-	static Value     io_gets(const Value::ArrayInstance &args, VM *vm); ///< Get string
+	static Value     io_gets(const Value::ArrayInstance &args, VM *vm); ///< Get line of stdin
+	static Value     io_get_input(const Value::ArrayInstance &args, VM *vm); ///< Get stdin until EOF
 #endif
 	static PhsString io_putf_error(const Value::ArrayInstance &args,
 	                                 VM *vm); ///< Print formatted string with newline to error output
-	static PhsString io_puts_error(const Value::ArrayInstance &args,
-	                                 VM                       *vm); ///< Print string with newline to error output
+	static PhsString io_print_error(const Value::ArrayInstance &args,
+	                                 VM                       *vm);
 #pragma endregion
 };
 
