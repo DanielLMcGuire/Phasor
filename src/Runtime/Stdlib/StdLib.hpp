@@ -275,6 +275,7 @@ class StdLib
 #pragma endregion
 #pragma region stdhttp
 	static Value http_request(const Value::ArrayInstance &args, VM *vm); ///< (method, url, [body], [headers], [timeoutMs]) -> {status, headers, body}
+	static Value http_user_agent(const Value::ArrayInstance &args, VM *vm); ///< (user-agent)
 #endif
 #pragma endregion
 

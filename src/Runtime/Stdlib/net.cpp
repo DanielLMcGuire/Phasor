@@ -22,6 +22,10 @@
 #include <poll.h>
 #endif
 
+#include "core/user-agent.h"
+
+static std::string useragent = {};
+
 namespace Phasor
 {
 
@@ -293,6 +297,8 @@ void StdLib::registerNetFunctions(VM *vm)
 void StdLib::registerHttpFunctions(VM *vm)
 {
     vm->registerNativeFunction("http_request", http_request);
+	vm->registerNativeFunction("http_useragent", http_user_agent);
+	useragent = std::format("Mozilla/5.0 {} PhasorLanguageHTTP/{}", getUserAgentOS(), PHASOR_VERSION_STRING);
 }
 
 Value StdLib::net_connect(const Value::ArrayInstance &args, VM *)
@@ -646,121 +652,230 @@ bool StdLib::net_udp_close(const Value::ArrayInstance &args, VM *)
 	return true;
 }
 
+Value StdLib::http_user_agent(const Value::ArrayInstance &args, VM *)
+{
+	checkArgCount(args, 1, "http_useragent");
+	requireString(args[0], "http_useragent", "1st argument (user-agent)");
+
+	PhsString agent = args[0].string();
+	useragent = agent.str();
+	return phsnull;
+}
+
 Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "http_request", true);
 	requireString(args[0], "http_request", "1st argument (method)");
 	requireString(args[1], "http_request", "2nd argument (url)");
 
-	ParsedUrl url;
-	if (!parseUrl(args[1].stl_string(), url))
-		PHS_ERROR("http_request() could not parse URL '" + args[1].stl_string() + "'");
-	if (url.scheme == "https")
-		PHS_ERROR("http_request() TLS/HTTPS is not supported yet -- use plain http:// for now");
-	if (url.scheme != "http")
-		PHS_ERROR("http_request() unsupported scheme '" + url.scheme + "'");
-
-	PhsString body;
-	if (args.size() >= 3 && args[2].isString()) body = args[2].string();
+	PhsString method = args[0].string();
+	PhsString initialUrlStr = args[1].string();
+	PhsString reqBody;
+	
+	if (args.size() >= 3 && args[2].isString()) reqBody = args[2].string();
 
 	i64 timeoutMs = args.size() >= 5 ? args[4].asInt() : 15000;
+	i64 maxRedirects = args.size() >= 6 ? args[5].asInt() : 5;
 
-	i64 fd = tcpConnectImpl(url.host, std::to_string(url.port), timeoutMs);
-	if (fd < 0)
-		PHS_ERROR("http_request() failed to connect to " + url.host + ":" + std::to_string(url.port));
-
-	auto* stream = getFileDescriptor(fd);
-
-	*stream << args[0].stl_string() << " " << url.path << " HTTP/1.1\r\n";
-	*stream << "Host: " << url.host << "\r\n";
-	*stream << "Connection: close\r\n";
-	*stream << std::format("User-Agent: phasor_language_{}\r\n", PHASOR_VERSION_STRING);
-
+	std::vector<std::pair<PhsString, PhsString>> customHeaders;
 	if (args.size() >= 4 && args[3].isArray())
 	{
-		auto headerArr = args[3].asArray();
-		for (const auto &headerVal : *headerArr)
+		for (const auto &hv : *args[3].asArray())
 		{
-			if (!headerVal.isStruct()) continue;
-			Value key = headerVal.get_or(PhsString("key"), phsnull);
-			if (!key.isString()) continue;
-			Value value = headerVal.get_or(PhsString("value"), phsnull);
-			*stream << key.stl_string() << ": " << value.stl_string() << "\r\n";
+			if (!hv.isStruct()) continue;
+			Value key = hv.get_or(PhsString("key"), phsnull);
+			Value val = hv.get_or(PhsString("value"), phsnull);
+			if (key.isString() && val.isString())
+				customHeaders.emplace_back(key.string(), val.string());
 		}
 	}
-	if (!body.empty())
-		*stream << "Content-Length: " << body.size() << "\r\n";
-	*stream << "\r\n";
-	if (!body.empty())
-		stream->write(body.data(), static_cast<std::streamsize>(body.size()));
-	stream->flush();
 
-	PhsString statusLine = readLine(*stream);
+	ParsedUrl url;
+	if (!parseUrl(initialUrlStr, url))
+		PHS_ERROR("http_request() could not parse URL '" + initialUrlStr.str() + "'");
+
+	i64 fd = -1;
+	
+	auto closeFd = [&fd]() {
+		if (fd >= 0) {
+			auto &pool = getFilePool();
+			if (fd < static_cast<i64>(pool.size())) pool[fd].stream.reset();
+			fd = -1;
+		}
+	};
+	struct ScopeExit {
+		std::function<void()> fn;
+		~ScopeExit() { if (fn) fn(); }
+	} cleanup{[&]() { closeFd(); }};
+
 	int status = 0;
-	if (auto firstSpace = statusLine.find(' '); firstSpace != std::string::npos)
-		status = std::atoi(statusLine.c_str() + firstSpace + 1);
-
-	std::vector<std::pair<PhsString, PhsString>> headers;
-	long contentLength = -1;
-	bool chunked = false;
-	for (;;)
-	{
-		PhsString line = readLine(*stream);
-		if (line.empty()) break;
-		auto colon = line.find(':');
-		if (colon == std::string::npos) continue;
-		PhsString key = line.substr(0, colon);
-		PhsString val = line.substr(colon + 1);
-		while (!val.empty() && val.front() == ' ') val.erase(val.begin());
-		headers.emplace_back(key, val);
-
-		PhsString lowerKey = key;
-		std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), [](unsigned char c) { return std::tolower(c); });
-		if (lowerKey == "content-length") contentLength = std::atol(val.c_str());
-		else if (lowerKey == "transfer-encoding" && val.find("chunked") != std::string::npos) chunked = true;
-	}
-
+	std::vector<std::pair<PhsString, PhsString>> respHeaders;
 	PhsString responseBody;
-	if (chunked)
+	int currentRedirect = 0;
+
+	while (currentRedirect <= maxRedirects)
 	{
+		if (url.scheme == "https")
+			PHS_ERROR("http_request() TLS/HTTPS is not supported yet -- use plain http:// for now");
+		if (url.scheme != "http")
+			PHS_ERROR("http_request() unsupported scheme '" + url.scheme.str() + "'");
+
+		fd = tcpConnectImpl(url.host, std::to_string(url.port), timeoutMs);
+		if (fd < 0)
+			PHS_ERROR("http_request() failed to connect to " + url.host.str() + ":" + std::to_string(url.port));
+
+		auto* stream = getFileDescriptor(fd);
+
+		auto *sockBuf = dynamic_cast<SocketStreamBuf *>(stream->rdbuf());
+		if (sockBuf && timeoutMs > 0)
+		{
+			native_socket_t sock = sockBuf->nativeSocket();
+#if defined(_WIN32)
+			DWORD tv = static_cast<DWORD>(timeoutMs);
+			::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
+			::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
+#else
+			timeval tv{static_cast<long>(timeoutMs / 1000), static_cast<long>((timeoutMs % 1000) * 1000)};
+			::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+			::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+#endif
+		}
+
+		*stream << method.str() << " " << url.path.str() << " HTTP/1.1\r\n";
+		*stream << "Host: " << url.host.str() << "\r\n";
+		*stream << "Connection: close\r\n";
+		*stream << "User-Agent: " << useragent << "\r\n";
+
+		bool hasContentLength = false;
+		for (const auto& [k, v] : customHeaders) {
+			*stream << k.str() << ": " << v.str() << "\r\n";
+			PhsString lk = k;
+			std::transform(lk.begin(), lk.end(), lk.begin(), ::tolower);
+			if (lk == "content-length") hasContentLength = true;
+		}
+
+		if (!reqBody.empty() && !hasContentLength)
+			*stream << "Content-Length: " << reqBody.size() << "\r\n";
+		*stream << "\r\n";
+
+		if (!reqBody.empty())
+			stream->write(reqBody.data(), static_cast<std::streamsize>(reqBody.size()));
+		stream->flush();
+
+		PhsString statusLine = readLine(*stream);
+		if (statusLine.empty())
+			PHS_ERROR("http_request() server closed connection before sending response headers");
+
+		status = 0;
+		if (auto firstSpace = statusLine.find(' '); firstSpace != std::string::npos)
+			status = std::atoi(statusLine.c_str() + firstSpace + 1);
+
+		respHeaders.clear();
+		long contentLength = -1;
+		bool chunked = false;
+		PhsString location;
+
 		for (;;)
 		{
-			PhsString sizeLine = readLine(*stream);
-			long chunkSize = std::strtol(sizeLine.c_str(), nullptr, 16);
-			if (chunkSize <= 0) { readLine(*stream); break; }
-			std::vector<char> chunk(static_cast<size_t>(chunkSize));
-			stream->read(chunk.data(), chunkSize);
-			responseBody.append(chunk.data(), static_cast<size_t>(stream->gcount()));
-			readLine(*stream);
-		}
-	}
-	else if (contentLength >= 0)
-	{
-		std::vector<char> buf(static_cast<size_t>(contentLength));
-		stream->read(buf.data(), contentLength);
-		responseBody.assign(buf.data(), static_cast<size_t>(stream->gcount()));
-	}
-	else
-	{
-		std::ostringstream oss;
-		oss << stream->rdbuf();
-		responseBody = PhsString(oss.str());
-	}
+			PhsString line = readLine(*stream);
+			if (line.empty()) break;
+			auto colon = line.find(':');
+			if (colon == std::string::npos) continue;
+			
+			PhsString key = line.substr(0, colon);
+			PhsString val = line.substr(colon + 1);
+			
+			val.erase(0, val.find_first_not_of(" \t"));
+			val.erase(val.find_last_not_of(" \t\r") + 1);
+			respHeaders.emplace_back(key, val);
 
-	{
-		auto &pool = getFilePool();
-		if (fd >= 0 && std::cmp_less(fd, pool.size()))
-			pool[fd].stream.reset();
+			PhsString lowerKey = key;
+			std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), [](unsigned char c) { return std::tolower(c); });
+			
+			if (lowerKey == "content-length") contentLength = std::atol(val.c_str());
+			else if (lowerKey == "transfer-encoding" && val.find("chunked") != std::string::npos) chunked = true;
+			else if (lowerKey == "location") location = val;
+		}
+
+		responseBody.clear();
+		if (chunked)
+		{
+			for (;;)
+			{
+				PhsString sizeLine = readLine(*stream);
+				long chunkSize = std::strtol(sizeLine.c_str(), nullptr, 16);
+				if (chunkSize <= 0) { 
+					while(!readLine(*stream).empty()); 
+					break; 
+				}
+				std::vector<char> chunk(static_cast<size_t>(chunkSize));
+				stream->read(chunk.data(), chunkSize);
+				responseBody.append(chunk.data(), static_cast<size_t>(stream->gcount()));
+				
+				char crlf[2];
+				stream->read(crlf, 2);
+			}
+		}
+		else if (contentLength >= 0)
+		{
+			std::vector<char> buf(4096);
+			long bytesRead = 0;
+			while (bytesRead < contentLength && *stream) {
+				long toRead = std::min<long>(4096, contentLength - bytesRead);
+				stream->read(buf.data(), toRead);
+				std::streamsize rc = stream->gcount();
+				if (rc == 0) break;
+				responseBody.append(buf.data(), static_cast<size_t>(rc));
+				bytesRead += rc;
+			}
+		}
+		else
+		{
+			std::vector<char> buf(4096);
+			while (*stream) {
+				stream->read(buf.data(), buf.size());
+				std::streamsize rc = stream->gcount();
+				if (rc > 0) responseBody.append(buf.data(), static_cast<size_t>(rc));
+			}
+		}
+
+		closeFd();
+
+		if (status >= 300 && status < 400 && !location.empty())
+		{
+			currentRedirect++;
+			if (currentRedirect > maxRedirects) break;
+
+			if (status == 301 || status == 302 || status == 303) {
+				method = "GET";
+				reqBody.clear();
+			}
+
+			if (location.find("://") != std::string::npos) {
+				if (!parseUrl(location, url))
+					PHS_ERROR("http_request() failed to parse redirect Location: " + location.str());
+			} else {
+				if (location.front() == '/') {
+					url.path = location;
+				} else {
+					auto lastSlash = url.path.find_last_of('/');
+					url.path = (lastSlash != std::string::npos) ? url.path.substr(0, lastSlash + 1) + location : "/" + location;
+				}
+			}
+			continue;
+		}
+
+		break;
 	}
 
 	Value::ArrayInstance headerPairs;
-	for (auto &[k, v] : headers)
-		headerPairs.emplace_back(makeStruct({{"key", Value(PhsString(k))}, {"value", Value(PhsString(v))}}));
+	for (auto &[k, v] : respHeaders)
+		headerPairs.emplace_back(makeStruct({{"key", Value(k)}, {"value", Value(v)}}));
 
 	return makeStruct({
 		{"status",  Value(static_cast<i64>(status))},
-		{"headers", Value::createArray(headerPairs)},
-		{"body",    Value(PhsString(responseBody))},
+		{"headers", Value::createArray(std::move(headerPairs))},
+		{"body",    Value(responseBody)},
 	});
 }
 

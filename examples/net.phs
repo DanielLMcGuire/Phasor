@@ -97,19 +97,15 @@ fn demo_udp() {
 fn demo_http() {
     puts("\n== HTTP ==");
 
+    http_useragent("CustomUserAgent");
+
     var get_res: HTTPResponse = http_get("http://example.com", [], 1500);
     if (get_res != null) {
         assert(get_res.status == 200);
         putf("GET:\n%0.02O", get_res);
     }
-
-    var headers: HTTPHeader[] = [
-        mimetype("json"),
-        HTTPHeader{key: "X-Phasor-Client", value: "1.0"}
-    ];
-    var body: any = {message: "Hello World"}.to_json();
     
-    var post_res: HTTPResponse = http_post("http://httpbin.org/post", body, headers, 1500);
+    var post_res: HTTPResponse = http_post("http://httpbin.org/post", {message: "Hello World"}.to_json(), [mimetype("json")], 1500);
     if (post_res != null) {
         assert(post_res.status == 200);
         putf("POST:\n%0.02O", post_res);

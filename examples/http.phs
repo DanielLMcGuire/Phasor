@@ -20,10 +20,9 @@ fn main(args: string[]) -> i64 {
         puts(res.body.from_json().to_json(2));
     } else {
         putf_error("Failed with error: %d", res.status);
-        return res.status;
     }
 
-    return 0;
+    return to_int(!(res.status == 200));
 }
 
 include "std/main";

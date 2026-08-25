@@ -238,15 +238,22 @@ public:
 
     void swap(PhsString& other) noexcept { m_store.swap(other.m_store); }
  
-    std::size_t find(std::string_view sv, std::size_t pos = 0)     const noexcept { return view().find(sv, pos); }
-    std::size_t find(char c, std::size_t pos = 0)                  const noexcept { return view().find(c, pos); }
+    std::size_t find(std::string_view sv, std::size_t pos = 0) const noexcept { return view().find(sv, pos); }
+    std::size_t find(char c, std::size_t pos = 0) const noexcept { return view().find(c, pos); }
     std::size_t rfind(std::string_view sv, std::size_t pos = npos) const noexcept { return view().rfind(sv, pos); }
-    std::size_t rfind(char c, std::size_t pos = npos)              const noexcept { return view().rfind(c, pos); }
+    std::size_t rfind(char c, std::size_t pos = npos) const noexcept { return view().rfind(c, pos); }
  
-    std::size_t find_first_of    (std::string_view sv, std::size_t pos = 0)   const noexcept { return view().find_first_of(sv, pos); }
-    std::size_t find_last_of     (std::string_view sv, std::size_t pos = npos)const noexcept { return view().find_last_of(sv, pos); }
-    std::size_t find_first_not_of(std::string_view sv, std::size_t pos = 0)   const noexcept { return view().find_first_not_of(sv, pos); }
-    std::size_t find_last_not_of (std::string_view sv, std::size_t pos = npos)const noexcept { return view().find_last_not_of(sv, pos); }
+    std::size_t find_first_of(std::string_view sv, std::size_t pos = 0) const noexcept { return view().find_first_of(sv, pos); }
+    std::size_t find_first_o(char c, std::size_t pos = 0) const noexcept { return view().find_first_of(std::string_view(&c, 1), pos); }
+    
+    std::size_t find_last_of(std::string_view sv, std::size_t pos = npos) const noexcept { return view().find_last_of(sv, pos); }
+    std::size_t find_last_of(char c, std::size_t pos = npos) const noexcept { return view().find_last_of(std::string_view(&c, 1), pos); }
+    
+    std::size_t find_first_not_of(std::string_view sv, std::size_t pos = 0) const noexcept { return view().find_first_not_of(sv, pos); }
+    std::size_t find_first_not_of(char c, std::size_t pos = 0) const noexcept { return view().find_first_not_of(std::string_view(&c, 1), pos); }
+    
+    std::size_t find_last_not_of(std::string_view sv, std::size_t pos = npos) const noexcept { return view().find_last_not_of(sv, pos); }
+    std::size_t find_last_not_of(char c, std::size_t pos = npos) const noexcept { return view().find_last_not_of(std::string_view(&c, 1), pos); }
  
     int compare(std::string_view sv) const noexcept { return view().compare(sv); }
  
