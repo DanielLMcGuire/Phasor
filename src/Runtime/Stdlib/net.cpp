@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <phsint.hpp>
 #include <version.h>
+#include <utility>
 
 #include "StdLib.hpp"
 
@@ -142,7 +143,9 @@ Phasor::i64 tcpConnectImpl(const Phasor::PhsString &host, const Phasor::PhsStrin
 			::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
 			::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
 #else
-			timeval tv{static_cast<long>(timeoutMs / 1000), static_cast<long>((timeoutMs % 1000) * 1000)};
+			timeval tv{};
+			tv.tv_sec = static_cast<decltype(tv.tv_sec)>(timeoutMs / 1000);
+			tv.tv_usec = static_cast<decltype(tv.tv_usec)>((timeoutMs % 1000) * 1000);
 			::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 			::setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 #endif
