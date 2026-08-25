@@ -193,7 +193,7 @@ void BytecodeSerializer::writeHeader(u32 dataChecksum)
 	writeUInt32(dataChecksum);
 }
 
-void BytecodeSerializer::writeConstantPool(const std::vector<Value> &constants)
+void BytecodeSerializer::writeConstantPool(const Value::ArrayInstance &constants)
 {
 	writeUInt8(SECTION_CONSTANTS);
 	writeUInt32(static_cast<u32>(constants.size()));

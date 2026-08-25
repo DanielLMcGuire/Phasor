@@ -30,7 +30,7 @@
 #endif
 
 /// @param fn Local member to register
-#define INSTANCED_FFI(fn) [this](const std::vector<Value> &args, VM *vm) { return this->fn(args, vm); }
+#define INSTANCED_FFI(fn) [this](const Value::ArrayInstance &args, VM *vm) { return this->fn(args, vm); }
 
 namespace Phasor
 {
@@ -333,7 +333,7 @@ FFI::~FFI()
 #endif
 }
 
-bool FFI::native_add_plugin(const std::vector<Value> &args, VM *)
+bool FFI::native_add_plugin(const Value::ArrayInstance &args, VM *)
 {
 	if (args.size() != 1)
 	{

@@ -1,7 +1,6 @@
 set(STDLIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/random.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/io.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ini.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/math.cpp
@@ -17,9 +16,11 @@ set(STDLIB_SOURCES
 
 if (NOT IS_SANDBOXED)
     list(APPEND STDLIB_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/process.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/core/file_properties.c
         ${CMAKE_CURRENT_SOURCE_DIR}/core/system.c
         ${CMAKE_CURRENT_SOURCE_DIR}/file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/net.cpp
     )
 endif()
 

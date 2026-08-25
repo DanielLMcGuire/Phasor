@@ -289,6 +289,108 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const PhsString& s) {
         return os.write(s.data(), static_cast<std::streamsize>(s.size()));
     }
+
+    /// @brief Erases characters from the string.
+    /// @param pos Position to start erasing from.
+    /// @param len Number of characters to erase.
+    PhsString& erase(std::size_t pos = 0, std::size_t len = npos) {
+        const std::size_t sz = size();
+        if (pos > sz) {
+            throw std::out_of_range{"PhsString::erase: pos out of range"};
+        }
+        
+        if (len == npos || pos + len > sz) {
+            len = sz - pos;
+        }
+
+        if (len == 0) return *this;
+
+        if (is_small()) {
+            const std::size_t remaining = sz - (pos + len);
+            if (remaining > 0) {
+                std::memmove(sm().data + pos, sm().data + pos + len, remaining);
+            }
+            sm().len = static_cast<u8>(sz - len);
+            sm().data[sm().len] = '\0';
+        } else {
+            lg().erase(pos, len);
+        }
+        return *this;
+    }
+
+    PhsString& insert(std::size_t pos, std::string_view sv) {
+        const std::size_t sz = size();
+        if (pos > sz) {
+            throw std::out_of_range{"PhsString::insert: pos out of range"};
+        }
+        
+        const std::size_t n = sv.size();
+        if (n == 0) return *this;
+
+        const std::size_t new_sz = sz + n;
+
+        if (is_small()) {
+            if (new_sz <= SSO_CAPACITY) {
+                const std::size_t suffix_len = sz - pos;
+                if (suffix_len > 0) {
+                    std::memmove(sm().data + pos + n, sm().data + pos, suffix_len);
+                }
+                std::memcpy(sm().data + pos, sv.data(), n);
+                sm().len = static_cast<u8>(new_sz);
+                sm().data[new_sz] = '\0';
+                return *this;
+            } else {
+                std::string promoted;
+                promoted.reserve(new_sz);
+                promoted.append(sm().data, pos);
+                promoted.append(sv);
+                promoted.append(sm().data + pos, sz - pos);
+                m_store = std::move(promoted);
+            }
+        } else {
+            lg().insert(pos, sv);
+        }
+        return *this;
+    }
+
+    PhsString& replace(std::size_t pos, std::size_t len, std::string_view sv) {
+        erase(pos, len);
+        return insert(pos, sv);
+    }
+
+    /// @brief Erases a single character at the specified iterator position.
+    iterator erase(iterator p) {
+        // Calculate index from pointer arithmetic
+        std::size_t pos = static_cast<std::size_t>(p - begin());
+        erase(pos, 1);
+        return begin() + pos;
+    }
+
+    /// @brief Erases a range of characters.
+    iterator erase(iterator first, iterator last) {
+        std::size_t pos = static_cast<std::size_t>(first - begin());
+        std::size_t len = static_cast<std::size_t>(last - first);
+        erase(pos, len);
+        return begin() + pos;
+    }
+
+    /// @brief Assigns a string view to the PhsString.
+    PhsString& assign(std::string_view sv) {
+        *this = PhsString(sv);
+        return *this;
+    }
+
+    /// @brief Assigns a specific length of a character array to the PhsString.
+    PhsString& assign(const char* s, std::size_t n) {
+        *this = PhsString(s, n);
+        return *this;
+    }
+
+    /// @brief Assigns n copies of character c to the PhsString.
+    PhsString& assign(std::size_t n, char c) {
+        *this = PhsString(n, c);
+        return *this;
+    }
  
 private:
  

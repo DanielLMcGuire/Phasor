@@ -39,7 +39,7 @@ fn build() -> bool {
 
     if (!g_config.HEAT_EXE.fexists()) {
         puts("Downloading heat.exe...");
-        var p: sys_fork_out = sys_fork(g_config.NUGET_EXE, ["install WixToolset.Heat", "-Version", g_config.INI.wix.version, "-OutputDirectory", g_config.WIX_DIR.fjoin("heat")]);
+        var p: sys_fork_out = sys_fork(g_config.NUGET_EXE, ["install", "WixToolset.Heat", "-Version", g_config.INI.wix.version, "-OutputDirectory", g_config.WIX_DIR.fjoin("heat")]);
         if (p.status != 0) {
             doError("Failed to download heat.exe!");
             return false;

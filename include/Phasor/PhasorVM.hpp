@@ -179,7 +179,7 @@ class VM
 	Value runFunction(const PhsString &name, const Bytecode &bytecode, const bool &argsInit = false);
 
 	/// @brief Native function signature
-	using NativeFunction = std::function<Value(const std::vector<Value> &args, VM *vm)>;
+	using NativeFunction = std::function<Value(const Value::ArrayInstance &args, VM *vm)>;
 
 	/// @brief Register a native function
 	void registerNativeFunction(const PhsString &name, NativeFunction fn);
@@ -374,7 +374,7 @@ class VM
 	std::vector<int> callStack;
 
 	/// @brief Variable storage indexed by variable index, or simply: the managed heap
-	std::vector<Value> variables;
+	Value::ArrayInstance variables;
 
 	/// @brief Bytecode to execute
 	const Bytecode *m_bytecode{};

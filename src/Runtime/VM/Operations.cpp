@@ -255,7 +255,7 @@ void VM::evalLoop()
             flush();
 #endif
 			int argCount = static_cast<int>(peek().asInt());
-			std::vector<Value> args(argCount);
+			Value::ArrayInstance args(argCount);
 			for (int i = argCount - 1; i >= 0; --i)
 			{
 				args[i] = stack[stack.size() - 2 - (argCount - 1 - i)];
@@ -299,7 +299,7 @@ void VM::evalLoop()
                 PHS_ERROR("Unknown native function: " + funcName);
 
             int                argCount = static_cast<int>(pop().asInt());
-            std::vector<Value> args(argCount);
+            Value::ArrayInstance args(argCount);
             for (int i = argCount - 1; i >= 0; --i)
 			{
                 args[i] = pop();
@@ -783,7 +783,7 @@ PHS_ERROR("Invalid default constant index for struct field");
             i64 count = pop().asInt();
             if (count < 0) PHS_ERROR("Array size cannot be negative");
 
-            std::vector<Value> elements;
+            Value::ArrayInstance elements;
             elements.reserve(static_cast<size_t>(count));
 
             for (int i = static_cast<int>(count) - 1; i >= 0; --i)
@@ -1146,7 +1146,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		flush();
 #endif
 		int argCount = static_cast<int>(peek().asInt());
-		std::vector<Value> args(argCount);
+		Value::ArrayInstance args(argCount);
 		for (int i = argCount - 1; i >= 0; --i)
 		{
 			args[i] = stack[stack.size() - 2 - (argCount - 1 - i)];
@@ -1187,7 +1187,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			PHS_ERROR("Unknown native function: " + funcName);
 
 		int                argCount = static_cast<int>(pop().asInt());
-		std::vector<Value> args(argCount);
+		Value::ArrayInstance args(argCount);
 		for (int i = argCount - 1; i >= 0; --i)
 		{
 			args[i] = pop();
@@ -1840,7 +1840,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
         if (count < 0) PHS_ERROR("Array size cannot be negative");
 
-        std::vector<Value> elements;
+        Value::ArrayInstance elements;
         elements.reserve(static_cast<size_t>(count));
 
         for (int i = static_cast<int>(count) - 1; i >= 0; --i)

@@ -112,7 +112,7 @@ class FFI
 	/**
 	 * @brief Native function to load a plugin at runtime.
 	 */
-	bool native_add_plugin(const std::vector<Value> &args, VM *vm);
+	bool native_add_plugin(const Value::ArrayInstance &args, VM *vm);
 
 	/**
 	 * @brief Loads a single plugin from a library file.

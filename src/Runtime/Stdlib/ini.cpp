@@ -185,7 +185,7 @@ void StdLib::registerIniFunctions(VM *vm)
 	vm->registerNativeFunction("ini_empty", StdLib::ini_empty);
 }
 
-Value StdLib::ini_read(const std::vector<Value> &args, VM *)
+Value StdLib::ini_read(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ini_read");
 	if (!args[0].isString())
@@ -194,7 +194,7 @@ Value StdLib::ini_read(const std::vector<Value> &args, VM *)
 	return iniDataToValue(parseIniString(args[0].stl_string()));
 }
 
-PhsString StdLib::ini_write(const std::vector<Value> &args, VM *)
+PhsString StdLib::ini_write(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ini_write");
 	if (!args[0].isStruct())
@@ -203,7 +203,7 @@ PhsString StdLib::ini_write(const std::vector<Value> &args, VM *)
 	return writeIniString(valueToIniData(args[0]));
 }
 
-PhsString StdLib::ini_read_entry(const std::vector<Value> &args, VM *)
+PhsString StdLib::ini_read_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_read_entry");
 	if (!args[0].isString())
@@ -222,7 +222,7 @@ PhsString StdLib::ini_read_entry(const std::vector<Value> &args, VM *)
 	return entry ? entry->value : PhsString("");
 }
 
-PhsString StdLib::ini_write_entry(const std::vector<Value> &args, VM *)
+PhsString StdLib::ini_write_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 4, "ini_write_entry");
 	if (!args[0].isString())
@@ -253,7 +253,7 @@ PhsString StdLib::ini_write_entry(const std::vector<Value> &args, VM *)
 	return writeIniString(data);
 }
 
-Value StdLib::ini_read_section(const std::vector<Value> &args, VM *)
+Value StdLib::ini_read_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ini_read_section");
 	if (!args[0].isString())
@@ -273,7 +273,7 @@ Value StdLib::ini_read_section(const std::vector<Value> &args, VM *)
 	return sectionValue;
 }
 
-PhsString StdLib::ini_write_section(const std::vector<Value> &args, VM *)
+PhsString StdLib::ini_write_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_write_section");
 	if (!args[0].isString())
@@ -298,7 +298,7 @@ PhsString StdLib::ini_write_section(const std::vector<Value> &args, VM *)
 	return writeIniString(data);
 }
 
-bool StdLib::ini_has_section(const std::vector<Value> &args, VM *)
+bool StdLib::ini_has_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ini_has_section");
 	if (!args[0].isString())
@@ -310,7 +310,7 @@ bool StdLib::ini_has_section(const std::vector<Value> &args, VM *)
 	return findSection(data, args[1].string()) != nullptr;
 }
 
-bool StdLib::ini_has_entry(const std::vector<Value> &args, VM *)
+bool StdLib::ini_has_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_has_entry");
 	if (!args[0].isString())
@@ -328,7 +328,7 @@ bool StdLib::ini_has_entry(const std::vector<Value> &args, VM *)
 	return findEntry(*section, args[2].string()) != nullptr;
 }
 
-PhsString StdLib::ini_remove_section(const std::vector<Value> &args, VM *)
+PhsString StdLib::ini_remove_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ini_remove_section");
 	if (!args[0].isString())
@@ -347,7 +347,7 @@ PhsString StdLib::ini_remove_section(const std::vector<Value> &args, VM *)
 	return writeIniString(data);
 }
 
-PhsString StdLib::ini_remove_entry(const std::vector<Value> &args, VM *)
+PhsString StdLib::ini_remove_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_remove_entry");
 	if (!args[0].isString())
@@ -372,7 +372,7 @@ PhsString StdLib::ini_remove_entry(const std::vector<Value> &args, VM *)
 	return writeIniString(data);
 }
 
-bool StdLib::ini_empty(const std::vector<Value> &args, VM *)
+bool StdLib::ini_empty(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ini_empty");
 	if (!args[0].isString())

@@ -9,7 +9,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 {
 	Value root = Value::createStruct("Bytecode");
 
-	std::vector<Value> instrElems;
+	Value::ArrayInstance instrElems;
 	instrElems.reserve(bc.instructions.size());
 	for (const auto &instr : bc.instructions)
 	{
@@ -29,11 +29,11 @@ inline Value bytecodeToValue(const Bytecode &bc)
 		variablesMap[PhsString(varKey)] = Value(static_cast<i64>(varVal));
 	root["variables"] = variablesMap;
 
-	std::vector<Value> scopeOuter;
+	Value::ArrayInstance scopeOuter;
 	scopeOuter.reserve(bc.scopeVarLists.size());
 	for (const auto &scope : bc.scopeVarLists)
 	{
-		std::vector<Value> scopeInner;
+		Value::ArrayInstance scopeInner;
 		scopeInner.reserve(scope.size());
 		for (const auto &[scopeIdx, scopeName] : scope)
 		{
@@ -59,7 +59,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 	Value functionParamTypeNamesMap = Value::createStruct("Map");
 	for (const auto &[fptnKey, fptnVec] : bc.functionParamTypeNames)
 	{
-		std::vector<Value> fptnElems;
+		Value::ArrayInstance fptnElems;
 		fptnElems.reserve(fptnVec.size());
 		for (const auto &fptnStr : fptnVec)
 			fptnElems.emplace_back(fptnStr);
@@ -70,11 +70,11 @@ inline Value bytecodeToValue(const Bytecode &bc)
 	Value functionParamArrayDimsMap = Value::createStruct("Map");
 	for (const auto &[fpadKey, fpadOuterVec] : bc.functionParamArrayDims)
 	{
-		std::vector<Value> fpadOuter;
+		Value::ArrayInstance fpadOuter;
 		fpadOuter.reserve(fpadOuterVec.size());
 		for (const auto &fpadInnerVec : fpadOuterVec)
 		{
-			std::vector<Value> fpadInner;
+			Value::ArrayInstance fpadInner;
 			fpadInner.reserve(fpadInnerVec.size());
 			for (int fpadDim : fpadInnerVec)
 				fpadInner.emplace_back(static_cast<i64>(fpadDim));
@@ -92,7 +92,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 	Value functionReturnArrayDimsMap = Value::createStruct("Map");
 	for (const auto &[fradKey, fradVec] : bc.functionReturnArrayDims)
 	{
-		std::vector<Value> fradElems;
+		Value::ArrayInstance fradElems;
 		fradElems.reserve(fradVec.size());
 		for (int fradDim : fradVec)
 			fradElems.emplace_back(static_cast<i64>(fradDim));
@@ -102,7 +102,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 
 	root["nextVarIndex"] = Value(static_cast<i64>(bc.nextVarIndex));
 
-	std::vector<Value> structElems;
+	Value::ArrayInstance structElems;
 	structElems.reserve(bc.structs.size());
 	for (const auto &si : bc.structs)
 	{
@@ -111,17 +111,17 @@ inline Value bytecodeToValue(const Bytecode &bc)
 		sv["firstConstIndex"] = Value(static_cast<i64>(si.firstConstIndex));
 		sv["fieldCount"]      = Value(static_cast<i64>(si.fieldCount));
 
-		std::vector<Value> fieldNamesElems;
+		Value::ArrayInstance fieldNamesElems;
 		fieldNamesElems.reserve(si.fieldNames.size());
 		for (const auto &fn : si.fieldNames)
 			fieldNamesElems.emplace_back(fn);
 		sv["fieldNames"] = Value::createArray(std::move(fieldNamesElems));
 
-		std::vector<Value> fieldArrayDimsElems;
+		Value::ArrayInstance fieldArrayDimsElems;
 		fieldArrayDimsElems.reserve(si.fieldArrayDims.size());
 		for (const auto &dims : si.fieldArrayDims)
 		{
-			std::vector<Value> dimElems;
+			Value::ArrayInstance dimElems;
 			dimElems.reserve(dims.size());
 			for (int d : dims)
 				dimElems.emplace_back(static_cast<i64>(d));
@@ -129,7 +129,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 		}
 		sv["fieldArrayDims"] = Value::createArray(std::move(fieldArrayDimsElems));
 
-		std::vector<Value> fieldTypeNamesElems;
+		Value::ArrayInstance fieldTypeNamesElems;
 		fieldTypeNamesElems.reserve(si.fieldTypeNames.size());
 		for (const auto &ftn : si.fieldTypeNames)
 			fieldTypeNamesElems.emplace_back(ftn);

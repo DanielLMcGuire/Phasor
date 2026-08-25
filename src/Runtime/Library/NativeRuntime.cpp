@@ -77,7 +77,7 @@ NativeRuntime::~NativeRuntime()
 
 void NativeRuntime::addNativeFunction(const std::string &name, void *function)
 {
-	using RawFunctionPtr = Value (*)(const std::vector<Value> &, VM *);
+	using RawFunctionPtr = Value (*)(const Value::ArrayInstance &, VM *);
 	auto rawPtr = reinterpret_cast<RawFunctionPtr>(function);
 	NativeFunction nativeFunction = rawPtr;
 	m_vm->registerNativeFunction(name, nativeFunction);

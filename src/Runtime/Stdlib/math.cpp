@@ -21,7 +21,7 @@ void StdLib::registerMathFunctions(VM *vm)
 	vm->registerNativeFunction("math_tan", StdLib::math_tan);
 }
 
-f64 StdLib::math_sqrt(const std::vector<Value> &args, VM *)
+f64 StdLib::math_sqrt(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_sqrt");
 	if (!args[0].isNumber())
@@ -29,7 +29,7 @@ f64 StdLib::math_sqrt(const std::vector<Value> &args, VM *)
 	return asm_sqrt(args[0].asFloat());
 }
 
-f64 StdLib::math_pow(const std::vector<Value> &args, VM *)
+f64 StdLib::math_pow(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "math_pow");
 	if (!args[0].isNumber())
@@ -41,7 +41,7 @@ f64 StdLib::math_pow(const std::vector<Value> &args, VM *)
 	return asm_pow(base, expv);
 }
 
-Value StdLib::math_abs(const std::vector<Value> &args, VM *)
+Value StdLib::math_abs(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement abs natively
 	checkArgCount(args, 1, "math_abs");
@@ -54,7 +54,7 @@ Value StdLib::math_abs(const std::vector<Value> &args, VM *)
 	return std::abs(args[0].asFloat());
 }
 
-f64 StdLib::math_floor(const std::vector<Value> &args, VM *)
+f64 StdLib::math_floor(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement floor natively
 	checkArgCount(args, 1, "math_floor");
@@ -63,7 +63,7 @@ f64 StdLib::math_floor(const std::vector<Value> &args, VM *)
 	return std::floor(args[0].asFloat());
 }
 
-f64 StdLib::math_ceil(const std::vector<Value> &args, VM *)
+f64 StdLib::math_ceil(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement ceil natively
 	checkArgCount(args, 1, "math_ceil");
@@ -72,7 +72,7 @@ f64 StdLib::math_ceil(const std::vector<Value> &args, VM *)
 	return std::ceil(args[0].asFloat());
 }
 
-f64 StdLib::math_round(const std::vector<Value> &args, VM *)
+f64 StdLib::math_round(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement round natively
 	checkArgCount(args, 1, "math_round");
@@ -81,7 +81,7 @@ f64 StdLib::math_round(const std::vector<Value> &args, VM *)
 	return std::round(args[0].asFloat());
 }
 
-Value StdLib::math_min(const std::vector<Value> &args, VM *)
+Value StdLib::math_min(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "math_min");
 	const Value &a = args[0];
@@ -105,7 +105,7 @@ Value StdLib::math_min(const std::vector<Value> &args, VM *)
 	PHS_ERROR("math_min() expects two numbers or two strings");
 }
 
-Value StdLib::math_max(const std::vector<Value> &args, VM *)
+Value StdLib::math_max(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "math_max");
 	const Value &a = args[0];
@@ -129,7 +129,7 @@ Value StdLib::math_max(const std::vector<Value> &args, VM *)
 	PHS_ERROR("math_max() expects two numbers or two strings");
 }
 
-f64 StdLib::math_log(const std::vector<Value> &args, VM *)
+f64 StdLib::math_log(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_log");
 	if (!args[0].isNumber())
@@ -137,7 +137,7 @@ f64 StdLib::math_log(const std::vector<Value> &args, VM *)
 	return asm_log(args[0].asFloat());
 }
 
-f64 StdLib::math_exp(const std::vector<Value> &args, VM *)
+f64 StdLib::math_exp(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_exp");
 	if (!args[0].isNumber())
@@ -145,7 +145,7 @@ f64 StdLib::math_exp(const std::vector<Value> &args, VM *)
 	return asm_exp(args[0].asFloat());
 }
 
-f64 StdLib::math_sin(const std::vector<Value> &args, VM *)
+f64 StdLib::math_sin(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_sin");
 	if (!args[0].isNumber())
@@ -153,7 +153,7 @@ f64 StdLib::math_sin(const std::vector<Value> &args, VM *)
 	return asm_sin(args[0].asFloat());
 }
 
-f64 StdLib::math_cos(const std::vector<Value> &args, VM *)
+f64 StdLib::math_cos(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_cos");
 	if (!args[0].isNumber())
@@ -161,7 +161,7 @@ f64 StdLib::math_cos(const std::vector<Value> &args, VM *)
 	return asm_cos(args[0].asFloat());
 }
 
-f64 StdLib::math_tan(const std::vector<Value> &args, VM *)
+f64 StdLib::math_tan(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_tan");
 	if (!args[0].isNumber())

@@ -47,7 +47,7 @@ struct StructInfo
 struct Bytecode
 {
 	std::vector<Instruction>             instructions;        ///< List of instructions
-	std::vector<Value>                   constants;           ///< Constant pool
+	Value::ArrayInstance                   constants;           ///< Constant pool
 	std::unordered_map<std::string, int> variables;           ///< Variable name -> index mapping
 	std::vector<std::vector<std::pair<int, std::string>>> scopeVarLists; ///< Per-scope var indices to free on EXIT_SCOPE
 	std::unordered_map<std::string, int> functionEntries;     ///< Function name -> instruction index mapping

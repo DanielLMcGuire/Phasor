@@ -24,7 +24,7 @@ void StdLib::registerMemoryFunctions(VM *vm)
 	vm->registerNativeFunction("phs__memory_free_native", StdLib::native_memory_free);
 }
 
-Value StdLib::var_free(const std::vector<Value> &args, VM *vm)
+Value StdLib::var_free(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "free");
 
@@ -37,7 +37,7 @@ Value StdLib::var_free(const std::vector<Value> &args, VM *vm)
 	return phsnull;
 }
 
-Value StdLib::native_memory_write(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_write(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "write_native");
 
@@ -68,7 +68,7 @@ Value StdLib::native_memory_write(const std::vector<Value> &args, VM *)
 	return phsnull;
 }
 
-Value StdLib::native_memory_write_string(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_write_string(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "write_string_native");
 
@@ -100,7 +100,7 @@ Value StdLib::native_memory_write_string(const std::vector<Value> &args, VM *)
 	return phsnull;
 }
 
-Value StdLib::native_memory_write_offset(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_write_offset(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 4, "write_offset_native");
 
@@ -136,7 +136,7 @@ Value StdLib::native_memory_write_offset(const std::vector<Value> &args, VM *)
 	return phsnull;
 }
 
-Value StdLib::native_memory_write_string_offset(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_write_string_offset(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 4, "write_string_offset_native");
 
@@ -174,7 +174,7 @@ Value StdLib::native_memory_write_string_offset(const std::vector<Value> &args, 
 	return phsnull;
 }
 
-PhsString StdLib::native_memory_read_string(const std::vector<Value> &args, VM *)
+PhsString StdLib::native_memory_read_string(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "read_string_native");
 
@@ -207,7 +207,7 @@ PhsString StdLib::native_memory_read_string(const std::vector<Value> &args, VM *
 	return result;
 }
 
-i64 StdLib::native_memory_read(const std::vector<Value> &args, VM *)
+i64 StdLib::native_memory_read(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "read_native");
 
@@ -235,7 +235,7 @@ i64 StdLib::native_memory_read(const std::vector<Value> &args, VM *)
 	return data;
 }
 
-PhsString StdLib::native_memory_read_string_offset(const std::vector<Value> &args, VM *)
+PhsString StdLib::native_memory_read_string_offset(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "read_string_native_offset");
 
@@ -273,7 +273,7 @@ PhsString StdLib::native_memory_read_string_offset(const std::vector<Value> &arg
 	return result;
 }
 
-i64 StdLib::native_memory_read_offset(const std::vector<Value> &args, VM *)
+i64 StdLib::native_memory_read_offset(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "read_native_offset");
 
@@ -306,7 +306,7 @@ i64 StdLib::native_memory_read_offset(const std::vector<Value> &args, VM *)
 	return data;
 }
 
-i64 StdLib::native_memory_malloc(const std::vector<Value> &args, VM *)
+i64 StdLib::native_memory_malloc(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "malloc_native");
 
@@ -326,7 +326,7 @@ i64 StdLib::native_memory_malloc(const std::vector<Value> &args, VM *)
 	return pointer_to_i64(ptr);
 }
 
-i64 StdLib::native_memory_calloc(const std::vector<Value> &args, VM *)
+i64 StdLib::native_memory_calloc(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "calloc_native");
 
@@ -346,7 +346,7 @@ i64 StdLib::native_memory_calloc(const std::vector<Value> &args, VM *)
 	return pointer_to_i64(ptr);
 }
 
-i64 StdLib::native_memory_realloc(const std::vector<Value> &args, VM *)
+i64 StdLib::native_memory_realloc(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "realloc_native");
 
@@ -372,7 +372,7 @@ i64 StdLib::native_memory_realloc(const std::vector<Value> &args, VM *)
 	return pointer_to_i64(newPtr);
 }
 
-Value StdLib::native_memory_free(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_free(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "free_native");
 
@@ -391,7 +391,7 @@ Value StdLib::native_memory_free(const std::vector<Value> &args, VM *)
 	return phsnull;
 }
 
-Value StdLib::native_memory_strcpy(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_strcpy(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 4, "strcpy_native");
 
@@ -437,7 +437,7 @@ Value StdLib::native_memory_strcpy(const std::vector<Value> &args, VM *)
 	return phsnull;
 }
 
-Value StdLib::native_memory_stralloc(const std::vector<Value> &args, VM *)
+Value StdLib::native_memory_stralloc(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "stralloc_native");
 
@@ -457,12 +457,12 @@ Value StdLib::native_memory_stralloc(const std::vector<Value> &args, VM *)
 	return Value::createArray({address, static_cast<i64>(bufSize)});
 }
 
-i64 StdLib::native_memory_argv(const std::vector<Value> &args, VM *) {
+i64 StdLib::native_memory_argv(const Value::ArrayInstance &args, VM *) {
 	checkArgCount(args, 0, "phs__argv_ptr");
 	return pointer_to_i64(&argv);
 }
 
-i64 StdLib::native_memory_argc(const std::vector<Value> &args, VM *){
+i64 StdLib::native_memory_argc(const Value::ArrayInstance &args, VM *){
 	checkArgCount(args, 0, "phs__argc_ptr");
 	return pointer_to_i64(&argc);
 }

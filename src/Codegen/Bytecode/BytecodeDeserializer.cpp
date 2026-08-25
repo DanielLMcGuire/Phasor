@@ -166,7 +166,7 @@ Value BytecodeDeserializer::readValue()
 	case 6: // Array
 	{
 		u32                elementCount = readUInt32();
-		std::vector<Value> elements;
+		Value::ArrayInstance elements;
 		elements.reserve(elementCount);
 		for (u32 i = 0; i < elementCount; ++i)
 		{

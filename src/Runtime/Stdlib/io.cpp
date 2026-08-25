@@ -24,7 +24,7 @@ void StdLib::registerIOFunctions(VM *vm)
 }
 
 #ifndef SANDBOXED
-Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
+Value StdLib::io_clear(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 0, "clear");
 	vm->regRun(OpCode::PRINT_R, "\033[2J\033[H");
@@ -32,7 +32,7 @@ Value StdLib::io_clear(const std::vector<Value> &args, VM *vm)
 }
 #endif
 
-PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
+PhsString StdLib::io_c_format(const Value::ArrayInstance &args, VM *)
 {
 	if (args.empty())
 	{
@@ -45,41 +45,41 @@ PhsString StdLib::io_c_format(const std::vector<Value> &args, VM *)
 	const PhsString &fmt = args[0].string();
 
 	// Make vector of format args
-	std::vector<Value> formatArgs(args.begin() + 1, args.end());
+	Value::ArrayInstance formatArgs(args.begin() + 1, args.end());
 
 	return vformat::str_format_v(fmt.c_str(), formatArgs);
 	
 }
 
-PhsString StdLib::io_printf(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_printf(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "printf", true);
 	if (!args[0].isString())
 		PHS_ERROR("printf() expects a string as its first argument (format)");
-	std::vector<Value> formatArgs(args.begin(), args.end());
+	Value::ArrayInstance formatArgs(args.begin(), args.end());
 	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
 	return "";
 }
 
-PhsString StdLib::io_putf(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_putf(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf", true);
 	if (!args[0].isString())
 		PHS_ERROR("putf() expects a string as its first argument (format)");
-	std::vector<Value> formatArgs(args.begin(), args.end());
+	Value::ArrayInstance formatArgs(args.begin(), args.end());
 	PhsString        input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINT_R, input.str() + "\n");
 	return "";
 }
 
 #ifndef SANDBOXED
-Value StdLib::io_gets(const std::vector<Value> &args, VM *vm)
+Value StdLib::io_gets(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 0, "gets");
 	return vm->regRun(OpCode::READLINE_R, REGISTER1);
 }
 
-Value StdLib::io_get_input(const std::vector<Value> &args, VM *)
+Value StdLib::io_get_input(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "get_input");
 	std::string content((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
@@ -87,7 +87,7 @@ Value StdLib::io_get_input(const std::vector<Value> &args, VM *)
 }
 #endif
 
-PhsString StdLib::io_print_error(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_print_error(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "print_error", true);
 	PhsString input = args[0].toString();
@@ -95,12 +95,12 @@ PhsString StdLib::io_print_error(const std::vector<Value> &args, VM *vm)
 	return "";
 }
 
-PhsString StdLib::io_putf_error(const std::vector<Value> &args, VM *vm)
+PhsString StdLib::io_putf_error(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
 	if (!args[0].isString())
 		PHS_ERROR("putf_error() expects a string as its first argument (format)");
-	std::vector<Value> formatArgs(args.begin(), args.end());
+	Value::ArrayInstance formatArgs(args.begin(), args.end());
 	PhsString input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
 	return "";

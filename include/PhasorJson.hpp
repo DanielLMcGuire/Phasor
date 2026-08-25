@@ -145,7 +145,7 @@ namespace PhsJson {
         if (it == end || *it != '[')
             throw std::runtime_error("Expected '['");
         ++it;
-        std::vector<Value> elements;
+        Value::ArrayInstance elements;
         skip_whitespace(it, end);
         if (it != end && *it != ']') {
             while (true) {

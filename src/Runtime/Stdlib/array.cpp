@@ -17,7 +17,7 @@ void StdLib::registerArrayFunctions(VM *vm)
     vm->registerNativeFunction("arr_find", array_find);
 }
 
-Value StdLib::array_resize(const std::vector<Value> &args, VM *)
+Value StdLib::array_resize(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "arr_resize");
 
@@ -38,7 +38,7 @@ Value StdLib::array_resize(const std::vector<Value> &args, VM *)
     return arr;
 }
 
-i64 StdLib::array_length(const std::vector<Value> &args, VM *)
+i64 StdLib::array_length(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "arr_length");
     if (!args[0].isArray())
@@ -49,7 +49,7 @@ i64 StdLib::array_length(const std::vector<Value> &args, VM *)
     return static_cast<i64>(arr->size());
 }
 
-Value StdLib::array_push(const std::vector<Value> &args, VM *)
+Value StdLib::array_push(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "arr_push");
 
@@ -62,7 +62,7 @@ Value StdLib::array_push(const std::vector<Value> &args, VM *)
     return arr;
 }
 
-Value StdLib::array_pop(const std::vector<Value> &args, VM *)
+Value StdLib::array_pop(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "arr_pop");
     if (!args[0].isArray())
@@ -78,7 +78,7 @@ Value StdLib::array_pop(const std::vector<Value> &args, VM *)
     return val;
 }
 
-Value StdLib::array_peek(const std::vector<Value> &args, VM *)
+Value StdLib::array_peek(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "arr_peek");
     if (!args[0].isArray())
@@ -93,7 +93,7 @@ Value StdLib::array_peek(const std::vector<Value> &args, VM *)
     return val;
 }
 
-Value StdLib::array_insert(const std::vector<Value> &args, VM *)
+Value StdLib::array_insert(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 3, "arr_insert");
 
@@ -114,7 +114,7 @@ Value StdLib::array_insert(const std::vector<Value> &args, VM *)
     return arr;
 }
 
-Value StdLib::array_join(const std::vector<Value> &args, VM *)
+Value StdLib::array_join(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "arr_join");
 
@@ -144,7 +144,7 @@ Value StdLib::array_join(const std::vector<Value> &args, VM *)
     return Value(result);
 }
 
-Value StdLib::array_find(const std::vector<Value> &args, VM *)
+Value StdLib::array_find(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "arr_find");
 

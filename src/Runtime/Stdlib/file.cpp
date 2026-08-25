@@ -72,7 +72,7 @@ void StdLib::registerFileFunctions(VM *vm)
 	vm->registerNativeFunction("fkind", StdLib::file_descriptor_kind);
 }
 
-Value StdLib::file_open(const std::vector<Value> &args, VM *)
+Value StdLib::file_open(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "fopen");
 	requireString(args[0], "fopen", "first argument (path)");
@@ -85,7 +85,7 @@ Value StdLib::file_open(const std::vector<Value> &args, VM *)
 	return allocFileDescriptor(std::move(fs), StreamKind::File);
 }
 
-bool StdLib::file_close(const std::vector<Value> &args, VM *)
+bool StdLib::file_close(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fclose");
 	requireInt(args[0], "fclose", "argument (file descriptor)");
@@ -103,7 +103,7 @@ bool StdLib::file_close(const std::vector<Value> &args, VM *)
 	return false;
 }
 
-Value StdLib::file_memory_open(const std::vector<Value> &args, VM *)
+Value StdLib::file_memory_open(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fmemopen", true);
 	if (args.size() > 2) PHS_ERROR("fmemopen() expects at most 2 arguments");
@@ -124,7 +124,7 @@ Value StdLib::file_memory_open(const std::vector<Value> &args, VM *)
 	return allocFileDescriptor(std::move(ss), StreamKind::Memory);
 }
 
-Value StdLib::file_pipe_open(const std::vector<Value> &args, VM *)
+Value StdLib::file_pipe_open(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "fpipe", true);
 
@@ -144,11 +144,11 @@ Value StdLib::file_pipe_open(const std::vector<Value> &args, VM *)
 	i64 readFd  = allocFileDescriptor(std::move(readStream), StreamKind::Pipe);
 	i64 writeFd = allocFileDescriptor(std::move(writeStream), StreamKind::Pipe);
 
-	std::vector<Value> result{ readFd, writeFd };
+	Value::ArrayInstance result{ readFd, writeFd };
 	return Value::createArray(std::move(result));
 }
 
-PhsString StdLib::file_descriptor_kind(const std::vector<Value> &args, VM *)
+i64 StdLib::file_descriptor_kind(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fkind");
 	requireInt(args[0], "fkind", "argument (file descriptor)");
@@ -156,23 +156,17 @@ PhsString StdLib::file_descriptor_kind(const std::vector<Value> &args, VM *)
 	auto& pool = getFilePool();
 	if (fd < 0 || std::cmp_greater_equal(fd, pool.size()) || !pool[fd].stream)
 		PHS_ERROR("fkind() invalid file descriptor");
-	switch (pool[fd].kind)
-	{
-		case StreamKind::File:   return "file";
-		case StreamKind::Memory: return "memory";
-		case StreamKind::Pipe:   return "pipe";
-	}
-	return "unknown";
+	return static_cast<i64>(pool[fd].kind);
 }
 
-PhsString StdLib::file_absolute(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_absolute(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fabsolute");
 	requireString(args[0], "fabsolute", "argument (path)");
 	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].stl_string())).string();
 }
 
-PhsString StdLib::file_relative(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_relative(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "frelative");
 	requireString(args[0], "frelative", "argument (path)");
@@ -186,42 +180,42 @@ PhsString StdLib::file_relative(const std::vector<Value> &args, VM *)
 	return std::filesystem::relative(path, cwd).string();
 }
 
-PhsString StdLib::file_stem(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_stem(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fstem");
 	requireString(args[0], "fstem", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).stem().string();
 }
 
-PhsString StdLib::file_filename(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_filename(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fname");
 	requireString(args[0], "fname", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).filename().string();
 }
 
-PhsString StdLib::file_extension(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_extension(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fext");
 	requireString(args[0], "fext", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).extension().string();
 }
 
-PhsString StdLib::file_parent(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_parent(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fparent");
 	requireString(args[0], "fparent", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).parent_path().string();
 }
 
-bool StdLib::file_is_directory(const std::vector<Value> &args, VM *)
+bool StdLib::file_is_directory(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fisdir");
 	requireString(args[0], "fisdir", "argument (path)");
 	return std::filesystem::is_directory(args[0].stl_string());
 }
 
-PhsString StdLib::file_join_path(const std::vector<Value> &args, VM *)
+PhsString StdLib::file_join_path(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fjoin", true);
 
@@ -276,14 +270,14 @@ PhsString StdLib::file_join_path(const std::vector<Value> &args, VM *)
 	return result.string();
 }
 
-i64 StdLib::file_get_size(const std::vector<Value> &args, VM *)
+i64 StdLib::file_get_size(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fsize");
 	requireString(args[0], "fsize", "argument (path)");
 	return std::filesystem::file_size(args[0].stl_string());
 }
 
-Value StdLib::file_read(const std::vector<Value> &args, VM *)
+Value StdLib::file_read(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fread");
 
@@ -312,7 +306,7 @@ Value StdLib::file_read(const std::vector<Value> &args, VM *)
 	return buffer.str();
 }
 
-Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
+Value StdLib::file_read_line(const Value::ArrayInstance &args, VM *)
 {
 	if (args.empty() || args.size() > 2)
 	{
@@ -371,7 +365,7 @@ Value StdLib::file_read_line(const std::vector<Value> &args, VM *)
 	return lineContent;
 }
 
-bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
+bool StdLib::file_write_line(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "fwriteln");
 
@@ -435,7 +429,7 @@ bool StdLib::file_write_line(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-bool StdLib::file_write(const std::vector<Value> &args, VM *)
+bool StdLib::file_write(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "fwrite");
 
@@ -464,14 +458,14 @@ bool StdLib::file_write(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-bool StdLib::file_exists(const std::vector<Value> &args, VM *)
+bool StdLib::file_exists(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fexists");
 	requireString(args[0], "fexists", "argument (path)");
 	return std::filesystem::exists(args[0].stl_string());
 }
 
-bool StdLib::file_append(const std::vector<Value> &args, VM *)
+bool StdLib::file_append(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "fappend");
 
@@ -501,7 +495,7 @@ bool StdLib::file_append(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-bool StdLib::file_delete(const std::vector<Value> &args, VM *)
+bool StdLib::file_delete(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "frm");
 	requireString(args[0], "frm", "argument (path)");
@@ -513,7 +507,7 @@ bool StdLib::file_delete(const std::vector<Value> &args, VM *)
 	return false;
 }
 
-bool StdLib::file_rename(const std::vector<Value> &args, VM *)
+bool StdLib::file_rename(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "frn");
 	requireString(args[0], "frn", "first argument (source path)");
@@ -531,7 +525,7 @@ bool StdLib::file_rename(const std::vector<Value> &args, VM *)
 	return !ec;
 }
 
-Value StdLib::file_current_directory(const std::vector<Value> &args, VM *)
+Value StdLib::file_current_directory(const Value::ArrayInstance &args, VM *)
 {
 	// If no arguments, return current directory
 	if (args.empty())
@@ -550,7 +544,7 @@ Value StdLib::file_current_directory(const std::vector<Value> &args, VM *)
 	return false;
 }
 
-bool StdLib::file_copy(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_copy(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 2, "fcp", true);
 	if (args.size() > 3)
@@ -610,7 +604,7 @@ bool StdLib::file_copy(const std::vector<Value> &args, VM *vm)
 	return true;
 }
 
-bool StdLib::file_move(const std::vector<Value> &args, VM *vm)
+bool StdLib::file_move(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 2, "fmv");
 	requireString(args[0], "fmv", "first argument (source path)");
@@ -629,7 +623,7 @@ bool StdLib::file_move(const std::vector<Value> &args, VM *vm)
 	return status;
 }
 
-bool StdLib::file_property_edit(const std::vector<Value> &args, VM *)
+bool StdLib::file_property_edit(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "fpropedit");
 	requireString(args[0], "fpropedit", "first argument (path)");
@@ -648,7 +642,7 @@ bool StdLib::file_property_edit(const std::vector<Value> &args, VM *)
 	return PHASORstd_file_setProperties(const_cast<char *>(path.string().c_str()), param, epoch);
 }
 
-i64 StdLib::file_property_get(const std::vector<Value> &args, VM *)
+i64 StdLib::file_property_get(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "fpropget");
 	requireString(args[0], "fpropget", "first argument (path)");
@@ -660,7 +654,7 @@ i64 StdLib::file_property_get(const std::vector<Value> &args, VM *)
 	return PHASORstd_file_getProperties(const_cast<char *>(path.string().c_str()), param);
 }
 
-bool StdLib::file_create(const std::vector<Value> &args, VM *)
+bool StdLib::file_create(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fcreate");
 	requireString(args[0], "fcreate", "argument (path)");
@@ -675,13 +669,13 @@ bool StdLib::file_create(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
+Value StdLib::file_read_directory(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "freaddir");
 	requireString(args[0], "freaddir", "argument (path)");
 	PhsString path = args[0].string();
 
-	std::vector<Value> entries;
+	Value::ArrayInstance entries;
 
 	for (const auto &entry : std::filesystem::directory_iterator(path.str()))
 	{
@@ -691,7 +685,7 @@ Value StdLib::file_read_directory(const std::vector<Value> &args, VM *)
 	return Value::createArray(std::move(entries));
 }
 
-bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
+bool StdLib::file_create_directory(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fmkdir");
 	requireString(args[0], "fmkdir", "argument (path)");
@@ -704,7 +698,7 @@ bool StdLib::file_create_directory(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-bool StdLib::file_remove_directory(const std::vector<Value> &args, VM *)
+bool StdLib::file_remove_directory(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "frmdir");
 	requireString(args[0], "frmdir", "first argument (path)");

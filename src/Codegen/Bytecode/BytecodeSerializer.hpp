@@ -40,7 +40,7 @@ class BytecodeSerializer
 
 	/// @brief Section writers
 	void writeHeader(u32 dataChecksum);                          ///< Helper method to write header
-	void writeConstantPool(const std::vector<Value> &constants); ///< Helper method to write Constants Table
+	void writeConstantPool(const Value::ArrayInstance &constants); ///< Helper method to write Constants Table
 	void writeVariableMapping(const std::unordered_map<std::string, int> &variables,
 	                          int nextVarIndex);                          ///< Helper method to write Variable Map Table
 	void writeInstructions(const std::vector<Instruction> &instructions); ///< Helper method to write Instruction Table

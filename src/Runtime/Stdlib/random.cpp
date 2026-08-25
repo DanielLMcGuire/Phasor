@@ -123,7 +123,7 @@ void StdLib::registerRandomFunctions(VM *vm)
 	vm->registerNativeFunction("rand_crypto_float", StdLib::rand_get_crypto_float);
 }
 
-Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
+Value StdLib::rand_seed(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "rand_seed");
 
@@ -144,7 +144,7 @@ Value StdLib::rand_seed(const std::vector<Value> &args, VM *)
 	return phsnull;
 }
 
-i64 StdLib::rand_next_range(const std::vector<Value> &args, VM *)
+i64 StdLib::rand_next_range(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "rand_next_range");
 
@@ -164,13 +164,13 @@ i64 StdLib::rand_next_range(const std::vector<Value> &args, VM *)
 	return PHASORstd_rand_next_range(static_cast<u64>(min), static_cast<u64>(max));
 }
 
-f64 StdLib::rand_next_float(const std::vector<Value> &args, VM *)
+f64 StdLib::rand_next_float(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "rand_next_float");
 	return PHASORstd_rand_next_double();
 }
 
-Value StdLib::rand_get_crypto_int(const std::vector<Value> &args, VM *)
+Value StdLib::rand_get_crypto_int(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "rand_crypto_int");
 	i64 val = 0;
@@ -183,7 +183,7 @@ Value StdLib::rand_get_crypto_int(const std::vector<Value> &args, VM *)
 	return val;
 }
 
-Value StdLib::rand_get_crypto_float(const std::vector<Value> &args, VM *)
+Value StdLib::rand_get_crypto_float(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "rand_crypto_float");
 	uint64_t  val = 0;

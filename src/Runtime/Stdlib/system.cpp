@@ -58,15 +58,15 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("sys_argc", StdLib::sys_argc);
 	vm->registerNativeFunction("sys_argv", StdLib::sys_argv);
 #else
-	auto stub = [](const std::vector<Value> &, VM *) -> Value { return phsnull; };
-	vm->registerNativeFunction("sys_os", [](const std::vector<Value> &, VM *) { return 6; });
-	vm->registerNativeFunction("sys_arch", [](const std::vector<Value> &, VM *) { return 5; });
+	auto stub = [](const Value::ArrayInstance &, VM *) -> Value { return phsnull; };
+	vm->registerNativeFunction("sys_os", [](const Value::ArrayInstance &, VM *) { return 6; });
+	vm->registerNativeFunction("sys_arch", [](const Value::ArrayInstance &, VM *) { return 5; });
 	vm->registerNativeFunction("sys_get_memory", stub);
 	vm->registerNativeFunction("sys_pid", stub);
 	vm->registerNativeFunction("isatty", stub);
 	if (!std::getenv("PHASOR_NO_ENV"))
 	{
-		vm->registerNativeFunction("sys_env", [] (const std::vector<Value> &v, VM *vm) -> Value {
+		vm->registerNativeFunction("sys_env", [] (const Value::ArrayInstance &v, VM *vm) -> Value {
 			if (consentGrantedEnv)
 			{
 				return sys_env(v, vm);
@@ -79,7 +79,7 @@ void StdLib::registerSysFunctions(VM *vm)
 			}
 			return phsnull;
 		});
-		vm->registerNativeFunction("sys_args", [] (const std::vector<Value> &v, VM *vm)
+		vm->registerNativeFunction("sys_args", [] (const Value::ArrayInstance &v, VM *vm)
 		{
 			if (consentGrantedCLI)
 			{
@@ -107,7 +107,7 @@ void StdLib::registerSysFunctions(VM *vm)
 #pragma warning(pop)
 #endif
 
-f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
+f64 StdLib::sys_time(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "time");
 	auto   now = std::chrono::steady_clock::now();
@@ -116,7 +116,7 @@ f64 StdLib::sys_time(const std::vector<Value> &args, VM *)
 	return millis;
 }
 
-Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
+Value StdLib::sys_time_formatted(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "timef");
     if (!args[0].isString())
@@ -132,7 +132,7 @@ Value StdLib::sys_time_formatted(const std::vector<Value> &args, VM *)
     }
 }
 
-f64 StdLib::sys_time_local(const std::vector<Value> &args, VM *)
+f64 StdLib::sys_time_local(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 0, "time");
     auto now = std::chrono::system_clock::now();
@@ -153,7 +153,7 @@ f64 StdLib::sys_time_local(const std::vector<Value> &args, VM *)
 #endif
 }
 
-Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
+Value StdLib::sys_time_formatted_local(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "localtimef");
     if (!args[0].isString())
@@ -177,7 +177,7 @@ Value StdLib::sys_time_formatted_local(const std::vector<Value> &args, VM *)
 #endif
 }
 
-Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
+Value StdLib::sys_sleep(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
 	if (!args[0].isNumber())
@@ -187,7 +187,7 @@ Value StdLib::sys_sleep(const std::vector<Value> &args, VM *)
 	return {" "};
 }
 
-Value StdLib::sys_env(const std::vector<Value> &args, VM *)
+Value StdLib::sys_env(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
 	if (!args[0].isString())
@@ -205,13 +205,13 @@ Value StdLib::sys_env(const std::vector<Value> &args, VM *)
 	}
 }
 
-i64 StdLib::sys_argc(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_argc(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "sys_argc");
 	return static_cast<i64>(argc);
 }
 
-Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
+Value StdLib::sys_argv(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
 	if (!args[0].isInt())
@@ -224,10 +224,10 @@ Value StdLib::sys_argv(const std::vector<Value> &args, VM *)
 	return argv[index];
 }
 
-Value StdLib::sys_args(const std::vector<Value> &args, VM *)
+Value StdLib::sys_args(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "sys_args");
-	std::vector<Value> arguments;
+	Value::ArrayInstance arguments;
 	arguments.reserve(argc);
 	for (int i = 0; i < argc; ++i)
 	{
@@ -236,7 +236,7 @@ Value StdLib::sys_args(const std::vector<Value> &args, VM *)
 	return Value::createArray(std::move(arguments));
 }
 
-Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_shutdown(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "shutdown");
 	if (!args[0].isInt())
@@ -248,7 +248,7 @@ Value StdLib::sys_shutdown(const std::vector<Value> &args, VM *vm)
 
 #ifndef SANDBOXED
 
-i64 StdLib::sys_os(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_os(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "sys_os");
 #if defined(_WIN32)
@@ -266,7 +266,7 @@ i64 StdLib::sys_os(const std::vector<Value> &args, VM *)
 #endif
 }
 
-i64 StdLib::sys_arch(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_arch(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "sys_arch");
 #if defined(TARGET_ARCH_ARM64)
@@ -282,20 +282,20 @@ i64 StdLib::sys_arch(const std::vector<Value> &args, VM *)
 #endif
 }
 
-i64 StdLib::sys_get_free_memory(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_get_free_memory(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "sys_get_memory");
 	return static_cast<i64>(PHASORstd_sys_getAvailableMemory());
 }
 
-Value StdLib::sys_wait_for_input(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_wait_for_input(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 0, "wait_for_input");
 	io_gets({}, vm);
 	return {""};
 }
 
-Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_shell(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "sys_shell");
 	if (!args[0].isString())
@@ -303,7 +303,7 @@ Value StdLib::sys_shell(const std::vector<Value> &args, VM *vm)
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
-Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
+Value StdLib::sys_fork(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork", true);
 	if (args.size() > 5)
@@ -401,7 +401,7 @@ Value StdLib::sys_fork(const std::vector<Value> &args, VM *)
 	return result;
 }
 
-Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
+Value StdLib::sys_fork_detached(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sys_fork_detached", true);
 	if (args.size() > 5)
@@ -488,7 +488,7 @@ Value StdLib::sys_fork_detached(const std::vector<Value> &args, VM *)
 	return result;
 }
 
-i64 StdLib::proc_wait(const std::vector<Value> &args, VM *)
+i64 StdLib::proc_wait(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "procwait");
 	requireInt(args[0], "procwait", "argument (process handle)");
@@ -525,7 +525,7 @@ i64 StdLib::proc_wait(const std::vector<Value> &args, VM *)
 	return static_cast<i64>(proc->exitCode);
 }
 
-Value StdLib::proc_status(const std::vector<Value> &args, VM *)
+Value StdLib::proc_status(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "procstatus");
 	requireInt(args[0], "procstatus", "argument (process handle)");
@@ -537,7 +537,7 @@ Value StdLib::proc_status(const std::vector<Value> &args, VM *)
 	return Value(static_cast<i64>(proc->exitCode));
 }
 
-bool StdLib::proc_kill(const std::vector<Value> &args, VM *)
+bool StdLib::proc_kill(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "prockill", true);
 	if (args.size() > 2) PHS_ERROR("prockill() expects at most 2 arguments (handle, signal)");
@@ -561,7 +561,7 @@ bool StdLib::proc_kill(const std::vector<Value> &args, VM *)
 #endif
 }
 
-bool StdLib::proc_forget(const std::vector<Value> &args, VM *)
+bool StdLib::proc_forget(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "procforget");
 	requireInt(args[0], "procforget", "argument (process handle)");
@@ -578,7 +578,7 @@ bool StdLib::proc_forget(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-bool StdLib::proc_free(const std::vector<Value> &args, VM *)
+bool StdLib::proc_free(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "procfree");
 	requireInt(args[0], "procfree", "argument (process handle)");
@@ -609,7 +609,7 @@ bool StdLib::proc_free(const std::vector<Value> &args, VM *)
 	return true;
 }
 
-Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_crash(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "error");
 	if (!args[0].isString())
@@ -619,14 +619,14 @@ Value StdLib::sys_crash(const std::vector<Value> &args, VM *vm)
 	PHS_ERROR(args[0].string());
 }
 
-Value StdLib::sys_reset(const std::vector<Value> &args, VM *vm)
+Value StdLib::sys_reset(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 0, "reset");
 	vm->reset();
 	return phsnull;
 }
 
-i64 StdLib::sys_pid(const std::vector<Value> &args, VM *)
+i64 StdLib::sys_pid(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "sys_pid");
 #if defined(_WIN32)
@@ -636,7 +636,7 @@ i64 StdLib::sys_pid(const std::vector<Value> &args, VM *)
 #endif
 }
 
-Value StdLib::sys_isatty(const std::vector<Value> &args, VM *)
+Value StdLib::sys_isatty(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "isatty");
 #ifdef _WIN32

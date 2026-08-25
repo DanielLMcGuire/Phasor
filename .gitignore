@@ -726,3 +726,4 @@ phasor.profdata
 !src/Bindings/win32/phs/src/win32
 !src/Bindings/win32/phs/include/win32
 /out_trace
+src/modules/makemsi/.wix/harvest.wxs

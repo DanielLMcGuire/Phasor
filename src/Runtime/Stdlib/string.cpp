@@ -53,7 +53,7 @@ static size_t checkSbHandle(const Value &handle, const char *fnName)
 	return static_cast<size_t>(idx);
 }
 
-Value StdLib::str_split(const std::vector<Value> &args, VM *)
+Value StdLib::str_split(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "split");
 
@@ -65,7 +65,7 @@ Value StdLib::str_split(const std::vector<Value> &args, VM *)
 	PhsString s = args[0].string();
 	PhsString delim = args[1].string();
 
-	std::vector<Value> result;
+	Value::ArrayInstance result;
 	if (delim.empty())
 	{
 		result.emplace_back(s);
@@ -86,7 +86,7 @@ Value StdLib::str_split(const std::vector<Value> &args, VM *)
 	return Value::createArray(std::move(result));
 }
 
-i64 StdLib::str_find(const std::vector<Value> &args, VM *)
+i64 StdLib::str_find(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "find", true);
 
@@ -133,7 +133,7 @@ i64 StdLib::str_find(const std::vector<Value> &args, VM *)
 	return pos != PhsString::npos ? static_cast<i64>(pos) : 0;
 }
 
-i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_new(const Value::ArrayInstance &args, VM *)
 {
 	StdLib::checkArgCount(args, 0, "sb_new");
 	size_t idx;
@@ -149,7 +149,7 @@ i64 StdLib::sb_new(const std::vector<Value> &args, VM *)
 	return static_cast<i64>(idx);
 }
 
-i64 StdLib::sb_append(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_append(const Value::ArrayInstance &args, VM *)
 {
 	StdLib::checkArgCount(args, 2, "sb_append");
 	size_t idx = checkSbHandle(args[0], "sb_append");
@@ -158,7 +158,7 @@ i64 StdLib::sb_append(const std::vector<Value> &args, VM *)
 	return args[0].asInt(); // Return handle for chaining
 }
 
-i64 StdLib::sb_prealloc(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_prealloc(const Value::ArrayInstance &args, VM *)
 {
     StdLib::checkArgCount(args, 2, "sb_prealloc");
 
@@ -176,7 +176,7 @@ i64 StdLib::sb_prealloc(const std::vector<Value> &args, VM *)
     return args[0].asInt(); // Return handle for chaining
 }
 
-PhsString StdLib::sb_to_string(const std::vector<Value> &args, VM *)
+PhsString StdLib::sb_to_string(const Value::ArrayInstance &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_to_string");
 	size_t idx = checkSbHandle(args[0], "sb_to_string");
@@ -184,7 +184,7 @@ PhsString StdLib::sb_to_string(const std::vector<Value> &args, VM *)
 	return getSbPool()[idx];
 }
 
-PhsString StdLib::sb_free(const std::vector<Value> &args, VM *)
+PhsString StdLib::sb_free(const Value::ArrayInstance &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_free");
 	size_t idx = checkSbHandle(args[0], "sb_free");
@@ -194,7 +194,7 @@ PhsString StdLib::sb_free(const std::vector<Value> &args, VM *)
 	return value;
 }
 
-i64 StdLib::sb_clear(const std::vector<Value> &args, VM *)
+i64 StdLib::sb_clear(const Value::ArrayInstance &args, VM *)
 {
 	StdLib::checkArgCount(args, 1, "sb_clear");
 	size_t idx = checkSbHandle(args[0], "sb_clear");
@@ -203,7 +203,7 @@ i64 StdLib::sb_clear(const std::vector<Value> &args, VM *)
 	return args[0].asInt(); // Return handle for chaining
 }
 
-Value StdLib::str_char_at(const std::vector<Value> &args, VM *)
+Value StdLib::str_char_at(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "char_at");
 	if (!args[0].isString())
@@ -220,7 +220,7 @@ Value StdLib::str_char_at(const std::vector<Value> &args, VM *)
 	return PhsString(1, s[idx]);
 }
 
-Value StdLib::str_substr(const std::vector<Value> &args, VM *)
+Value StdLib::str_substr(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "substr", true);
 	if (args.size() > 3)
@@ -247,7 +247,7 @@ Value StdLib::str_substr(const std::vector<Value> &args, VM *)
 	return Value(s.substr(start, len));
 }
 
-PhsString StdLib::str_concat(const std::vector<Value> &args, VM *)
+PhsString StdLib::str_concat(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "concat", true);
 	PhsString result = "";
@@ -258,14 +258,14 @@ PhsString StdLib::str_concat(const std::vector<Value> &args, VM *)
 	return result;
 }
 
-i64 StdLib::str_len(const std::vector<Value> &args, VM *)
+i64 StdLib::str_len(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "len");
 	PhsString s = args[0].toString();
 	return static_cast<i64>(s.length());
 }
 
-PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
+PhsString StdLib::str_upper(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "to_upper");
 	if (!args[0].isString())
@@ -275,7 +275,7 @@ PhsString StdLib::str_upper(const std::vector<Value> &args, VM *)
 	return s;
 }
 
-PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
+PhsString StdLib::str_lower(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "to_lower");
 	if (!args[0].isString())
@@ -285,7 +285,7 @@ PhsString StdLib::str_lower(const std::vector<Value> &args, VM *)
 	return s;
 }
 
-Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
+Value StdLib::str_starts_with(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "starts_with");
 	if (!args[0].isString())
@@ -302,7 +302,7 @@ Value StdLib::str_starts_with(const std::vector<Value> &args, VM *)
 	return {false};
 }
 
-Value StdLib::str_ends_with(const std::vector<Value> &args, VM *)
+Value StdLib::str_ends_with(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ends_with");
 	if (!args[0].isString())

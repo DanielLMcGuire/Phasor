@@ -120,7 +120,7 @@ void StdLib::registerMetaFunctions(VM *vm)
 }
 
 #ifndef SANDBOXED
-i64 StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
+i64 StdLib::meta_operation(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "phs_op", true);
 	if (args.size() > 4)
@@ -138,7 +138,7 @@ i64 StdLib::meta_operation(const std::vector<Value> &args, VM *vm)
 	return ret.asInt();
 }
 
-Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm)
+Value StdLib::meta_stack_run(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "self_stack_run");
 	if (!args[0].isInt() && !args[0].isString())
@@ -155,13 +155,13 @@ Value StdLib::meta_stack_run(const std::vector<Value> &args, VM *vm)
 }
 #endif
 
-PhsString StdLib::meta_get_version(const std::vector<Value> &args, VM *)
+PhsString StdLib::meta_get_version(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "phs_version");
 	return PHASOR_VERSION_STRING;
 }
 
-Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm) 
+Value StdLib::meta_get_registers(const Value::ArrayInstance &args, VM *vm) 
 {
 	checkArgCount(args, 0, "get_registers");
 	size_t registers = vm->getRegisterCount();
@@ -173,7 +173,7 @@ Value StdLib::meta_get_registers(const std::vector<Value> &args, VM *vm)
 	return reg_array;
 }
 
-Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
+Value StdLib::meta_get_self(const Value::ArrayInstance &args, VM *vm)
 {
     checkArgCount(args, 0, "phs__get_self");
     auto bc = vm->getBytecode();
@@ -181,7 +181,7 @@ Value StdLib::meta_get_self(const std::vector<Value> &args, VM *vm)
     return bytecodeToValue(bc);
 }
 
-Value StdLib::meta_load_bytecode_from_file(const std::vector<Value> &args, VM *)
+Value StdLib::meta_load_bytecode_from_file(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "phs__load_bytecode");
 	if (!args[0].isString())
@@ -194,7 +194,7 @@ Value StdLib::meta_load_bytecode_from_file(const std::vector<Value> &args, VM *)
 	return bytecodeToValue(bc);
 }
 
-bool StdLib::meta_save_bytecode_to_file(const std::vector<Value> &args, VM *)
+bool StdLib::meta_save_bytecode_to_file(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "phs__save_bytecode");
 	if (!args[0].isStruct())
@@ -207,26 +207,26 @@ bool StdLib::meta_save_bytecode_to_file(const std::vector<Value> &args, VM *)
 	return serializer.saveToFile(bc, outFile);
 }
 
-Value StdLib::meta_push(const std::vector<Value> &args, VM *vm)
+Value StdLib::meta_push(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "phs_push");
 	vm->push(args[0]);
 	return phsnull;
 }
 
-Value StdLib::meta_pop(const std::vector<Value> &args, VM *vm)
+Value StdLib::meta_pop(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 0, "phs_pop");
 	return vm->pop();
 }
 
-i64 StdLib::meta_new_state(const std::vector<Value> &args, VM *) {
+i64 StdLib::meta_new_state(const Value::ArrayInstance &args, VM *) {
     checkArgCount(args, 0, "new_vm");
     auto *vm = new VM();
     return pointer_to_i64(vm);
 }
  
-bool StdLib::meta_free_state(const std::vector<Value> &args, VM *){
+bool StdLib::meta_free_state(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 2, "free_vm");
     if (!args[0].isInt())
         PHS_ERROR("free_vm() expects a integer (state handle) as it's first argument.");
@@ -237,7 +237,7 @@ bool StdLib::meta_free_state(const std::vector<Value> &args, VM *){
     return true;
 }
  
-i64 StdLib::meta_eval_phs(const std::vector<Value> &args, VM *){
+i64 StdLib::meta_eval_phs(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 5, "phs_eval", true);
     if (args.size() > 6) PHS_ERROR("phs_eval() expects at least 5 arguments, at most 6 arguments.");
     if (!args[0].isInt() && !args[0].isNull())
@@ -303,7 +303,7 @@ i64 StdLib::meta_eval_phs(const std::vector<Value> &args, VM *){
     return -1;
 }
  
-i64 StdLib::meta_exec_phsb(const std::vector<Value> &args, VM *){
+i64 StdLib::meta_exec_phsb(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 2, "phs_exec");
     if (!args[0].isInt() && !args[0].isNull())
         PHS_ERROR("phs_exec() expects a integer (state handle) or null as it's first argument.");
@@ -324,7 +324,7 @@ i64 StdLib::meta_exec_phsb(const std::vector<Value> &args, VM *){
     return ret;
 }
  
-Value StdLib::meta_compile_phs(const std::vector<Value> &args, VM *){
+Value StdLib::meta_compile_phs(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 5, "phs_compile");
     if (!args[0].isString())
         PHS_ERROR("phs_compile() expects a string (source) or null as it's first argument.");

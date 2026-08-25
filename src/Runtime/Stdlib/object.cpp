@@ -12,7 +12,7 @@ void StdLib::registerObjectFunctions(VM *vm)
     vm->registerNativeFunction("filter", object_filter);
 }
 
-Value StdLib::object_has(const std::vector<Value> &args, VM *)
+Value StdLib::object_has(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "has", false);
 
@@ -27,7 +27,7 @@ Value StdLib::object_has(const std::vector<Value> &args, VM *)
     return {object->fields.contains(elementName.string())};
 }
 
-Value StdLib::object_find(const std::vector<Value> &args, VM *)
+Value StdLib::object_find(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "struct_find", true);
 
@@ -65,7 +65,7 @@ Value StdLib::object_find(const std::vector<Value> &args, VM *)
     return phsnull;
 }
 
-Value StdLib::object_filter(const std::vector<Value> &args, VM *)
+Value StdLib::object_filter(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "filter", false);
 
@@ -104,7 +104,7 @@ Value StdLib::object_filter(const std::vector<Value> &args, VM *)
     }
 
     auto arr = arrayToSearch.asArray();
-    std::vector<Value> matches;
+    Value::ArrayInstance matches;
 
     for (const Value &item : *arr)
     {
