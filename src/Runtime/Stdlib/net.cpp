@@ -298,7 +298,7 @@ void StdLib::registerHttpFunctions(VM *vm)
 {
     vm->registerNativeFunction("http_request", http_request);
 	vm->registerNativeFunction("http_useragent", http_user_agent);
-	useragent = std::format("Mozilla/5.0 {} PhasorLanguageHTTP/{}", getUserAgentOS(), PHASOR_VERSION_STRING);
+	useragent = std::format(" phasorstdhttp/{} {}", PHASOR_VERSION_STRING_SIMPLE, getUserAgentOS());
 }
 
 Value StdLib::net_connect(const Value::ArrayInstance &args, VM *)
