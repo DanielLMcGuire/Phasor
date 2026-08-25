@@ -3,11 +3,16 @@
 #include <istream>
 #include <array>
 #include <memory>
+#include <algorithm>
+#include <limits>
+#include <mutex>
 
 #if defined(_WIN32)
 	#include <windows.h>
 #else
 	#include <unistd.h>
+	#include <cerrno>
+	#include <csignal>
 #endif
 
 namespace Phasor
@@ -26,6 +31,10 @@ public:
 		: handle_(handle), isReadEnd_(isReadEnd)
 	{
 		if (isReadEnd_) setg(buffer_.data(), buffer_.data(), buffer_.data());
+#if !defined(_WIN32)
+		static std::once_flag ignoreSigpipeOnce;
+		std::call_once(ignoreSigpipeOnce, [] { ::signal(SIGPIPE, SIG_IGN); });
+#endif
 	}
 
 	~NativePipeStreamBuf() override { close(); }
@@ -41,16 +50,31 @@ public:
 #endif
 	}
 
+	bool broken() const { return broken_; }
+
 protected:
 	int_type underflow() override
 	{
 		if (!isReadEnd_ || !open_) return traits_type::eof();
+
 #if defined(_WIN32)
 		DWORD n = 0;
-		if (!ReadFile(handle_, buffer_.data(), (DWORD)buffer_.size(), &n, nullptr) || n == 0)
+		for (;;)
+		{
+			if (ReadFile(handle_, buffer_.data(), (DWORD)buffer_.size(), &n, nullptr))
+				break;
+
 			return traits_type::eof();
+		}
+		if (n == 0) return traits_type::eof();
 #else
-		ssize_t n = ::read(handle_, buffer_.data(), buffer_.size());
+		ssize_t n;
+		for (;;)
+		{
+			n = ::read(handle_, buffer_.data(), buffer_.size());
+			if (n < 0 && errno == EINTR) continue;
+			break;
+		}
 		if (n <= 0) return traits_type::eof();
 #endif
 		setg(buffer_.data(), buffer_.data(), buffer_.data() + n);
@@ -59,15 +83,39 @@ protected:
 
 	std::streamsize xsputn(const char* s, std::streamsize count) override
 	{
-		if (isReadEnd_ || !open_) return 0;
+		if (isReadEnd_ || !open_ || broken_ || count <= 0) return 0;
+
+		std::streamsize totalWritten = 0;
+		while (totalWritten < count)
+		{
 #if defined(_WIN32)
-		DWORD written = 0;
-		if (!WriteFile(handle_, s, (DWORD)count, &written, nullptr)) return 0;
-		return (std::streamsize)written;
+			DWORD toWrite = (DWORD)std::min<std::streamsize>(
+				count - totalWritten,
+				(std::streamsize)(std::numeric_limits<DWORD>::max)());
+
+			DWORD written = 0;
+			if (!WriteFile(handle_, s + totalWritten, toWrite, &written, nullptr))
+			{
+				DWORD err = GetLastError();
+				if (err == ERROR_BROKEN_PIPE || err == ERROR_NO_DATA)
+					broken_ = true;
+				break;
+			}
+			if (written == 0) break;
+			totalWritten += written;
 #else
-		ssize_t written = ::write(handle_, s, (size_t)count);
-		return written < 0 ? 0 : (std::streamsize)written;
+			ssize_t written = ::write(handle_, s + totalWritten, (size_t)(count - totalWritten));
+			if (written < 0)
+			{
+				if (errno == EINTR) continue;
+				if (errno == EPIPE) broken_ = true;
+				break;
+			}
+			if (written == 0) break;
+			totalWritten += written;
 #endif
+		}
+		return totalWritten;
 	}
 
 	int_type overflow(int_type ch) override
@@ -81,6 +129,7 @@ private:
 	native_handle_t         handle_;
 	bool                    isReadEnd_;
 	bool                    open_ = true;
+	bool                    broken_ = false;
 	std::array<char, 4096>  buffer_{};
 };
 
