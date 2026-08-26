@@ -145,7 +145,7 @@ class StdLib
 #ifndef SANDBOXED
 	static Value std_assert(const Value::ArrayInstance &args, VM *vm);
 #endif
-
+	static void registerDataFunctions(VM *vm);
 	static void registerMetaFunctions(VM *vm);
 	static void registerMemoryFunctions(VM *vm);
 	static void registerMathFunctions(VM *vm);
@@ -252,6 +252,12 @@ class StdLib
 	static Value     file_memory_open(const Value::ArrayInstance &args, VM *vm); ///< Open an in-memory buffer as a stream
 	static Value     file_pipe_open(const Value::ArrayInstance &args, VM *vm);   ///< Create a native pipe pair -> [readFd, writeFd]
 	static i64       file_descriptor_kind(const Value::ArrayInstance &args, VM *vm);
+#pragma endregion
+
+#pragma region stddata
+	static PhsString base64_decoder(const Value::ArrayInstance &args, VM *vm);
+	static PhsString base64_encoder(const Value::ArrayInstance &args, VM *vm);
+	static PhsString md5(const Value::ArrayInstance &args, VM *vm);
 #pragma endregion
 
 #pragma region stdnet

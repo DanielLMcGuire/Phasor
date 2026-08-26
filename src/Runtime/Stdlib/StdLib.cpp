@@ -203,6 +203,7 @@ void StdLib::requireBool(const Value &v, const char *fnName, const char *what)
 
 std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules{
 	    {"stdio", registerIOFunctions},
+		{"stddata", registerDataFunctions},
 	    {"stdsys", registerSysFunctions},
 	    {"stdmath", registerMathFunctions},
 	    {"stdstr", registerStringFunctions},
@@ -222,6 +223,7 @@ std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules
 	     [](Phasor::VM *vm)
 		 {
 		     registerIOFunctions(vm);
+			 registerDataFunctions(vm);
 		     registerSysFunctions(vm);
 		     registerMathFunctions(vm);
 		     registerStringFunctions(vm);

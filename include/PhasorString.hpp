@@ -90,6 +90,22 @@ public:
         }
     }
 
+    template <typename It>
+    PhsString(It first, It last) {
+        const std::size_t n = static_cast<std::size_t>(std::distance(first, last));
+        if (n == 0) { m_store = SmallBuf{}; return; }
+
+        if constexpr (std::is_same_v<typename std::iterator_traits<It>::iterator_category,
+                                      std::random_access_iterator_tag>) {
+            const char* s = reinterpret_cast<const char*>(std::addressof(*first));
+            if (n <= SSO_CAPACITY) m_store = SmallBuf{s, n};
+            else                   m_store = std::string{s, n};
+        } else {
+            m_store = SmallBuf{};
+            for (; first != last; ++first) push_back(static_cast<char>(*first));
+        }
+    }
+
     PhsString(const PhsString&)                = default;
     PhsString(PhsString&&) noexcept            = default;
     PhsString& operator=(const PhsString&)     = default;
