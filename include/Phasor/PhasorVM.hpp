@@ -47,6 +47,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <memory_resource>
+#include <vformat.hpp>
 #include "../phsint.hpp"
 
 #ifndef SANDBOXED

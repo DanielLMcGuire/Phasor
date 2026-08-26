@@ -4,7 +4,7 @@ static_endif
 
 static_if (WIN32)
 
-ffiload("__phs_init");
+phs__std("__phs_init");
 
 define PHSRT_CANARY_SIZE = 2;
 define ERROR_INVALID_PARAMETER = 87; // 0x57 - ERROR_INVALID_PARAMETER - "The parameter is incorrect."

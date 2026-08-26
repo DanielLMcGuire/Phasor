@@ -169,3 +169,24 @@ class FFI
 };
 
 } // namespace Phasor
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void api_log(PhasorVM* vm, PhasorValue msg);
+void api_logerr(PhasorVM* vm, PhasorValue msg);
+void api_flush(PhasorVM* vm);
+void api_flusherr(PhasorVM* vm);
+const char* api_getVersion(PhasorVM* vm);
+bool api_loadPlugin(PhasorVM* vm, const char* libPath);
+void api_onExitCall(PhasorVM* vm, void (*func)(void));
+void api_onExitFree(PhasorVM* vm, void* ptr);
+void* api_malloc(size_t size);
+void* api_calloc(size_t num, size_t size);
+void* api_realloc(void* ptr, size_t size);
+void api_free(void* ptr);
+
+#ifdef __cplusplus
+}
+#endif

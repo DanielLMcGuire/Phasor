@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdhttp");
+phs__std("http");
 include "./types/http.phs";
 
 fn http_get(url: string, headers: HTTPHeader[], timeoutMs: i64) -> HTTPResponse;

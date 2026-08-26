@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("__phs_init");
+phs__std("__phs_init");
 
 define PHSRT_CANARY_SIZE = 2;
 

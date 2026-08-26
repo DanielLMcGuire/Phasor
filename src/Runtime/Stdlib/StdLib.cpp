@@ -202,24 +202,24 @@ void StdLib::requireBool(const Value &v, const char *fnName, const char *what)
 }
 
 std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules{
-	    {"stdio", registerIOFunctions},
-		{"stddata", registerDataFunctions},
-	    {"stdsys", registerSysFunctions},
-	    {"stdmath", registerMathFunctions},
-	    {"stdstr", registerStringFunctions},
-	    {"stdtype", registerTypeConvFunctions},
-	    {"stdmeta", registerMetaFunctions},
-	    {"stdmem", registerMemoryFunctions},
-	    {"stdrand", registerRandomFunctions},
-		{"stdarray", registerArrayFunctions},
-		{"stdstruct", registerObjectFunctions},
-		{"stdini", registerIniFunctions},
+	    {"io", registerIOFunctions},
+		{"data", registerDataFunctions},
+	    {"sys", registerSysFunctions},
+	    {"math", registerMathFunctions},
+	    {"str", registerStringFunctions},
+	    {"type", registerTypeConvFunctions},
+	    {"meta", registerMetaFunctions},
+	    {"mem", registerMemoryFunctions},
+	    {"rand", registerRandomFunctions},
+		{"array", registerArrayFunctions},
+		{"struct", registerObjectFunctions},
+		{"ini", registerIniFunctions},
 #ifndef SANDBOXED
-		{"stdnet", registerNetFunctions},
-		{"stdhttp", registerHttpFunctions},
-	    {"stdfile", registerFileFunctions},
+		{"net", registerNetFunctions},
+		{"http", registerHttpFunctions},
+	    {"file", registerFileFunctions},
 #endif
-	    {"std*",
+	    {"*",
 	     [](Phasor::VM *vm)
 		 {
 		     registerIOFunctions(vm);
@@ -335,7 +335,7 @@ void StdLib::checkArgCount(const Value::ArrayInstance &args, size_t minimumArgum
 
 bool StdLib::std_import(const Value::ArrayInstance &args, VM *vm)
 {
-	checkArgCount(args, 1, "ffiload", true);
+	checkArgCount(args, 1, "phs__std", true);
 
 	for (const auto &arg : args)
 	{

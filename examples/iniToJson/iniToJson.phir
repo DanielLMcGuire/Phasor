@@ -2,7 +2,7 @@
 .CONSTANTS 290
 STRING "stdfile"
 INT 1
-STRING "ffiload"
+STRING "phs__std"
 STRING "stdsys"
 INT 1
 STRING "struct sys_os_def { win32:int, windows:int, linux:int, darwin:int, apple:int, freebsd:int, netbsd:int, bsd:int, unix:int, unknown:int, sandbox:int }"
@@ -345,11 +345,11 @@ phs_type_def 127 9 void bool int i64 float f64 string object array
 .INSTRUCTIONS 554
 PUSH_CONST 0                            ; const[0]="stdfile"
 PUSH_CONST 1                            ; const[1]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 PUSH_CONST 3                            ; const[3]="stdsys"
 PUSH_CONST 4                            ; const[4]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 NEW_STRUCT_INSTANCE_STATIC 0
 PUSH_CONST 17                           ; const[17]=0
@@ -416,7 +416,7 @@ NEW_ARR
 STORE_VAR 3                             ; var=sys_arch_map
 PUSH_CONST 80                           ; const[80]="__phs_init"
 PUSH_CONST 81                           ; const[81]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 JUMP 134
 POP
@@ -513,19 +513,19 @@ NULL_VAL
 RETURN
 PUSH_CONST 118                          ; const[118]="stdio"
 PUSH_CONST 119                          ; const[119]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 PUSH_CONST 120                          ; const[120]="stdstr"
 PUSH_CONST 121                          ; const[121]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 PUSH_CONST 122                          ; const[122]="stdini"
 PUSH_CONST 123                          ; const[123]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 PUSH_CONST 124                          ; const[124]="stdtype"
 PUSH_CONST 125                          ; const[125]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 NEW_STRUCT 136
 PUSH_CONST 137                          ; const[137]=0
@@ -695,7 +695,7 @@ PUSH_CONST 211                          ; const[211]=1
 RETURN
 PUSH_CONST 212                          ; const[212]="__phs_init"
 PUSH_CONST 213                          ; const[213]=1
-CALL_NATIVE 2                           ; const[2]="ffiload"
+CALL_NATIVE 2                           ; const[2]="phs__std"
 POP
 JUMP 388
 POP

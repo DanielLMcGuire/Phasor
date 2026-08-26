@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdmeta");
+phs__std("meta");
 include "std/struct";
 include "../../include/std/types/meta.phs";
 

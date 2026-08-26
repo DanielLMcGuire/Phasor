@@ -12,7 +12,7 @@
 
 include "../../include/std/types/sys.phs";
 
-ffiload("__phs_init");
+phs__std("__phs_init");
 include "phs_init/util.phs";
 
 fn is_sandboxed() -> bool

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdfile");
+phs__std("file");
 include "./types/file.phs";
 
 // Copy files with progress

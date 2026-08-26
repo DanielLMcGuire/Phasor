@@ -79,7 +79,7 @@ class StdLib
 		vm.log(std::format("({})(&VM@{:#x})\n", PHS_SRC_LOC(), reinterpret_cast<std::uintptr_t>(&vm)));
 		vm.flush();
 #endif
-		vm.registerNativeFunction("ffiload", std_import);
+		vm.registerNativeFunction("phs__std", std_import);
 #ifndef SANDBOXED
 		vm.registerNativeFunction("assert", std_assert);
 #endif

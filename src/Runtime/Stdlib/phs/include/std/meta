@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdmeta");
+phs__std("meta");
 include "./types/meta.phs";
 
 fn get_self() -> Bytecode;

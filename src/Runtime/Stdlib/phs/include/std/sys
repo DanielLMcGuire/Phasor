@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-ffiload("stdsys");
+phs__std("sys");
 include "./types/sys.phs";
 
 // Check if running in sandbox build
