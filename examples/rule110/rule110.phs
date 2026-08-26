@@ -8,6 +8,7 @@ include "std/sys";
 include "std/str";
 
 static_if (PHS_DEBUG && WIN32)
+undefine NO_CHECK_OS;
 include "win32/windows.phs";
 static_endif // (PHS_DEBUG && WIN32)
 
@@ -222,7 +223,7 @@ fn rule110(args: rule110_args) -> int
     var fd: int = fopen(args.logfile, "w");
     var state: Rule110State =
         createState(args.width, args.generations, args.stdout);
-    var file_buffer: int = sb_new().sb_prealloc(args.generations * 500);
+    var file_buffer: int = fmemopen("rw");
 
     if (!args.stdout)
     {
@@ -237,15 +238,16 @@ fn rule110(args: rule110_args) -> int
         var board_string: string = boardToString(state.board);
         if (args.stdout) board_string.puts();
 
-        file_buffer.sb_append(board_string);
-        file_buffer.sb_append("\n");
+        file_buffer.fwrite(board_string);
+        file_buffer.fwrite("\n");
         computeNextGeneration(state);
 
         if (g != 0 && (g % 500 == 0))
         {
-            var chunk: string = file_buffer.sb_to_string();
-            file_buffer.sb_clear();
-            fwrite(fd, chunk);
+            var chunk: string = file_buffer.fread();
+            file_buffer.fclose();
+            file_buffer = fmemopen("rw");
+            fd.fwrite(chunk);
 
             if (!args.stdout)
             {
@@ -263,10 +265,10 @@ fn rule110(args: rule110_args) -> int
         }
     }
 
-    var chunk: string = file_buffer.sb_free();
+    var chunk: string = file_buffer.fread(); file_buffer.fclose();
     
-    fwrite(fd, chunk);
-    fclose(fd);
+    fd.fwrite(chunk);
+    fd.fclose();
 
     putf(
         "\nTOTAL: %s",
