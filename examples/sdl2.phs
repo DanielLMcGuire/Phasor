@@ -10,8 +10,7 @@ include "std/io";
 include "std/array";
 include "sdl2/sdl2.phs";
 
-var screenW: int = 800;
-var screenH: int = 600;
+var screenRes: Vec2 = [1280, 720].matrixvec2();
 
 define FPS = 60;
 define FRAMETIME = 1000 / FPS;
@@ -89,9 +88,9 @@ fn parseArguments(args: string[]) -> parsedArguments {
                     window: NULL_SDLWINDOW
                 };
             }
-            screenW = to_int(sizeArgs[0]);
-            screenH = to_int(sizeArgs[1]);
-            window = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenW, screenH, SDLC.WINDOW_RESIZABLE);
+            screenRes.x = to_int(sizeArgs[0]);
+            screenRes.y = to_int(sizeArgs[1]);
+            window = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenRes.x, screenRes.y, SDLC.WINDOW_RESIZABLE);
         }
     } else if (args.len() == 3) {
         var sizeArgs: string[] = args[2].split("x");
@@ -99,11 +98,11 @@ fn parseArguments(args: string[]) -> parsedArguments {
             sdl_quit();
             return parsedArguments{status: false, error: c_fmt("fs requires 1 argument: %s fullscreen widthxheight", args[0].fname()), window: NULL_SDLWINDOW};
         }
-        screenW = to_int(sizeArgs[0]);
-        screenH = to_int(sizeArgs[1]);
-        window = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenW, screenH, SDLC.WINDOW_FULLSCREEN);
+        screenRes.x = to_int(sizeArgs[0]);
+        screenRes.y = to_int(sizeArgs[1]);
+        window = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenRes.x, screenRes.y, SDLC.WINDOW_FULLSCREEN);
     } else if (args.len() == 1) {
-        window = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenW, screenH, SDLC.WINDOW_RESIZABLE);
+        window = sdl_create_window("Phasor SDL2 Demo", 50, 50, screenRes.x, screenRes.y, SDLC.WINDOW_RESIZABLE);
     } else {
         sdl_quit();
         return parsedArguments{status: false, error: "Unknown arguments!", window: NULL_SDLWINDOW};
@@ -164,8 +163,8 @@ fn main(args: string[]) -> int {
     var window: SDLWindow = initialization.window;
 
     var rect: Vec4 = Vec4{
-        x: rand_next_range(0, screenW - SIZE),
-        y: rand_next_range(0, screenH - SIZE),
+        x: rand_next_range(0, screenRes.x - SIZE),
+        y: rand_next_range(0, screenRes.y - SIZE),
         z: SIZE,
         w: SIZE
     };
@@ -201,8 +200,8 @@ fn main(args: string[]) -> int {
                 case SDLC.WINDOWEVENT:
                     switch (event.window_event_id) {
                         case SDLC.WINDOWEVENT_SIZE_CHANGED:
-                            screenW = event.window_data1;
-                            screenH = event.window_data2;
+                            screenRes.x = event.window_data1;
+                            screenRes.y = event.window_data2;
                     }
             }
             event = sdl_poll_event();
@@ -219,8 +218,8 @@ fn main(args: string[]) -> int {
 static_if (DEBUG)
             debugPrint(c_fmt("ran into left wall, Cube=%s,Background=%s", color.formatColor(), backCol.formatColor()));
 static_endif
-        } else if (rect.x + rect.z >= screenW) {
-            rect.x = screenW - rect.z;
+        } else if (rect.x + rect.z >= screenRes.x) {
+            rect.x = screenRes.x - rect.z;
             vel.x = -vel.x;
             color = getRandColor(true, 255);
             backCol = getRandColor(false, 100);
@@ -237,8 +236,8 @@ static_endif
 static_if (DEBUG)
             debugPrint(c_fmt("ran into top wall, Cube=%s,Background=%s", color.formatColor(), backCol.formatColor()));
 static_endif
-        } else if (rect.y + rect.w >= screenH) {
-            rect.y = screenH - rect.w;
+        } else if (rect.y + rect.w >= screenRes.y) {
+            rect.y = screenRes.y - rect.w;
             vel.y = -vel.y;
             color = getRandColor(true, 255);
             backCol = getRandColor(false, 100);
