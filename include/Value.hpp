@@ -55,7 +55,7 @@
 #include "phsint.hpp"
 #include "PhasorString.hpp"
 
-#define phsnull Value()
+#define phsnull Phasor::Value()
 
 template<typename K, typename V>
 struct PhsOrderedMap {
@@ -204,6 +204,11 @@ class Value
 		for (auto& [k, v] : fields)
 			s->fields[k] = std::move(v);
 		data = std::move(s);
+	}
+	/// @brief Struct constructor
+	static inline Value createStruct(std::initializer_list<std::pair<Phasor::PhsString, Phasor::Value>> fields)
+	{
+		return Phasor::Value(fields);
 	}
 
 	static Value from_json(const std::string& json);
@@ -383,6 +388,26 @@ class Value
 		return hasField(key);
 	}
 
+    [[nodiscard]] Value getField(const char* name) const
+    {
+        return getField(PhsString(name));
+    }
+
+    void setField(const char* name, Value value)
+    {
+        setField(PhsString(name), std::move(value));
+    }
+
+    [[nodiscard]] bool hasField(const char* name) const noexcept
+    {
+        return hasField(PhsString(name));
+    }
+
+    [[nodiscard]] bool contains(const char* key) const noexcept
+    {
+        return contains(PhsString(key));
+    }
+
 	[[nodiscard]] Value get_or(const std::string& key, Value fallback) const noexcept
 	{
 		if (!isStruct()) return fallback;
@@ -395,6 +420,11 @@ class Value
 		if (!isStruct()) return fallback;
 		auto it = asStruct()->fields.find(key);
 		return it != asStruct()->fields.end() ? it->second : fallback;
+	}
+
+	[[nodiscard]] Value get_or(const char* key, Value fallback) const noexcept
+	{
+		return get_or(PhsString(key), std::move(fallback));
 	}
 
 	Value operator[](const size_t index) const

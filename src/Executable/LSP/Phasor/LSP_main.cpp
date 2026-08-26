@@ -1,6 +1,5 @@
 #include "../../../LSP/Phasor/LSP.hpp"
-#include <json.hpp>
-#include <PhasorString.hpp>
+#include <Value.hpp>
 #include <functional>
 #include <stdexcept>
 #include <filesystem>
@@ -11,8 +10,6 @@
 #include <io.h>
 #include <fcntl.h>
 #endif
-
-using json = nlohmann::json;
 
 static Phasor::PhsString readMessage()
 {
@@ -36,7 +33,7 @@ static Phasor::PhsString readMessage()
 			break;
 		}
 
-		const Phasor::PhsString prefix = "Content-Length: ";
+		const std::string prefix = "Content-Length: ";
 		if (line.starts_with(prefix))
 		{
 			contentLength = std::stoull(line.substr(prefix.size()));
@@ -53,45 +50,66 @@ static Phasor::PhsString readMessage()
 	return body;
 }
 
-static void writeMessage(const json &msg)
+static void writeMessage(const Phasor::Value &msg)
 {
-	const Phasor::PhsString body = msg.dump();
-	std::print("Content-Length: {}\r\n\r\n{}", body.size(), body);
+	const Phasor::PhsString body = msg.jsonSerialize();
+	std::print("Content-Length: {}\r\n\r\n{}", body.size(), body.c_str());
 	std::fflush(stdout);
 }
 
-static json makeResponse(const json &id, json result)
+static Phasor::Value makeResponse(const Phasor::Value &id, Phasor::Value result)
 {
-	return {{"jsonrpc", "2.0"}, {"id", id}, {"result", std::move(result)}};
+	return {
+	    {"jsonrpc", "2.0"}, 
+	    {"id", id}, 
+	    {"result", std::move(result)}
+	};
 }
 
-static json makeError(const json &id, int code, const Phasor::PhsString &message)
+static Phasor::Value makeError(const Phasor::Value &id, int code, const Phasor::PhsString &message)
 {
-	return {{"jsonrpc", "2.0"}, {"id", id}, {"error", {{"code", code}, {"message", message}}}};
+	return {
+	    {"jsonrpc", "2.0"}, 
+	    {"id", id}, 
+	    {"error", {
+	        {"code", code}, 
+	        {"message", message}
+	    }}
+	};
 }
 
-static json makeNotification(const Phasor::PhsString &method, json params)
+static Phasor::Value makeNotification(const Phasor::PhsString &method, Phasor::Value params)
 {
-	return {{"jsonrpc", "2.0"}, {"method", method}, {"params", std::move(params)}};
+	return {
+	    {"jsonrpc", "2.0"}, 
+	    {"method", method}, 
+	    {"params", std::move(params)}
+	};
 }
 
 static void publishDiagnostics(const Phasor::PhsString &uri, const std::vector<Phasor::LSP::Diagnostic> &diags)
 {
-	json arr = json::array();
+	auto arr = Phasor::Value::createArray();
 	for (const auto &d : diags)
 	{
-		arr.push_back({{"range",
-		                {{"start", {{"line", d.startLine}, {"character", d.startColumn}}},
-		                 {"end", {{"line", d.endLine}, {"character", d.endColumn}}}}},
-		               {"severity", 1},
-		               {"message", d.message}});
+		arr.asArray()->push_back({
+		    {"range", {
+		         {"start",{{"line", (Phasor::i64)d.startLine}, {"character", (Phasor::i64)d.startColumn}}},
+		         {"end", {{"line", (Phasor::i64)d.endLine}, {"character", (Phasor::i64)d.endColumn}}}
+		     }},
+		    {"severity", 1},
+		    {"message", d.message}
+		});
 	}
-	writeMessage(makeNotification("textDocument/publishDiagnostics", {{"uri", uri}, {"diagnostics", arr}}));
+	writeMessage(makeNotification("textDocument/publishDiagnostics", {{"uri", uri}, {"diagnostics", std::move(arr)}}));
 }
 
-static json makePointRange(size_t line, size_t col)
+static Phasor::Value makePointRange(size_t line, size_t col)
 {
-	return {{"start", {{"line", line}, {"character", col}}}, {"end", {{"line", line}, {"character", col + 1}}}};
+	return {
+	    {"start", {{"line", (Phasor::i64)line}, {"character", (Phasor::i64)col}}}, 
+	    {"end", {{"line", (Phasor::i64)line}, {"character", (Phasor::i64)col + 1}}}
+	};
 }
 
 static std::vector<std::filesystem::path> buildIncludePaths(const std::vector<std::filesystem::path> &clientPaths)
@@ -124,64 +142,89 @@ static std::vector<std::filesystem::path> buildIncludePaths(const std::vector<st
 	return paths;
 }
 
-static json handleInitialize(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleInitialize(Phasor::LSP &lsp, const Phasor::Value &params)
 {
 	std::vector<std::filesystem::path> clientPaths;
-	if (params.is_object() && params.contains("initializationOptions") &&
-	    params["initializationOptions"].is_object() && params["initializationOptions"].contains("includePaths") &&
-	    params["initializationOptions"]["includePaths"].is_array())
+	if (params.isStruct() && params.hasField("initializationOptions"))
 	{
-		for (const auto &p : params["initializationOptions"]["includePaths"])
+		auto initOpts = params.get_or("initializationOptions", phsnull);
+		if (initOpts.isStruct() && initOpts.hasField("includePaths"))
 		{
-			if (p.is_string())
+			auto incPaths = initOpts.get_or("includePaths", phsnull);
+			if (incPaths.isArray())
 			{
-				clientPaths.emplace_back(p.get<std::string>());
+				const auto& arr = *incPaths.asArray();
+				for (const auto &p : arr)
+				{
+					if (p.isString())
+					{
+						clientPaths.emplace_back(p.stl_string());
+					}
+				}
 			}
 		}
 	}
 	lsp.setIncludePaths(buildIncludePaths(clientPaths));
 
-	return {{"capabilities",
-	         {{"textDocumentSync", 1},
-	          {"hoverProvider", true},
-	          {"definitionProvider", true},
-	          {"referencesProvider", true},
-	          {"renameProvider", true},
-	          {"documentSymbolProvider", true},
-	          {"completionProvider", {{"triggerCharacters", {"."}}}},
-	          {"signatureHelpProvider", {{"triggerCharacters", {"(", ","}}}}}},
-	        {"serverInfo", {{"name", "phasor-lsp"}, {"version", PHASOR_VERSION_STRING}}}};
+	return {
+	    {"capabilities", {
+	         {"textDocumentSync", 1},
+	         {"hoverProvider", true},
+	         {"definitionProvider", true},
+	         {"referencesProvider", true},
+	         {"renameProvider", true},
+	         {"documentSymbolProvider", true},
+	         {"completionProvider", {
+	             {"triggerCharacters", Phasor::Value::createArray({"."})}
+	         }},
+	         {"signatureHelpProvider", {
+	             {"triggerCharacters", Phasor::Value::createArray({"(", ","})}
+	         }}
+	     }},
+	    {"serverInfo", {
+	        {"name", "phasor-lsp"}, 
+	        {"version", PHASOR_VERSION_STRING}
+	    }}
+	};
 }
 
-static json handleHover(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleHover(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-	const size_t      line = params["position"]["line"];
-	const size_t      col = params["position"]["character"];
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const size_t      line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
+	const size_t      col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
 	auto text = lsp.getHover(uri, line, col);
 	if (!text.has_value())
 	{
-		return nullptr;
+		return phsnull;
 	}
 
-	return {{"contents", {{"kind", "markdown"}, {"value", "```phasor\n" + *text + "\n```"}}},
-	        {"range", makePointRange(line, col)}};
+	return {
+	    {"contents", {
+	        {"kind", "markdown"}, 
+	        {"value", "```phasor\n" + *text + "\n```"}
+	    }},
+	    {"range", makePointRange(line, col)}
+	};
 }
 
-static json handleDefinition(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleDefinition(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-	const size_t      line = params["position"]["line"];
-	const size_t      col = params["position"]["character"];
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const size_t      line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
+	const size_t      col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
 	auto loc = lsp.getDefinition(uri, line, col);
 	if (!loc.has_value())
 	{
-		return nullptr;
+		return phsnull;
 	}
 
-	return {{"uri", loc->uri}, {"range", makePointRange(loc->line, loc->column)}};
+	return {
+	    {"uri", loc->uri}, 
+	    {"range", makePointRange(loc->line, loc->column)}
+	};
 }
 
 static int toCompletionItemKind(Phasor::LSP::SymbolKind kind)
@@ -220,61 +263,68 @@ static int toDocumentSymbolKind(Phasor::LSP::SymbolKind kind)
 	}
 }
 
-static json handleReferences(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleReferences(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-	const size_t             line = params["position"]["line"];
-	const size_t             col = params["position"]["character"];
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
+	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 	bool                     includeDeclaration = true;
-	if (params.contains("context") && params["context"].contains("includeDeclaration"))
+	
+	if (params.contains("context") && params.get_or("context", phsnull).contains("includeDeclaration"))
 	{
-		includeDeclaration = params["context"]["includeDeclaration"].get<bool>();
+		includeDeclaration = params.get_or("context", phsnull).get_or("includeDeclaration", phsnull).asBool();
 	}
 
 	auto locs = lsp.getReferences(uri, line, col, includeDeclaration);
-	json arr = json::array();
+	auto arr = Phasor::Value::createArray();
 	for (const auto &loc : locs)
 	{
-		arr.push_back({{"uri", loc.uri}, {"range", makePointRange(loc.line, loc.column)}});
+		arr.asArray()->push_back({
+		    {"uri", loc.uri}, 
+		    {"range", makePointRange(loc.line, loc.column)}
+		});
 	}
 	return arr;
 }
 
-static json handleRename(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleRename(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-	const size_t             line = params["position"]["line"];
-	const size_t             col = params["position"]["character"];
-	const Phasor::PhsString newName = std::string(params["newName"]);
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
+	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
+	const Phasor::PhsString newName = params.get_or("newName", phsnull).string();
 
 	auto edits = lsp.getRenameEdits(uri, line, col, newName);
 	if (!edits.has_value())
 	{
-		return nullptr;
+		return phsnull;
 	}
 
-	json textEdits = json::array();
+	auto textEdits = Phasor::Value::createArray();
 	for (const auto &e : *edits)
 	{
-		textEdits.push_back({{"range",
-		                      {{"start", {{"line", e.line}, {"character", e.startColumn}}},
-		                       {"end", {{"line", e.line}, {"character", e.endColumn}}}}},
-		                     {"newText", e.newText}});
+		textEdits.asArray()->push_back({
+		    {"range", {
+		         {"start", {{"line", (Phasor::i64)e.line}, {"character", (Phasor::i64)e.startColumn}}},
+		         {"end", {{"line", (Phasor::i64)e.line}, {"character", (Phasor::i64)e.endColumn}}}
+		     }},
+		    {"newText", e.newText}
+		});
 	}
 	return {{"changes", {{uri, textEdits}}}};
 }
 
-static json handleCompletion(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleCompletion(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-	const size_t             line = params["position"]["line"];
-	const size_t             col = params["position"]["character"];
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
+	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
 	auto items = lsp.getCompletions(uri, line, col);
-	json arr = json::array();
+	auto arr = Phasor::Value::createArray();
 	for (const auto &item : items)
 	{
-		json entry = {{"label", item.label}};
+		Phasor::Value entry = {{"label", item.label}};
 		if (item.isKeyword)
 		{
 			entry["kind"] = 14; // Keyword
@@ -285,66 +335,78 @@ static json handleCompletion(Phasor::LSP &lsp, const json &params)
 				entry["detail"] = item.detail;
 			}
 		}
-		arr.push_back(std::move(entry));
+		arr.asArray()->push_back(std::move(entry));
 	}
 	return arr;
 }
 
-static json handleSignatureHelp(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleSignatureHelp(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-	const size_t             line = params["position"]["line"];
-	const size_t             col = params["position"]["character"];
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
+	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
 	auto help = lsp.getSignatureHelp(uri, line, col);
 	if (!help.has_value())
 	{
-		return nullptr;
+		return phsnull;
 	}
 
-	json params_ = json::array();
+	auto params_ = Phasor::Value::createArray();
 	for (const auto &p : help->paramLabels)
 	{
-		params_.push_back({{"label", p}});
+		params_.asArray()->push_back({{"label", p}});
 	}
 
-	return {{"signatures", {{{"label", help->label}, {"parameters", params_}}}},
-	        {"activeSignature", 0},
-	        {"activeParameter", help->activeParameter}};
+	return {
+	    {"signatures", Phasor::Value::createArray({
+	         {
+	             {"label", help->label}, 
+	             {"parameters", params_}
+	         }
+	     })},
+	    {"activeSignature", 0},
+	    {"activeParameter", help->activeParameter}
+	};
 }
 
-static json handleDocumentSymbol(Phasor::LSP &lsp, const json &params)
+static Phasor::Value handleDocumentSymbol(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
+	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 
-	std::function<json(const Phasor::LSP::DocumentSymbolInfo &)> toJson =
-	    [&](const Phasor::LSP::DocumentSymbolInfo &sym) -> json
+	std::function<Phasor::Value(const Phasor::LSP::DocumentSymbolInfo &)> toJson =
+	    [&](const Phasor::LSP::DocumentSymbolInfo &sym) -> Phasor::Value
 	{
-		json children = json::array();
+		auto children = Phasor::Value::createArray();
 		for (const auto &child : sym.children)
 		{
-			children.push_back(toJson(child));
+			children.asArray()->push_back(toJson(child));
 		}
-		json range = makePointRange(sym.line, sym.column);
-		json entry = {{"name", sym.name},
-		              {"kind", toDocumentSymbolKind(sym.kind)},
-		              {"range", range},
-		              {"selectionRange", range}};
+		
+		auto range = makePointRange(sym.line, sym.column);
+		Phasor::Value entry = {
+		    {"name", sym.name},
+		    {"kind", toDocumentSymbolKind(sym.kind)},
+		    {"range", range},
+		    {"selectionRange", range}
+		};
+		
 		if (!sym.detail.empty())
 		{
 			entry["detail"] = sym.detail;
 		}
-		if (!children.empty())
+		if (!children.asArray()->empty())
 		{
-			entry["children"] = children;
+			entry["children"] = std::move(children);
 		}
+		
 		return entry;
 	};
 
-	json arr = json::array();
+	auto arr = Phasor::Value::createArray();
 	for (const auto &sym : lsp.getDocumentSymbols(uri))
 	{
-		arr.push_back(toJson(sym));
+		arr.asArray()->push_back(toJson(sym));
 	}
 	return arr;
 }
@@ -359,7 +421,7 @@ int main()
 
 	Phasor::LSP lsp;
 	lsp.setIncludePaths(buildIncludePaths({}));
-	bool        running = true;
+	bool running = true;
 
 	while (running)
 	{
@@ -369,21 +431,27 @@ int main()
 			break;
 		}
 
-		json msg;
+		Phasor::Value msg;
 		try
 		{
-			msg = json::parse(raw);
+			msg = Phasor::Value::from_json(raw);
 		}
-		catch (const json::parse_error &e)
+		catch (const std::exception &e)
 		{
-			writeMessage(makeError(nullptr, -32700, "JSON parse error: " + Phasor::PhsString(e.what())));
+			writeMessage(makeError(phsnull, -32700, "JSON parse error: ") + e.what());
 			continue;
 		}
 
-		const bool        isRequest = msg.contains("id");
-		const json        id = isRequest ? msg["id"] : json(nullptr);
-		const Phasor::PhsString method = msg.value("method", "");
-		const json       &params = msg.contains("params") ? msg["params"] : json(nullptr);
+		const bool isRequest = msg.contains("id");
+		const Phasor::Value id = isRequest ? msg.get_or("id", phsnull) : phsnull;
+		
+		Phasor::PhsString method;
+		if (msg.contains("method") && msg.get_or("method", phsnull).isString()) 
+		{
+			method = msg.get_or("method", phsnull).string();
+		}
+		
+		const Phasor::Value params = msg.get_or("params", phsnull);
 
 		if (method == "initialize")
 		{
@@ -394,43 +462,44 @@ int main()
 		}
 		else if (method == "shutdown")
 		{
-			writeMessage(makeResponse(id, nullptr));
+			writeMessage(makeResponse(id, phsnull));
 			running = false;
 		}
 		else if (method == "exit")
 		{
 			break;
 		}
-
 		else if (method == "textDocument/didOpen")
 		{
-			const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-			const Phasor::PhsString text = std::string(params["textDocument"]["text"]);
+			const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+			const Phasor::PhsString text = params.get_or("textDocument", phsnull).get_or("text", phsnull).string();
+			
 			lsp.openDocument(uri, text);
 			publishDiagnostics(uri, lsp.getDiagnostics(uri));
 		}
 		else if (method == "textDocument/didChange")
 		{
-			const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
-			if (params.contains("contentChanges") && !params["contentChanges"].empty())
+			const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+			auto contentChanges = params.get_or("contentChanges", phsnull);
+			
+			if (contentChanges.isArray() && !contentChanges.asArray()->empty())
 			{
-				const Phasor::PhsString text = std::string(params["contentChanges"][0]["text"]);
+				const Phasor::PhsString text = contentChanges[0].get_or("text", phsnull).string();
 				lsp.changeDocument(uri, text);
 				publishDiagnostics(uri, lsp.getDiagnostics(uri));
 			}
 		}
 		else if (method == "textDocument/didClose")
 		{
-			const Phasor::PhsString uri = std::string(params["textDocument"]["uri"]);
+			const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+			
 			lsp.closeDocument(uri);
 			publishDiagnostics(uri, {});
 		}
-
 		else if (method == "textDocument/hover")
 		{
 			writeMessage(makeResponse(id, handleHover(lsp, params)));
 		}
-
 		else if (method == "textDocument/definition")
 		{
 			writeMessage(makeResponse(id, handleDefinition(lsp, params)));

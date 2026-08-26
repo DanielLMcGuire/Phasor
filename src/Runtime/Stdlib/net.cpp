@@ -214,11 +214,6 @@ bool parseUrl(const PhsString &url, ParsedUrl &out)
 	return !out.host.empty();
 }
 
-Phasor::Value makeStruct(std::initializer_list<std::pair<Phasor::PhsString, Phasor::Value>> fields)
-{
-	return Phasor::Value(fields);
-}
-
 } // namespace
 
 void StdLib::ensureNetworkingInitialized()
@@ -394,7 +389,7 @@ Value StdLib::net_accept(const Value::ArrayInstance &args, VM *)
 
 	i64 fd = registerConnectedSocket(client);
 
-	return makeStruct({
+	return Value::createStruct({
 		{"fd",   Value(fd)},
 		{"host", Value(PhsString(hostBuf))},
 		{"port", Value(static_cast<i64>(std::atoi(portBuf)))},
@@ -486,7 +481,7 @@ Value socketAddressToValue(const sockaddr_storage &addr, socklen_t len)
 	char portBuf[NI_MAXSERV]{};
 	::getnameinfo(reinterpret_cast<const sockaddr *>(&addr), len, hostBuf, sizeof(hostBuf), portBuf,
 	              sizeof(portBuf), NI_NUMERICHOST | NI_NUMERICSERV);
-	return makeStruct({
+	return Value::createStruct({
 		{"host", Value(PhsString(hostBuf))},
 		{"port", Value(static_cast<i64>(std::atoi(portBuf)))},
 	});
@@ -641,7 +636,7 @@ Value StdLib::net_udp_recv_from(const Value::ArrayInstance &args, VM *)
 	char hostBuf[INET_ADDRSTRLEN]{};
 	::inet_ntop(AF_INET, &from.sin_addr, hostBuf, sizeof(hostBuf));
 
-	return makeStruct({
+	return Value::createStruct({
 		{"data", Value(PhsString(buf.data(), static_cast<size_t>(n)))},
 		{"host", Value(PhsString(hostBuf))},
 		{"port", Value(static_cast<i64>(ntohs(from.sin_port)))},
@@ -878,9 +873,9 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 
 	Value::ArrayInstance headerPairs;
 	for (auto &[k, v] : respHeaders)
-		headerPairs.emplace_back(makeStruct({{"key", Value(k)}, {"value", Value(v)}}));
+		headerPairs.emplace_back(Value::createStruct({{"key", Value(k)}, {"value", Value(v)}}));
 
-	return makeStruct({
+	return Value::createStruct({
 		{"status",  Value(static_cast<i64>(status))},
 		{"headers", Value::createArray(std::move(headerPairs))},
 		{"body",    Value(responseBody)},
