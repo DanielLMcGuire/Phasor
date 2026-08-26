@@ -54,6 +54,8 @@
 #define PHASOR_API
 #endif
 
+typedef void* VMState;
+
 #ifdef __cplusplus
 extern "C"
 {

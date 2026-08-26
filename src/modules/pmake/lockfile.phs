@@ -1,14 +1,13 @@
 fn writeStatus(text: string, paths: ProjectPaths, project: ProjectConfig) -> bool {
     var fileName: string = c_fmt(paths.lockTpl, project.name);
     var tmpFile: string = c_fmt("%s.tmp", fileName);
-    var finalText: string = c_fmt("%s\n%d", text, pid);
     if (fexists(fileName)) {
         if (!frm(fileName)) {
             puts_error("Failed to delete old status file");
             return false;
         }
     }
-    if (!fwrite(tmpFile, finalText)) {
+    if (!fwrite(tmpFile, text)) {
         puts_error("Failed to write temp status file");
         return false;
     } else {

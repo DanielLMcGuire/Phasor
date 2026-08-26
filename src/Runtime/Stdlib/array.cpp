@@ -127,7 +127,7 @@ Value StdLib::array_join(const Value::ArrayInstance &args, VM *)
     auto arr = args[0].asArray();
 
     if (!arr)
-        return Value(PhsString(""));
+        return "";
 
     const PhsString separator = args[1].string();
 
@@ -141,7 +141,7 @@ Value StdLib::array_join(const Value::ArrayInstance &args, VM *)
         result += (*arr)[i].toString();
     }
 
-    return Value(result);
+    return result;
 }
 
 Value StdLib::array_find(const Value::ArrayInstance &args, VM *)
@@ -158,10 +158,10 @@ Value StdLib::array_find(const Value::ArrayInstance &args, VM *)
 	for (const Value &elem : *arr)
 	{
 		if (elem == needle)
-			return Value(true);
+			return true;
 	}
 
-	return Value(false);
+	return false;
 }
 
 }

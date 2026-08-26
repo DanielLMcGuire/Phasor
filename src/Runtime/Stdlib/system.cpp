@@ -49,7 +49,7 @@ void StdLib::registerSysFunctions(VM *vm)
 	vm->registerNativeFunction("prockill", StdLib::proc_kill);
 	vm->registerNativeFunction("procforget", StdLib::proc_forget);
 	vm->registerNativeFunction("procfree", StdLib::proc_free);
-	vm->registerNativeFunction("error", StdLib::sys_crash);
+	vm->registerNativeFunction("error", StdLib::sys_error);
 	vm->registerNativeFunction("reset", StdLib::sys_reset);
 	vm->registerNativeFunction("sys_pid", StdLib::sys_pid);
 	vm->registerNativeFunction("isatty", StdLib::sys_isatty);
@@ -609,12 +609,11 @@ bool StdLib::proc_free(const Value::ArrayInstance &args, VM *)
 	return true;
 }
 
-Value StdLib::sys_crash(const Value::ArrayInstance &args, VM *vm)
+Value StdLib::sys_error(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "error");
 	if (!args[0].isString())
 		PHS_ERROR("error() expects a string as its argument (message)");
-	vm->reset();
 	vm->setStatus(-1);
 	PHS_ERROR(args[0].string());
 }

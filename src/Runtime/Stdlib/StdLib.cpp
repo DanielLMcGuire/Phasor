@@ -80,7 +80,7 @@ void StdLib::registerInternalFunctions(VM *vm)
 	vm->registerNativeFunction("arr_push", StdLib::array_push);
 	vm->registerNativeFunction("phs_pop", StdLib::meta_pop);
 	vm->registerNativeFunction("get_type", StdLib::get_type);
-	vm->registerNativeFunction("error", StdLib::sys_crash);
+	vm->registerNativeFunction("error", StdLib::sys_error);
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
 	vm->registerNativeFunction("sys_arch", StdLib::sys_arch);
 	vm->registerNativeFunction("phs_version", StdLib::meta_get_version);

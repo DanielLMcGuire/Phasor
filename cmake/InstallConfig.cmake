@@ -6,32 +6,38 @@ if(IS_XBOX OR EMBEDDED)
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
     )
+
     install(FILES
         ${CMAKE_SOURCE_DIR}/include/PhasorFFI.h
         ${CMAKE_SOURCE_DIR}/include/PhasorRT.h
         DESTINATION include
     )
+
 elseif(WIN32)
     set(NON_STATIC_TARGETS
         phasor_main
         phasorw_main
         phasor_help
+        phasor_build
         phasor_compiler
         phasor_c_transpiler
         phasor_lsp
+        pmake
 
         phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
     )
-    install(TARGETS 
+
+    install(TARGETS
         ${NON_STATIC_TARGETS}
         phasor_native_runtime_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
     )
+
     foreach(TARGET ${NON_STATIC_TARGETS})
         install(
             FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:${TARGET}>>"
@@ -39,10 +45,12 @@ elseif(WIN32)
             OPTIONAL
         )
     endforeach()
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/include/
         DESTINATION include
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION man
@@ -54,41 +62,65 @@ elseif(WIN32)
         PATTERN "*.7" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
         DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
-    install(TARGETS phasor_winapi_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
-    install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
+
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/modules/phasorbuild/include/
+        DESTINATION "${INCLUDE_INSTALL_DIR}/include"
+    )
+
+    install(
+        TARGETS phasor_winapi_bindings
+        RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+    )
+
+    install(
+        FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_winapi_bindings>>"
+        DESTINATION ${PLUGIN_INSTALL_DIR}
+    )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Bindings/win32/phs/
         DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
+
     if(MSYS)
         install(TARGETS phasor_posix_bindings
             LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
             RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
     endif()
+
     if(PHASOR_SDL2)
         install(TARGETS phasor_sdl2_bindings
             LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
             RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
-        install(FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_sdl2_bindings>>" DESTINATION ${PLUGIN_INSTALL_DIR})
+
+        install(
+            FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_sdl2_bindings>>"
+            DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
             DESTINATION "${INCLUDE_INSTALL_DIR}"
         )
     endif()
+
 elseif(APPLE)
     install(TARGETS
         phasor_main
         phasor_help
+        phasor_build
         phasor_compiler
         phasor_c_transpiler
         phasor_lsp
+        pmake
 
         phasor_asm
         phasor_disasm
@@ -100,10 +132,12 @@ elseif(APPLE)
         ARCHIVE DESTINATION usr/local/lib
         FRAMEWORK DESTINATION frameworks
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/include/
         DESTINATION usr/local/include
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/local/share/man
@@ -112,29 +146,43 @@ elseif(APPLE)
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
         DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
+
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/modules/phasorbuild/include/
+        DESTINATION "${INCLUDE_INSTALL_DIR}/include"
+    )
+
     install(TARGETS phasor_posix_bindings
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
+
     if(PHASOR_SDL2)
-        install(TARGETS phasor_sdl2_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
+        install(
+            TARGETS phasor_sdl2_bindings
+            RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
             DESTINATION "${INCLUDE_INSTALL_DIR}"
         )
     endif()
+
 else()
     install(TARGETS
         phasor_main
         phasor_help
+        phasor_build
         phasor_compiler
         phasor_c_transpiler
         phasor_lsp
+        pmake
 
         phasor_asm
         phasor_disasm
@@ -145,10 +193,12 @@ else()
         LIBRARY DESTINATION usr/lib
         ARCHIVE DESTINATION usr/lib
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/include/
         DESTINATION usr/include
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/docs/man/
         DESTINATION usr/share/man/
@@ -157,16 +207,27 @@ else()
         PATTERN "*.pdf" EXCLUDE
         PATTERN "*.md5" EXCLUDE
     )
+
     install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/src/Runtime/Stdlib/phs/
         DESTINATION "${INCLUDE_INSTALL_DIR}"
     )
+
+    install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/src/modules/phasorbuild/include/
+        DESTINATION "${INCLUDE_INSTALL_DIR}/include"
+    )
+
     install(TARGETS phasor_posix_bindings
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         RUNTIME DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
+
     if(PHASOR_SDL2)
-        install(TARGETS phasor_sdl2_bindings RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR})
+        install(
+            TARGETS phasor_sdl2_bindings
+            RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/

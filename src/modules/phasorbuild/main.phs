@@ -16,13 +16,122 @@ include "tasks.phs";
 
 var COMMANDS: string[] = ["task", "list", "clean", "build", "run"];
 
+fn show_help(program: string) {
+    puts("Usage:");
+    putf("  %s create <folder>", program);
+    putf("  %s [PATH] <command> [ARGS...]\n", program);
+    puts("Commands:");
+    puts("  create <folder>   Create a new project with a default config in the specified folder");
+    puts("  build             Build the project");
+    puts("  run               Run the project");
+    puts("  clean             Clean build artifacts");
+    puts("  list              List available tasks");
+    puts("  task <name>       Execute a specific custom task\n");
+    puts("Options:");
+    puts("  [PATH]            Optional project directory path (must precede the command)");
+    puts("  -h, --help        Show this help message");
+
+    var jsonPath: string = fjoin(fcd(), "phasor.json");
+    if (fexists(jsonPath)) {
+        var cfg: buildConfig = jsonPath.fread().from_json();
+        if (cfg.taskHandler.len() > 0) {
+            var taskFile: string = compileTask(cfg, "print enum();", "TASK_ENUM");
+            var status: taskStatus = runTask(taskFile);
+            
+            if (status.enum.len() > 0) {
+                putf("\nTasks (from \"%s\"):", frelative(jsonPath));
+                for (var i: int = 0; i < status.enum.len(); i++) {
+                    puts(c_fmt("  %s", status.enum[i]));
+                }
+            }
+        }
+    }
+}
+
+fn atomicWrite(targetPath: string, content: string) -> bool {
+    var c: int = 0;
+    var tempName: string = targetPath.concat(".", to_string(c));
+    while (fexists(tempName)) {
+        c++;
+        tempName = targetPath.concat(".", to_string(c));
+    }
+
+    var fd: int = fopen(tempName, "w");
+    fd.fwrite(content);
+    fd.fclose();
+
+    var success: bool = false;
+    if (frn(tempName, targetPath)) {
+        success = true;
+    } else {
+        if (fexists(targetPath))
+            frm(targetPath);
+
+        if (frn(tempName, targetPath))
+            success = true;
+    }
+    
+    return success;
+}
+
 fn main(args: string[]) -> int {
     var pcd: string = fcd();
+
+    if (args.len() == 1 || args[1] == "-h" || args[1] == "--help") {
+        show_help(args[0].fstem());
+        return 0;
+    }
 
     var explicitPath: string = "";
     var pathSet: bool = false;
     var command: string = "";
     var commandArgs: string[] = [];
+
+    if (args.len() == 3 && args[1] == "create") {
+        var project: string = args[2];
+        var folderPath: string = fabsolute(args[2]);
+        
+        if (fexists(folderPath)) {
+            error(c_fmt("Folder already exists: %s", folderPath));
+        }
+
+        if (!fmkdir(folderPath)) {
+            error(c_fmt("Failed to create folder: %s", folderPath));
+        }
+
+        var jsonPath: string = fjoin(folderPath, "phasor.json");
+        var taskFileName: string = project.concat("-task.phs");
+        var taskPath: string = fjoin(folderPath, taskFileName);
+        var phsPath: string = fjoin(folderPath, "main.phs");
+
+        var phsjson: buildConfig = buildConfig{
+            source: phsPath.fname(),
+            out: project.concat(".phsb"),
+            defines: [],
+            includes: [],
+            irMode: false,
+            taskHandler: taskFileName,
+            buildTask: false
+        };
+
+        if (!atomicWrite(jsonPath, phsjson.to_json(2))) {
+            error("FAILED TO WRITE JSON CONFIG FILE!");
+        }
+
+        var taskContent: string = "include \"phasorbuild/phasorbuild_task.phs\";\n\nfn enum_tasks(cfg: taskStatus) {\n    cfg.enum = [\"task\"];\n}\n\nfn enum() -> taskStatus {\n    var status: taskStatus = createStatus();\n    status.enum_tasks();\n    status.code = 0;\n    return status;\n}\n\nfn task(taskName: string) -> taskStatus {\n    var status: taskStatus = createStatus();\n    status.enum_tasks();\n    switch (taskName) {\n        case \"task\":\n            status.puts_status(\"This is a task\");\n            status.code = 0;\n        default:\n            status.puts_err_status(\"Unknown task!\");\n            status.printTasks = true;\n            status.code = 1;\n    }\n    return status;\n}\n";
+
+        if (!atomicWrite(taskPath, taskContent)) {
+            error("FAILED TO WRITE TASK FILE!");
+        }
+
+        var phsContent: string = "print \"Hello, World!\";\n";
+
+        if (!atomicWrite(phsPath, phsContent)) {
+            error("FAILED TO WRITE SOURCE FILE!");
+        }
+
+        return 0;
+    }
 
     var i: int = 1;
     while (i < args.len()) {
@@ -50,11 +159,18 @@ fn main(args: string[]) -> int {
         dir = fcd();
     } else {
         dir = explicitPath.fabsolute();
-        fcd(dir);
+        if (fexists(dir)) {
+            if (!fcd(dir)) {
+                error("Failed to change working directory!");
+            }
+        } else {
+            error(c_fmt("Failed to locate \"%s\"!", explicitPath));
+        }
     }
 
     var path: string = fjoin(dir, "phasor.json");
     if (!fexists(path)) {
+        puts_error("Could not find phasor.json in the target directory.");
         fcd(pcd);
         return -1;
     }
@@ -66,6 +182,7 @@ fn main(args: string[]) -> int {
         case "task":
             if (cfg.taskHandler.len() == 0) {
                 puts_error("No task script!");
+                fcd(pcd);
                 return 1;
             }
             var taskName: string = "";
@@ -74,6 +191,7 @@ fn main(args: string[]) -> int {
         case "list":
             if (cfg.taskHandler.len() == 0) {
                 puts_error("No task script!");
+                fcd(pcd);
                 return 1;
             }
             ret = cfg.list();
@@ -84,7 +202,8 @@ fn main(args: string[]) -> int {
         case "run":
             ret = cfg.run();
         default:
-            puts_error("Unknown command!");
+            show_help(args[0].fstem());
+            fcd(pcd);
             return 1;
     }
 

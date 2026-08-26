@@ -1,5 +1,3 @@
-// phasor help, first phasor bundled program written in phasor
-
 include "std/io";
 include "std/sys";
 include "std/str";

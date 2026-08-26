@@ -157,6 +157,8 @@ endif() # NOT IS_SANDBOXED
 
 if(NOT IS_XBOX AND NOT EMBEDDED)
     add_subdirectory(Help)
+    add_subdirectory(phasorbuild)
+    add_subdirectory(pmake)
 endif()
 
 if(BUILD_POSIX_BINDINGS)

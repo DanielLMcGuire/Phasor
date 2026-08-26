@@ -525,7 +525,7 @@ bool StdLib::file_rename(const Value::ArrayInstance &args, VM *)
 	return !ec;
 }
 
-Value StdLib::file_current_directory(const Value::ArrayInstance &args, VM *)
+Value StdLib::file_current_directory(const Value::ArrayInstance &args, VM *vm)
 {
 	// If no arguments, return current directory
 	if (args.empty())
@@ -537,10 +537,9 @@ Value StdLib::file_current_directory(const Value::ArrayInstance &args, VM *)
 	std::filesystem::path dest = args[0].stl_string();
 	if (std::filesystem::exists(dest) && std::filesystem::is_directory(dest))
 	{
-		std::filesystem::current_path(dest);
-		return std::filesystem::current_path().string();
+		try { std::filesystem::current_path(dest); return true; }
+		catch (std::exception e) { vm->log(PhsString(e.what()) + "\n"); vm->flush(); return false; }
 	}
-
 	return false;
 }
 

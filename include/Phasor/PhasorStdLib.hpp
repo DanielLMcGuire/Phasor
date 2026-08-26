@@ -315,7 +315,7 @@ class StdLib
 	static bool  proc_kill(const Value::ArrayInstance &args, VM *vm);
 	static bool  proc_forget(const Value::ArrayInstance &args, VM *vm); ///< fire-and-forget: free once it exits, no status/handle needed
 	static bool  proc_free(const Value::ArrayInstance &args, VM *vm);   ///< blocks until exit, then frees
-	static Value sys_crash(const Value::ArrayInstance &args, VM *vm);           ///< Crash the VM / Program
+	static Value sys_error(const Value::ArrayInstance &args, VM *vm);           ///< Crash the VM / Program
 	static Value sys_reset(const Value::ArrayInstance &args, VM *vm);           ///< Reset the VM
 	static i64   sys_pid(const Value::ArrayInstance &args, VM *vm);             ///< Get the current process ID
 	static i64   sys_os(const Value::ArrayInstance &args, VM *vm);              ///< Get the current OS

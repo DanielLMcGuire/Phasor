@@ -1,5 +1,7 @@
 #include <PhasorRT.h>
 
+typedef void* VM;
+
 int main(int argc, char *argv[])
 {
 	VMState vm = createState();

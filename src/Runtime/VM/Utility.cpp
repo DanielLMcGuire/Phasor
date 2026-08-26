@@ -34,18 +34,17 @@ inline bool isDebuggerAttached()
 }
 #endif
 #endif
+#include <version>
 
 #ifdef PHASOR_USES_BOOST
     #ifdef _WIN32
-    #define BOOST_STACKTRACE_USE_WINDBG
+    	#define BOOST_STACKTRACE_USE_WINDBG
     #endif
     #include <boost/stacktrace.hpp>
 	#include <boost/assert/source_location.hpp>
 	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
-#else
-	#ifndef __ANDROID__
-//    	#include <stacktrace>
-	#endif
+#elif defined(__cpp_lib_stacktrace) && __cpp_lib_stacktrace >= 202011L
+	#include <stacktrace>
 	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
 #endif
 
@@ -86,6 +85,7 @@ void VM::setup(const Bytecode &bc, const size_t initialPC)
 	pc = initialPC;
 	stack.clear();
 	callStack.clear();
+	tracelog.clear();
 
 #ifdef TRACING
 	log(std::format("\n{}:\n\n{}\n", PHS_SRC_LOC(), getBytecodeInformation()));
@@ -99,9 +99,12 @@ void VM::setup(const Bytecode &bc, const size_t initialPC)
 int VM::run(const Bytecode &bc, const size_t startPC)
 {
 	setup(bc, startPC);
+#ifdef TRACING
 	bool singleInstruction = false;
+#endif
+	tracelog.push({"<init>", 0, {}, {phsnull, phsnull, phsnull}});
 
-	if (m_bytecode->instructions.size() < 2) {
+	if (m_bytecode->instructions.size() < 2) { [[unlikely]]
 		if (m_bytecode->instructions.size() == 1) {
 			Instruction instruction = m_bytecode->instructions[0];
 			std::vector<std::string> operandParts;
@@ -122,7 +125,9 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 			}
 			log(std::format("Warning! Bytecode has 1 instruction:\n{} {}", opCodeToString(instruction.op), operands));
 			flush();
+#ifdef TRACING
 			singleInstruction = true;
+#endif
 		} else {
 			log(std::format("Warning! Bytecode has 0 instructions."));
 			flush();
@@ -166,25 +171,25 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 #endif
 #ifdef TRACING
 		std::ostringstream stacklog;
-	#ifdef PHASOR_USES_BOOST
-//    	stacklog << boost::stacktrace::stacktrace();
-	#elif defined(__ANDROID__)
-//		stacklog << "'stacktrace' unsupported on NDK";
-	#else
-//		stacklog << std::stacktrace::current();
-stacklog << "disabled for now";
-	#endif
-		log(std::format("\n{}: CAUGHT Phasor:VM::Halt\n\n{}\n\n{}\n\nUser code exited {} with code {}\n", PHS_SRC_LOC(), stacklog.str(), getInformation(), status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
-		flush();
+#ifdef PHASOR_USES_BOOST
+		stacklog << boost::stacktrace::stacktrace();
+#elif defined(__cpp_lib_stacktrace) && __cpp_lib_stacktrace >= 202011L
+		stacklog << std::stacktrace::current();
+#else
+		stacklog << "[No C++23 <stacktrace> support]";
+#endif
+		if (singleInstruction) { [[unlikely]]
+			log(std::format("\nUser code exited {} with code {}\n", status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
+			flush();
+		} else {
+			log(std::format("\n{}: CAUGHT Phasor:VM::Halt\n\n{}\n\n{}\n\nUser code exited {} with code {}\n", PHS_SRC_LOC(), stacklog.str(), getInformation(), status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
+			flush();
+		}
 #endif
 #ifdef _DEBUG
 		if (isDebuggerAttached())
 			assert(status == 0);
 #endif
-		if (singleInstruction) {
-			log(std::format("\nUser code exited {} with code {}\n", status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
-			flush();
-		}
 		return status;
 	}
 	catch (const std::exception &e)
@@ -195,11 +200,11 @@ stacklog << "disabled for now";
 #endif
 		std::ostringstream stacklog;
 #ifdef PHASOR_USES_BOOST
-    	stacklog << boost::stacktrace::stacktrace();
-#elif defined(__ANDROID__)
-		stacklog << "'stacktrace' unsupported on NDK";
+		stacklog << boost::stacktrace::stacktrace();
+#elif defined(__cpp_lib_stacktrace) && __cpp_lib_stacktrace >= 202011L
+		stacklog << std::stacktrace::current();
 #else
-		stacklog << "disabled for now";
+		stacklog << "[No C++23 <stacktrace> support]";
 #endif
 		logerr(std::format("\n{}: \x1B[0;31mUNCAUGHT std::exception occured in Phasor VM Runtime\x1B[0m\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
 		flusherr();
@@ -289,6 +294,7 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 	if (resetStack)
 	{
 		callStack.clear();
+		tracelog.clear();
 		stack_pool.release();
 		stack = std::pmr::vector<Value>(&stack_pool);
 	}

@@ -30,10 +30,10 @@ fn printHelp(program: string, configured: bool) {
         presetMsg = "required to generate build files";
     
     if (configured) {
-        putf("Usage: [runtime] %s [preset] [options]", program);
+        putf("Usage: %s [preset] [options]", program.frelative());
     } else {
         var p: sys_fork_out = sys_fork("cmake", ["--list-presets"], true);
-        putf("Usage: [runtime] %s <preset> [options]\n", program);
+        putf("Usage: %s <preset> [options]\n", program);
         if (p.status == 0) puts(p.output);
     }
     
@@ -55,8 +55,6 @@ fn main_pmake(argv: string[]) -> int {
         out: ".pmake/CMakeBuild", cacheTpl: ".pmake/%s.cache", lock: ".pmake/%s.lock"
     };
     var defines: string[];
-
-    var pid: int = sys_pid();
 
     if (PROJECT_JSON.fexists()) {
         var data: ProjectJson = PROJECT_JSON.fread().from_json();
@@ -140,10 +138,8 @@ fn main_pmake(argv: string[]) -> int {
     var l_statusFile: string =  paths.lockTpl.c_fmt(proj.name);
     if (l_statusFile.fexists()) {
         var l_pid: int = l_statusFile.freadln(1).to_int();
-        if (l_pid != pid) {
-            putf_error("pmake locked by another process %d", l_pid);
-            shutdown(2); 
-        }
+        puts_error("pmake locked by another process");
+        shutdown(2); 
     }
     
     if (!args.doClean) writeStatus("init", paths, proj);
