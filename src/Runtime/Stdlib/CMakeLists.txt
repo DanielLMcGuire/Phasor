@@ -1,4 +1,6 @@
 set(STDLIB_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/sha1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/sha256.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StdLib.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/core/random.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/data.cpp

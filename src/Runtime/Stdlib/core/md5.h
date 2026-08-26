@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
+#include <phsint.hpp>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
@@ -14,8 +14,8 @@ class MD5 {
 public:
     MD5() { reset(); }
 
-    void update(const uint8_t* data, size_t len) {
-        totalLenBits_ += static_cast<uint64_t>(len) * 8ULL;
+    void update(const Phasor::u8* data, size_t len) {
+        totalLenBits_ += static_cast<Phasor::u64>(len) * 8ULL;
         buffer_.insert(buffer_.end(), data, data + len);
 
         size_t offset = 0;
@@ -27,18 +27,18 @@ public:
     }
 
     void update(const Phasor::PhsString& s) {
-        update(reinterpret_cast<const uint8_t*>(s.data()), s.size());
+        update(reinterpret_cast<const Phasor::u8*>(s.data()), s.size());
     }
 
-    std::array<uint8_t, 16> finalize() {
-        const uint64_t bitLen = totalLenBits_;
+    std::array<Phasor::u8, 16> finalize() {
+        const Phasor::u64 bitLen = totalLenBits_;
 
         buffer_.push_back(0x80);
         while (buffer_.size() % 64 != 56) {
             buffer_.push_back(0x00);
         }
         for (int i = 0; i < 8; ++i) {
-            buffer_.push_back(static_cast<uint8_t>((bitLen >> (8 * i)) & 0xFF));
+            buffer_.push_back(static_cast<Phasor::u8>((bitLen >> (8 * i)) & 0xFF));
         }
 
         for (size_t offset = 0; offset < buffer_.size(); offset += 64) {
@@ -46,36 +46,36 @@ public:
         }
         buffer_.clear();
 
-        std::array<uint8_t, 16> digest{};
-        const uint32_t state[4] = {a0_, b0_, c0_, d0_};
+        std::array<Phasor::u8, 16> digest{};
+        const Phasor::u32 state[4] = {a0_, b0_, c0_, d0_};
         for (int i = 0; i < 4; ++i) {
-            digest[i * 4 + 0] = static_cast<uint8_t>(state[i] & 0xFF);
-            digest[i * 4 + 1] = static_cast<uint8_t>((state[i] >> 8) & 0xFF);
-            digest[i * 4 + 2] = static_cast<uint8_t>((state[i] >> 16) & 0xFF);
-            digest[i * 4 + 3] = static_cast<uint8_t>((state[i] >> 24) & 0xFF);
+            digest[i * 4 + 0] = static_cast<Phasor::u8>(state[i] & 0xFF);
+            digest[i * 4 + 1] = static_cast<Phasor::u8>((state[i] >> 8) & 0xFF);
+            digest[i * 4 + 2] = static_cast<Phasor::u8>((state[i] >> 16) & 0xFF);
+            digest[i * 4 + 3] = static_cast<Phasor::u8>((state[i] >> 24) & 0xFF);
         }
         return digest;
     }
 
-    static Phasor::PhsString toHex(const std::array<uint8_t, 16>& digest) {
+    static Phasor::PhsString toHex(const std::array<Phasor::u8, 16>& digest) {
         std::ostringstream oss;
         oss << std::hex << std::setfill('0');
-        for (uint8_t b : digest) {
+        for (Phasor::u8 b : digest) {
             oss << std::setw(2) << static_cast<int>(b);
         }
         return oss.str();
     }
 
-    static Phasor::PhsString hash(const Phasor::PhsString& input) {
+    static Phasor::PhsString hashHex(const Phasor::PhsString& input) {
         MD5 md5;
         md5.update(input);
         return toHex(md5.finalize());
     }
 
 private:
-    uint32_t a0_, b0_, c0_, d0_;
-    uint64_t totalLenBits_ = 0;
-    std::vector<uint8_t> buffer_;
+    Phasor::u32 a0_, b0_, c0_, d0_;
+    Phasor::u64 totalLenBits_ = 0;
+    std::vector<Phasor::u8> buffer_;
 
     void reset() {
         a0_ = 0x67452301;
@@ -86,18 +86,18 @@ private:
         buffer_.clear();
     }
 
-    static uint32_t leftrotate(uint32_t x, uint32_t c) {
+    static Phasor::u32 leftrotate(Phasor::u32 x, Phasor::u32 c) {
         return (x << c) | (x >> (32 - c));
     }
 
-    void processBlock(const uint8_t block[64]) {
-        static const uint32_t s[64] = {
+    void processBlock(const Phasor::u8 block[64]) {
+        static const Phasor::u32 s[64] = {
             7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
             5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
             4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
             6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21};
 
-        static const uint32_t K[64] = {
+        static const Phasor::u32 K[64] = {
             0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf,
             0x4787c62a, 0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af,
             0xffff5bb1, 0x895cd7be, 0x6b901122, 0xfd987193, 0xa679438e,
@@ -112,18 +112,18 @@ private:
             0x85845dd1, 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
             0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391};
 
-        uint32_t M[16];
+        Phasor::u32 M[16];
         for (int i = 0; i < 16; ++i) {
-            M[i] = static_cast<uint32_t>(block[i * 4]) |
-                   (static_cast<uint32_t>(block[i * 4 + 1]) << 8) |
-                   (static_cast<uint32_t>(block[i * 4 + 2]) << 16) |
-                   (static_cast<uint32_t>(block[i * 4 + 3]) << 24);
+            M[i] = static_cast<Phasor::u32>(block[i * 4]) |
+                   (static_cast<Phasor::u32>(block[i * 4 + 1]) << 8) |
+                   (static_cast<Phasor::u32>(block[i * 4 + 2]) << 16) |
+                   (static_cast<Phasor::u32>(block[i * 4 + 3]) << 24);
         }
 
-        uint32_t A = a0_, B = b0_, C = c0_, D = d0_;
+        Phasor::u32 A = a0_, B = b0_, C = c0_, D = d0_;
 
-        for (uint32_t i = 0; i < 64; ++i) {
-            uint32_t F, g;
+        for (Phasor::u32 i = 0; i < 64; ++i) {
+            Phasor::u32 F, g;
             if (i < 16) {
                 F = (B & C) | (~B & D);
                 g = i;

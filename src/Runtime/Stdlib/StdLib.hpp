@@ -258,6 +258,8 @@ class StdLib
 	static PhsString base64_decoder(const Value::ArrayInstance &args, VM *vm);
 	static PhsString base64_encoder(const Value::ArrayInstance &args, VM *vm);
 	static PhsString md5(const Value::ArrayInstance &args, VM *vm);
+	static PhsString sha1(const Value::ArrayInstance &args, VM *vm);
+	static PhsString sha256(const Value::ArrayInstance &args, VM *vm);
 #pragma endregion
 
 #pragma region stdnet
