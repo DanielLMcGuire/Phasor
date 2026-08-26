@@ -23,11 +23,13 @@ load_plugin("sdl2_phs.so");
 static_endif // (PHASOR_NATIVE)
 
 static_if (WIN32)
+undefine NO_CHECK_OS;
 include "win32/windows.phs";
 fn Message(msg: string, title: string) {
     MessageBox(NULL_HWND, msg, title, MB.OK + MB.ICONERROR);
 }
 static_else (DARWIN)
+undefine NO_CHECK_OS;
 fn Message(msg: string, title: string) {
     applescript_run(c_fmt("activate\ndisplay dialog \"%s\" with title \"%s\" buttons {\"OK\"} default button \"OK\"", msg, title));
 }
@@ -138,7 +140,7 @@ fn render_frame(
     food: Vec2,
     score: i64, gameOver: bool,
     tScaled: i64,
-    justGrew: bool, growDirX: i64, growDirY: i64
+    justGrew: bool
 ) {
     if (gameOver) {
         renderer.sdl_set_render_draw_color_vec(palette.gameOverBack);
@@ -156,16 +158,19 @@ fn render_frame(
         var drawY: i64 = prevSegY[s] * CELL + ((segY[s] - prevSegY[s]) * CELL * tScaled) / 1000;
 
         if (justGrew && s == segLength - 1) {
+            var neighborDX: i64 = segX[s - 1] - prevSegX[s - 1];
+            var neighborDY: i64 = segY[s - 1] - prevSegY[s - 1];
+
             var tPix: i64 = (CELL * tScaled) / 1000;
             var gx: i64 = drawX;
             var gy: i64 = drawY;
             var gw: i64 = CELL;
             var gh: i64 = CELL;
 
-            if (growDirX > 0)      { gw = tPix; }
-            else if (growDirX < 0) { gx = drawX + (CELL - tPix); gw = tPix; }
-            else if (growDirY > 0) { gh = tPix; }
-            else if (growDirY < 0) { gy = drawY + (CELL - tPix); gh = tPix; }
+            if (neighborDX > 0)      { gw = tPix; }
+            else if (neighborDX < 0) { gx = drawX + (CELL - tPix); gw = tPix; }
+            else if (neighborDY > 0) { gh = tPix; }
+            else if (neighborDY < 0) { gy = drawY + (CELL - tPix); gh = tPix; }
 
             if (gw > 0 && gh > 0)
                 renderer.sdl_render_fill_rect(gx, gy, gw, gh);
@@ -453,7 +458,7 @@ static_endif
             if (tScaled > 1000) tScaled = 1000;
         }
 
-        renderer.render_frame(segX, segY, prevSegX, prevSegY, segLength, corners, cornerCount, food, score, gameOver, tScaled, justGrew, segDir[segLength - 1][0], segDir[segLength - 1][1]);
+        renderer.render_frame(segX, segY, prevSegX, prevSegY, segLength, corners, cornerCount, food, score, gameOver, tScaled, justGrew);
 
         var frameElapsed: i64 = time() - frameStart;
         var delayTime: i64 = FRAMETIME - frameElapsed;
