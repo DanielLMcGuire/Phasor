@@ -1,4 +1,5 @@
 #!/usr/bin/env phasor
+define NO_CHECK_OS;
 include "std/type";
 include "std/ini";
 include "std/math";
@@ -15,12 +16,26 @@ load_plugin("sdl2_phs.dll");
 load_plugin("winapi_phs.dll");
     static_else (DARWIN)
 load_plugin("sdl2_phs.dylib");
-load_plugin("posix_phs.dylib");
+load_plugin("applescript_phs.dylib");
     static_else // (!DARWIN && !WIN32)
 load_plugin("sdl2_phs.so");
-load_plugin("posix_phs.so");
     static_endif // (WIN32 || DARWIN)
 static_endif // (PHASOR_NATIVE)
+
+static_if (WIN32)
+include "win32/windows.phs";
+fn Message(msg: string, title: string) {
+    MessageBox(NULL_HWND, msg, title, MB.OK + MB.ICONERROR);
+}
+static_else (DARWIN)
+fn Message(msg: string, title: string) {
+    applescript_run(c_fmt("activate\ndisplay dialog \"%s\" with title \"%s\" buttons {\"OK\"} default button \"OK\"", msg, title));
+}
+static_else
+fn Message(msg: string, title: string) {
+    putf_error("%s | %s", title, msg);
+}
+static_endif
 
 define screenW = 900;
 define screenH = 900;
@@ -30,7 +45,7 @@ define FRAMETIME = 1000 / FPS;
 define CELL = 30;
 define GRID_W = screenW / CELL;
 define GRID_H = screenH / CELL;
-define MOVE_MS = 110;
+var MOVE_MS: int = 110;
 define TIMEF = "%Y-%m-%dT%I:%M:%SZ";
 
 var title: string = "snake game";
@@ -179,26 +194,32 @@ static_endif
     rand_seed(seedA, seedB);
     var initResult: i64 = sdl_init(SDLC.INIT_VIDEO);
     if (initResult < 0) {
-        puts_error("Failed to initialize SDL");
-        fclose(configFile);
+        Message(c_fmt("Failed to initialize SDL: %s", sdl_get_error()), title);
+        static_if (!EMBEDDED)
+    fclose(configFile);
+static_endif
         return 1;
     }
 
     var window: SDLWindow = sdl_create_window(title, 100, 100, screenW, screenH, SDLC.WINDOW_SHOWN);
     if (window == NULL_SDLWINDOW) {
-        puts_error("Failed to create window");
+        Message(c_fmt("Failed to create window: %s", sdl_get_error()), title);
         sdl_quit();
-        fclose(configFile);
+        static_if (!EMBEDDED)
+    fclose(configFile);
+static_endif
         return 1;
     }
 
     var renderer: SDLRenderer = window.sdl_create_renderer(-1, SDLC.RENDERER_ACCELERATED + SDLC.RENDERER_PRESENTVSYNC);
     if (renderer == NULL_SDLRENDERER) {
-        puts_error("Failed to create renderer");
+        Message(c_fmt("Failed to create renderer: %s", sdl_get_error()), title);
         if (window != NULL_SDLWINDOW)
             window.sdl_destroy_window();
         sdl_quit();
-        fclose(configFile);
+        static_if (!EMBEDDED)
+    fclose(configFile);
+static_endif
         return 1;
     }
 
@@ -273,6 +294,14 @@ static_endif
                             food = place_food(segX, segY, segLength);
                         }
                     default:
+                        static_if (DEBUG)
+                        switch (event.key_sym) {
+                        case SDLC.K_F11:
+                            MOVE_MS = MOVE_MS * 2;
+                        case SDLC.K_F12:
+                            MOVE_MS = MOVE_MS / 2;
+                        }
+                    static_endif
                         var d: Vec2 = dir_from_key(event.key_sym, dir.x, dir.y, nextDir.x, nextDir.y);
                         nextDir.x = d.x;
                         nextDir.y = d.y;
@@ -382,7 +411,9 @@ static_endif
     if (window != NULL_SDLWINDOW)
         window.sdl_destroy_window();
     sdl_quit();
+static_if (!EMBEDDED)
     fclose(configFile);
+static_endif
     return 0;
 }
 

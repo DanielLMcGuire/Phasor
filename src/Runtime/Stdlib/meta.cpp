@@ -155,10 +155,29 @@ Value StdLib::meta_stack_run(const Value::ArrayInstance &args, VM *vm)
 }
 #endif
 
+enum semver: Phasor::u8 {
+    major, 
+    minor,
+    patch
+};
+
 PhsString StdLib::meta_get_version(const Value::ArrayInstance &args, VM *)
 {
-	checkArgCount(args, 0, "phs_version");
-	return PHASOR_VERSION_STRING;
+	checkArgCount(args, 0, "phs_version", true);
+    if (args.size() > 1) PHS_ERROR("phs_version() expects at most 1 argument (version type)");
+    if (args.size() == 1) requireInt(args[0], "phs_version", "version type");
+    else return PHASOR_VERSION_STRING;
+
+    semver ver = static_cast<semver>(args[0].asInt());
+	switch (ver) {
+        case major:
+            return PHASOR_VERSION_MAJOR;
+        case minor:
+            return PHASOR_VERSION_MINOR;
+        case patch:
+            return PHASOR_VERSION_PATCH;
+    }
+    return PHASOR_VERSION_STRING;
 }
 
 Value StdLib::meta_get_registers(const Value::ArrayInstance &args, VM *vm) 

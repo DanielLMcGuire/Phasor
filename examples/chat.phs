@@ -10,11 +10,12 @@ include "std/net";
 include "std/rand";
 
 struct Packet {
-    msg: string
+    msg: string,
+    status: bool
 }
 
 var base_delay: float = 1.0;
-var max_delay: float = 60.0;
+var max_delay: float = 20.0;
 
 fn get_delay(attempt: i64) {
     var exp_backoff: float = base_delay * math_pow(2.0, attempt);
@@ -26,20 +27,20 @@ fn chat_loop(fd: int, is_host: bool) {
     net_set_option(fd, "keepalive", true);
     
     var my_turn: bool = is_host;
+    var connected: bool = true;
     
-    while (true) {
+    while (connected) {
         if (my_turn) {
             print("You: ");
             var message: string = gets();
-            var disconnect: bool = message.len() == 0;
-            var pkt: Packet = Packet{
-                msg: message
-            };
-            
-            fwrite(fd, pkt.to_json().concat("\n")); 
+            if (message.len() == 0) {
+                break;
+            } else {
+                fwrite(fd, Packet{msg: message, status: true}.to_json().concat("\n")); 
+            }
             my_turn = false;
         } else {
-            puts("Waiting for response...");
+            puts("Waiting on response...");
             var res: string = freadln(fd);
             if (res == null) res = freadln(fd);
             for (var i: i64 = 0; i < 5; i++) {
@@ -51,17 +52,30 @@ fn chat_loop(fd: int, is_host: bool) {
                 var msg: string;
                 if (is_host) msg = "[Client disconnected!]";
                 else msg = "[Host disconnected!]";
-                puts_error(msg);
+                puts(msg);
+                connected = false;
                 break;
             }
 
-            var peer_msg: Packet = res.from_json();
-            
-            putf("Peer: %s", peer_msg.msg);
+            var packet: Packet = res.from_json();
+            if (packet.status == true)
+                putf("Peer: %s", packet.msg);
+            else {
+                
+                connected = false;
+                break;
+            } 
             my_turn = true;
         }
     }
-    
+    if (connected)
+        fwrite(fd, Packet{msg: "", status: false}.to_json().concat("\n"));
+    else {
+        var msg: string;
+        if (is_host) msg = "[Client disconnected!]";
+        else msg = "[Host disconnected!]";
+        puts(msg);
+    }
     fclose(fd);
 }
 
@@ -81,7 +95,7 @@ fn run_host(port: int) {
         return;
     }
 
-    putf("User joined from %s:%d! Type a message and press Enter.", client.host, client.port);
+    putf("User joined from %s:%d! Type a message and press Enter. Send nothing to quit.", client.host, client.port);
     net_close_listener(listener);
 
     chat_loop(client.fd, true);
@@ -96,7 +110,7 @@ fn run_joiner(host: string, port: int) {
         return;
     }
 
-    puts("Connected! Waiting for Host to speak first...");
+    puts("Connected! Send nothing to quit. Wait for Host to speak first...");
     chat_loop(fd, false);
 }
 
@@ -105,6 +119,7 @@ fn main(args: string[]) -> int {
     while (seedA < 1) seedA = rand_crypto_int();
     var seedB: i64 = rand_crypto_int();
     while (seedB < 1) seedB = rand_crypto_int();
+    rand_seed(seedA, seedB);
 
     if (args.len() < 3) {
         puts("Usage:");

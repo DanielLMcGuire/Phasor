@@ -11,6 +11,7 @@
 // limitations under the License.
 
 include "../../../include/std/types/sys.phs";
+include "../../../include/std/types/meta.phs";
 
 // pops argc then argv off stack, then builds and returns string[] of args
 fn phsrt__build_args() -> string[]
@@ -39,6 +40,21 @@ static_endif // (PHS_DEBUG)
     return argv;
 }
 
+fn phsrt_check_runtime() -> bool
+{
+    if (phs_version(sys_version_type.major) != PHS_VERSION_MAJOR) {
+        return false;
+    }
+    if (to_int(phs_version(sys_version_type.minor)) > to_int(PHS_VERSION_MINOR)) {
+        return false;
+    }
+    if (to_int(phs_version(sys_version_type.patch)) > to_int(PHS_VERSION_PATCH))
+    {
+        printf("Warning: This bytecode was compiled for a older Phasor patch (Bytecode=%s, Runtime=%s), it might not work correctly.\n", phs_version(), PHS_VERSION);
+    }
+    return true;
+}
+
 // checks support
 fn phsrt_check_support() -> void
 {
@@ -58,9 +74,9 @@ static_if (PHS_DEBUG)
         assert(false);
     } else print "Arch matches\n";
     static_endif // (!PHASOR_NATIVE)
-    if (PHS_VERSION != phs_version())
+    if (!phsrt_check_runtime())
     {
-        printf("Requires runtime version %s.\n", PHS_VERSION);
+        printf("Requires at least runtime version %s.\n", PHS_VERSION);
         assert(false);
     } else print "Version matches\n";
 static_else // (!PHS_DEBUG)
@@ -72,7 +88,7 @@ static_else // (!PHS_DEBUG)
     if (COMP_ARCH != sys_arch())
         error(c_fmt("Requires %s runtime build.", sys_arch_map[COMP_ARCH]));
     static_endif // (!PHASOR_NATIVE)
-    if (PHS_VERSION != phs_version())
-        error(c_fmt("Requires runtime version %s.", PHS_VERSION));
+    if (!phsrt_check_runtime())
+        error(c_fmt("Requires at least runtime version %s.", PHS_VERSION));
 static_endif // (PHS_DEBUG)
 }

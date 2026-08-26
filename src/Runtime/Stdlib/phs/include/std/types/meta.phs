@@ -55,3 +55,15 @@ struct VM {
 }
 
 var NULL_VM: VM = VM{ handle: null };
+
+struct sys_version_def {
+    major: i64,
+    minor: i64,
+    patch: i64
+}
+
+var sys_version_type: sys_version_def = sys_version_def{
+    major: 0,
+    minor: 1,
+    patch: 2
+};

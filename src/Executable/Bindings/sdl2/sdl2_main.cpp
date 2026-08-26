@@ -139,6 +139,15 @@ PhasorValue phasor_sdl_poll_event(PhasorVM*, int, const PhasorValue*)
     return phasor_make_struct("SDLEvent", kEventKeys, values, kEventFieldCount);
 }
 
+PhasorValue phasor_sdl_get_error(PhasorVM*, int argc, const PhasorValue *)
+{
+    if (argc > 1) { [[unlikely]] 
+        throw std::runtime_error("SDL_GetError requires 0 arguments.");
+    }
+    static std::string error = SDL_GetError();
+    return phasor_make_string(error.c_str());
+}
+
 PhasorValue phasor_sdl_create_renderer(PhasorVM*, int argc, const PhasorValue *argv)
 {
     if (argc < 3) { [[unlikely]]
@@ -291,6 +300,7 @@ PHASOR_FFI_EXPORT void phasor_plugin_entry(const PhasorAPI *api, PhasorVM *vm)
     api->register_function(vm, "SDL_DestroyWindow", phasor_sdl_destroy_window);
     api->register_function(vm, "SDL_Delay", phasor_sdl_delay);
     api->register_function(vm, "SDL_PollEvent", phasor_sdl_poll_event);
+    api->register_function(vm, "SDL_GetError", phasor_sdl_get_error);
 
     api->register_function(vm, "SDL_CreateRenderer", phasor_sdl_create_renderer);
     api->register_function(vm, "SDL_DestroyRenderer", phasor_sdl_destroy_renderer);

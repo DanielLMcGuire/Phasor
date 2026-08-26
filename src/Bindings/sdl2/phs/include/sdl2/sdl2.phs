@@ -9,6 +9,8 @@ fn sdl_destroy_window(window: SDLWindow);
 fn sdl_delay(ms: i64);
 fn sdl_poll_event() -> SDLEvent;
 
+fn sdl_get_error() -> string;
+
 fn sdl_create_renderer(window: SDLWindow, index: i64, flags: i64) -> SDLRenderer;
 fn sdl_destroy_renderer(renderer: SDLRenderer);
 fn sdl_set_render_draw_color(renderer: SDLRenderer, r: i64, g: i64, b: i64, a: i64);

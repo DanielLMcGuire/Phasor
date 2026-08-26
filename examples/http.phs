@@ -9,6 +9,17 @@ include "std/http";
 
 include "./mimetype.phs";
 
+struct httpbin_post_res {
+    args: any,
+    data: any,
+    files: any,
+    form: any,
+    headers: any,
+    json: any,
+    origin: string,
+    url: string
+}
+
 fn main(args: string[]) -> i64 {
     var parentDir: string = fabsolute(args[0]).fparent();
     load_mimetypes(parentDir.fjoin(["extra", "mimetypes.json"]));
@@ -16,13 +27,14 @@ fn main(args: string[]) -> i64 {
     for (var i: i64 = 1; i < args.len(); i++)
         input.arr_push(args[i]);
     var res: HTTPResponse = http_post("http://httpbin.org/post", input.to_json(), [mimetype("json")], 1500);
-    if (res != null && res.status == 200) {
-        puts(res.body.from_json().to_json(2));
+    if (res != null && res.status == HTTPCode.OK) {
+        var res: httpbin_post_res = res.body.from_json();
+        putf("%0.02O", res);
     } else {
         putf_error("Failed with error: %d", res.status);
     }
 
-    return to_int(!(res.status == 200));
+    return to_int(!(res.status == HTTPCode.OK));
 }
 
 include "std/main";

@@ -95,6 +95,9 @@ inline void addDefaultDefines(Defines &defines, bool nativeTarget)
 #endif
 
 	setString("PHS_VERSION", PHASOR_VERSION_STRING);
+	setString("PHS_VERSION_MAJOR", PHASOR_VERSION_MAJOR);
+	setString("PHS_VERSION_MINOR", PHASOR_VERSION_MINOR);
+	setString("PHS_VERSION_PATCH", PHASOR_VERSION_PATCH);
 
 #if defined(_DEBUG)
 	setFlag("DEBUG");

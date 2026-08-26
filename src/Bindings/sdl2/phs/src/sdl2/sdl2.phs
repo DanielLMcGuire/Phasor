@@ -33,6 +33,11 @@ fn sdl_poll_event() -> SDLEvent
     return SDL_PollEvent();
 }
 
+fn sdl_get_error() -> string
+{
+    return SDL_GetError();
+}
+
 fn sdl_create_renderer(window: SDLWindow, index: i64, flags: i64) -> SDLRenderer
 {
     var handle: i64 = SDL_CreateRenderer(window.handle, index, flags);
