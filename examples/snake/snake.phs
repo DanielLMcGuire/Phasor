@@ -137,7 +137,8 @@ fn render_frame(
     corners: i64[][], cornerCount: i64,
     food: Vec2,
     score: i64, gameOver: bool,
-    tScaled: i64
+    tScaled: i64,
+    justGrew: bool, growDirX: i64, growDirY: i64
 ) {
     if (gameOver) {
         renderer.sdl_set_render_draw_color_vec(palette.gameOverBack);
@@ -150,27 +151,73 @@ fn render_frame(
     renderer.sdl_render_fill_rect(food.x * CELL, food.y * CELL, CELL, CELL);
 
     renderer.sdl_set_render_draw_color_vec(palette.snake_body);
-    for (var c: i64 = 0; c < cornerCount; c++)
-        renderer.sdl_render_fill_rect(corners[c][0] * CELL, corners[c][1] * CELL, CELL, CELL);
-
-    
-    for (var s: i64 = 0; s < segLength; s++) {
+    for (var s: i64 = 1; s < segLength; s++) {
         var drawX: i64 = prevSegX[s] * CELL + ((segX[s] - prevSegX[s]) * CELL * tScaled) / 1000;
         var drawY: i64 = prevSegY[s] * CELL + ((segY[s] - prevSegY[s]) * CELL * tScaled) / 1000;
 
-        if (s == 0) {
-            renderer.sdl_set_render_draw_color_vec(palette.snake_head);
+        if (justGrew && s == segLength - 1) {
+            var tPix: i64 = (CELL * tScaled) / 1000;
+            var gx: i64 = drawX;
+            var gy: i64 = drawY;
+            var gw: i64 = CELL;
+            var gh: i64 = CELL;
+
+            if (growDirX > 0)      { gw = tPix; }
+            else if (growDirX < 0) { gx = drawX + (CELL - tPix); gw = tPix; }
+            else if (growDirY > 0) { gh = tPix; }
+            else if (growDirY < 0) { gy = drawY + (CELL - tPix); gh = tPix; }
+
+            if (gw > 0 && gh > 0)
+                renderer.sdl_render_fill_rect(gx, gy, gw, gh);
         } else {
-            renderer.sdl_set_render_draw_color_vec(palette.snake_body);
+            renderer.sdl_render_fill_rect(drawX, drawY, CELL, CELL);
         }
-        renderer.sdl_render_fill_rect(drawX, drawY, CELL, CELL);
     }
+
+    renderer.sdl_set_render_draw_color_vec(palette.snake_body);
+    var tPixC: i64 = (CELL * tScaled) / 1000;
+    for (var c: i64 = 0; c < cornerCount; c++) {
+        var cx: i64 = corners[c][0];
+        var cy: i64 = corners[c][1];
+        var oldDx: i64 = corners[c][2];
+        var oldDy: i64 = corners[c][3];
+        var newDx: i64 = corners[c][4];
+        var newDy: i64 = corners[c][5];
+
+        var gapX: i64 = 0; var gapW: i64 = 0;
+        var gapY: i64 = 0; var gapH: i64 = 0;
+
+        if (oldDx != 0) {
+            if (oldDx > 0) { gapX = cx * CELL + tPixC; }
+            else           { gapX = cx * CELL; }
+            gapW = CELL - tPixC;
+
+            if (newDy > 0) { gapY = cy * CELL; }
+            else           { gapY = cy * CELL + (CELL - tPixC); }
+            gapH = tPixC;
+        } else {
+            if (oldDy > 0) { gapY = cy * CELL + tPixC; }
+            else           { gapY = cy * CELL; }
+            gapH = CELL - tPixC;
+
+            if (newDx > 0) { gapX = cx * CELL; }
+            else           { gapX = cx * CELL + (CELL - tPixC); }
+            gapW = tPixC;
+        }
+
+        if (gapW > 0 && gapH > 0)
+            renderer.sdl_render_fill_rect(gapX, gapY, gapW, gapH);
+    }
+
+    var headDrawX: i64 = prevSegX[0] * CELL + ((segX[0] - prevSegX[0]) * CELL * tScaled) / 1000;
+    var headDrawY: i64 = prevSegY[0] * CELL + ((segY[0] - prevSegY[0]) * CELL * tScaled) / 1000;
+    renderer.sdl_set_render_draw_color_vec(palette.snake_head);
+    renderer.sdl_render_fill_rect(headDrawX, headDrawY, CELL, CELL);
 
     renderer.draw_score(score, SCORE_X, palette.led_on, palette.led_off);
 
     renderer.sdl_render_present();
 }
-
 
 fn main(args: string[]) -> int {
 static_if (!EMBEDDED)
@@ -229,7 +276,7 @@ static_endif
     var prevSegY: i64[800];
     var segDir: i64[800][2];
 
-    var corners: i64[800][2];
+    var corners: i64[800][6];
     var cornerCount: i64 = 0;
 
     var startX: i64 = GRID_W / 2;
@@ -254,6 +301,7 @@ static_endif
 
     var score: i64 = 0;
     var gameOver: bool = false;
+    var justGrew: bool = false;
     var running: bool = true;
     var lastMoveTime: i64 = time();
 
@@ -289,6 +337,7 @@ static_endif
 
                             score = 0;
                             gameOver = false;
+                            justGrew = false;
                             lastMoveTime = time();
 
                             food = place_food(segX, segY, segLength);
@@ -315,6 +364,7 @@ static_endif
             var now: i64 = time();
             if (now - lastMoveTime >= MOVE_MS) {
                 lastMoveTime = now;
+                justGrew = false;
 
                 for (var snapIdx: i64 = 0; snapIdx < segLength; snapIdx++) {
                     prevSegX[snapIdx] = segX[snapIdx];
@@ -359,6 +409,7 @@ static_if (DEBUG)
                         putf("%s - ate apple...", localtimef(TIMEF));
 static_endif
                         segLength++;
+                        justGrew = true;
 
                         prevSegX[segLength - 1] = segX[segLength - 1];
                         prevSegY[segLength - 1] = segY[segLength - 1];
@@ -377,9 +428,13 @@ static_endif
                         var stepDX: i64 = segX[ci] - prevSegX[ci];
                         var stepDY: i64 = segY[ci] - prevSegY[ci];
 
-                        if (is_corner_turn(stepDX, stepDY, segDir[ci][0], segDir[ci][1])) {
+                        if (ci < oldSegLength - 1 && is_corner_turn(stepDX, stepDY, segDir[ci][0], segDir[ci][1])) {
                             corners[cornerCount][0] = prevSegX[ci];
                             corners[cornerCount][1] = prevSegY[ci];
+                            corners[cornerCount][2] = segDir[ci][0];
+                            corners[cornerCount][3] = segDir[ci][1];
+                            corners[cornerCount][4] = stepDX;
+                            corners[cornerCount][5] = stepDY;
                             cornerCount++;
                         }
 
@@ -398,7 +453,7 @@ static_endif
             if (tScaled > 1000) tScaled = 1000;
         }
 
-        renderer.render_frame(segX, segY, prevSegX, prevSegY, segLength, corners, cornerCount, food, score, gameOver, tScaled);
+        renderer.render_frame(segX, segY, prevSegX, prevSegY, segLength, corners, cornerCount, food, score, gameOver, tScaled, justGrew, segDir[segLength - 1][0], segDir[segLength - 1][1]);
 
         var frameElapsed: i64 = time() - frameStart;
         var delayTime: i64 = FRAMETIME - frameElapsed;
