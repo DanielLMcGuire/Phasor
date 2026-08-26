@@ -1,6 +1,6 @@
 #!/usr/bin/env phasor
 
-include "std/sys"; 
+include "std/sys";
 include "std/io";
 
 // @todo Something more probably

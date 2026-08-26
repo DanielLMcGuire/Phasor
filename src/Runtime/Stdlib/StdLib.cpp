@@ -73,6 +73,7 @@ void StdLib::registerInternalFunctions(VM *vm)
 	vm->registerNativeFunction("phs__memory_read_string_native", StdLib::native_memory_read_string);
 	vm->registerNativeFunction("phs__memory_free_native", StdLib::native_memory_free);
 	vm->registerNativeFunction("shutdown", StdLib::sys_shutdown);
+	vm->registerNativeFunction("to_int", StdLib::to_int);
 	vm->registerNativeFunction("printf", StdLib::io_printf);
 	vm->registerNativeFunction("c_fmt", StdLib::io_c_format);
 	vm->registerNativeFunction("phs_push", StdLib::meta_push);
