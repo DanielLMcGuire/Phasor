@@ -46,7 +46,7 @@ int CCompiler::run()
 	if (m_args.moduleName.empty())
 	{
 		std::filesystem::path inputPath(m_args.inputFile);
-		m_args.moduleName = PhsString(inputPath.stem().string());
+		m_args.moduleName = Phasor::string(inputPath.stem().string());
 	}
 
 	// Default output file if not specified
@@ -134,7 +134,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++)
 	{
-		PhsString arg = argv[i];
+		Phasor::string arg = argv[i];
 
 		if (arg == "-h" || arg == "--help")
 		{
@@ -145,7 +145,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 		{
 			m_args.verbose = true;
 		} else if (arg.starts_with("-i=") || arg.starts_with("-I=") || arg.starts_with("--include=")) {
-			PhsString values = arg.substr(arg.find('=') + 1);
+			Phasor::string values = arg.substr(arg.find('=') + 1);
 			std::stringstream ss(values);
 			std::string item;
 			while (std::getline(ss, item, ','))
@@ -156,7 +156,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 		} else if (arg == "-I" || arg == "--include") {
 			if (i + 1 < argc)
 			{
-				PhsString values = argv[++i];
+				Phasor::string values = argv[++i];
 				std::stringstream ss(values);
 				std::string item;
 				while (std::getline(ss, item, ','))
@@ -170,7 +170,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 				return true;
 			}
 		} else if (arg.starts_with("-D=") || arg.starts_with("--define=")) {
-			PhsString values = arg.substr(arg.find('=') + 1);
+			Phasor::string values = arg.substr(arg.find('=') + 1);
 			std::stringstream ss(values);
 			std::string item;
 			while (std::getline(ss, item, ','))
@@ -181,7 +181,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 		} else if (arg == "-D" || arg == "--define") {
 			if (i + 1 < argc)
 			{
-				PhsString values = argv[++i];
+				Phasor::string values = argv[++i];
 				std::stringstream ss(values);
 				std::string item;
 				while (std::getline(ss, item, ','))
@@ -282,7 +282,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 		finalPaths.push_back(p);
 	}
 
-	PhsString includeDirs;
+	Phasor::string includeDirs;
 	if (dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == dupenv_ret::Success)
 	{
 		std::stringstream ss(includeDirs.c_str());
@@ -300,7 +300,7 @@ bool CCompiler::parseArguments(int argc, char *argv[])
 	return false;
 }
 
-bool CCompiler::showHelp(const PhsString &programName)
+bool CCompiler::showHelp(const Phasor::string &programName)
 {
 	std::println("Phasor CC Wrapper v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
@@ -354,7 +354,7 @@ bool CCompiler::generateHeader(const std::filesystem::path &sourcePath, const st
 
 			std::stringstream buffer;
 			buffer << file.rdbuf();
-			PhsString source = buffer.str();
+			Phasor::string source = buffer.str();
 			file.close();
 
 			// Lex
@@ -440,7 +440,7 @@ bool CCompiler::generateSource(const std::filesystem::path &sourcePath, const st
 
 	std::stringstream buffer;
 	buffer << file.rdbuf();
-	PhsString source = buffer.str();
+	Phasor::string source = buffer.str();
 	file.close();
 
 	std::ofstream outputFile(outputPath);
@@ -463,7 +463,7 @@ bool CCompiler::generateSource(const std::filesystem::path &sourcePath, const st
 
 bool CCompiler::compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath)
 {
-	std::vector<PhsString> flags;
+	std::vector<Phasor::string> flags;
 	if (m_args.compiler == "cl")
 	{
 		flags = {"/std:c++20", "/Ox", "/D", "NDEBUG", "/MD", "/GL", "/Gy-",
@@ -489,7 +489,7 @@ bool CCompiler::compileSource(const std::filesystem::path &sourcePath, const std
 		return false;
 	}
 
-	PhsString command = m_args.compiler;
+	Phasor::string command = m_args.compiler;
 	for (const auto &flag : flags)
 	{
 		command += " " + flag;
@@ -507,7 +507,7 @@ bool CCompiler::compileSource(const std::filesystem::path &sourcePath, const std
 
 bool CCompiler::linkObject(const std::filesystem::path &objectPath, const std::filesystem::path &outputPath)
 {
-	PhsString command = m_args.linker;
+	Phasor::string command = m_args.linker;
 	command += " " + objectPath.string();
 	if (m_args.linker == "link")
 	{

@@ -48,32 +48,6 @@ fn show_help(program: string) {
     }
 }
 
-fn atomicWrite(targetPath: string, content: string) -> bool {
-    var c: int = 0;
-    var tempName: string = targetPath.concat(".", to_string(c));
-    while (fexists(tempName)) {
-        c++;
-        tempName = targetPath.concat(".", to_string(c));
-    }
-
-    var fd: int = fopen(tempName, "w");
-    fd.fwrite(content);
-    fd.fclose();
-
-    var success: bool = false;
-    if (frn(tempName, targetPath)) {
-        success = true;
-    } else {
-        if (fexists(targetPath))
-            frm(targetPath);
-
-        if (frn(tempName, targetPath))
-            success = true;
-    }
-    
-    return success;
-}
-
 fn main(args: string[]) -> int {
     var pcd: string = fcd();
 
@@ -114,19 +88,19 @@ fn main(args: string[]) -> int {
             buildTask: false
         };
 
-        if (!atomicWrite(jsonPath, phsjson.to_json(2))) {
+        if (!fwriteatomic(jsonPath, phsjson.to_json(2), true)) {
             error("FAILED TO WRITE JSON CONFIG FILE!");
         }
 
         var taskContent: string = "include \"phasorbuild/phasorbuild_task.phs\";\n\nfn enum_tasks(cfg: taskStatus) {\n    cfg.enum = [\"task\"];\n}\n\nfn enum() -> taskStatus {\n    var status: taskStatus = createStatus();\n    status.enum_tasks();\n    status.code = 0;\n    return status;\n}\n\nfn task(taskName: string) -> taskStatus {\n    var status: taskStatus = createStatus();\n    status.enum_tasks();\n    switch (taskName) {\n        case \"task\":\n            status.puts_status(\"This is a task\");\n            status.code = 0;\n        default:\n            status.puts_err_status(\"Unknown task!\");\n            status.printTasks = true;\n            status.code = 1;\n    }\n    return status;\n}\n";
 
-        if (!atomicWrite(taskPath, taskContent)) {
+        if (!fwriteatomic(taskPath, taskContent, true)) {
             error("FAILED TO WRITE TASK FILE!");
         }
 
         var phsContent: string = "print \"Hello, World!\";\n";
 
-        if (!atomicWrite(phsPath, phsContent)) {
+        if (!fwriteatomic(phsPath, phsContent, true)) {
             error("FAILED TO WRITE SOURCE FILE!");
         }
 

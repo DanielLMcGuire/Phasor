@@ -16,13 +16,11 @@ Value StdLib::object_has(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "has", false);
 
-    if (!args[0].isStruct()) 
-        PHS_ERROR("has() expects an struct as its first argument");
+    requireStruct(args[0], "has", "struct");
 
     auto object = args[0].asStruct();
     const Value& elementName = args[1];
-    if (!elementName.isString())
-        PHS_ERROR("has() expects a string as its second argument");
+    requireString(elementName, "has", "string");
 
     return {object->fields.contains(elementName.string())};
 }
@@ -35,14 +33,12 @@ Value StdLib::object_find(const Value::ArrayInstance &args, VM *)
         PHS_ERROR("struct_find() takes at most 3 arguments (array, elementName, value)");
 
     const Value &arrayToSearch = args[0];
-    if (!arrayToSearch.isArray())
-        PHS_ERROR("struct_find() expects an array as its first argument");
+    requireArray(arrayToSearch, "struct_find", "array");
 
     const Value &elementNameArg = args[1];
-    if (!elementNameArg.isString())
-        PHS_ERROR("struct_find() expects a string as its second argument");
+    requireString(elementNameArg, "struct_find", "string");
 
-    const PhsString elementName = elementNameArg.string();
+    const Phasor::string elementName = elementNameArg.string();
     const bool hasValueFilter = args.size() > 2;
     const Value *filterValue = hasValueFilter ? &args[2] : nullptr;
 
@@ -70,16 +66,14 @@ Value StdLib::object_filter(const Value::ArrayInstance &args, VM *)
     checkArgCount(args, 2, "filter", false);
 
     const Value &arrayToSearch = args[0];
-    if (!arrayToSearch.isArray())
-        PHS_ERROR("filter() expects an array as its first argument");
+    requireArray(arrayToSearch, "filter", "array");
 
     const Value &conditionsArg = args[1];
-    if (!conditionsArg.isArray())
-        PHS_ERROR("filter() expects an array of conditions as its second argument");
+    requireArray(conditionsArg, "filter", "array of conditions");
 
     struct Condition
     {
-        PhsString name;
+        Phasor::string name;
         Value value;
     };
 
@@ -92,14 +86,14 @@ Value StdLib::object_filter(const Value::ArrayInstance &args, VM *)
         if (!cond.isStruct())
             PHS_ERROR("filter() conditions must be structs with elementName and value fields");
 
-        if (!cond.hasField(PhsString("elementName")))
+        if (!cond.hasField(Phasor::string("elementName")))
             PHS_ERROR("filter() condition is missing an 'elementName' field");
 
-        Value nameVal = cond.getField(PhsString("elementName"));
+        Value nameVal = cond.getField(Phasor::string("elementName"));
         if (!nameVal.isString())
             PHS_ERROR("filter() condition 'elementName' must be a string");
 
-        Value valueVal = cond.hasField(PhsString("value")) ? cond.getField(PhsString("value")) : Value();
+        Value valueVal = cond.hasField(Phasor::string("value")) ? cond.getField(Phasor::string("value")) : Value();
         conditions.push_back({nameVal.string(), std::move(valueVal)});
     }
 

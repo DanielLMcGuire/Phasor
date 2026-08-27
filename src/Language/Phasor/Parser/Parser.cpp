@@ -373,7 +373,7 @@ std::string Parser::evaluateStaticValue(AST::Expression *expr)
 	if (auto *ident = dynamic_cast<AST::IdentifierExpr *>(expr))
 	{
 		auto it = defines.find(ident->name);
-		return it == defines.end() ? std::string() : it->second.text;
+		return it == defines.end() ? Phasor::string() : it->second.text;
 	}
 	if (auto *u = dynamic_cast<AST::UnaryExpr *>(expr))
 	{

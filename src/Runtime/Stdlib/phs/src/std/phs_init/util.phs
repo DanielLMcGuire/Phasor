@@ -31,7 +31,8 @@ static_endif // (PHS_DEBUG)
 
     for (var i: int = 0; i < argc; i++)
     {
-        var elementPtr: i64 = phs__memory_read_offset_native(argvBasePtr, i * PTR_SIZE, PTR_SIZE);
+        var elementPtr: i64 = phs__memory_read_offset_native(argvBasePtr, i * PTR_SIZE, PTR_SIZE * argc);
+        assert(elementPtr != C_NULL);
         argv.arr_push(phs__memory_read_string_native(elementPtr, 1024));
     }
 static_if (PHS_DEBUG)
@@ -40,18 +41,44 @@ static_endif // (PHS_DEBUG)
     return argv;
 }
 
+fn phsrt_format_semver(version: sys_version_def) -> string {
+    return c_fmt("%d.%d.%d", version.major, version.minor, version.patch);
+}
+
 fn phsrt_check_runtime() -> bool
 {
-    if (phs_version(sys_version_type.major) != PHS_VERSION_MAJOR) {
-        return false;
+static_if (PHS_DEBUG)
+    print "phsrt_check_runtime()\n";
+static_endif // (PHS_DEBUG)
+    var res: bool = true;
+    if (PHS_VERSION != phs_version()) {
+        var runtime: sys_version_def = sys_version_def{
+            major: to_int(phs_version(sys_version_type.major)),
+            minor: to_int(phs_version(sys_version_type.minor)),
+            patch: to_int(phs_version(sys_version_type.patch))
+        };
+        var bytecode: sys_version_def = sys_version_def{
+            major: to_int(PHS_VERSION_MAJOR),
+            minor: to_int(PHS_VERSION_MINOR),
+            patch: to_int(PHS_VERSION_PATCH)
+        };
+static_if (PHS_DEBUG)
+        printf("Running on Phasor %s, expecting Phasor %s\n", runtime.phsrt_format_semver(), bytecode.phsrt_format_semver());
+ static_endif // (PHS_DEBUG)
+        if (runtime.major != bytecode.major) {
+            res = false;
+        }
+        if (runtime.minor > bytecode.minor) {
+            res = false;
+        }
+        if (runtime.patch > bytecode.patch)
+        {
+            printf("Warning: This bytecode was compiled for a older Phasor patch (Runtime=%s, Bytecode=%s), it might not work correctly.\n", runtime.phsrt_format_semver(), bytecode.phsrt_format_semver());
+        }
     }
-    if (to_int(phs_version(sys_version_type.minor)) > to_int(PHS_VERSION_MINOR)) {
-        return false;
-    }
-    if (to_int(phs_version(sys_version_type.patch)) > to_int(PHS_VERSION_PATCH))
-    {
-        printf("Warning: This bytecode was compiled for a older Phasor patch (Bytecode=%s, Runtime=%s), it might not work correctly.\n", phs_version(), PHS_VERSION);
-    }
+static_if (PHS_DEBUG)
+    printf("phsrt_check_runtime() -> %O\n", res);
+static_endif // (PHS_DEBUG)
     return true;
 }
 

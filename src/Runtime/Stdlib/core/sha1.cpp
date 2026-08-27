@@ -71,7 +71,7 @@ void SHA1::update(const Phasor::u8* data, size_t len) {
     }
 }
 
-void SHA1::update(const Phasor::PhsString& data) {
+void SHA1::update(const Phasor::string& data) {
     update(reinterpret_cast<const Phasor::u8*>(data.data()), data.size());
 }
 
@@ -111,7 +111,7 @@ const SHA1::Digest& SHA1::finalize() {
     return digest_;
 }
 
-Phasor::PhsString SHA1::finalizeHex() {
+Phasor::string SHA1::finalizeHex() {
     return toHex(finalize());
 }
 
@@ -171,21 +171,21 @@ SHA1::Digest SHA1::hash(const Phasor::u8* data, size_t len) {
     return sha1.finalize();
 }
 
-SHA1::Digest SHA1::hash(const Phasor::PhsString& data) {
+SHA1::Digest SHA1::hash(const Phasor::string& data) {
     return hash(reinterpret_cast<const Phasor::u8*>(data.data()), data.size());
 }
 
-Phasor::PhsString SHA1::hashHex(const Phasor::u8* data, size_t len) {
+Phasor::string SHA1::hashHex(const Phasor::u8* data, size_t len) {
     return toHex(hash(data, len));
 }
 
-Phasor::PhsString SHA1::hashHex(const Phasor::PhsString& data) {
+Phasor::string SHA1::hashHex(const Phasor::string& data) {
     return toHex(hash(data));
 }
 
-Phasor::PhsString SHA1::toHex(const Digest& digest) {
+Phasor::string SHA1::toHex(const Digest& digest) {
     static const char* hexChars = "0123456789abcdef";
-    Phasor::PhsString result;
+    Phasor::string result;
     result.reserve(kDigestSize * 2);
     for (Phasor::u8 byte : digest) {
         result.push_back(hexChars[byte >> 4]);

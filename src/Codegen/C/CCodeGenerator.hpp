@@ -30,7 +30,7 @@ class CCodeGenerator
 	 * @return true if generation succeeded, false otherwise
 	 */
 	bool generate(const Bytecode &bytecode, const std::filesystem::path &outputPath,
-	              const PhsString &moduleName = "");
+	              const Phasor::string &moduleName = "");
 
 	/**
 	 * @brief Generate Bytecode object from embedded bytecode string
@@ -38,12 +38,12 @@ class CCodeGenerator
 	 * @return Deserialized Bytecode object
 	 *
 	 */
-	static Bytecode generateBytecodeFromEmbedded(const PhsString &input);
+	static Bytecode generateBytecodeFromEmbedded(const Phasor::string &input);
 
   private:
 	std::ostringstream   output; ///< Output stream for generated code
 	const Bytecode      *bytecode = nullptr;
-	PhsString          moduleName;
+	Phasor::string          moduleName;
 	std::vector<u8> serializedBytecode; ///< Serialized bytecode in .phsb format
 
 	// Code generation methods
@@ -55,12 +55,12 @@ class CCodeGenerator
 	void generateMainFunction();
 
 	// Deserialization helper
-	static std::vector<unsigned char> parseEmbeddedBytecode(const PhsString &input);
+	static std::vector<unsigned char> parseEmbeddedBytecode(const Phasor::string &input);
 
 	// Helper methods
-	static PhsString escapeString(const PhsString &str);
-	static PhsString getValueTypeString(ValueType type);
-	static PhsString sanitizeModuleName(const PhsString &name);
+	static Phasor::string escapeString(const Phasor::string &str);
+	static Phasor::string getValueTypeString(ValueType type);
+	static Phasor::string sanitizeModuleName(const Phasor::string &name);
 };
 
 } // namespace Phasor

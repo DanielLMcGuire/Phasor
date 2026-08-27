@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #endif
 
-static Phasor::PhsString readMessage()
+static Phasor::string readMessage()
 {
 	size_t contentLength = 0;
 
@@ -45,14 +45,14 @@ static Phasor::PhsString readMessage()
 		return "";
 	}
 
-	Phasor::PhsString body(contentLength, '\0');
+	Phasor::string body(contentLength, '\0');
 	std::cin.read(body.data(), static_cast<std::streamsize>(contentLength));
 	return body;
 }
 
 static void writeMessage(const Phasor::Value &msg)
 {
-	const Phasor::PhsString body = msg.jsonSerialize();
+	const Phasor::string body = msg.jsonSerialize();
 	std::print("Content-Length: {}\r\n\r\n{}", body.size(), body.c_str());
 	std::fflush(stdout);
 }
@@ -66,7 +66,7 @@ static Phasor::Value makeResponse(const Phasor::Value &id, Phasor::Value result)
 	};
 }
 
-static Phasor::Value makeError(const Phasor::Value &id, int code, const Phasor::PhsString &message)
+static Phasor::Value makeError(const Phasor::Value &id, int code, const Phasor::string &message)
 {
 	return {
 	    {"jsonrpc", "2.0"}, 
@@ -78,7 +78,7 @@ static Phasor::Value makeError(const Phasor::Value &id, int code, const Phasor::
 	};
 }
 
-static Phasor::Value makeNotification(const Phasor::PhsString &method, Phasor::Value params)
+static Phasor::Value makeNotification(const Phasor::string &method, Phasor::Value params)
 {
 	return {
 	    {"jsonrpc", "2.0"}, 
@@ -87,7 +87,7 @@ static Phasor::Value makeNotification(const Phasor::PhsString &method, Phasor::V
 	};
 }
 
-static void publishDiagnostics(const Phasor::PhsString &uri, const std::vector<Phasor::LSP::Diagnostic> &diags)
+static void publishDiagnostics(const Phasor::string &uri, const std::vector<Phasor::LSP::Diagnostic> &diags)
 {
 	auto arr = Phasor::Value::createArray();
 	for (const auto &d : diags)
@@ -125,7 +125,7 @@ static std::vector<std::filesystem::path> buildIncludePaths(const std::vector<st
 		paths.push_back(p);
 	}
 
-	Phasor::PhsString includeDirs;
+	Phasor::string includeDirs;
 	if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
 	{
 		std::stringstream ss(includeDirs.c_str());
@@ -190,7 +190,7 @@ static Phasor::Value handleInitialize(Phasor::LSP &lsp, const Phasor::Value &par
 
 static Phasor::Value handleHover(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 	const size_t      line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
 	const size_t      col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
@@ -211,7 +211,7 @@ static Phasor::Value handleHover(Phasor::LSP &lsp, const Phasor::Value &params)
 
 static Phasor::Value handleDefinition(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 	const size_t      line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
 	const size_t      col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
@@ -265,7 +265,7 @@ static int toDocumentSymbolKind(Phasor::LSP::SymbolKind kind)
 
 static Phasor::Value handleReferences(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
 	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 	bool                     includeDeclaration = true;
@@ -289,10 +289,10 @@ static Phasor::Value handleReferences(Phasor::LSP &lsp, const Phasor::Value &par
 
 static Phasor::Value handleRename(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
 	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
-	const Phasor::PhsString newName = params.get_or("newName", phsnull).string();
+	const Phasor::string newName = params.get_or("newName", phsnull).string();
 
 	auto edits = lsp.getRenameEdits(uri, line, col, newName);
 	if (!edits.has_value())
@@ -316,7 +316,7 @@ static Phasor::Value handleRename(Phasor::LSP &lsp, const Phasor::Value &params)
 
 static Phasor::Value handleCompletion(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
 	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
@@ -342,7 +342,7 @@ static Phasor::Value handleCompletion(Phasor::LSP &lsp, const Phasor::Value &par
 
 static Phasor::Value handleSignatureHelp(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 	const size_t             line = params.get_or("position", phsnull).get_or("line", phsnull).asInt();
 	const size_t             col = params.get_or("position", phsnull).get_or("character", phsnull).asInt();
 
@@ -372,7 +372,7 @@ static Phasor::Value handleSignatureHelp(Phasor::LSP &lsp, const Phasor::Value &
 
 static Phasor::Value handleDocumentSymbol(Phasor::LSP &lsp, const Phasor::Value &params)
 {
-	const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+	const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 
 	std::function<Phasor::Value(const Phasor::LSP::DocumentSymbolInfo &)> toJson =
 	    [&](const Phasor::LSP::DocumentSymbolInfo &sym) -> Phasor::Value
@@ -425,7 +425,7 @@ int main()
 
 	while (running)
 	{
-		const Phasor::PhsString raw = readMessage();
+		const Phasor::string raw = readMessage();
 		if (raw.empty())
 		{
 			break;
@@ -445,7 +445,7 @@ int main()
 		const bool isRequest = msg.contains("id");
 		const Phasor::Value id = isRequest ? msg.get_or("id", phsnull) : phsnull;
 		
-		Phasor::PhsString method;
+		Phasor::string method;
 		if (msg.contains("method") && msg.get_or("method", phsnull).isString()) 
 		{
 			method = msg.get_or("method", phsnull).string();
@@ -471,27 +471,27 @@ int main()
 		}
 		else if (method == "textDocument/didOpen")
 		{
-			const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
-			const Phasor::PhsString text = params.get_or("textDocument", phsnull).get_or("text", phsnull).string();
+			const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+			const Phasor::string text = params.get_or("textDocument", phsnull).get_or("text", phsnull).string();
 			
 			lsp.openDocument(uri, text);
 			publishDiagnostics(uri, lsp.getDiagnostics(uri));
 		}
 		else if (method == "textDocument/didChange")
 		{
-			const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+			const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 			auto contentChanges = params.get_or("contentChanges", phsnull);
 			
 			if (contentChanges.isArray() && !contentChanges.asArray()->empty())
 			{
-				const Phasor::PhsString text = contentChanges[0].get_or("text", phsnull).string();
+				const Phasor::string text = contentChanges[0].get_or("text", phsnull).string();
 				lsp.changeDocument(uri, text);
 				publishDiagnostics(uri, lsp.getDiagnostics(uri));
 			}
 		}
 		else if (method == "textDocument/didClose")
 		{
-			const Phasor::PhsString uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
+			const Phasor::string uri = params.get_or("textDocument", phsnull).get_or("uri", phsnull).string();
 			
 			lsp.closeDocument(uri);
 			publishDiagnostics(uri, {});

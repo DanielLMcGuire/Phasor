@@ -24,18 +24,15 @@ void StdLib::registerMathFunctions(VM *vm)
 f64 StdLib::math_sqrt(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_sqrt");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_sqrt() expects a number as its argument");
+	requireNumber(args[0], "math_sqrt", "argument");
 	return asm_sqrt(args[0].asFloat());
 }
 
 f64 StdLib::math_pow(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "math_pow");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_pow() expects a number as its first argument (base)");
-	if (!args[1].isNumber())
-		PHS_ERROR("math_pow() expects a number as its second argument (exponent)");
+	requireNumber(args[0], "math_pow", "first argument (base)");
+	requireNumber(args[1], "math_pow", "second argument (exponent)");
 	f64 base = args[0].asFloat();
 	f64 expv = args[1].asFloat();
 	return asm_pow(base, expv);
@@ -45,8 +42,7 @@ Value StdLib::math_abs(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement abs natively
 	checkArgCount(args, 1, "math_abs");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_abs() expects a number as its argument");
+	requireNumber(args[0], "math_abs", "argument");
 	if (args[0].isInt()) 
 	{
 		return std::abs(args[0].asInt());
@@ -58,8 +54,7 @@ f64 StdLib::math_floor(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement floor natively
 	checkArgCount(args, 1, "math_floor");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_floor() expects a number as its argument");
+	requireNumber(args[0], "math_floor", "argument");
 	return std::floor(args[0].asFloat());
 }
 
@@ -67,8 +62,7 @@ f64 StdLib::math_ceil(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement ceil natively
 	checkArgCount(args, 1, "math_ceil");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_ceil() expects a number as its argument");
+	requireNumber(args[0], "math_ceil", "argument");
 	return std::ceil(args[0].asFloat());
 }
 
@@ -76,8 +70,7 @@ f64 StdLib::math_round(const Value::ArrayInstance &args, VM *)
 {
 	/// @todo Implement round natively
 	checkArgCount(args, 1, "math_round");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_round() expects a number as its argument");
+	requireNumber(args[0], "math_round", "argument");
 	return std::round(args[0].asFloat());
 }
 
@@ -132,40 +125,35 @@ Value StdLib::math_max(const Value::ArrayInstance &args, VM *)
 f64 StdLib::math_log(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_log");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_log() expects a number as its argument");
+	requireNumber(args[0], "math_log", "argument");
 	return asm_log(args[0].asFloat());
 }
 
 f64 StdLib::math_exp(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_exp");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_exp() expects a number as its argument");
+	requireNumber(args[0], "math_exp", "argument");
 	return asm_exp(args[0].asFloat());
 }
 
 f64 StdLib::math_sin(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_sin");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_sin() expects a number as its argument");
+	requireNumber(args[0], "math_sin", "argument");
 	return asm_sin(args[0].asFloat());
 }
 
 f64 StdLib::math_cos(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_cos");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_cos() expects a number as its argument");
+	requireNumber(args[0], "math_cos", "argument");
 	return asm_cos(args[0].asFloat());
 }
 
 f64 StdLib::math_tan(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "math_tan");
-	if (!args[0].isNumber())
-		PHS_ERROR("math_tan() expects a number as its argument");
+	requireNumber(args[0], "math_tan", "argument");
 	return asm_tan(args[0].asFloat());
 }
 } // namespace Phasor

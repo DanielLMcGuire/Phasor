@@ -46,7 +46,7 @@ namespace Phasor
 /*
  * @brief Phasor SSO String
  */
-class PhsString {
+class string {
 public:
     static constexpr std::size_t SSO_CAPACITY = kSSOCapacity;
     static constexpr std::size_t npos         = std::string::npos;
@@ -63,22 +63,22 @@ public:
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
  
-    PhsString() noexcept : m_store{SmallBuf{}} {}
+    string() noexcept : m_store{SmallBuf{}} {}
  
-    PhsString(const char* s) : PhsString(s, s ? std::strlen(s) : 0) {}
+    string(const char* s) : string(s, s ? std::strlen(s) : 0) {}
  
-    PhsString(const char* s, std::size_t n) {
+    string(const char* s, std::size_t n) {
         if (n <= SSO_CAPACITY) m_store = SmallBuf{s, n};
         else                   m_store = std::string{s, n};
     }
  
-    PhsString(std::string_view sv)
-        : PhsString(sv.data(), sv.size()) {}
+    string(std::string_view sv)
+        : string(sv.data(), sv.size()) {}
  
-    PhsString(const std::string& s)
-        : PhsString(s.data(), s.size()) {}
+    string(const std::string& s)
+        : string(s.data(), s.size()) {}
  
-    PhsString(std::size_t n, char c) {
+    string(std::size_t n, char c) {
         if (n <= SSO_CAPACITY) {
             SmallBuf buf{};
             std::memset(buf.data, c, n);
@@ -91,7 +91,7 @@ public:
     }
 
     template <typename It>
-    PhsString(It first, It last) {
+    string(It first, It last) {
         const std::size_t n = static_cast<std::size_t>(std::distance(first, last));
         if (n == 0) { m_store = SmallBuf{}; return; }
 
@@ -106,14 +106,14 @@ public:
         }
     }
 
-    PhsString(const PhsString&)                = default;
-    PhsString(PhsString&&) noexcept            = default;
-    PhsString& operator=(const PhsString&)     = default;
-    PhsString& operator=(PhsString&&) noexcept = default;
-    ~PhsString()                               = default;
+    string(const string&)                = default;
+    string(string&&) noexcept            = default;
+    string& operator=(const string&)     = default;
+    string& operator=(string&&) noexcept = default;
+    ~string()                               = default;
  
-    PhsString& operator=(const char* s)      { return *this = PhsString{s}; }
-    PhsString& operator=(std::string_view sv){ return *this = PhsString{sv}; }
+    string& operator=(const char* s)      { return *this = string{s}; }
+    string& operator=(std::string_view sv){ return *this = string{sv}; }
  
     [[nodiscard]] std::size_t size()   const noexcept { return is_small() ? sm().len : lg().size(); }
     [[nodiscard]] std::size_t length() const noexcept { return size(); }
@@ -138,11 +138,11 @@ public:
     const char& operator[](std::size_t i) const noexcept { return data()[i]; }
  
     char& at(std::size_t i) {
-        if (i >= size()) throw std::out_of_range{"PhsString::at: index out of range"};
+        if (i >= size()) throw std::out_of_range{"string::at: index out of range"};
         return data()[i];
     }
     const char& at(std::size_t i) const {
-        if (i >= size()) throw std::out_of_range{"PhsString::at: index out of range"};
+        if (i >= size()) throw std::out_of_range{"string::at: index out of range"};
         return data()[i];
     }
  
@@ -172,7 +172,7 @@ public:
         else            { lg().clear(); }
     }
  
-    PhsString& append(const char* s, std::size_t n) {
+    string& append(const char* s, std::size_t n) {
         const std::size_t old_sz = size();
         const std::size_t new_sz = old_sz + n;
  
@@ -194,9 +194,9 @@ public:
         return *this;
     }
  
-    PhsString& append(std::string_view sv) { return append(sv.data(), sv.size()); }
-    PhsString& append(const char* s)       { return append(s, std::strlen(s)); }
-    PhsString& append(std::size_t n, char c) {
+    string& append(std::string_view sv) { return append(sv.data(), sv.size()); }
+    string& append(const char* s)       { return append(s, std::strlen(s)); }
+    string& append(std::size_t n, char c) {
         const std::size_t old_sz = size();
         const std::size_t new_sz = old_sz + n;
         if (is_small()) {
@@ -217,9 +217,9 @@ public:
         return *this;
     }
 
-    PhsString& operator+=(std::string_view sv) { return append(sv.data(), sv.size()); }
-    PhsString& operator+=(const char* s)       { return append(s); }
-    PhsString& operator+=(char c)              { return append(&c, 1); }
+    string& operator+=(std::string_view sv) { return append(sv.data(), sv.size()); }
+    string& operator+=(const char* s)       { return append(s); }
+    string& operator+=(char c)              { return append(&c, 1); }
  
     void push_back(char c) { append(&c, 1); }
     void pop_back() noexcept {
@@ -252,7 +252,7 @@ public:
         }
     }
 
-    void swap(PhsString& other) noexcept { m_store.swap(other.m_store); }
+    void swap(string& other) noexcept { m_store.swap(other.m_store); }
  
     std::size_t find(std::string_view sv, std::size_t pos = 0) const noexcept { return view().find(sv, pos); }
     std::size_t find(char c, std::size_t pos = 0) const noexcept { return view().find(c, pos); }
@@ -274,13 +274,16 @@ public:
     int compare(std::string_view sv) const noexcept { return view().compare(sv); }
  
     [[nodiscard]] bool starts_with(std::string_view sv) const noexcept { return view().starts_with(sv); }
+    [[nodiscard]] bool starts_with(char c) const noexcept { return view().starts_with(c); }
     [[nodiscard]] bool ends_with  (std::string_view sv) const noexcept { return view().ends_with(sv); }
+    [[nodiscard]] bool ends_with(char c) const noexcept { return view().ends_with(c); }
     [[nodiscard]] bool contains   (std::string_view sv) const noexcept { return find(sv) != npos; }
+    [[nodiscard]] bool contains(char c) const noexcept { return view().contains(c); }
  
-    [[nodiscard]] PhsString substr(std::size_t pos = 0, std::size_t len = npos) const {
+    [[nodiscard]] string substr(std::size_t pos = 0, std::size_t len = npos) const {
         const std::size_t sz = size();
-        if (pos > sz) throw std::out_of_range{"PhsString::substr: pos out of range"};
-        return PhsString{data() + pos, std::min(len, sz - pos)};
+        if (pos > sz) throw std::out_of_range{"string::substr: pos out of range"};
+        return string{data() + pos, std::min(len, sz - pos)};
     }
  
     [[nodiscard]] std::string str() const {
@@ -289,37 +292,37 @@ public:
     operator std::string()          const { return str(); }
     operator std::string_view()     const noexcept { return view(); }
 
-    [[nodiscard]] friend std::strong_ordering operator<=>(const PhsString& lhs, const PhsString& rhs) noexcept {
+    [[nodiscard]] friend std::strong_ordering operator<=>(const string& lhs, const string& rhs) noexcept {
         return lhs.view() <=> rhs.view();
     }
 
     template <typename T>
-        requires std::is_convertible_v<const T&, std::string_view> && (!std::is_same_v<std::remove_cvref_t<T>, PhsString>)
-    [[nodiscard]] friend std::strong_ordering operator<=>(const PhsString& lhs, const T& rhs) noexcept {
+        requires std::is_convertible_v<const T&, std::string_view> && (!std::is_same_v<std::remove_cvref_t<T>, string>)
+    [[nodiscard]] friend std::strong_ordering operator<=>(const string& lhs, const T& rhs) noexcept {
         return lhs.view() <=> std::string_view(rhs);
     }
 
-    [[nodiscard]] friend bool operator==(const PhsString& lhs, const PhsString& rhs) noexcept {
+    [[nodiscard]] friend bool operator==(const string& lhs, const string& rhs) noexcept {
         return lhs.view() == rhs.view();
     }
 
     template <typename T>
-        requires std::is_convertible_v<const T&, std::string_view> && (!std::is_same_v<std::remove_cvref_t<T>, PhsString>)
-    [[nodiscard]] friend bool operator==(const PhsString& lhs, const T& rhs) noexcept {
+        requires std::is_convertible_v<const T&, std::string_view> && (!std::is_same_v<std::remove_cvref_t<T>, string>)
+    [[nodiscard]] friend bool operator==(const string& lhs, const T& rhs) noexcept {
         return lhs.view() == std::string_view(rhs);
     }
  
-    friend std::ostream& operator<<(std::ostream& os, const PhsString& s) {
+    friend std::ostream& operator<<(std::ostream& os, const string& s) {
         return os.write(s.data(), static_cast<std::streamsize>(s.size()));
     }
 
     /// @brief Erases characters from the string.
     /// @param pos Position to start erasing from.
     /// @param len Number of characters to erase.
-    PhsString& erase(std::size_t pos = 0, std::size_t len = npos) {
+    string& erase(std::size_t pos = 0, std::size_t len = npos) {
         const std::size_t sz = size();
         if (pos > sz) {
-            throw std::out_of_range{"PhsString::erase: pos out of range"};
+            throw std::out_of_range{"string::erase: pos out of range"};
         }
         
         if (len == npos || pos + len > sz) {
@@ -341,10 +344,10 @@ public:
         return *this;
     }
 
-    PhsString& insert(std::size_t pos, std::string_view sv) {
+    string& insert(std::size_t pos, std::string_view sv) {
         const std::size_t sz = size();
         if (pos > sz) {
-            throw std::out_of_range{"PhsString::insert: pos out of range"};
+            throw std::out_of_range{"string::insert: pos out of range"};
         }
         
         const std::size_t n = sv.size();
@@ -376,7 +379,7 @@ public:
         return *this;
     }
 
-    PhsString& replace(std::size_t pos, std::size_t len, std::string_view sv) {
+    string& replace(std::size_t pos, std::size_t len, std::string_view sv) {
         erase(pos, len);
         return insert(pos, sv);
     }
@@ -397,21 +400,21 @@ public:
         return begin() + pos;
     }
 
-    /// @brief Assigns a string view to the PhsString.
-    PhsString& assign(std::string_view sv) {
-        *this = PhsString(sv);
+    /// @brief Assigns a string view to the string.
+    string& assign(std::string_view sv) {
+        *this = string(sv);
         return *this;
     }
 
-    /// @brief Assigns a specific length of a character array to the PhsString.
-    PhsString& assign(const char* s, std::size_t n) {
-        *this = PhsString(s, n);
+    /// @brief Assigns a specific length of a character array to the string.
+    string& assign(const char* s, std::size_t n) {
+        *this = string(s, n);
         return *this;
     }
 
-    /// @brief Assigns n copies of character c to the PhsString.
-    PhsString& assign(std::size_t n, char c) {
-        *this = PhsString(n, c);
+    /// @brief Assigns n copies of character c to the string.
+    string& assign(std::size_t n, char c) {
+        *this = string(n, c);
         return *this;
     }
  
@@ -438,28 +441,28 @@ private:
     const std::string& lg() const noexcept { return std::get<std::string>(m_store); }
 };
  
-inline PhsString operator+(PhsString lhs, const PhsString& rhs) { return lhs += rhs.view(); }
-inline PhsString operator+(PhsString lhs, const char* rhs)      { return lhs += rhs; }
-inline PhsString operator+(PhsString lhs, char rhs)             { return lhs += rhs; }
-inline PhsString operator+(const char* lhs, const PhsString& rhs) { return PhsString{lhs} += rhs.view(); }
-inline PhsString operator+(char lhs, const PhsString& rhs)        { return PhsString(1, lhs) += rhs.view(); }
+inline string operator+(string lhs, const string& rhs) { return lhs += rhs.view(); }
+inline string operator+(string lhs, const char* rhs)      { return lhs += rhs; }
+inline string operator+(string lhs, char rhs)             { return lhs += rhs; }
+inline string operator+(const char* lhs, const string& rhs) { return string{lhs} += rhs.view(); }
+inline string operator+(char lhs, const string& rhs)        { return string(1, lhs) += rhs.view(); }
 
-inline void swap(PhsString& lhs, PhsString& rhs) noexcept { lhs.swap(rhs); }
+inline void swap(string& lhs, string& rhs) noexcept { lhs.swap(rhs); }
 
 } // namespace Phasor
 
 template <>
-struct std::hash<Phasor::PhsString> {
-    std::size_t operator()(const Phasor::PhsString& s) const noexcept {
+struct std::hash<Phasor::string> {
+    std::size_t operator()(const Phasor::string& s) const noexcept {
         return std::hash<std::string_view>{}(s.view());
     }
 };
 
 template <>
-struct std::formatter<Phasor::PhsString> : std::formatter<std::string_view>
+struct std::formatter<Phasor::string> : std::formatter<std::string_view>
 {
 	template <typename FormatContext>
-	auto format(const Phasor::PhsString &s, FormatContext &ctx) const
+	auto format(const Phasor::string &s, FormatContext &ctx) const
 	{
 		return std::formatter<std::string_view>::format(s.view(), ctx);
 	}

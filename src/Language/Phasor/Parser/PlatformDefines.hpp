@@ -1,7 +1,7 @@
 #pragma once
 #include <platform.h>
 #include <version.h>
-#include <string>
+#include <PhasorString.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -19,15 +19,15 @@ enum class DefineValueKind
 struct DefineValue
 {
 	DefineValueKind kind = DefineValueKind::Number;
-	std::string     text;
+	Phasor::string     text;
 
 	DefineValue() = default;
-	DefineValue(DefineValueKind k, std::string t) : kind(k), text(std::move(t))
+	DefineValue(DefineValueKind k, Phasor::string t) : kind(k), text(std::move(t))
 	{
 	}
 };
 
-using Defines = std::unordered_map<std::string, DefineValue>;
+using Defines = std::unordered_map<Phasor::string, DefineValue>;
 
 
 inline void addDefaultDefines(Defines &defines, bool nativeTarget)
@@ -38,7 +38,7 @@ inline void addDefaultDefines(Defines &defines, bool nativeTarget)
 	auto setNumber = [&setFlag](const char *name, long long value) {
 		setFlag(name, DefineValue(DefineValueKind::Number, std::to_string(value)));
 	};
-	auto setString = [&setFlag](const char *name, std::string value) {
+	auto setString = [&setFlag](const char *name, Phasor::string value) {
 		setFlag(name, DefineValue(DefineValueKind::String, std::move(value)));
 	};
 	auto setBool = [&setFlag](const char *name, bool value) {
@@ -105,7 +105,7 @@ inline void addDefaultDefines(Defines &defines, bool nativeTarget)
 
 }
 
-inline bool isNumericLiteralText(const std::string &text)
+inline bool isNumericLiteralText(const Phasor::string &text)
 {
 	if (text.empty())
 	{
@@ -123,7 +123,7 @@ inline bool isNumericLiteralText(const std::string &text)
 	}
 }
 
-inline DefineValue parseCliDefineValue(const std::string &raw)
+inline DefineValue parseCliDefineValue(const Phasor::string &raw)
 {
 	if (raw.size() >= 2 &&
 	    ((raw.front() == '"' && raw.back() == '"') || (raw.front() == '\'' && raw.back() == '\'')))
@@ -144,7 +144,7 @@ inline DefineValue parseCliDefineValue(const std::string &raw)
 	return DefineValue(DefineValueKind::String, raw);
 }
 
-inline Defines resolveDefines(const std::vector<std::string> &cliDefines, bool nativeTarget)
+inline Defines resolveDefines(const std::vector<Phasor::string> &cliDefines, bool nativeTarget)
 {
 	Defines defines;
 	addDefaultDefines(defines, nativeTarget);
@@ -156,12 +156,12 @@ inline Defines resolveDefines(const std::vector<std::string> &cliDefines, bool n
 			continue;
 		}
 		auto eq = entry.find('=');
-		if (eq == std::string::npos)
+		if (eq == Phasor::string::npos)
 		{
 			defines[entry] = DefineValue(DefineValueKind::Number, "1");
 		} else {
-			std::string name = entry.substr(0, eq);
-			std::string rawValue = entry.substr(eq + 1);
+			Phasor::string name = entry.substr(0, eq);
+			Phasor::string rawValue = entry.substr(eq + 1);
 			defines[name] = parseCliDefineValue(rawValue);
 		}
 	}

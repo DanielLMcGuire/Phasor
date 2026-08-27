@@ -47,23 +47,21 @@ f64 StdLib::to_float(const Value::ArrayInstance &args, VM *)
 	return args[0].asFloat();
 }
 
-PhsString StdLib::to_string(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::to_string(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "to_string");
 	return args[0].toString();
 }
 
-PhsString StdLib::to_json(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::to_json(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "to_json", true);
 	if (args.size() > 4)
 	{
 		PHS_ERROR("to_json() expects at most 4 arguments");
 	}
-	if (args.size() > 1 && !args[1].isInt())
-		PHS_ERROR("to_json() expects an integer as its second argument (indent)");
-	if (args.size() > 2 && !args[2].isInt())
-		PHS_ERROR("to_json() expects an integer as its third argument (depth)");
+	if (args.size() > 1) requireInt(args[0], "to_json", "indent");
+	if (args.size() > 2) requireInt(args[1], "to_json", "depth");
 	return args[0].jsonSerialize(args.size() > 1 ? static_cast<int>(args[1].asInt()) : -1, args.size() > 2 ? static_cast<int>(args[2].asInt()) : 0);
 }
 
@@ -76,34 +74,27 @@ bool StdLib::to_bool(const Value::ArrayInstance &args, VM *)
 Value StdLib::from_json(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "from_json");
-	if (!args[0].isString())
-		PHS_ERROR("from_json expects a string argument");
+	requireString(args[0], "from_json", "json data");
 	return Value::from_json(args[0].string());
 }
 
-PhsString StdLib::ascii_to_string(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ascii_to_string(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ascii_to_string");
-	if (!args[0].isInt())
-		PHS_ERROR("ascii_to_string expects an integer argument");
+	requireInt(args[0], "ascii_to_string", "integer");
 	return args[0].intToAscii();
 }
 
 Value StdLib::get_struct_elements(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "get_elements");
+	requireStruct(args[0], "get_elements", "struct");
 
-    const auto &structVal = args[0];
-    if (!structVal.isStruct())
-    {
-        PHS_ERROR("meta_get_struct_elements: argument is not a struct");
-    }
-
-    const auto structPtr = structVal.asStruct();
-    if (!structPtr)
-    {
-        PHS_ERROR("meta_get_struct_elements: struct instance is null");
-    }
+	const auto structPtr = args[0].asStruct();
+	if (!structPtr)
+	{
+		PHS_ERROR("get_elements_values: struct instance is null");
+	}
 
     Value::ArrayInstance keys;
     keys.reserve(structPtr->fields.size());
@@ -119,14 +110,9 @@ Value StdLib::get_struct_elements(const Value::ArrayInstance &args, VM *)
 Value StdLib::get_struct_elements_values(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "get_elements_values");
+	requireStruct(args[0], "get_elements_values", "struct");
 
-	const auto &structVal = args[0];
-	if (!structVal.isStruct())
-	{
-		PHS_ERROR("get_elements_values: argument is not a struct");
-	}
-
-	const auto structPtr = structVal.asStruct();
+	const auto structPtr = args[0].asStruct();
 	if (!structPtr)
 	{
 		PHS_ERROR("get_elements_values: struct instance is null");

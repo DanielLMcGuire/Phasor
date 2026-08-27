@@ -21,11 +21,8 @@ Value StdLib::array_resize(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "arr_resize");
 
-    if (!args[0].isArray())
-        PHS_ERROR("arr_resize() expects an array as its first argument");
-
-    if (!args[1].isInt())
-        PHS_ERROR("arr_resize() expects an integer as its second argument");
+    requireArray(args[0], "arr_resize", "array");
+    requireInt(args[0], "arr_resize", "integer");
 
     auto arr = const_cast<Value &>(args[0]).asArray();
 
@@ -41,8 +38,7 @@ Value StdLib::array_resize(const Value::ArrayInstance &args, VM *)
 i64 StdLib::array_length(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "arr_length");
-    if (!args[0].isArray())
-        PHS_ERROR("arr_length() expects an array as its first argument");
+    requireArray(args[0], "arr_length", "array");
     auto arr = const_cast<Value &>(args[0]).asArray();
 
 
@@ -53,8 +49,7 @@ Value StdLib::array_push(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "arr_push");
 
-    if (!args[0].isArray())
-        PHS_ERROR("arr_push() expects an array as its first argument");
+    requireArray(args[0], "arr_push", "array");
     auto arr = const_cast<Value &>(args[0]).asArray();
 
     arr->push_back(args[1]);
@@ -65,8 +60,7 @@ Value StdLib::array_push(const Value::ArrayInstance &args, VM *)
 Value StdLib::array_pop(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "arr_pop");
-    if (!args[0].isArray())
-        PHS_ERROR("arr_pop() expects an array as its first argument");
+    requireArray(args[0], "arr_pop", "array");
     auto arr = const_cast<Value &>(args[0]).asArray();
 
 
@@ -81,8 +75,7 @@ Value StdLib::array_pop(const Value::ArrayInstance &args, VM *)
 Value StdLib::array_peek(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "arr_peek");
-    if (!args[0].isArray())
-        PHS_ERROR("arr_peek() expects an array as its first argument");
+    requireArray(args[0], "arr_peek", "array");
     auto arr = const_cast<Value &>(args[0]).asArray();
 
 
@@ -97,11 +90,8 @@ Value StdLib::array_insert(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 3, "arr_insert");
 
-    if (!args[0].isArray())
-        PHS_ERROR("arr_insert() expects an array as its first argument");
-
-    if (!args[1].isInt())
-        PHS_ERROR("arr_insert() expects an integer as its second argument (index)");
+    requireArray(args[0], "arr_insert", "array");
+    requireInt(args[0], "arr_insert", "index");
 
     auto arr = const_cast<Value &>(args[0]).asArray();
 
@@ -118,20 +108,17 @@ Value StdLib::array_join(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 2, "arr_join");
 
-    if (!args[0].isArray())
-        PHS_ERROR("array_join() expects an array as its first argument");
-
-    if (!args[1].isString())
-        PHS_ERROR("array_join() expects a string as its second argument");
+    requireArray(args[0], "arr_find", "array");
+    requireString(args[1], "arr_find", "string");
 
     auto arr = args[0].asArray();
 
     if (!arr)
         return "";
 
-    const PhsString separator = args[1].string();
+    const Phasor::string separator = args[1].string();
 
-    PhsString result;
+    Phasor::string result;
 
     for (size_t i = 0; i < arr->size(); ++i)
     {
@@ -148,9 +135,7 @@ Value StdLib::array_find(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "arr_find");
 
-	if (!args[0].isArray())
-		PHS_ERROR(std::string("arr_find() expects an array as its first argument, but got a ")
-		          + Value::typeToString(args[0].getType()).stl_string());
+    requireArray(args[0], "arr_find", "array");
 
 	auto arr = args[0].asArray();
 	const Value &needle = args[1];

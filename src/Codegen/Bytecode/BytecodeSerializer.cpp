@@ -101,7 +101,7 @@ void BytecodeSerializer::writeDouble(f64 value)
 	}
 }
 
-void BytecodeSerializer::writeString(const PhsString &str)
+void BytecodeSerializer::writeString(const Phasor::string &str)
 {
 	writeUInt16(static_cast<u16>(str.length()));
 	for (char c : str)

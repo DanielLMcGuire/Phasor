@@ -127,11 +127,8 @@ void StdLib::registerRandomFunctions(VM *vm)
 Value StdLib::rand_seed(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "rand_seed");
-
-	if (!args[0].isInt())
-		PHS_ERROR("rand_seed() expects an integer as its first argument");
-	if (!args[1].isInt())
-		PHS_ERROR("rand_seed() expects an integer as its second argument");
+    requireInt(args[0], "rand_seed", "seedA");
+    requireInt(args[1], "rand_seed", "seedB");
 
 	i64 s1 = args[0].asInt();
 	i64 s2 = args[1].asInt();
@@ -149,10 +146,8 @@ i64 StdLib::rand_next_range(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "rand_next_range");
 
-	if (!args[0].isInt())
-		PHS_ERROR("rand_next_range() expects an integer as its first argument (min)");
-	if (!args[1].isInt())
-		PHS_ERROR("rand_next_range() expects an integer as its second argument (max)");
+    requireInt(args[0], "rand_next_range", "min");
+    requireInt(args[1], "rand_next_range", "max");
 
 	i64 min = args[0].asInt();
 	i64 max = args[1].asInt();

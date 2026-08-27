@@ -160,12 +160,12 @@ class StdLib
 	                          bool allowMoreArguments = false);
 	static Phasor::i64 pointer_to_i64(void* ptr);
 	static void* i64_to_pointer(Phasor::i64 value);
-	static std::vector<Phasor::PhsString> phasorStringArrayToVector(const Phasor::Value &arr);
+	static std::vector<Phasor::string> phasorStringArrayToVector(const Phasor::Value &arr);
 	static std::vector<char *> phasorStringArrayToCharArray(const Phasor::Value &arr, bool nullTerminate = false);
 
   private:
-  	static std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> modules;
-	static std::unordered_map<PhsString, std::function<Value(const Value::ArrayInstance &args, VM *vm)>> functions;
+  	static std::unordered_map<Phasor::string, std::function<void(Phasor::VM *)>> modules;
+	static std::unordered_map<Phasor::string, std::function<Value(const Value::ArrayInstance &args, VM *vm)>> functions;
 
 	static bool  std_import(const Value::ArrayInstance &args, VM *vm);
 #ifndef SANDBOXED
@@ -197,7 +197,7 @@ class StdLib
 	static Value     meta_push(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_pop(const Value::ArrayInstance &args, VM *vm);
 #endif
-	static PhsString meta_get_version(const Value::ArrayInstance &args, VM *vm);
+	static Phasor::string meta_get_version(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_get_self(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_get_registers(const Value::ArrayInstance &args, VM *vm);
 	static Value     meta_load_bytecode_from_file(const Value::ArrayInstance &args, VM *vm);
@@ -220,9 +220,9 @@ class StdLib
 	static Value native_memory_write_string(const Value::ArrayInstance &args, VM *vm);
 	static Value native_memory_write_string_offset(const Value::ArrayInstance &args, VM *vm);
 	static i64 native_memory_read(const Value::ArrayInstance &args, VM *vm);
-	static PhsString native_memory_read_string(const Value::ArrayInstance &args, VM *vm);
+	static Phasor::string native_memory_read_string(const Value::ArrayInstance &args, VM *vm);
 	static i64 native_memory_read_offset(const Value::ArrayInstance &args, VM *vm);
-	static PhsString native_memory_read_string_offset(const Value::ArrayInstance &args, VM *vm);
+	static Phasor::string native_memory_read_string_offset(const Value::ArrayInstance &args, VM *vm);
 	static Value native_memory_strcpy(const Value::ArrayInstance &args, VM *vm);
 	static Value native_memory_stralloc(const Value::ArrayInstance &args, VM *vm);
 	static i64 native_memory_argv(const Value::ArrayInstance &args, VM *vm);
@@ -249,8 +249,8 @@ class StdLib
 #ifndef SANDBOXED
 	static Value     file_open(const Value::ArrayInstance &args, VM *vm); ///< Get file descriptor
 	static bool      file_close(const Value::ArrayInstance &args, VM *vm); ///< Close file descriptor
-	static PhsString file_absolute(const Value::ArrayInstance &args, VM *vm);   ///< Get full path to relative path
-	static PhsString file_relative(const Value::ArrayInstance &args, VM *vm);   ///< Get relative path to given path
+	static Phasor::string file_absolute(const Value::ArrayInstance &args, VM *vm);   ///< Get full path to relative path
+	static Phasor::string file_relative(const Value::ArrayInstance &args, VM *vm);   ///< Get relative path to given path
 	static Value     file_read(const Value::ArrayInstance &args, VM *vm);       ///< Read file
 	static bool      file_write(const Value::ArrayInstance &args, VM *vm);      ///< Write to file
 	static bool      file_exists(const Value::ArrayInstance &args, VM *vm);     ///< Check if file exists
@@ -268,12 +268,12 @@ class StdLib
 	static Value     file_read_directory(const Value::ArrayInstance &args, VM *vm);
 	static bool      file_create_directory(const Value::ArrayInstance &args, VM *vm);
 	static bool      file_remove_directory(const Value::ArrayInstance &args, VM *vm);
-	static PhsString file_join_path(const Value::ArrayInstance &args, VM *vm);
-	static PhsString file_stem(const Value::ArrayInstance &args, VM *vm);         ///< Get the stem of a path
-	static PhsString file_filename(const Value::ArrayInstance &args, VM *vm);     ///< Get the filename
-	static PhsString file_extension(const Value::ArrayInstance &args, VM *vm);    ///< Get the extension of a path
+	static Phasor::string file_join_path(const Value::ArrayInstance &args, VM *vm);
+	static Phasor::string file_stem(const Value::ArrayInstance &args, VM *vm);         ///< Get the stem of a path
+	static Phasor::string file_filename(const Value::ArrayInstance &args, VM *vm);     ///< Get the filename
+	static Phasor::string file_extension(const Value::ArrayInstance &args, VM *vm);    ///< Get the extension of a path
 	static bool      file_is_directory(const Value::ArrayInstance &args, VM *vm); ///< Check if path is directory
-	static PhsString file_parent(const Value::ArrayInstance &args, VM *vm);       ///< Get the parent of a path
+	static Phasor::string file_parent(const Value::ArrayInstance &args, VM *vm);       ///< Get the parent of a path
 	static i64       file_get_size(const Value::ArrayInstance &args, VM *vm);
 	static Value     file_memory_open(const Value::ArrayInstance &args, VM *vm); ///< Open an in-memory buffer as a stream
 	static Value     file_pipe_open(const Value::ArrayInstance &args, VM *vm);   ///< Create a native pipe pair -> [readFd, writeFd]
@@ -336,26 +336,26 @@ class StdLib
 
 #pragma region stdini
 	static Value     ini_read(const Value::ArrayInstance &args, VM *);
-	static PhsString ini_write(const Value::ArrayInstance &args, VM *);
-	static PhsString ini_read_entry(const Value::ArrayInstance &args, VM *);
-	static PhsString ini_write_entry(const Value::ArrayInstance &args, VM *);
+	static Phasor::string ini_write(const Value::ArrayInstance &args, VM *);
+	static Phasor::string ini_read_entry(const Value::ArrayInstance &args, VM *);
+	static Phasor::string ini_write_entry(const Value::ArrayInstance &args, VM *);
 	static Value     ini_read_section(const Value::ArrayInstance &args, VM *);
-	static PhsString ini_write_section(const Value::ArrayInstance &args, VM *);
+	static Phasor::string ini_write_section(const Value::ArrayInstance &args, VM *);
 	static bool      ini_has_section(const Value::ArrayInstance &args, VM *);
 	static bool      ini_has_entry(const Value::ArrayInstance &args, VM *);
-	static PhsString ini_remove_section(const Value::ArrayInstance &args, VM *);
-	static PhsString ini_remove_entry(const Value::ArrayInstance &args, VM *);
+	static Phasor::string ini_remove_section(const Value::ArrayInstance &args, VM *);
+	static Phasor::string ini_remove_entry(const Value::ArrayInstance &args, VM *);
 	static bool      ini_empty(const Value::ArrayInstance &args, VM *);
 #pragma endregion
 
 #pragma region stdtype
 	static i64         to_int(const Value::ArrayInstance &args, VM *vm);    ///< Convert to integer
 	static f64         to_float(const Value::ArrayInstance &args, VM *vm);  ///< Convert to float
-	static PhsString   to_string(const Value::ArrayInstance &args, VM *vm); ///< Convert to string
+	static Phasor::string   to_string(const Value::ArrayInstance &args, VM *vm); ///< Convert to string
 	static bool        to_bool(const Value::ArrayInstance &args, VM *vm);   ///< Convert to boolean
-	static PhsString   to_json(const Value::ArrayInstance &args, VM *vm);   ///< Convert Value to JSON string
+	static Phasor::string   to_json(const Value::ArrayInstance &args, VM *vm);   ///< Convert Value to JSON string
 	static Value       from_json(const Value::ArrayInstance &args, VM *vm); ///< Convert JSON string to Value
-	static PhsString   ascii_to_string(const Value::ArrayInstance &args, VM *vm); ///< Convert ascii to string
+	static Phasor::string   ascii_to_string(const Value::ArrayInstance &args, VM *vm); ///< Convert ascii to string
 	static Value       get_struct_elements(const Value::ArrayInstance &args, VM *);
 	static Value       get_struct_elements_values(const Value::ArrayInstance &args, VM *);
 	static i64         get_type(const Value::ArrayInstance &args, VM *vm);
@@ -392,9 +392,9 @@ class StdLib
 	static i64       str_len(const Value::ArrayInstance &args, VM *vm);         ///< Get string length
 	static Value     str_char_at(const Value::ArrayInstance &args, VM *vm);     ///< Get character at index
 	static Value     str_substr(const Value::ArrayInstance &args, VM *vm);      ///< Get substring
-	static PhsString str_concat(const Value::ArrayInstance &args, VM *vm);      ///< Concatenate strings
-	static PhsString str_upper(const Value::ArrayInstance &args, VM *vm);       ///< Convert to uppercase
-	static PhsString str_lower(const Value::ArrayInstance &args, VM *vm);       ///< Convert to lowercase
+	static Phasor::string str_concat(const Value::ArrayInstance &args, VM *vm);      ///< Concatenate strings
+	static Phasor::string str_upper(const Value::ArrayInstance &args, VM *vm);       ///< Convert to uppercase
+	static Phasor::string str_lower(const Value::ArrayInstance &args, VM *vm);       ///< Convert to lowercase
 	static Value     str_starts_with(const Value::ArrayInstance &args, VM *vm); ///< Check if string starts with
 	static Value     str_ends_with(const Value::ArrayInstance &args, VM *vm);   ///< Check if string ends with
 	static Value     str_split(const Value::ArrayInstance &args, VM *vm);      ///< Split string
@@ -403,25 +403,25 @@ class StdLib
 	static i64       sb_new(const Value::ArrayInstance &args, VM *vm);       ///< Create new string builder
 	static i64       sb_prealloc(const Value::ArrayInstance &args, VM *vm); ///< Preallocate string builder
 	static i64       sb_append(const Value::ArrayInstance &args, VM *vm);    ///< Append to string builder
-	static PhsString sb_to_string(const Value::ArrayInstance &args, VM *vm); ///< Convert string builder to string
+	static Phasor::string sb_to_string(const Value::ArrayInstance &args, VM *vm); ///< Convert string builder to string
 	static i64       sb_clear(const Value::ArrayInstance &args, VM *vm);     ///< Clear string builder
-	static PhsString sb_free(const Value::ArrayInstance &args, VM *vm);      ///< Free string builder
+	static Phasor::string sb_free(const Value::ArrayInstance &args, VM *vm);      ///< Free string builder
 #pragma endregion
 
 #pragma region stdio
-	static PhsString io_c_format(const Value::ArrayInstance &args, VM *vm); ///< Format string
+	static Phasor::string io_c_format(const Value::ArrayInstance &args, VM *vm); ///< Format string
 #ifndef SANDBOXED
 	static Value     io_clear(const Value::ArrayInstance &args, VM *vm); ///< Clear the console
 #endif
-	static PhsString io_printf(const Value::ArrayInstance &args, VM *vm); ///< Print formatted string
-	static PhsString io_putf(const Value::ArrayInstance &args, VM *vm);   ///< Print formatted string with newline
+	static Phasor::string io_printf(const Value::ArrayInstance &args, VM *vm); ///< Print formatted string
+	static Phasor::string io_putf(const Value::ArrayInstance &args, VM *vm);   ///< Print formatted string with newline
 #ifndef SANDBOXED
 	static Value     io_gets(const Value::ArrayInstance &args, VM *vm); ///< Get line of stdin
 	static Value     io_get_input(const Value::ArrayInstance &args, VM *vm); ///< Get stdin until EOF
 #endif
-	static PhsString io_putf_error(const Value::ArrayInstance &args,
+	static Phasor::string io_putf_error(const Value::ArrayInstance &args,
 	                                 VM *vm); ///< Print formatted string with newline to error output
-	static PhsString io_print_error(const Value::ArrayInstance &args,
+	static Phasor::string io_print_error(const Value::ArrayInstance &args,
 	                                 VM                       *vm);
 #pragma endregion
 };

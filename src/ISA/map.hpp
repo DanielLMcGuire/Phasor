@@ -1,13 +1,16 @@
 #include "ISA.hpp"
 #include <unordered_map>
 #include <string>
+#include <PhasorString.hpp>
 #include <stdexcept>
 
 namespace Phasor
 {
 
-std::string opCodeToString(OpCode op);
+Phasor::string opCodeToString(OpCode op);
+std::string opCodeToStlString(OpCode op);
 
+OpCode stringToOpCode(const Phasor::string &str);
 OpCode stringToOpCode(const std::string &str);
 
 } // namespace Phasor

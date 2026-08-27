@@ -13,7 +13,7 @@
 #endif
 #endif
 
-void Phasor::VM::registerNativeFunction(const PhsString &name, NativeFunction fn)
+void Phasor::VM::registerNativeFunction(const Phasor::string &name, NativeFunction fn)
 {
 #ifdef TRACING
 	log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), name));

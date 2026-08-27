@@ -22,5 +22,7 @@ include "./types/file.phs";
 // returns: true on success, false on failure
 fn fcp_progress(files: string[], dest: string) -> bool;
 
+fn fwriteatomic(path: string, content: string, force: bool) -> bool;
+
 // ----
 include "../../src/std/file.phs";

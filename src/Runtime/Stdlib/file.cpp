@@ -15,7 +15,7 @@ namespace Phasor
 {
 
 namespace {
-std::ios_base::openmode parseOpenMode(const PhsString &mode)
+std::ios_base::openmode parseOpenMode(const Phasor::string &mode)
 {
 	if (mode == "r")  return std::ios::in;
 	if (mode == "w")  return std::ios::out | std::ios::trunc;
@@ -77,7 +77,7 @@ Value StdLib::file_open(const Value::ArrayInstance &args, VM *)
 	checkArgCount(args, 2, "fopen");
 	requireString(args[0], "fopen", "first argument (path)");
 	requireString(args[1], "fopen", "second argument (mode)");
-	PhsString path = args[0].string();
+	Phasor::string path = args[0].string();
 	auto omode = parseOpenMode(args[1].string());
 
 	auto fs = std::make_unique<std::fstream>(path, omode);
@@ -159,14 +159,14 @@ i64 StdLib::file_descriptor_kind(const Value::ArrayInstance &args, VM *)
 	return static_cast<i64>(pool[fd].kind);
 }
 
-PhsString StdLib::file_absolute(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_absolute(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fabsolute");
 	requireString(args[0], "fabsolute", "argument (path)");
 	return std::filesystem::weakly_canonical(std::filesystem::path(args[0].stl_string())).string();
 }
 
-PhsString StdLib::file_relative(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_relative(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "frelative");
 	requireString(args[0], "frelative", "argument (path)");
@@ -180,28 +180,28 @@ PhsString StdLib::file_relative(const Value::ArrayInstance &args, VM *)
 	return std::filesystem::relative(path, cwd).string();
 }
 
-PhsString StdLib::file_stem(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_stem(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fstem");
 	requireString(args[0], "fstem", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).stem().string();
 }
 
-PhsString StdLib::file_filename(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_filename(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fname");
 	requireString(args[0], "fname", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).filename().string();
 }
 
-PhsString StdLib::file_extension(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_extension(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fext");
 	requireString(args[0], "fext", "argument (path)");
 	return std::filesystem::path(args[0].stl_string()).extension().string();
 }
 
-PhsString StdLib::file_parent(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_parent(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fparent");
 	requireString(args[0], "fparent", "argument (path)");
@@ -215,7 +215,7 @@ bool StdLib::file_is_directory(const Value::ArrayInstance &args, VM *)
 	return std::filesystem::is_directory(args[0].stl_string());
 }
 
-PhsString StdLib::file_join_path(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::file_join_path(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "fjoin", true);
 
@@ -256,9 +256,7 @@ PhsString StdLib::file_join_path(const Value::ArrayInstance &args, VM *)
 
 	if (args.size() == 1)
 	{
-		if (!args[0].isArray())
-			PHS_ERROR(std::string("fjoin() with a single argument expects an array of strings"));
-
+		requireArray(args[0], "fjoin", "array of strings");
 		appendComponent(result, args[0], 0);
 	} else if (args.size() == 2) {
 		appendComponent(result, args[0], 0);
@@ -379,7 +377,7 @@ bool StdLib::file_write_line(const Value::ArrayInstance &args, VM *)
 
 	std::filesystem::path path = args[0].stl_string();
 	i64               lineNum = args[1].asInt();
-	PhsString           content = args[2].string();
+	Phasor::string           content = args[2].string();
 
 	if (lineNum < 0)
 		PHS_ERROR("fwriteln() line number cannot be negative");
@@ -392,7 +390,7 @@ bool StdLib::file_write_line(const Value::ArrayInstance &args, VM *)
 		return false;
 	}
 
-	std::vector<PhsString> lines;
+	std::vector<Phasor::string> lines;
 	std::string              line;
 	while (std::getline(inFile, line))
 	{
@@ -538,7 +536,7 @@ Value StdLib::file_current_directory(const Value::ArrayInstance &args, VM *vm)
 	if (std::filesystem::exists(dest) && std::filesystem::is_directory(dest))
 	{
 		try { std::filesystem::current_path(dest); return true; }
-		catch (std::exception e) { vm->log(PhsString(e.what()) + "\n"); vm->flush(); return false; }
+		catch (std::exception e) { vm->log(Phasor::string(e.what()) + "\n"); vm->flush(); return false; }
 	}
 	return false;
 }
@@ -627,10 +625,9 @@ bool StdLib::file_property_edit(const Value::ArrayInstance &args, VM *)
 	checkArgCount(args, 3, "fpropedit");
 	requireString(args[0], "fpropedit", "first argument (path)");
 	requireString(args[1], "fpropedit", "second argument (property)");
-	if (args[1].stl_string().empty())
+	if (args[1].string().empty())
 		PHS_ERROR("fpropedit() property must be a non-empty string");
-	if (!args[2].isInt())
-		PHS_ERROR("fpropedit() expects an integer as its third argument (epoch)");
+	requireInt(args[2], "fpropedit", "epoch");
 	if (args[2].asInt() < 0)
 	{
 		PHS_ERROR("epoch must be a non-negative integer");
@@ -672,13 +669,13 @@ Value StdLib::file_read_directory(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "freaddir");
 	requireString(args[0], "freaddir", "argument (path)");
-	PhsString path = args[0].string();
+	Phasor::string path = args[0].string();
 
 	Value::ArrayInstance entries;
 
 	for (const auto &entry : std::filesystem::directory_iterator(path.str()))
 	{
-		entries.emplace_back(PhsString(entry.path().filename().string()));
+		entries.emplace_back(Phasor::string(entry.path().filename().string()));
 	}
 
 	return Value::createArray(std::move(entries));

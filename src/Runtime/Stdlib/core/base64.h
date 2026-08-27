@@ -35,10 +35,10 @@ inline const std::array<int, 256>& reverse_table() {
 
 } // namespace detail
 
-inline Phasor::PhsString encode(const unsigned char* data, std::size_t len,
+inline Phasor::string encode(const unsigned char* data, std::size_t len,
                            bool url_safe = false, bool pad = true) {
     const char* table = detail::alphabet(url_safe);
-    Phasor::PhsString out;
+    Phasor::string out;
     out.reserve(((len + 2) / 3) * 4);
 
     std::size_t i = 0;
@@ -71,18 +71,18 @@ inline Phasor::PhsString encode(const unsigned char* data, std::size_t len,
     return out;
 }
 
-inline Phasor::PhsString encode(const std::vector<unsigned char>& data,
+inline Phasor::string encode(const std::vector<unsigned char>& data,
                            bool url_safe = false, bool pad = true) {
     return encode(data.data(), data.size(), url_safe, pad);
 }
 
-inline Phasor::PhsString encode(const Phasor::PhsString& data, bool url_safe = false,
+inline Phasor::string encode(const Phasor::string& data, bool url_safe = false,
                            bool pad = true) {
     return encode(reinterpret_cast<const unsigned char*>(data.data()),
                   data.size(), url_safe, pad);
 }
 
-inline std::vector<unsigned char> decode(const Phasor::PhsString& in) {
+inline std::vector<unsigned char> decode(const Phasor::string& in) {
     std::size_t len = in.size();
     while (len > 0 && in[len - 1] == '=') --len;
 
@@ -131,9 +131,9 @@ inline std::vector<unsigned char> decode(const Phasor::PhsString& in) {
     return out;
 }
 
-inline Phasor::PhsString decode_string(const Phasor::PhsString& in) {
+inline Phasor::string decode_string(const Phasor::string& in) {
     std::vector<unsigned char> bytes = decode(in);
-    return Phasor::PhsString(bytes.begin(), bytes.end());
+    return Phasor::string(bytes.begin(), bytes.end());
 }
 
 } // namespace base64

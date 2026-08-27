@@ -36,9 +36,9 @@ void set_terminal_title(const char *title)
     { FILE* _f; freopen_s(&_f, "CONOUT$", "w", stderr); } \
     puts("")
 
-std::string getCommandLine(LPSTR &lpszCmdLine)
+Phasor::string getCommandLine(LPSTR &lpszCmdLine)
 {
-	std::string cmdline = lpszCmdLine;
+	Phasor::string cmdline = lpszCmdLine;
 	return (cmdline.size() >= 2 && cmdline.starts_with('"') && cmdline.ends_with('"')) ? cmdline.substr(1, cmdline.size() - 2) : cmdline;
 }
 #endif
@@ -61,7 +61,7 @@ static std::vector<std::filesystem::path> fetchIncludeDirs()
 	finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
-	Phasor::PhsString includeDirs;
+	Phasor::string includeDirs;
 	if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
 	{
 		std::stringstream ss(includeDirs.c_str());
@@ -102,15 +102,15 @@ static std::vector<std::filesystem::path> resolveIncludePaths(const char *module
 			continue;
 		}
 
-		std::string raw(includePaths[i]);
-		std::string current;
+		Phasor::string raw(includePaths[i]);
+		Phasor::string current;
 		for (char ch : raw)
 		{
 			if (ch == ',')
 			{
 				if (!current.empty())
 				{
-					finalPaths.emplace_back(current);
+					finalPaths.emplace_back(current.str());
 					current.clear();
 				}
 			}
@@ -121,7 +121,7 @@ static std::vector<std::filesystem::path> resolveIncludePaths(const char *module
 		}
 		if (!current.empty())
 		{
-			finalPaths.emplace_back(current);
+			finalPaths.emplace_back(current.str());
 		}
 	}
 
@@ -145,17 +145,17 @@ static Phasor::Defines resolveDefines(const char **defines, int defineCount)
 			continue;
 		}
 
-		std::string raw(defines[i]);
-		std::string current;
+		Phasor::string raw(defines[i]);
+		Phasor::string current;
 		for (char ch : raw)
 		{
 			if (ch == ',')
 			{
 				if (!current.empty())
 				{
-					const std::string item = current;
+					const Phasor::string item = current;
 					const size_t eq = item.find('=');
-					if (eq == std::string::npos)
+					if (eq == Phasor::string::npos)
 					{
 						finalDefines[item] = Phasor::DefineValue(Phasor::DefineValueKind::Number, "1");
 					}
@@ -173,9 +173,9 @@ static Phasor::Defines resolveDefines(const char **defines, int defineCount)
 		}
 		if (!current.empty())
 		{
-			const std::string item = current;
+			const Phasor::string item = current;
 			const size_t eq = item.find('=');
-			if (eq == std::string::npos)
+			if (eq == Phasor::string::npos)
 			{
 				finalDefines[item] = Phasor::DefineValue(Phasor::DefineValueKind::Number, "1");
 			}
@@ -209,7 +209,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string(moduleName) + ": " + e.what());
+			msg(Phasor::string(moduleName) + ": " + e.what());
 		}
 		return -1;
 	}
@@ -227,7 +227,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string(moduleName) + ": " + e.what());
+			msg(Phasor::string(moduleName) + ": " + e.what());
 		}
 		return -1;
 	}
@@ -252,7 +252,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string(moduleName) + ": " + e.what());
+			msg(Phasor::string(moduleName) + ": " + e.what());
 			return nullptr;
 		}
 	}
@@ -289,7 +289,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string(moduleName) + ": " + e.what());
+			msg(Phasor::string(moduleName) + ": " + e.what());
 		}
 		return -1;
 	}
@@ -299,7 +299,7 @@ extern "C"
 	                           const char **defines, int defineCount,
 	                           unsigned char *buffer, size_t bufferSize, size_t *outSize)
 	{
-		set_terminal_title((std::string("Compiling ") + moduleName).c_str());
+		set_terminal_title((Phasor::string("Compiling ") + moduleName).c_str());
 		try
 		{
 			Phasor::CodeGenerator      codegen;
@@ -342,7 +342,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string(moduleName) + ": " + e.what());
+			msg(Phasor::string(moduleName) + ": " + e.what());
 		}
 		return false;
 	}
@@ -352,7 +352,7 @@ extern "C"
 	                           const char **defines, int defineCount,
 	                           unsigned char *buffer, size_t bufferSize, size_t *outSize)
 	{
-		set_terminal_title((std::string("Compiling ") + moduleName).c_str());
+		set_terminal_title((Phasor::string("Compiling ") + moduleName).c_str());
 		try
 		{
 			Phasor::CodeGenerator      codegen;
@@ -394,7 +394,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string(moduleName) + ": " + e.what());
+			msg(Phasor::string(moduleName) + ": " + e.what());
 		}
 		return false;
 	}
@@ -429,7 +429,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string("assembleIR: ") + e.what());
+			msg(Phasor::string("assembleIR: ") + e.what());
 		}
 		return false;
 	}
@@ -463,7 +463,7 @@ extern "C"
 		}
 		catch (const std::exception &e)
 		{
-			msg(std::string("disassemble: ") + e.what());
+			msg(Phasor::string("disassemble: ") + e.what());
 		}
 		return false;
 	}

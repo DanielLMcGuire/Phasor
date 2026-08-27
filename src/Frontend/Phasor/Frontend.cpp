@@ -8,14 +8,13 @@
 #include <fstream>
 #include <print>
 #include <sstream>
-#include <string>
 #include <version.h>
 #include <sscanf.h>
 
 #include "Frontend.hpp"
 #include <nativeerror.h>
 
-int Phasor::Frontend::runScript(const std::string &source, VM *vm, const std::vector<std::filesystem::path> &paths, bool verbose)
+int Phasor::Frontend::runScript(const Phasor::string &source, VM *vm, const std::vector<std::filesystem::path> &paths, bool verbose)
 {
 	int           status = 0;
 	bool          ownVM = false;

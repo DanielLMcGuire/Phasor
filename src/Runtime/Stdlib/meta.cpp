@@ -30,8 +30,8 @@ namespace Phasor
 
 namespace {
  
-std::vector<std::filesystem::path> resolveIncludePathsFromValues(const PhsString &modulePath,
-                                                                   const std::vector<PhsString> &includePaths)
+std::vector<std::filesystem::path> resolveIncludePathsFromValues(const Phasor::string &modulePath,
+                                                                   const std::vector<Phasor::string> &includePaths)
 {
     std::vector<std::filesystem::path> finalPaths;
  
@@ -39,7 +39,7 @@ std::vector<std::filesystem::path> resolveIncludePathsFromValues(const PhsString
     finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
  
-    PhsString envIncludeDirs;
+    Phasor::string envIncludeDirs;
     if (dupenv_ret ret = dupenv(envIncludeDirs, "PHASOR_INCLUDE_PATH"); ret == dupenv_ret::Success)
     {
         std::stringstream ss(envIncludeDirs.c_str());
@@ -71,7 +71,7 @@ std::vector<std::filesystem::path> resolveIncludePathsFromValues(const PhsString
     return finalPaths;
 }
  
-Defines resolveDefinesFromValues(const std::vector<PhsString> &defines)
+Defines resolveDefinesFromValues(const std::vector<Phasor::string> &defines)
 {
     Defines finalDefines;
     addDefaultDefines(finalDefines, false);
@@ -161,7 +161,7 @@ enum semver: Phasor::u8 {
     patch
 };
 
-PhsString StdLib::meta_get_version(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::meta_get_version(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "phs_version", true);
     if (args.size() > 1) PHS_ERROR("phs_version() expects at most 1 argument (version type)");
@@ -203,8 +203,7 @@ Value StdLib::meta_get_self(const Value::ArrayInstance &args, VM *vm)
 Value StdLib::meta_load_bytecode_from_file(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "phs__load_bytecode");
-	if (!args[0].isString())
-		PHS_ERROR("phs__load_bytecode() expects a string as it's argument (file path)");
+    requireString(args[0], "phs__load_bytecode", "file path");
 	std::filesystem::path bcFile = args[0].stl_string();
 	BytecodeDeserializer deserializer;
 	if (!std::filesystem::exists(bcFile))
@@ -216,10 +215,8 @@ Value StdLib::meta_load_bytecode_from_file(const Value::ArrayInstance &args, VM 
 bool StdLib::meta_save_bytecode_to_file(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "phs__save_bytecode");
-	if (!args[0].isStruct())
-		PHS_ERROR("phs__save_bytecode() expects a Bytecode struct as it's first argument");
-	if (!args[1].isString())
-		PHS_ERROR("phs__save_bytecode() expects a string as it's second argument (file path)");
+    requireStruct(args[0], "phs__save_bytecode", "Bytecode");
+    requireString(args[1], "phs__save_bytecode", "file path");
 	std::filesystem::path outFile = args[1].stl_string();
 	BytecodeSerializer serializer;
 	auto bc = bytecodeFromValue(args[0]);
@@ -247,8 +244,7 @@ i64 StdLib::meta_new_state(const Value::ArrayInstance &args, VM *) {
  
 bool StdLib::meta_free_state(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 2, "free_vm");
-    if (!args[0].isInt())
-        PHS_ERROR("free_vm() expects a integer (state handle) as it's first argument.");
+    requireInt(args[0], "free_vm", "state handle");
     auto *vm = static_cast<VM *>(i64_to_pointer(args[0].asInt()));
     if (vm == nullptr)
         return false;
@@ -261,16 +257,11 @@ i64 StdLib::meta_eval_phs(const Value::ArrayInstance &args, VM *){
     if (args.size() > 6) PHS_ERROR("phs_eval() expects at least 5 arguments, at most 6 arguments.");
     if (!args[0].isInt() && !args[0].isNull())
         PHS_ERROR("phs_eval() expects a integer (state handle) or null as it's first argument.");
-    if (!args[1].isString())
-        PHS_ERROR("phs_eval() expects a string (source) as it's second argument.");
-    if (!args[2].isString())
-        PHS_ERROR("phs_eval() expects a string (module path) as it's third argument.");
-    if (!args[3].isArray())
-        PHS_ERROR("phs_eval() expects an array of strings (include paths) as it's fourth argument.");
-    if (!args[4].isArray())
-        PHS_ERROR("phs_eval() expects an array of strings (defines) as it's fifth argument.");
-    if (args.size() == 6 && !args[5].isBool())
-        PHS_ERROR("phs_eval() expects an optional boolean (verbose) as it's sixth argument.");
+    requireString(args[1], "phs_eval", "source");
+    requireString(args[2], "phs_eval", "module path");
+    requireArray(args[3], "phs_eval", "include paths");
+    requireArray(args[4], "phs_eval", "defines");
+    if (args.size() == 6) requireBool(args[5], "phs_eval", "verbose");
  
     VM *state = nullptr;
     bool ownVM = false;
@@ -281,10 +272,10 @@ i64 StdLib::meta_eval_phs(const Value::ArrayInstance &args, VM *){
         if (!state) return -1;
     } 
     try {
-        PhsString script = args[1].toString();
-        PhsString modulePath = args[2].toString();
-        std::vector<PhsString> includePaths = phasorStringArrayToVector(args[3]);
-        std::vector<PhsString> defines = phasorStringArrayToVector(args[4]);
+        Phasor::string script = args[1].toString();
+        Phasor::string modulePath = args[2].toString();
+        std::vector<Phasor::string> includePaths = phasorStringArrayToVector(args[3]);
+        std::vector<Phasor::string> defines = phasorStringArrayToVector(args[4]);
         bool verbose = args.size() == 6 ? args[5].asBool() : false;
 
         Lexer lexer(script.str());
@@ -326,8 +317,7 @@ i64 StdLib::meta_exec_phsb(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 2, "phs_exec");
     if (!args[0].isInt() && !args[0].isNull())
         PHS_ERROR("phs_exec() expects a integer (state handle) or null as it's first argument.");
-    if (!args[1].isString())
-        PHS_ERROR("phs_exec() expects a struct (bytecode) as it's second argument.");
+    requireStruct(args[1], "phs_exec", "Bytecode");
  
     VM *state = nullptr;
     bool ownVM = false;
@@ -345,19 +335,15 @@ i64 StdLib::meta_exec_phsb(const Value::ArrayInstance &args, VM *){
  
 Value StdLib::meta_compile_phs(const Value::ArrayInstance &args, VM *){
     checkArgCount(args, 5, "phs_compile");
-    if (!args[0].isString())
-        PHS_ERROR("phs_compile() expects a string (source) or null as it's first argument.");
-    if (!args[1].isString())
-        PHS_ERROR("phs_compile() expects a string (module path) as it's second argument.");
-    if (!args[2].isArray())
-        PHS_ERROR("phs_compile() expects a string array (include paths) as it's third argument.");
-    if (!args[3].isArray())
-        PHS_ERROR("phs_compile() expects a string array (defines) as it's fourth argument.");
+    requireString(args[1], "phs_eval", "source");
+    requireString(args[2], "phs_eval", "module path");
+    requireArray(args[3], "phs_eval", "include paths");
+    requireArray(args[4], "phs_eval", "defines");
  
-    PhsString script = args[0].toString();
-    PhsString modulePath = args[1].toString();
-    std::vector<PhsString> includePaths = phasorStringArrayToVector(args[2]);
-    std::vector<PhsString> defines = phasorStringArrayToVector(args[3]);
+    Phasor::string script = args[0].toString();
+    Phasor::string modulePath = args[1].toString();
+    std::vector<Phasor::string> includePaths = phasorStringArrayToVector(args[2]);
+    std::vector<Phasor::string> defines = phasorStringArrayToVector(args[3]);
  
     Lexer lexer(script);
     Parser parser(lexer.tokenize(), modulePath.str());

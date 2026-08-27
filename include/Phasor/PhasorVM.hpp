@@ -65,14 +65,14 @@ namespace Phasor
 
 struct ManagedTraceEntry
 {
-	PhsString functionName;
+	Phasor::string functionName;
     Value pc;
 	Value::ArrayInstance args;
     std::array<Value, 3> registers;
 
-	[[nodiscard]] inline PhsString formatTrace() const
+	[[nodiscard]] inline Phasor::string formatTrace() const
 	{
-		PhsString entry = vformat::format(
+		Phasor::string entry = vformat::format(
 			"PC=%s FUNC=%s ARGS=%s R0=%s R1=%s R2=%s",
 			pc.toRepr().c_str(),
 			Value(functionName).toRepr().c_str(),
@@ -126,9 +126,9 @@ public:
         stack.clear();
     }
 
-	[[nodiscard]] inline PhsString format() const
+	[[nodiscard]] inline Phasor::string format() const
 	{
-		PhsString result;
+		Phasor::string result;
 		size_t counter = 0;
 
 		for (const auto& entry : stack)
@@ -159,7 +159,7 @@ class VM
 	void initFFI(const std::vector<std::filesystem::path> &paths);
 
 	/// @brief Get Phasor VM version
-	PhsString getVersion();
+	Phasor::string getVersion();
 
 	/// @class Halt
 	/// @brief Throws when the HALT opcode is reached
@@ -177,19 +177,19 @@ class VM
 	int run(const Bytecode &bytecode, const size_t startPC = 0);
 
 	/// @brief Run a function from bytecode on the virtual machine
-	Value runFunction(const PhsString &name, const Bytecode &bytecode, const bool &argsInit = false);
+	Value runFunction(const Phasor::string &name, const Bytecode &bytecode, const bool &argsInit = false);
 
 	/// @brief Native function signature
 	using NativeFunction = std::function<Value(const Value::ArrayInstance &args, VM *vm)>;
 
 	/// @brief Register a native function
-	void registerNativeFunction(const PhsString &name, NativeFunction fn);
+	void registerNativeFunction(const Phasor::string &name, NativeFunction fn);
 
 	/// @brief Free a variable in the VM
 	void freeVariable(size_t index);
 
 	/// @brief Free a variable by name in the VM
-	void freeVariableByName(const PhsString &name);
+	void freeVariableByName(const Phasor::string &name);
 
 	/// @brief Add a variable to the VM
 	/// @param value The value to add
@@ -294,10 +294,10 @@ class VM
 	void reset(const bool &resetStack = true, const bool &resetFunctions = true, const bool &resetVariables = true);
 
 	/// @brief Get VM information for debugging
-	PhsString getInformation();
+	Phasor::string getInformation();
 
 	/// @brief Get bytecode information for debugging
-	PhsString getBytecodeInformation();
+	Phasor::string getBytecodeInformation();
 
 	/// @brief Log a Value to stdout
 	void log(const Value &msg);
@@ -384,7 +384,7 @@ class VM
 	size_t pc = 0;
 
 	/// @brief Native function registry
-	std::map<PhsString, NativeFunction> nativeFunctions;
+	std::map<Phasor::string, NativeFunction> nativeFunctions;
 
 	ManagedTraceLog tracelog;
 };

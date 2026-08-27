@@ -27,12 +27,12 @@ class CCompiler
 		std::filesystem::path              outputFile;
 		std::filesystem::path              mainFile;
 		std::vector<std::filesystem::path> includePaths;
-		std::vector<std::string>           defines;
-		PhsString                        moduleName;
+		std::vector<Phasor::string>        defines;
+		Phasor::string                     moduleName;
 		bool                               verbose = false;
 		bool                               showHelp = false;
-		PhsString                        compiler;
-		PhsString                        linker;
+		Phasor::string                     compiler;
+		Phasor::string                     linker;
 		bool                               run = false;
 		bool                               headerOnly = false;
 		bool                               objectOnly = false;
@@ -40,7 +40,7 @@ class CCompiler
 	} m_args;
 
 	bool parseArguments(int argc, char *argv[]);
-	static bool showHelp(const PhsString &programName);
+	static bool showHelp(const Phasor::string &programName);
 	bool generateHeader(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath) const;
 	static bool generateSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);
 	bool compileSource(const std::filesystem::path &sourcePath, const std::filesystem::path &outputPath);

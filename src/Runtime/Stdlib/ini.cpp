@@ -13,13 +13,13 @@ namespace
 
 struct IniEntryInternal
 {
-	PhsString key;
-	PhsString value;
+	Phasor::string key;
+	Phasor::string value;
 };
 
 struct IniSectionInternal
 {
-	PhsString                     name;
+	Phasor::string                name;
 	std::vector<IniEntryInternal> entries;
 };
 
@@ -45,7 +45,7 @@ std::string stripComment(const std::string &line)
 	return line;
 }
 
-IniSectionInternal *findSection(IniDataInternal &data, const PhsString &name)
+IniSectionInternal *findSection(IniDataInternal &data, const Phasor::string &name)
 {
 	for (auto &section : data)
 	{
@@ -55,7 +55,7 @@ IniSectionInternal *findSection(IniDataInternal &data, const PhsString &name)
 	return nullptr;
 }
 
-IniEntryInternal *findEntry(IniSectionInternal &section, const PhsString &key)
+IniEntryInternal *findEntry(IniSectionInternal &section, const Phasor::string &key)
 {
 	for (auto &entry : section.entries)
 	{
@@ -81,7 +81,7 @@ IniDataInternal parseIniString(const std::string &content)
 
 		if (trimmed.front() == '[' && trimmed.back() == ']')
 		{
-			PhsString sectionName(trim(trimmed.substr(1, trimmed.size() - 2)));
+			Phasor::string sectionName(trim(trimmed.substr(1, trimmed.size() - 2)));
 			data.push_back({sectionName, {}});
 			current = &data.back();
 			continue;
@@ -91,12 +91,12 @@ IniDataInternal parseIniString(const std::string &content)
 		if (eq == std::string::npos)
 			continue;
 
-		PhsString key(trim(trimmed.substr(0, eq)));
-		PhsString value(trim(trimmed.substr(eq + 1)));
+		Phasor::string key(trim(trimmed.substr(0, eq)));
+		Phasor::string value(trim(trimmed.substr(eq + 1)));
 
 		if (!current)
 		{
-			data.push_back({PhsString(""), {}});
+			data.push_back({Phasor::string(""), {}});
 			current = &data.back();
 		}
 
@@ -109,7 +109,7 @@ IniDataInternal parseIniString(const std::string &content)
 	return data;
 }
 
-PhsString writeIniString(const IniDataInternal &data)
+Phasor::string writeIniString(const IniDataInternal &data)
 {
 	std::string out;
 	bool        firstSection = true;
@@ -128,7 +128,7 @@ PhsString writeIniString(const IniDataInternal &data)
 			out += entry.key.str() + "=" + entry.value.str() + "\n";
 	}
 
-	return PhsString(out);
+	return Phasor::string(out);
 }
 
 Value iniDataToValue(const IniDataInternal &data)
@@ -188,30 +188,25 @@ void StdLib::registerIniFunctions(VM *vm)
 Value StdLib::ini_read(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ini_read");
-	if (!args[0].isString())
-		PHS_ERROR("ini_read() expects a string as its argument (ini content)");
+	requireString(args[0], "ini_read", "ini content");
 
 	return iniDataToValue(parseIniString(args[0].stl_string()));
 }
 
-PhsString StdLib::ini_write(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ini_write(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ini_write");
-	if (!args[0].isStruct())
-		PHS_ERROR("ini_write() expects a struct as its argument (ini data)");
+	requireStruct(args[0], "ini_write", "ini data");
 
 	return writeIniString(valueToIniData(args[0]));
 }
 
-PhsString StdLib::ini_read_entry(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ini_read_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_read_entry");
-	if (!args[0].isString())
-		PHS_ERROR("ini_read_entry() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_read_entry() expects a string as its second argument (section)");
-	if (!args[2].isString())
-		PHS_ERROR("ini_read_entry() expects a string as its third argument (key)");
+	requireString(args[0], "ini_read_entry", "ini content");
+	requireString(args[1], "ini_read_entry", "section");
+	requireString(args[2], "ini_read_entry", "key");
 
 	IniDataInternal      data    = parseIniString(args[0].stl_string());
 	IniSectionInternal  *section = findSection(data, args[1].string());
@@ -219,22 +214,20 @@ PhsString StdLib::ini_read_entry(const Value::ArrayInstance &args, VM *)
 		return "";
 
 	IniEntryInternal *entry = findEntry(*section, args[2].string());
-	return entry ? entry->value : PhsString("");
+	return entry ? entry->value : Phasor::string("");
 }
 
-PhsString StdLib::ini_write_entry(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ini_write_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 4, "ini_write_entry");
-	if (!args[0].isString())
-		PHS_ERROR("ini_write_entry() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_write_entry() expects a string as its second argument (section)");
-	if (!args[2].isString())
-		PHS_ERROR("ini_write_entry() expects a string as its third argument (key)");
+	
+	requireString(args[0], "ini_write_entry", "ini content");
+	requireString(args[1], "ini_write_entry", "section");
+	requireString(args[2], "ini_write_entry", "key");
 
 	IniDataInternal data = parseIniString(args[0].stl_string());
 
-	PhsString            sectionName = args[1].string();
+	Phasor::string            sectionName = args[1].string();
 	IniSectionInternal  *section     = findSection(data, sectionName);
 	if (!section)
 	{
@@ -242,8 +235,8 @@ PhsString StdLib::ini_write_entry(const Value::ArrayInstance &args, VM *)
 		section = &data.back();
 	}
 
-	PhsString key   = args[2].string();
-	PhsString value = args[3].isString() ? args[3].string() : args[3].toString();
+	Phasor::string key   = args[2].string();
+	Phasor::string value = args[3].isString() ? args[3].string() : args[3].toString();
 
 	if (auto *entry = findEntry(*section, key))
 		entry->value = value;
@@ -256,10 +249,8 @@ PhsString StdLib::ini_write_entry(const Value::ArrayInstance &args, VM *)
 Value StdLib::ini_read_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ini_read_section");
-	if (!args[0].isString())
-		PHS_ERROR("ini_read_section() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_read_section() expects a string as its second argument (section)");
+	requireString(args[0], "ini_read_section", "ini content");
+	requireString(args[1], "ini_read_section", "section");
 
 	IniDataInternal      data    = parseIniString(args[0].stl_string());
 	IniSectionInternal  *section = findSection(data, args[1].string());
@@ -273,15 +264,12 @@ Value StdLib::ini_read_section(const Value::ArrayInstance &args, VM *)
 	return sectionValue;
 }
 
-PhsString StdLib::ini_write_section(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ini_write_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_write_section");
-	if (!args[0].isString())
-		PHS_ERROR("ini_write_section() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_write_section() expects a string as its second argument (section)");
-	if (!args[2].isStruct())
-		PHS_ERROR("ini_write_section() expects a struct as its third argument (entries)");
+	requireString(args[0], "ini_write_section", "ini content");
+	requireString(args[1], "ini_write_section", "section");
+	requireStruct(args[2], "ini_write_section", "entries");
 
 	IniDataInternal data = parseIniString(args[0].stl_string());
 
@@ -301,10 +289,8 @@ PhsString StdLib::ini_write_section(const Value::ArrayInstance &args, VM *)
 bool StdLib::ini_has_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ini_has_section");
-	if (!args[0].isString())
-		PHS_ERROR("ini_has_section() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_has_section() expects a string as its second argument (section)");
+	requireString(args[0], "ini_has_section", "ini content");
+	requireString(args[1], "ini_has_section", "section");
 
 	IniDataInternal data = parseIniString(args[0].stl_string());
 	return findSection(data, args[1].string()) != nullptr;
@@ -313,12 +299,9 @@ bool StdLib::ini_has_section(const Value::ArrayInstance &args, VM *)
 bool StdLib::ini_has_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_has_entry");
-	if (!args[0].isString())
-		PHS_ERROR("ini_has_entry() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_has_entry() expects a string as its second argument (section)");
-	if (!args[2].isString())
-		PHS_ERROR("ini_has_entry() expects a string as its third argument (key)");
+	requireString(args[0], "ini_has_entry", "ini content");
+	requireString(args[1], "ini_has_entry", "section");
+	requireString(args[2], "ini_has_entry", "key");
 
 	IniDataInternal      data    = parseIniString(args[0].stl_string());
 	IniSectionInternal  *section = findSection(data, args[1].string());
@@ -328,16 +311,14 @@ bool StdLib::ini_has_entry(const Value::ArrayInstance &args, VM *)
 	return findEntry(*section, args[2].string()) != nullptr;
 }
 
-PhsString StdLib::ini_remove_section(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ini_remove_section(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 2, "ini_remove_section");
-	if (!args[0].isString())
-		PHS_ERROR("ini_remove_section() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_remove_section() expects a string as its second argument (section)");
+	requireString(args[0], "ini_remove_section", "ini content");
+	requireString(args[1], "ini_remove_section", "section");
 
 	IniDataInternal data        = parseIniString(args[0].stl_string());
-	PhsString       sectionName = args[1].string();
+	Phasor::string       sectionName = args[1].string();
 
 	auto it = std::find_if(data.begin(), data.end(),
 	                        [&](const IniSectionInternal &s) { return s.name == sectionName; });
@@ -347,22 +328,19 @@ PhsString StdLib::ini_remove_section(const Value::ArrayInstance &args, VM *)
 	return writeIniString(data);
 }
 
-PhsString StdLib::ini_remove_entry(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::ini_remove_entry(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 3, "ini_remove_entry");
-	if (!args[0].isString())
-		PHS_ERROR("ini_remove_entry() expects a string as its first argument (ini content)");
-	if (!args[1].isString())
-		PHS_ERROR("ini_remove_entry() expects a string as its second argument (section)");
-	if (!args[2].isString())
-		PHS_ERROR("ini_remove_entry() expects a string as its third argument (key)");
+	requireString(args[0], "ini_remove_entry", "ini content");
+	requireString(args[1], "ini_remove_entry", "section");
+	requireString(args[2], "ini_remove_entry", "key");
 
 	IniDataInternal      data    = parseIniString(args[0].stl_string());
 	IniSectionInternal  *section = findSection(data, args[1].string());
 
 	if (section)
 	{
-		PhsString key = args[2].string();
+		Phasor::string key = args[2].string();
 		auto      it  = std::find_if(section->entries.begin(), section->entries.end(),
 		                              [&](const IniEntryInternal &e) { return e.key == key; });
 		if (it != section->entries.end())
@@ -375,8 +353,7 @@ PhsString StdLib::ini_remove_entry(const Value::ArrayInstance &args, VM *)
 bool StdLib::ini_empty(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "ini_empty");
-	if (!args[0].isString())
-		PHS_ERROR("ini_empty() expects a string as its argument (ini content)");
+	requireString(args[0], "ini_empty", "ini content");
 
 	return trim(args[0].stl_string()).empty();
 }

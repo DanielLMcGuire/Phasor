@@ -150,9 +150,9 @@ static std::string build_fmt_stl(const Spec &s, const char *len_override, char c
     return f;
 }
 
-static Phasor::PhsString build_fmt_phs(const Spec &s, const char *len_override, char conv)
+static Phasor::string build_fmt_phs(const Spec &s, const char *len_override, char conv)
 {
-    Phasor::PhsString f = "%";
+    Phasor::string f = "%";
     if (s.minus) f += '-';
     if (s.plus) f += '+';
     if (s.space) f += ' ';
@@ -432,9 +432,9 @@ inline int printf(const char *fmt, ...)
     return r;
 }
 
-inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor::Value> &args)
+inline Phasor::string str_format_v(const char *fmt, const std::vector<Phasor::Value> &args)
 {
-    Phasor::PhsString result;
+    Phasor::string result;
     result.reserve(128);
 
     const char *f = fmt;
@@ -534,7 +534,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
                 else if (type == Phasor::ValueType::Float)
                     v = (long long)val.asFloat();
 
-                Phasor::PhsString fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
+                Phasor::string fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -552,7 +552,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
                 else if (type == Phasor::ValueType::Float)
                     v = (unsigned long long)val.asFloat();
 
-                Phasor::PhsString fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
+                Phasor::string fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -573,7 +573,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
                 else if (type == Phasor::ValueType::Bool)
                     v = val.asBool() ? 1.0 : 0.0;
 
-                Phasor::PhsString fmtStr = detail::build_fmt_phs(s, "", s.conv);
+                Phasor::string fmtStr = detail::build_fmt_phs(s, "", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -582,7 +582,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
             }
 
             case 's': {
-                Phasor::PhsString str;
+                Phasor::string str;
 
                 if (type == Phasor::ValueType::String)
                     str = val.string();
@@ -629,7 +629,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
                 else
                     ptr = nullptr;
 
-                Phasor::PhsString fmtStr = "%";
+                Phasor::string fmtStr = "%";
                 if (s.minus) fmtStr += '-';
                 if (s.width > 0) fmtStr += std::to_string(s.width);
                 fmtStr += 'p';
@@ -641,7 +641,7 @@ inline Phasor::PhsString str_format_v(const char *fmt, const std::vector<Phasor:
             }
 
             case 'O': case 'M': {
-                Phasor::PhsString str;
+                Phasor::string str;
 
                 int indent = -1;
                 if (s.prec >= 0)

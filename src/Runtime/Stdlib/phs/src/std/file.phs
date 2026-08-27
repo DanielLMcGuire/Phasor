@@ -24,3 +24,29 @@ fn fcp_progress(files: string[], dest: string) -> bool
     }
     return true;
 }
+
+fn fwriteatomic(path: string, content: string, force: bool) -> bool {
+    var c: int = 0;
+    var tempName: string = path.concat(".", to_string(c));
+    while (fexists(tempName)) {
+        c++;
+        tempName = path.concat(".", to_string(c));
+    }
+
+    var fd: int = fopen(tempName, "w");
+    fd.fwrite(content);
+    fd.fclose();
+
+    var success: bool = false;
+    if (frn(tempName, path)) {
+        success = true;
+    } else if (force) {
+        if (fexists(path))
+            frm(path);
+
+        if (frn(tempName, path))
+            success = true;
+    }
+    
+    return success;
+}

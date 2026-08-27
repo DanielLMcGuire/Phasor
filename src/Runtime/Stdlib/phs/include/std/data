@@ -14,3 +14,17 @@
 // limitations under the License.
 
 phs__std("data");
+include "./types/mem.phs";
+
+fn base64_encode_native(handle: ManagedMemory) -> string;
+
+fn base64_decode_native(data: string) -> ManagedMemory;
+
+fn md5_native(handle: ManagedMemory) -> string;
+
+fn sha1_native(handle: ManagedMemory) -> string;
+
+fn sha256_native(handle: ManagedMemory) -> string;
+
+// ----
+include "../../src/std/data.phs";

@@ -201,7 +201,43 @@ void StdLib::requireBool(const Value &v, const char *fnName, const char *what)
 		PHS_ERROR(std::string(fnName) + "() expects a boolean as its " + what);
 }
 
-std::unordered_map<PhsString, std::function<void(Phasor::VM *)>> StdLib::modules{
+void StdLib::requireNumber(const Value &v, const char *fnName, const char *what)
+{
+	if (!v.isNumber())
+		PHS_ERROR(std::string(fnName) + "() expects a number as its " + what);
+}
+
+void StdLib::requireArray(const Value &v, const char *fnName, const char *what)
+{
+	if (!v.isArray())
+		PHS_ERROR(std::string(fnName) + "() expects an array as its " + what);
+}
+
+void StdLib::requireStruct(const Value &v, const char *fnName, const char *what)
+{
+	if (!v.isStruct())
+		PHS_ERROR(std::string(fnName) + "() expects a struct as its " + what);
+}
+
+Phasor::i64 StdLib::requireAddress(const Value &v, const char *fnName, const char *what)
+{
+	requireInt(v, fnName, what);
+	i64 address = v.asInt();
+	if (address == 0)
+		PHS_ERROR(std::string(fnName) + "(): " + what + " cannot be a null pointer");
+	return address;
+}
+
+Phasor::i64 StdLib::requireLength(const Value &v, const char *fnName, const char *what)
+{
+	requireInt(v, fnName, what);
+	i64 length = v.asInt();
+	if (length <= 0)
+		PHS_ERROR(std::string(fnName) + "(): " + what + " must be greater than zero");
+	return length;
+}
+
+std::unordered_map<Phasor::string, std::function<void(Phasor::VM *)>> StdLib::modules{
 	    {"io", registerIOFunctions},
 		{"data", registerDataFunctions},
 	    {"sys", registerSysFunctions},
@@ -272,14 +308,14 @@ void* StdLib::i64_to_pointer(Phasor::i64 value)
 	return ptr;
 }
 
-std::vector<Phasor::PhsString> StdLib::phasorStringArrayToVector(const Phasor::Value &arr)
+std::vector<Phasor::string> StdLib::phasorStringArrayToVector(const Phasor::Value &arr)
 {
 	if (!arr.isArray())
 		PHS_ERROR("phasorStringArrayToVector() expects an array value");
 
 	auto elements = arr.asArray();
 
-	std::vector<Phasor::PhsString> result;
+	std::vector<Phasor::string> result;
 	result.reserve(elements->size());
 
 	for (const auto &elem : *elements)

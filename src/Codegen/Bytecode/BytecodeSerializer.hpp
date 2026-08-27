@@ -33,7 +33,7 @@ class BytecodeSerializer
 	void writeInt32(i32 value);               ///< Helper method to write Int32
 	void writeInt64(i64 value);               ///< Helper method to write Int64
 	void writeDouble(f64 value);              ///< Helper method to write Double
-	void writeString(const PhsString &str);   ///< Helper method to write String
+	void writeString(const Phasor::string &str);   ///< Helper method to write String
 
 	/// @brief Write a single Value (recursive — handles nested structs/arrays)
 	void writeValue(const Value &val);

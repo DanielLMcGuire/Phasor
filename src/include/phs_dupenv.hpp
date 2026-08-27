@@ -11,7 +11,7 @@ enum class dupenv_ret {
 	NotFound = 2
 };
 
-inline dupenv_ret dupenv(PhsString &out, const char *name)
+inline dupenv_ret dupenv(Phasor::string &out, const char *name)
 {
 	if (!name || name[0] == '\0')
 	{

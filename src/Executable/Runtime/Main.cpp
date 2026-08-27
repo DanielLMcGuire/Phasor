@@ -32,9 +32,9 @@
 /**
  * @brief Reads all content from stdin until EOF (piped input)
  */
-Phasor::PhsString readStdin()
+Phasor::string readStdin()
 {
-	Phasor::PhsString content;
+	Phasor::string content;
 	std::string line;
 	while (std::getline(std::cin, line))
 	{
@@ -51,7 +51,7 @@ static std::vector<std::filesystem::path> fetchIncludeDirs()
 	finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
-	Phasor::PhsString includeDirs;
+	Phasor::string includeDirs;
 	if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
 	{
 		std::stringstream ss(includeDirs.c_str());
@@ -76,7 +76,7 @@ void showHelp(const std::filesystem::path &program = "phasor")
 void showHelp(const std::filesystem::path &program = "phasorw")
 #endif
 {
-	const Phasor::PhsString programName = program.stem().string();
+	const Phasor::string programName = program.stem().string();
 	std::println("Phasor Programming Language and Toolchain v{}\n"
 	             "(C) 2026 Daniel McGuire - Licensed under Apache 2.0\n\n"
 				 "See more with phasor-help phasor\n"
@@ -129,8 +129,8 @@ std::unique_ptr<Phasor::VM> createVm(int scriptArgc, char **scriptArgv)
 	return vm;
 }
 
-int runSourceString(const Phasor::PhsString &source, Phasor::VM &vm, const std::vector<std::filesystem::path> &includePaths,
-                     const Phasor::PhsString &sourceName, bool verbose,
+int runSourceString(const Phasor::string &source, Phasor::VM &vm, const std::vector<std::filesystem::path> &includePaths,
+                     const Phasor::string &sourceName, bool verbose,
                      const Phasor::Defines &defines)
 {
 	Phasor::Lexer  lexer(source);
@@ -171,7 +171,7 @@ int runScriptFile(const std::filesystem::path &file, int scriptArgc, char **scri
 
 	std::stringstream buffer;
 	buffer << fileStream.rdbuf();
-	const Phasor::PhsString source = buffer.str();
+	const Phasor::string source = buffer.str();
 
 	auto vm = createVm(scriptArgc, scriptArgv);
 
@@ -181,7 +181,7 @@ int runScriptFile(const std::filesystem::path &file, int scriptArgc, char **scri
 	}
 	catch (const std::exception &e)
 	{
-		Phasor::PhsString errorMsg = Phasor::PhsString(e.what()) + "\n";
+		Phasor::string errorMsg = Phasor::string(e.what()) + "\n";
 		error(errorMsg);
 		return 1;
 	}
@@ -320,14 +320,14 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 		bool                     verbose = false;
 		bool                     is_parsing_options = true;
 		bool                     has_command = false;
-		Phasor::PhsString              command_script;
-		Phasor::PhsString              file_script;
-		std::vector<Phasor::PhsString> script_args_storage;
-		std::vector<std::string>       defines_raw;
+		Phasor::string              command_script;
+		Phasor::string              file_script;
+		std::vector<Phasor::string> script_args_storage;
+		std::vector<Phasor::string>       defines_raw;
 
 		for (int i = 1; i < argc; ++i)
 		{
-			Phasor::PhsString arg = argv[i];
+			Phasor::string arg = argv[i];
 			if (!is_parsing_options)
 			{
 				script_args_storage.push_back(arg);
@@ -353,7 +353,7 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 					verbose = true;
 				} else if (arg.starts_with("-D=") || arg.starts_with("--define="))
 				{
-					Phasor::PhsString values = arg.substr(arg.find('=') + 1);
+					Phasor::string values = arg.substr(arg.find('=') + 1);
 					std::stringstream ss(values);
 					std::string item;
 					while (std::getline(ss, item, ','))
@@ -369,7 +369,7 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 						std::println(std::cerr, "Error: -D/--define requires a NAME[=VALUE] argument");
 						return 1;
 					}
-					Phasor::PhsString values = argv[++i];
+					Phasor::string values = argv[++i];
 					std::stringstream ss(values);
 					std::string item;
 					while (std::getline(ss, item, ','))
@@ -402,7 +402,7 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 		}
 
 		bool        has_pipe = false;
-		Phasor::PhsString piped_script;
+		Phasor::string piped_script;
 		if (!IS_TERMINAL)
 		{
 			piped_script = readStdin();
@@ -421,13 +421,13 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 			return 1;
 		}
 
-		Phasor::PhsString arg0 = "default.phs";
+		Phasor::string arg0 = "default.phs";
 		if (has_file)
 		{
 			arg0 = file_script;
 		}
 
-		std::vector<Phasor::PhsString> script_args_strings;
+		std::vector<Phasor::string> script_args_strings;
 		script_args_strings.push_back(arg0);
 		for (const auto &arg : script_args_storage)
 		{
@@ -463,7 +463,7 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 				return 1;
 			}
 
-			const Phasor::PhsString ext = file.extension().string();
+			const Phasor::string ext = file.extension().string();
 #ifndef PHS_WINDOWED
 			if (ext == ".phsw" || ext == ".phsbw")
 			{

@@ -238,7 +238,7 @@ PhasorIR::OperandType PhasorIR::getOperandType(OpCode op, int operandIndex)
     return OperandType::INT;
 }
 
-PhsString PhasorIR::escapeString(const PhsString &str)
+Phasor::string PhasorIR::escapeString(const Phasor::string &str)
 {
     std::stringstream ss;
     for (unsigned char c : str)
@@ -272,9 +272,9 @@ PhsString PhasorIR::escapeString(const PhsString &str)
     return ss.str();
 }
 
-PhsString PhasorIR::unescapeString(const PhsString &str)
+Phasor::string PhasorIR::unescapeString(const Phasor::string &str)
 {
-    PhsString result;
+    Phasor::string result;
     size_t      len = str.length();
 
     auto hexVal = [](char c) -> int 
@@ -507,7 +507,7 @@ static Value readIRValue(const std::string &type, std::stringstream &ss,
         ss >> fieldCount;
 
         auto structInstance = std::make_shared<Value::StructInstance>();
-        structInstance->structName = PhsString(typeName);
+        structInstance->structName = Phasor::string(typeName);
 
         for (int f = 0; f < fieldCount; ++f)
         {
@@ -636,7 +636,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
 
         int     operandCount       = getOperandCount(instr.op);
         i32     operands[3]        = {instr.operand1, instr.operand2, instr.operand3};
-        PhsString comment;
+        Phasor::string comment;
 
         for (int i = 0; i < operandCount; ++i)
         {
@@ -660,16 +660,16 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
                     const Value &v = bytecode.constants[operands[i]];
                     if (v.getType() == ValueType::String)
                     {
-                        PhsString str = v.string();
+                        Phasor::string str = v.string();
                         if (str.length() > 20) 
                         {
                             str = str.substr(0, 20) + "...";
                         }
                         comment = "const[" + std::to_string(operands[i]) + "]=\"" + escapeString(str) + "\"";
                     } else if (v.getType() == ValueType::Int) {
-                        comment = PhsString("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asInt()));
+                        comment = Phasor::string("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asInt()));
                     } else if (v.getType() == ValueType::Float) {
-                        comment = PhsString("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asFloat()));
+                        comment = Phasor::string("const[" + std::to_string(operands[i]) + "]=" + std::to_string(v.asFloat()));
 }
                 }
                 break;
@@ -677,14 +677,14 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
                 instrLine << operands[i];
                 if (indexToVarName.contains(operands[i]))
                 {
-                    comment = PhsString("var=" + indexToVarName[operands[i]]);
+                    comment = Phasor::string("var=" + indexToVarName[operands[i]]);
                 }
                 break;
             case OperandType::FUNCTION_IDX:
                 instrLine << operands[i];
                 if (addressToFuncName.contains(operands[i]))
                 {
-                    comment = PhsString("func=" + addressToFuncName[operands[i]]);
+                    comment = Phasor::string("func=" + addressToFuncName[operands[i]]);
                 }
                 break;
             case OperandType::SCOPE_IDX:
@@ -696,7 +696,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
             }
         }
 
-        PhsString lineStr = instrLine.str();
+        Phasor::string lineStr = instrLine.str();
         if (!comment.empty())
         {
             const size_t commentColumn = 40;
@@ -711,7 +711,7 @@ std::vector<u8> PhasorIR::serialize(const Bytecode &bytecode)
         ss << lineStr << "\n";
     }
 
-    PhsString     textData = ss.str();
+    Phasor::string     textData = ss.str();
     std::vector<u8> buffer;
     buffer.insert(buffer.end(), textData.begin(), textData.end());
     return buffer;

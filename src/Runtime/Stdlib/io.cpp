@@ -32,17 +32,17 @@ Value StdLib::io_clear(const Value::ArrayInstance &args, VM *vm)
 }
 #endif
 
-PhsString StdLib::io_c_format(const Value::ArrayInstance &args, VM *)
+Phasor::string StdLib::io_c_format(const Value::ArrayInstance &args, VM *)
 {
+	checkArgCount(args, 1, "c_fmt", true);
 	if (args.empty())
 	{
 		return ""; // Return empty string if no arguments
 	}
 
-	if (!args[0].isString())
-		PHS_ERROR("c_fmt() expects a string as its first argument (format)");
+	requireString(args[0], "c_fmt", "format");
 
-	const PhsString &fmt = args[0].string();
+	const Phasor::string &fmt = args[0].string();
 
 	// Make vector of format args
 	Value::ArrayInstance formatArgs(args.begin() + 1, args.end());
@@ -51,23 +51,23 @@ PhsString StdLib::io_c_format(const Value::ArrayInstance &args, VM *)
 	
 }
 
-PhsString StdLib::io_printf(const Value::ArrayInstance &args, VM *vm)
+Phasor::string StdLib::io_printf(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "printf", true);
-	if (!args[0].isString())
-		PHS_ERROR("printf() expects a string as its first argument (format)");
+	requireString(args[0], "printf", "format");
+
 	Value::ArrayInstance formatArgs(args.begin(), args.end());
 	vm->regRun(OpCode::PRINT_R, io_c_format(formatArgs, vm));
 	return "";
 }
 
-PhsString StdLib::io_putf(const Value::ArrayInstance &args, VM *vm)
+Phasor::string StdLib::io_putf(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf", true);
-	if (!args[0].isString())
-		PHS_ERROR("putf() expects a string as its first argument (format)");
+	requireString(args[0], "putf", "format");
+
 	Value::ArrayInstance formatArgs(args.begin(), args.end());
-	PhsString        input = io_c_format(formatArgs, vm);
+	Phasor::string        input = io_c_format(formatArgs, vm);
 	vm->regRun(OpCode::PRINT_R, input.str() + "\n");
 	return "";
 }
@@ -87,22 +87,21 @@ Value StdLib::io_get_input(const Value::ArrayInstance &args, VM *)
 }
 #endif
 
-PhsString StdLib::io_print_error(const Value::ArrayInstance &args, VM *vm)
+Phasor::string StdLib::io_print_error(const Value::ArrayInstance &args, VM *vm)
 {
-	checkArgCount(args, 1, "print_error", true);
-	PhsString input = args[0].toString();
-	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
+	checkArgCount(args, 1, "print_error");
+	Phasor::string input = args[0].toString();
+	vm->regRun(OpCode::PRINTERROR_R, input);
 	return "";
 }
 
-PhsString StdLib::io_putf_error(const Value::ArrayInstance &args, VM *vm)
+Phasor::string StdLib::io_putf_error(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "putf_error", true);
-	if (!args[0].isString())
-		PHS_ERROR("putf_error() expects a string as its first argument (format)");
+	requireString(args[0], "putf_error", "format");
 	Value::ArrayInstance formatArgs(args.begin(), args.end());
-	PhsString input = io_c_format(formatArgs, vm);
-	vm->regRun(OpCode::PRINTERROR_R, input.str() + "\n");
+	Phasor::string input = io_c_format(formatArgs, vm);
+	vm->regRun(OpCode::PRINTERROR_R, input + "\n");
 	return "";
 }
 } // namespace Phasor

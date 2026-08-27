@@ -35,12 +35,12 @@ namespace PhsJson {
         while (it != end && std::isspace(static_cast<unsigned char>(*it))) ++it;
     }
 
-    inline PhsString parse_json_string(json_iterator& it, json_iterator end) {
+    inline Phasor::string parse_json_string(json_iterator& it, json_iterator end) {
         if (it == end || *it != '"')
             throw std::runtime_error("Expected '\"'");
         ++it;
 
-        PhsString result;
+        Phasor::string result;
         while (it != end && *it != '"') {
             if (*it == '\\') {
                 ++it;
@@ -120,7 +120,7 @@ namespace PhsJson {
             while (it != end && std::isdigit(static_cast<unsigned char>(*it))) ++it;
         }
 
-        PhsString number_str{std::string_view(start, it)};
+        Phasor::string number_str{std::string_view(start, it)};
         if (is_float) {
             try {
                 return Value(std::stod(number_str));
@@ -170,13 +170,13 @@ namespace PhsJson {
             throw std::runtime_error("Expected '{'");
         ++it;
         auto struct_ptr = std::make_shared<Value::StructInstance>();
-        struct_ptr->structName = PhsString();
+        struct_ptr->structName = Phasor::string();
 
         skip_whitespace(it, end);
         if (it != end && *it != '}') {
             while (true) {
                 skip_whitespace(it, end);
-                PhsString key = parse_json_string(it, end);
+                Phasor::string key = parse_json_string(it, end);
                 skip_whitespace(it, end);
                 if (it == end || *it != ':')
                     throw std::runtime_error("Expected ':'");

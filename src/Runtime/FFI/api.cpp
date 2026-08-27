@@ -50,13 +50,13 @@ Phasor::Value from_c_value(const PhasorValue &c_value)
 	case PHASOR_TYPE_STRUCT: {
 		const auto &st = c_value.as.st;
 		Phasor::Value result = Phasor::Value::createStruct(
-			(st.name != nullptr) ? PhsString(st.name) : PhsString(""));
+			(st.name != nullptr) ? Phasor::string(st.name) : Phasor::string(""));
 
 		for (size_t i = 0; i < st.count; ++i)
 		{
 			if (st.keys[i] != nullptr)
 			{
-				result.setField(PhsString(st.keys[i]),
+				result.setField(Phasor::string(st.keys[i]),
 								from_c_value(st.values[i]));
 			}
 		}

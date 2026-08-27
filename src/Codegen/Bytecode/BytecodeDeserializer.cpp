@@ -153,12 +153,12 @@ Value BytecodeDeserializer::readValue()
 		std::string typeName   = readString();
 		u32         fieldCount = readUInt32();
 
-		Value structVal = Value::createStruct(PhsString(typeName));
+		Value structVal = Value::createStruct(Phasor::string(typeName));
 		for (u32 i = 0; i < fieldCount; ++i)
 		{
 			std::string fieldName = readString();
 			Value       fieldVal  = readValue(); // recurse
-			structVal.setField(PhsString(fieldName), std::move(fieldVal));
+			structVal.setField(Phasor::string(fieldName), std::move(fieldVal));
 		}
 		return structVal;
 	}

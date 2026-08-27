@@ -36,7 +36,7 @@ void VM::freeVariable(const size_t index)
 	}
 }
 
-void VM::freeVariableByName(const PhsString &name)
+void VM::freeVariableByName(const Phasor::string &name)
 {
 #ifdef TRACING
 	log(std::format("({})(\"{}\")\n", PHS_SRC_LOC(), name));

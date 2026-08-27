@@ -13,6 +13,7 @@
 phs__std("__phs_init");
 
 define PHSRT_CANARY_SIZE = 2;
+define C_NULL = 0;
 
 include "./corruptioncheck.phs";
 include "./common.phs";
@@ -27,6 +28,7 @@ static_endif // (PHS_DEBUG)
 static_if (!NO_STACK_COOKIE)
     // int64_t *cookie = malloc(PHSRT_CANARY_SIZE * sizeof(int64_t));
     var cookiePtr: i64 = phs__memory_malloc_native(PHSRT_CANARY_SIZE * 8);
+    assert(cookiePtr != C_NULL);
     phsrt_init_canary(cookiePtr);
     phs_push(phs__argv_ptr());
     phs_push(phs__argc_ptr());

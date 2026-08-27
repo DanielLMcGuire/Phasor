@@ -119,14 +119,13 @@ f64 StdLib::sys_time(const Value::ArrayInstance &args, VM *)
 Value StdLib::sys_time_formatted(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "timef");
-    if (!args[0].isString())
-        PHS_ERROR("timef() expects a string as its argument (format)");
+	requireString(args[0], "timef", "format");
     std::string format = args[0].string();
 
     auto now = std::chrono::system_clock::now();
 
     try {
-        return PhsString(std::vformat("{:" + format + "}", std::make_format_args(now)));
+        return Phasor::string(std::vformat("{:" + format + "}", std::make_format_args(now)));
     } catch (const std::format_error &) {
         return {" "};
     }
@@ -156,8 +155,7 @@ f64 StdLib::sys_time_local(const Value::ArrayInstance &args, VM *)
 Value StdLib::sys_time_formatted_local(const Value::ArrayInstance &args, VM *)
 {
     checkArgCount(args, 1, "localtimef");
-    if (!args[0].isString())
-        PHS_ERROR("localtimef() expects a string as its argument (format)");
+	requireString(args[0], "localtimef", "format");
     std::string format = args[0].string();
 
     auto now = std::chrono::system_clock::now();
@@ -170,18 +168,17 @@ Value StdLib::sys_time_formatted_local(const Value::ArrayInstance &args, VM *)
     std::ostringstream oss;
     oss << std::put_time(&local_tm, format.c_str());
     
-    return PhsString(oss.str());
+    return Phasor::string(oss.str());
 #else
     auto zoned = std::chrono::zoned_time{std::chrono::current_zone(), now};
-    return PhsString(std::vformat("{:" + format + "}", std::make_format_args(zoned)));
+    return Phasor::string(std::vformat("{:" + format + "}", std::make_format_args(zoned)));
 #endif
 }
 
 Value StdLib::sys_sleep(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sleep");
-	if (!args[0].isNumber())
-		PHS_ERROR("sleep() expects a number as its argument (milliseconds)");
+	requireNumber(args[0], "sleep", "milliseconds");
 	double ms = args[0].asFloat();
 	std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(ms));
 	return {" "};
@@ -190,10 +187,9 @@ Value StdLib::sys_sleep(const Value::ArrayInstance &args, VM *)
 Value StdLib::sys_env(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sys_env");
-	if (!args[0].isString())
-		PHS_ERROR("sys_env() expects a string as its argument (key)");
-	PhsString key = args[0].string();
-	PhsString value;
+	requireString(args[0], "sys_env", "key");
+	Phasor::string key = args[0].string();
+	Phasor::string value;
 	dupenv_ret result = dupenv(value, key.c_str());
 	if (result == dupenv_ret::NotFound)
 	{ 
@@ -214,8 +210,7 @@ i64 StdLib::sys_argc(const Value::ArrayInstance &args, VM *)
 Value StdLib::sys_argv(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 1, "sys_argv");
-	if (!args[0].isInt())
-		PHS_ERROR("sys_argv() expects an integer as its argument (index)");
+	requireInt(args[0], "sys_argv", "index");
 	i64 index = args[0].asInt();
 	if (index < 0 || index >= argc) 
 	{ 
@@ -239,8 +234,7 @@ Value StdLib::sys_args(const Value::ArrayInstance &args, VM *)
 Value StdLib::sys_shutdown(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "shutdown");
-	if (!args[0].isInt())
-		PHS_ERROR("shutdown() expects an integer as its argument (exit code)");
+	requireInt(args[0], "shutdown", "exit code");
 	int ret = static_cast<int>(args[0].asInt());
 	vm->setStatus(ret);
 	throw VM::Halt();
@@ -298,8 +292,7 @@ Value StdLib::sys_wait_for_input(const Value::ArrayInstance &args, VM *vm)
 Value StdLib::sys_shell(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "sys_shell");
-	if (!args[0].isString())
-		PHS_ERROR("sys_shell() expects a string as its argument (command)");
+	requireString(args[0], "sys_shell", "command");
 	return vm->regRun(OpCode::SYSTEM_R, args[0]);
 }
 
@@ -612,8 +605,7 @@ bool StdLib::proc_free(const Value::ArrayInstance &args, VM *)
 Value StdLib::sys_error(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 1, "error");
-	if (!args[0].isString())
-		PHS_ERROR("error() expects a string as its argument (message)");
+	requireString(args[0], "error", "message");
 	vm->setStatus(-1);
 	PHS_ERROR(args[0].string());
 }

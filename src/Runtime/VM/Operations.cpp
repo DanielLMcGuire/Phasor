@@ -293,7 +293,7 @@ void VM::evalLoop()
     {
         {
             Value       funcNameVal = m_bytecode->constants[operand1];
-            PhsString funcName    = funcNameVal.string();
+            Phasor::string funcName    = funcNameVal.string();
             auto        it          = nativeFunctions.find(funcName);
             if (it == nativeFunctions.end())
                 PHS_ERROR("Unknown native function: " + funcName);
@@ -1181,7 +1181,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::CALL_NATIVE: {
 		Value       funcNameVal = m_bytecode->constants[operand1];
-		PhsString funcName = funcNameVal.string();
+		Phasor::string funcName = funcNameVal.string();
 		auto        it = nativeFunctions.find(funcName);
 		if (it == nativeFunctions.end())
 			PHS_ERROR("Unknown native function: " + funcName);

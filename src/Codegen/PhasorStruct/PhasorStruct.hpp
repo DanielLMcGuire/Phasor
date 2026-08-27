@@ -26,7 +26,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 
 	Value variablesMap = Value::createStruct("Map");
 	for (const auto &[varKey, varVal] : bc.variables)
-		variablesMap[PhsString(varKey)] = Value(static_cast<i64>(varVal));
+		variablesMap[Phasor::string(varKey)] = Value(static_cast<i64>(varVal));
 	root["variables"] = variablesMap;
 
 	Value::ArrayInstance scopeOuter;
@@ -48,12 +48,12 @@ inline Value bytecodeToValue(const Bytecode &bc)
 
 	Value functionEntriesMap = Value::createStruct("Map");
 	for (const auto &[feKey, feVal] : bc.functionEntries)
-		functionEntriesMap[PhsString(feKey)] = Value(static_cast<i64>(feVal));
+		functionEntriesMap[Phasor::string(feKey)] = Value(static_cast<i64>(feVal));
 	root["functionEntries"] = functionEntriesMap;
 
 	Value functionParamCountsMap = Value::createStruct("Map");
 	for (const auto &[fpcKey, fpcVal] : bc.functionParamCounts)
-		functionParamCountsMap[PhsString(fpcKey)] = Value(static_cast<i64>(fpcVal));
+		functionParamCountsMap[Phasor::string(fpcKey)] = Value(static_cast<i64>(fpcVal));
 	root["functionParamCounts"] = functionParamCountsMap;
 
 	Value functionParamTypeNamesMap = Value::createStruct("Map");
@@ -63,7 +63,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 		fptnElems.reserve(fptnVec.size());
 		for (const auto &fptnStr : fptnVec)
 			fptnElems.emplace_back(fptnStr);
-		functionParamTypeNamesMap[PhsString(fptnKey)] = Value::createArray(std::move(fptnElems));
+		functionParamTypeNamesMap[Phasor::string(fptnKey)] = Value::createArray(std::move(fptnElems));
 	}
 	root["functionParamTypeNames"] = functionParamTypeNamesMap;
 
@@ -80,13 +80,13 @@ inline Value bytecodeToValue(const Bytecode &bc)
 				fpadInner.emplace_back(static_cast<i64>(fpadDim));
 			fpadOuter.push_back(Value::createArray(std::move(fpadInner)));
 		}
-		functionParamArrayDimsMap[PhsString(fpadKey)] = Value::createArray(std::move(fpadOuter));
+		functionParamArrayDimsMap[Phasor::string(fpadKey)] = Value::createArray(std::move(fpadOuter));
 	}
 	root["functionParamArrayDims"] = functionParamArrayDimsMap;
 
 	Value functionReturnTypeNamesMap = Value::createStruct("Map");
 	for (const auto &[frtnKey, frtnVal] : bc.functionReturnTypeNames)
-		functionReturnTypeNamesMap[PhsString(frtnKey)] = Value(frtnVal);
+		functionReturnTypeNamesMap[Phasor::string(frtnKey)] = Value(frtnVal);
 	root["functionReturnTypeNames"] = functionReturnTypeNamesMap;
 
 	Value functionReturnArrayDimsMap = Value::createStruct("Map");
@@ -96,7 +96,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 		fradElems.reserve(fradVec.size());
 		for (int fradDim : fradVec)
 			fradElems.emplace_back(static_cast<i64>(fradDim));
-		functionReturnArrayDimsMap[PhsString(fradKey)] = Value::createArray(std::move(fradElems));
+		functionReturnArrayDimsMap[Phasor::string(fradKey)] = Value::createArray(std::move(fradElems));
 	}
 	root["functionReturnArrayDims"] = functionReturnArrayDimsMap;
 
@@ -141,7 +141,7 @@ inline Value bytecodeToValue(const Bytecode &bc)
 
 	Value structEntriesMap = Value::createStruct("Map");
 	for (const auto &[seKey, seVal] : bc.structEntries)
-		structEntriesMap[PhsString(seKey)] = Value(static_cast<i64>(seVal));
+		structEntriesMap[Phasor::string(seKey)] = Value(static_cast<i64>(seVal));
 	root["structEntries"] = structEntriesMap;
 
 	return root;

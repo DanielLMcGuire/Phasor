@@ -45,7 +45,7 @@ bool Assembler::parseArguments(int argc, char *argv[])
 	m_args.program = std::filesystem::path(argv[0]);
 	for (int i = 1; i < argc; i++)
 	{
-		PhsString arg = argv[i];
+		Phasor::string arg = argv[i];
 
 		if (arg == "-h" || arg == "--help")
 		{

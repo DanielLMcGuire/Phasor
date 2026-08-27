@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <string>
+#include <PhasorString.hpp>
 #include <vector>
 #include <nativeerror.h>
 
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 		if (!hRuntime)
 		{
 			MessageBoxA(nullptr, "Could not load phasorrt.dll",
-			            (std::string(moduleName) + " | Phasor Application - Error").c_str(), MB_OK | MB_ICONERROR);
+			            (Phasor::string(moduleName) + " | Phasor Application - Error").c_str(), MB_OK | MB_ICONERROR);
 			std::filesystem::remove(tempFile);
 			return 1;
 		}
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 		if (!execFunc)
 		{
 			MessageBoxA(nullptr, "Could not find exec function in DLL",
-			            (std::string(moduleName) + " | Phasor Application - Error").c_str(), MB_OK | MB_ICONERROR);
+			            (Phasor::string(moduleName) + " | Phasor Application - Error").c_str(), MB_OK | MB_ICONERROR);
 			FreeLibrary(hRuntime);
 			std::filesystem::remove(tempFile);
 			return 1;

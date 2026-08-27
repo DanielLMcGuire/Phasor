@@ -4,7 +4,7 @@
 namespace Phasor
 {
 
-const std::unordered_map<OpCode, std::string> opCodeToStringMap = {{OpCode::PUSH_CONST, "PUSH_CONST"},
+const std::unordered_map<OpCode, Phasor::string> opCodeToStringMap = {{OpCode::PUSH_CONST, "PUSH_CONST"},
                                                                    {OpCode::POP, "POP"},
                                                                    {OpCode::IADD, "IADD"},
                                                                    {OpCode::ISUBTRACT, "ISUBTRACT"},
@@ -142,7 +142,17 @@ const std::unordered_map<std::string, OpCode> stringToOpCodeMap = [] {
 	return map;
 }();
 
-std::string opCodeToString(OpCode op)
+std::string opCodeToStlString(OpCode op)
+{
+	auto it = opCodeToStringMap.find(op);
+	if (it != opCodeToStringMap.end())
+	{
+		return it->second;
+	}
+	return "UNKNOWN";
+}
+
+Phasor::string opCodeToString(OpCode op)
 {
 	auto it = opCodeToStringMap.find(op);
 	if (it != opCodeToStringMap.end())
@@ -162,7 +172,7 @@ OpCode stringToOpCode(const std::string &str)
 	throw std::runtime_error("Unknown opcode string: " + str);
 }
 
-OpCode stringToOpCode(const PhsString &str)
+OpCode stringToOpCode(const Phasor::string &str)
 {
 	auto it = stringToOpCodeMap.find(str);
 	if (it != stringToOpCodeMap.end())

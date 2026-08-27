@@ -138,18 +138,18 @@ class Value
   public:
 	struct StructInstance
 	{
-		PhsString structName;
-		PhsOrderedMap<PhsString, Value> fields;
+		Phasor::string structName;
+		PhsOrderedMap<Phasor::string, Value> fields;
 	};
 	using ArrayInstance = std::vector<Value>;
 
   private:
 #ifdef PHASOR_USES_BOOST
-	using DataType = boost::variant2::variant<std::monostate, bool, i64, f64, PhsString,
+	using DataType = boost::variant2::variant<std::monostate, bool, i64, f64, Phasor::string,
 	                              std::shared_ptr<StructInstance>,
 	                              std::shared_ptr<ArrayInstance>>;
 #else
-	using DataType = std::variant<std::monostate, bool, i64, f64, PhsString,
+	using DataType = std::variant<std::monostate, bool, i64, f64, Phasor::string,
 	                              std::shared_ptr<StructInstance>,
 	                              std::shared_ptr<ArrayInstance>>;
 #endif
@@ -178,15 +178,15 @@ class Value
 	{
 	}
 	/// @brief String constructor
-	Value(const std::string &s) : data(PhsString(s))
+	Value(const std::string &s) : data(Phasor::string(s))
 	{
 	}
 	/// @brief Small Strring constructor
-	Value(const PhsString &s) : data(s)
+	Value(const Phasor::string &s) : data(s)
 	{
 	}
 	/// @brief String constructor
-	Value(const char *s) : data(PhsString(s))
+	Value(const char *s) : data(Phasor::string(s))
 	{
 	}
 	/// @brief Struct constructor
@@ -198,7 +198,7 @@ class Value
 	{
 	}
 	/// @brief Struct constructor
-	Value(std::initializer_list<std::pair<PhsString, Value>> fields)
+	Value(std::initializer_list<std::pair<Phasor::string, Value>> fields)
 	{
 		auto s = std::make_shared<StructInstance>();
 		for (auto& [k, v] : fields)
@@ -206,14 +206,14 @@ class Value
 		data = std::move(s);
 	}
 	/// @brief Struct constructor
-	static inline Value createStruct(std::initializer_list<std::pair<Phasor::PhsString, Phasor::Value>> fields)
+	static inline Value createStruct(std::initializer_list<std::pair<Phasor::string, Phasor::Value>> fields)
 	{
-		return Phasor::Value(fields);
+		return Value(fields);
 	}
 
 	static Value from_json(const std::string& json);
 
-	static Value from_json(const PhsString& json);
+	static Value from_json(const Phasor::string& json);
 
 	/// @brief Get the type of the value
 	[[nodiscard]] ValueType getType() const noexcept {
@@ -290,18 +290,18 @@ class Value
 		}
         if (isString()) {
 #ifdef PHASOR_USES_BOOST
-			if (boost::variant2::get<PhsString>(data).length() == 1)
-				return static_cast<i64>(boost::variant2::get<PhsString>(data).c_str()[0]);
+			if (boost::variant2::get<Phasor::string>(data).length() == 1)
+				return static_cast<i64>(boost::variant2::get<Phasor::string>(data).c_str()[0]);
 #else
-			if (std::get<PhsString>(data).length() == 1)
-				return static_cast<i64>(std::get<PhsString>(data).c_str()[0]);
+			if (std::get<Phasor::string>(data).length() == 1)
+				return static_cast<i64>(std::get<Phasor::string>(data).c_str()[0]);
 #endif
 		}
 		
 		return 0;
 	}
 	/// @brief Get an int value as a ASCII char
-	[[nodiscard]] PhsString intToAscii() const noexcept 
+	[[nodiscard]] Phasor::string intToAscii() const noexcept 
 	{
 		if (!isInt()) return "";
 #ifdef PHASOR_USES_BOOST
@@ -338,25 +338,25 @@ class Value
 		if (isString())
 		{
 #ifdef PHASOR_USES_BOOST
-			return boost::variant2::get<PhsString>(data).str();
+			return boost::variant2::get<Phasor::string>(data).str();
 #else
-			return std::get<PhsString>(data).str();
+			return std::get<Phasor::string>(data).str();
 #endif
 		}
 		return toString();
 	}
 	/// @brief Get the value as a Phasor String
-	[[nodiscard]] PhsString string() const noexcept
+	[[nodiscard]] Phasor::string string() const noexcept
 	{
 		if (isString())
 		{
 #ifdef PHASOR_USES_BOOST
-			return boost::variant2::get<PhsString>(data);
+			return boost::variant2::get<Phasor::string>(data);
 #else
-			return std::get<PhsString>(data);
+			return std::get<Phasor::string>(data);
 #endif
 		}
-		return PhsString(toString());
+		return Phasor::string(toString());
 	}
 	/// @brief Get the value as an array
 	std::shared_ptr<ArrayInstance> asArray()
@@ -380,42 +380,42 @@ class Value
 
 	[[nodiscard]] bool contains(const std::string& key) const noexcept
 	{
-		return hasField(PhsString(key));
+		return hasField(Phasor::string(key));
 	}
 
-	[[nodiscard]] bool contains(const PhsString& key) const noexcept
+	[[nodiscard]] bool contains(const Phasor::string& key) const noexcept
 	{
 		return hasField(key);
 	}
 
     [[nodiscard]] Value getField(const char* name) const
     {
-        return getField(PhsString(name));
+        return getField(Phasor::string(name));
     }
 
     void setField(const char* name, Value value)
     {
-        setField(PhsString(name), std::move(value));
+        setField(Phasor::string(name), std::move(value));
     }
 
     [[nodiscard]] bool hasField(const char* name) const noexcept
     {
-        return hasField(PhsString(name));
+        return hasField(Phasor::string(name));
     }
 
     [[nodiscard]] bool contains(const char* key) const noexcept
     {
-        return contains(PhsString(key));
+        return contains(Phasor::string(key));
     }
 
 	[[nodiscard]] Value get_or(const std::string& key, Value fallback) const noexcept
 	{
 		if (!isStruct()) return fallback;
-		auto it = asStruct()->fields.find(PhsString(key));
+		auto it = asStruct()->fields.find(Phasor::string(key));
 		return it != asStruct()->fields.end() ? it->second : fallback;
 	}
 
-	[[nodiscard]] Value get_or(const PhsString& key, Value fallback) const noexcept
+	[[nodiscard]] Value get_or(const Phasor::string& key, Value fallback) const noexcept
 	{
 		if (!isStruct()) return fallback;
 		auto it = asStruct()->fields.find(key);
@@ -424,7 +424,7 @@ class Value
 
 	[[nodiscard]] Value get_or(const char* key, Value fallback) const noexcept
 	{
-		return get_or(PhsString(key), std::move(fallback));
+		return get_or(Phasor::string(key), std::move(fallback));
 	}
 
 	Value operator[](const size_t index) const
@@ -465,7 +465,7 @@ class Value
 		return (*arr)[index];
 	}
 
-	Value& operator[](const PhsString& key)
+	Value& operator[](const Phasor::string& key)
 	{
 		if (isNull()) {
 			data.emplace<std::shared_ptr<StructInstance>>(std::make_shared<StructInstance>());
@@ -485,7 +485,7 @@ class Value
 #endif
 	}
 
-	Value operator[](const PhsString& key) const
+	Value operator[](const Phasor::string& key) const
 	{
 #ifdef PHASOR_USES_BOOST
 		if (!boost::variant2::holds_alternative<std::shared_ptr<StructInstance>>(data))
@@ -915,7 +915,7 @@ class Value
 		return !(*this < other);
 	}
 
-	[[nodiscard]] PhsString toRepr() const noexcept
+	[[nodiscard]] Phasor::string toRepr() const noexcept
 	{
 		if (isString())
 		{
@@ -924,7 +924,7 @@ class Value
 		return toString();
 	}
 
-	[[nodiscard]] PhsString toString() const noexcept
+	[[nodiscard]] Phasor::string toString() const noexcept
 	{
 		if (isNull())
 		{
@@ -965,13 +965,13 @@ class Value
 			[[unlikely]] throw std::runtime_error("c_str() can only be called on string values");
 		}
 #ifdef PHASOR_USES_BOOST
-		return boost::variant2::get<PhsString>(data).c_str();
+		return boost::variant2::get<Phasor::string>(data).c_str();
 #else
-		return std::get<PhsString>(data).c_str();
+		return std::get<Phasor::string>(data).c_str();
 #endif
 	}
 
-	[[nodiscard]] PhsString jsonSerialize(int indent = -1, int depth = 0) const
+	[[nodiscard]] Phasor::string jsonSerialize(int indent = -1, int depth = 0) const
 	{
 		if (isNull())
 		{
@@ -991,7 +991,7 @@ class Value
 		}
 		if (isString())
 		{
-			PhsString result = "\"";
+			Phasor::string result = "\"";
 			for (char c : string())
 			{
 				switch (c)
@@ -1021,7 +1021,7 @@ class Value
 
 		const bool pretty = indent >= 0;
 
-		auto make_indent = [&](int level) -> PhsString
+		auto make_indent = [&](int level) -> Phasor::string
 		{
 			if (!pretty)
 			{
@@ -1029,7 +1029,7 @@ class Value
 			}
 
 			const size_t spaces = static_cast<size_t>(level) * static_cast<size_t>(indent);
-			return PhsString(spaces, ' ');
+			return Phasor::string(spaces, ' ');
 		};
 
 		if (isArray())
@@ -1040,9 +1040,9 @@ class Value
 				return "[]";
 			}
 
-			PhsString result = pretty ? "[\n" : "[";
-			const PhsString item_indent = make_indent(depth + 1);
-			const PhsString end_indent = make_indent(depth);
+			Phasor::string result = pretty ? "[\n" : "[";
+			const Phasor::string item_indent = make_indent(depth + 1);
+			const Phasor::string end_indent = make_indent(depth);
 
 			for (size_t i = 0; i < arr.size(); ++i)
 			{
@@ -1076,9 +1076,9 @@ class Value
 				return "{}";
 			}
 
-			PhsString result = pretty ? "{\n" : "{";
-			const PhsString item_indent = make_indent(depth + 1);
-			const PhsString end_indent = make_indent(depth);
+			Phasor::string result = pretty ? "{\n" : "{";
+			const Phasor::string item_indent = make_indent(depth + 1);
+			const Phasor::string end_indent = make_indent(depth);
 
 			bool first = true;
 			for (const auto &[k, v] : s.fields)
@@ -1147,7 +1147,7 @@ class Value
 #endif
 	}
 
-	static Value createStruct(const PhsString &name)
+	static Value createStruct(const Phasor::string &name)
 	{
 		return Value(std::make_shared<StructInstance>(StructInstance{.structName = name, .fields = {}}));
 	}
@@ -1157,7 +1157,7 @@ class Value
 		return {std::make_shared<ArrayInstance>(std::move(elements))};
 	}
 
-	[[nodiscard]] Value getField(const PhsString &name) const
+	[[nodiscard]] Value getField(const Phasor::string &name) const
 	{
 #ifdef PHASOR_USES_BOOST
 		if (!boost::variant2::holds_alternative<std::shared_ptr<StructInstance>>(data))
@@ -1180,7 +1180,7 @@ class Value
 		return it->second;
 	}
 
-	void setField(const PhsString &name, Value value)
+	void setField(const Phasor::string &name, Value value)
 	{
 #ifdef PHASOR_USES_BOOST
 		if (!boost::variant2::holds_alternative<std::shared_ptr<StructInstance>>(data))
@@ -1198,7 +1198,7 @@ class Value
 		s->fields[name] = std::move(value);
 	}
 
-	[[nodiscard]] bool hasField(const PhsString &name) const noexcept
+	[[nodiscard]] bool hasField(const Phasor::string &name) const noexcept
 	{
 #ifdef PHASOR_USES_BOOST
 		if (!boost::variant2::holds_alternative<std::shared_ptr<StructInstance>>(data))
@@ -1223,7 +1223,7 @@ class Value
 
 namespace Phasor {
 
-inline Value Value::from_json(const PhsString& json) {
+inline Value Value::from_json(const Phasor::string& json) {
     std::string_view sv(json);
     auto it = sv.begin();
     auto end = sv.end();
@@ -1348,9 +1348,9 @@ template <> struct std::formatter<Phasor::Value>
 	}
 
   private:
-	static Phasor::PhsString escapeString(std::string_view input)
+	static Phasor::string escapeString(std::string_view input)
 	{
-		Phasor::PhsString output;
+		Phasor::string output;
 		output.reserve(input.size());
 		for (char c : input)
 		{
@@ -1404,7 +1404,7 @@ template <> struct std::formatter<Phasor::Value>
 		return output;
 	}
 
-	static Phasor::PhsString debug_repr(const Phasor::Value &v)
+	static Phasor::string debug_repr(const Phasor::Value &v)
 	{
 		using Phasor::ValueType;
 		switch (v.getType())
@@ -1415,7 +1415,7 @@ template <> struct std::formatter<Phasor::Value>
 			return "\"" + escapeString(v.string()) + "\"";
 		case ValueType::Array: {
 			const auto &arr = *v.asArray();
-			Phasor::PhsString out = "[";
+			Phasor::string out = "[";
 			for (std::size_t i = 0; i < arr.size(); ++i)
 			{
 				out += debug_repr(arr[i]);
@@ -1428,7 +1428,7 @@ template <> struct std::formatter<Phasor::Value>
 		}
 		case ValueType::Struct: {
 			const auto &s = *v.asStruct();
-			Phasor::PhsString out = s.structName.str() + " { ";
+			Phasor::string out = s.structName.str() + " { ";
 			bool        first = true;
 			for (const auto &[k, val] : s.fields)
 			{

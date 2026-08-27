@@ -31,8 +31,8 @@ Value VM::pop()
 		log(std::format("({}) -> <empty stack>\n", PHS_SRC_LOC()));
 		flush();
 #endif
-		std::string msg = "Stack underflow at pc=" + std::to_string(pc);
-		throw std::runtime_error(msg);
+		Phasor::string msg = "Stack underflow at pc=" + std::to_string(pc);
+		throw std::runtime_error(msg.str());
 		return phsnull;
 	}
 #ifdef TRACING_STACK
@@ -52,8 +52,8 @@ Value VM::peek()
 		log(std::format("({}) -> <empty stack>\n", PHS_SRC_LOC()));
 		flush();
 #endif
-		std::string msg = "Stack is empty at pc=" + std::to_string(pc);
-		throw std::runtime_error(msg);
+		Phasor::string msg = "Stack is empty at pc=" + std::to_string(pc);
+		throw std::runtime_error(msg.str());
 		return phsnull;
 	}
 #ifdef TRACING_STACK

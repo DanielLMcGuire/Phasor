@@ -119,7 +119,7 @@ Phasor::i64 registerConnectedSocket(native_socket_t sock)
 	return Phasor::StdLib::allocFileDescriptor(std::move(stream), Phasor::StdLib::StreamKind::Socket);
 }
 
-Phasor::i64 tcpConnectImpl(const Phasor::PhsString &host, const Phasor::PhsString &port, Phasor::i64 timeoutMs)
+Phasor::i64 tcpConnectImpl(const Phasor::string &host, const Phasor::string &port, Phasor::i64 timeoutMs)
 {
 	Phasor::StdLib::ensureNetworkingInitialized();
 
@@ -179,7 +179,7 @@ bool waitReadable(native_socket_t sock, Phasor::i64 timeoutMs)
 #endif
 }
 
-PhsString readLine(std::iostream &s)
+Phasor::string readLine(std::iostream &s)
 {
 	std::string line;
 	std::getline(s, line);
@@ -187,16 +187,16 @@ PhsString readLine(std::iostream &s)
 	return line;
 }
 
-struct ParsedUrl { Phasor::PhsString scheme, host, path; int port = 80; };
+struct ParsedUrl { Phasor::string scheme, host, path; int port = 80; };
 
-bool parseUrl(const PhsString &url, ParsedUrl &out)
+bool parseUrl(const Phasor::string &url, ParsedUrl &out)
 {
 	auto schemeEnd = url.find("://");
 	if (schemeEnd == std::string::npos) return false;
 	out.scheme    = url.substr(0, schemeEnd);
 	auto rest     = url.substr(schemeEnd + 3);
 	auto pathStart = rest.find('/');
-	PhsString authority = pathStart == std::string::npos ? rest : rest.substr(0, pathStart);
+	Phasor::string authority = pathStart == std::string::npos ? rest : rest.substr(0, pathStart);
 	out.path = pathStart == std::string::npos ? "/" : rest.substr(pathStart);
 	if (authority.empty()) return false;
 
@@ -318,9 +318,9 @@ Value StdLib::net_listen(const Value::ArrayInstance &args, VM *)
 
 	ensureNetworkingInitialized();
 
-	PhsString host = args[0].string();
+	Phasor::string host = args[0].string();
 	if (host.empty() || host == "*") host = "0.0.0.0";
-	PhsString portStr = std::to_string(args[1].asInt());
+	Phasor::string portStr = std::to_string(args[1].asInt());
 	int backlog = args.size() >= 3 ? static_cast<int>(args[2].asInt()) : 128;
 
 	addrinfo hints{};
@@ -391,7 +391,7 @@ Value StdLib::net_accept(const Value::ArrayInstance &args, VM *)
 
 	return Value::createStruct({
 		{"fd",   Value(fd)},
-		{"host", Value(PhsString(hostBuf))},
+		{"host", Value(Phasor::string(hostBuf))},
 		{"port", Value(static_cast<i64>(std::atoi(portBuf)))},
 	});
 }
@@ -444,7 +444,7 @@ bool StdLib::net_set_option(const Value::ArrayInstance &args, VM *)
 	if (!sockBuf) return false;
 	native_socket_t sock = sockBuf->nativeSocket();
 
-	PhsString opt = args[1].string();
+	Phasor::string opt = args[1].string();
 	int value = args[2].isBool() ? (args[2].asBool() ? 1 : 0) : static_cast<int>(args[2].asInt());
 
 	if (opt == "nodelay")
@@ -465,7 +465,7 @@ bool StdLib::net_shutdown(const Value::ArrayInstance &args, VM *)
 	auto *sockBuf = dynamic_cast<SocketStreamBuf *>(stream->rdbuf());
 	if (!sockBuf) return false;
 
-	PhsString how = args.size() >= 2 ? args[1].string() : "both";
+	Phasor::string how = args.size() >= 2 ? args[1].string() : "both";
 #if defined(_WIN32)
 	int mode = how == "read" ? SD_RECEIVE : how == "write" ? SD_SEND : SD_BOTH;
 #else
@@ -482,7 +482,7 @@ Value socketAddressToValue(const sockaddr_storage &addr, socklen_t len)
 	::getnameinfo(reinterpret_cast<const sockaddr *>(&addr), len, hostBuf, sizeof(hostBuf), portBuf,
 	              sizeof(portBuf), NI_NUMERICHOST | NI_NUMERICSERV);
 	return Value::createStruct({
-		{"host", Value(PhsString(hostBuf))},
+		{"host", Value(Phasor::string(hostBuf))},
 		{"port", Value(static_cast<i64>(std::atoi(portBuf)))},
 	});
 }
@@ -541,7 +541,7 @@ Value StdLib::net_resolve(const Value::ArrayInstance &args, VM *)
 			? static_cast<void *>(&reinterpret_cast<sockaddr_in *>(cur->ai_addr)->sin_addr)
 			: static_cast<void *>(&reinterpret_cast<sockaddr_in6 *>(cur->ai_addr)->sin6_addr);
 		::inet_ntop(cur->ai_family, addr, buf, sizeof(buf));
-		ips.emplace_back(PhsString(buf));
+		ips.emplace_back(Phasor::string(buf));
 	}
 	::freeaddrinfo(res);
 	return Value::createArray(ips);
@@ -599,7 +599,7 @@ i64 StdLib::net_udp_send_to(const Value::ArrayInstance &args, VM *)
 	addr.sin_port   = htons(static_cast<uint16_t>(args[2].asInt()));
 	::inet_pton(AF_INET, args[1].c_str(), &addr.sin_addr);
 
-	PhsString data = args[3].string();
+	Phasor::string data = args[3].string();
 	auto sent = ::sendto(sock, data.data(), static_cast<int>(data.size()), 0,
 	                      reinterpret_cast<sockaddr *>(&addr), sizeof(addr));
 	return static_cast<i64>(sent);
@@ -637,8 +637,8 @@ Value StdLib::net_udp_recv_from(const Value::ArrayInstance &args, VM *)
 	::inet_ntop(AF_INET, &from.sin_addr, hostBuf, sizeof(hostBuf));
 
 	return Value::createStruct({
-		{"data", Value(PhsString(buf.data(), static_cast<size_t>(n)))},
-		{"host", Value(PhsString(hostBuf))},
+		{"data", Value(Phasor::string(buf.data(), static_cast<size_t>(n)))},
+		{"host", Value(Phasor::string(hostBuf))},
 		{"port", Value(static_cast<i64>(ntohs(from.sin_port)))},
 	});
 }
@@ -657,7 +657,7 @@ Value StdLib::http_user_agent(const Value::ArrayInstance &args, VM *)
 	checkArgCount(args, 1, "http_useragent");
 	requireString(args[0], "http_useragent", "1st argument (user-agent)");
 
-	PhsString agent = args[0].string();
+	Phasor::string agent = args[0].string();
 	useragent = agent.str();
 	return phsnull;
 }
@@ -668,23 +668,23 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 	requireString(args[0], "http_request", "1st argument (method)");
 	requireString(args[1], "http_request", "2nd argument (url)");
 
-	PhsString method = args[0].string();
-	PhsString initialUrlStr = args[1].string();
-	PhsString reqBody;
+	Phasor::string method = args[0].string();
+	Phasor::string initialUrlStr = args[1].string();
+	Phasor::string reqBody;
 	
 	if (args.size() >= 3 && args[2].isString()) reqBody = args[2].string();
 
 	i64 timeoutMs = args.size() >= 5 ? args[4].asInt() : 15000;
 	i64 maxRedirects = args.size() >= 6 ? args[5].asInt() : 5;
 
-	std::vector<std::pair<PhsString, PhsString>> customHeaders;
+	std::vector<std::pair<Phasor::string, Phasor::string>> customHeaders;
 	if (args.size() >= 4 && args[3].isArray())
 	{
 		for (const auto &hv : *args[3].asArray())
 		{
 			if (!hv.isStruct()) continue;
-			Value key = hv.get_or(PhsString("key"), phsnull);
-			Value val = hv.get_or(PhsString("value"), phsnull);
+			Value key = hv.get_or(Phasor::string("key"), phsnull);
+			Value val = hv.get_or(Phasor::string("value"), phsnull);
 			if (key.isString() && val.isString())
 				customHeaders.emplace_back(key.string(), val.string());
 		}
@@ -709,8 +709,8 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 	} cleanup{[&]() { closeFd(); }};
 
 	int status = 0;
-	std::vector<std::pair<PhsString, PhsString>> respHeaders;
-	PhsString responseBody;
+	std::vector<std::pair<Phasor::string, Phasor::string>> respHeaders;
+	Phasor::string responseBody;
 	int currentRedirect = 0;
 
 	while (currentRedirect <= maxRedirects)
@@ -752,7 +752,7 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 		bool hasContentLength = false;
 		for (const auto& [k, v] : customHeaders) {
 			*stream << k.str() << ": " << v.str() << "\r\n";
-			PhsString lk = k;
+			Phasor::string lk = k;
 			std::transform(lk.begin(), lk.end(), lk.begin(), ::tolower);
 			if (lk == "content-length") hasContentLength = true;
 		}
@@ -765,7 +765,7 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 			stream->write(reqBody.data(), static_cast<std::streamsize>(reqBody.size()));
 		stream->flush();
 
-		PhsString statusLine = readLine(*stream);
+		Phasor::string statusLine = readLine(*stream);
 		if (statusLine.empty())
 			PHS_ERROR("http_request() server closed connection before sending response headers");
 
@@ -776,23 +776,23 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 		respHeaders.clear();
 		long contentLength = -1;
 		bool chunked = false;
-		PhsString location;
+		Phasor::string location;
 
 		for (;;)
 		{
-			PhsString line = readLine(*stream);
+			Phasor::string line = readLine(*stream);
 			if (line.empty()) break;
 			auto colon = line.find(':');
 			if (colon == std::string::npos) continue;
 			
-			PhsString key = line.substr(0, colon);
-			PhsString val = line.substr(colon + 1);
+			Phasor::string key = line.substr(0, colon);
+			Phasor::string val = line.substr(colon + 1);
 			
 			val.erase(0, val.find_first_not_of(" \t"));
 			val.erase(val.find_last_not_of(" \t\r") + 1);
 			respHeaders.emplace_back(key, val);
 
-			PhsString lowerKey = key;
+			Phasor::string lowerKey = key;
 			std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), [](unsigned char c) { return std::tolower(c); });
 			
 			if (lowerKey == "content-length") contentLength = std::atol(val.c_str());
@@ -805,7 +805,7 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 		{
 			for (;;)
 			{
-				PhsString sizeLine = readLine(*stream);
+				Phasor::string sizeLine = readLine(*stream);
 				long chunkSize = std::strtol(sizeLine.c_str(), nullptr, 16);
 				if (chunkSize <= 0) { 
 					while(!readLine(*stream).empty()); 

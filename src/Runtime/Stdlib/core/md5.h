@@ -26,7 +26,7 @@ public:
         buffer_.erase(buffer_.begin(), buffer_.begin() + offset);
     }
 
-    void update(const Phasor::PhsString& s) {
+    void update(const Phasor::string& s) {
         update(reinterpret_cast<const Phasor::u8*>(s.data()), s.size());
     }
 
@@ -57,7 +57,7 @@ public:
         return digest;
     }
 
-    static Phasor::PhsString toHex(const std::array<Phasor::u8, 16>& digest) {
+    static Phasor::string toHex(const std::array<Phasor::u8, 16>& digest) {
         std::ostringstream oss;
         oss << std::hex << std::setfill('0');
         for (Phasor::u8 b : digest) {
@@ -66,7 +66,7 @@ public:
         return oss.str();
     }
 
-    static Phasor::PhsString hashHex(const Phasor::PhsString& input) {
+    static Phasor::string hashHex(const Phasor::string& input) {
         MD5 md5;
         md5.update(input);
         return toHex(md5.finalize());

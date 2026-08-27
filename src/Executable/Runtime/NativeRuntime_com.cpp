@@ -22,7 +22,7 @@ namespace
 		finalPaths.emplace_back(PHASOR_DEFAULT_FIRST_PATH);
 #endif
 
-		Phasor::PhsString includeDirs;
+		Phasor::string includeDirs;
 		if (Phasor::dupenv_ret ret = Phasor::dupenv(includeDirs, "PHASOR_INCLUDE_PATH"); ret == Phasor::dupenv_ret::Success)
 		{
 			std::stringstream ss(includeDirs.c_str());
@@ -41,7 +41,7 @@ namespace
 		return finalPaths;
 	}
 
-	std::string wideToUtf8(LPCOLESTR text)
+	Phasor::string wideToUtf8(LPCOLESTR text)
 	{
 		if (text == nullptr) 
 		{
@@ -54,7 +54,7 @@ namespace
 			return {};
 		}
 
-		std::string out(static_cast<size_t>(required - 1), '\0');
+		Phasor::string out(static_cast<size_t>(required - 1), '\0');
 		WideCharToMultiByte(CP_UTF8, 0, text, -1, out.data(), required, nullptr, nullptr);
 		return out;
 	}
@@ -295,7 +295,7 @@ HRESULT __stdcall PhasorScriptEngine::ParseScriptText(
 
 	try
 	{
-		std::string src = wideToUtf8(code);
+		Phasor::string src = wideToUtf8(code);
 		Phasor::Frontend::runScript(src, &vm, fetchIncludeDirs(), false);
 		return S_OK;
 	}

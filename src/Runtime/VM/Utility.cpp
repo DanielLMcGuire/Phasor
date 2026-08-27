@@ -51,7 +51,7 @@ inline bool isDebuggerAttached()
 namespace Phasor
 {
 
-PhsString VM::getVersion()
+Phasor::string VM::getVersion()
 {
 	return PHASOR_VERSION_STRING;
 }
@@ -107,7 +107,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	if (m_bytecode->instructions.size() < 2) { [[unlikely]]
 		if (m_bytecode->instructions.size() == 1) {
 			Instruction instruction = m_bytecode->instructions[0];
-			std::vector<std::string> operandParts;
+			std::vector<Phasor::string> operandParts;
 			if (instruction.operand3 != 0) {
 				operandParts.push_back(std::to_string(instruction.operand1));
 				operandParts.push_back(std::to_string(instruction.operand2));
@@ -118,7 +118,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 			} else if (instruction.operand1 != 0) {
 				operandParts.push_back(std::to_string(instruction.operand1));
 			}
-			std::string operands;
+			Phasor::string operands;
 			for (size_t i = 0; i < operandParts.size(); ++i) {
 				if (i != 0) operands += ", ";
 				operands += operandParts[i];
@@ -217,7 +217,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	}
 }
 
-Value VM::runFunction(const PhsString &name, const Bytecode &bytecode, const bool &argsInit)
+Value VM::runFunction(const Phasor::string &name, const Bytecode &bytecode, const bool &argsInit)
 {
     isDirectCall = true;
     setup(bytecode, bytecode.functionEntries.find(name)->second);
@@ -312,17 +312,17 @@ void VM::reset(const bool &resetStack, const bool &resetFunctions, const bool &r
 	isDirectCall = false;
 }
 
-PhsString VM::getInformation()
+Phasor::string VM::getInformation()
 {
 	int         callStackTop = callStack.empty() ? -1 : callStack.back();
-	PhsString info;
+	Phasor::string info;
 
 	if (!stack.empty())
 	{
-		info += PhsString(std::format("Stack Top: {:T}\n", peek()));
+		info += Phasor::string(std::format("Stack Top: {:T}\n", peek()));
 	}
 
-	PhsString registersStr;
+	Phasor::string registersStr;
 	int         regCount = 0;
 
 	for (const auto &reg : registers)
@@ -339,13 +339,13 @@ PhsString VM::getInformation()
 	return info;
 }
 
-PhsString VM::getBytecodeInformation()
+Phasor::string VM::getBytecodeInformation()
 {
-	PhsString info;
-	PhsString constants;
-	PhsString variables;
-	PhsString functions;
-	PhsString instructions;
+	Phasor::string info;
+	Phasor::string constants;
+	Phasor::string variables;
+	Phasor::string functions;
+	Phasor::string instructions;
 
 	for (const auto &constant : m_bytecode->constants)
 	{
@@ -376,13 +376,13 @@ PhsString VM::getBytecodeInformation()
 
 void VM::log(const Value &msg)
 {
-	std::string s = msg.toString();
+	Phasor::string s = msg.toString();
 	c_print_stdout(s.c_str(), (i64)s.length());
 }
 
 void VM::logerr(const Value &msg)
 {
-	std::string s = msg.toString();
+	Phasor::string s = msg.toString();
 	c_print_stderr(s.c_str(), (i64)s.length());
 }
 

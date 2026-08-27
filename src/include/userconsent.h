@@ -65,7 +65,7 @@ template<size_t N1, size_t N2, size_t N3>
 inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volition, const char (&verb)[N2], const char (&noun)[N3], bool default_val = false) 
 {
 	bool res = false;
-	std::string prompt = std::format("Phasor {} {} {} the {}. Is this okay?", subsystem, AConsentVolition[volition], verb, noun);
+	Phasor::string prompt = std::format("Phasor {} {} {} the {}. Is this okay?", subsystem, AConsentVolition[volition], verb, noun);
 #ifdef _WIN32
 	bool tty = _isatty(_fileno(stdin));
 #else
@@ -103,10 +103,10 @@ inline bool prompt_consent(const char (&subsystem)[N1], EConsentVolition volitio
 		bool has_display = std::getenv("DISPLAY") || std::getenv("WAYLAND_DISPLAY");
 		if (!has_display) return false;
 
-		const std::array<std::string, 2> tools = {"zenity", "kdialog"};
+		const std::array<Phasor::string, 2> tools = {"zenity", "kdialog"};
 
 		for (const auto& tool : tools) {
-			std::string cmd;
+			Phasor::string cmd;
 			if (tool == "zenity")
 				cmd = std::format("zenity --question --text='{}' 2>/dev/nullptr", prompt);
 			else

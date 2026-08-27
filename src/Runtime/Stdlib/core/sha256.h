@@ -17,22 +17,22 @@ public:
     SHA256();
 
     void update(const Phasor::u8* data, size_t len);
-    void update(const Phasor::PhsString& data);
+    void update(const Phasor::string& data);
     void update(const std::vector<Phasor::u8>& data);
 
     void reset();
 
     const Digest& finalize();
 
-    Phasor::PhsString finalizeHex();
+    Phasor::string finalizeHex();
 
     static Digest hash(const Phasor::u8* data, size_t len);
-    static Digest hash(const Phasor::PhsString& data);
+    static Digest hash(const Phasor::string& data);
 
-    static Phasor::PhsString hashHex(const Phasor::u8* data, size_t len);
-    static Phasor::PhsString hashHex(const Phasor::PhsString& data);
+    static Phasor::string hashHex(const Phasor::u8* data, size_t len);
+    static Phasor::string hashHex(const Phasor::string& data);
 
-    static Phasor::PhsString toHex(const Digest& digest);
+    static Phasor::string toHex(const Digest& digest);
 private:
     void processBlock(const Phasor::u8* block);
 

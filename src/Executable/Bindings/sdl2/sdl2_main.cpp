@@ -1,6 +1,7 @@
 #define PHASOR_FFI_BUILD_DLL
 #include <PhasorFFI.h>
 #include <SDL2/SDL.h>
+#include <PhasorString.hpp>
 #include <iostream>
 #include <stdexcept>
 
@@ -144,7 +145,7 @@ PhasorValue phasor_sdl_get_error(PhasorVM*, int argc, const PhasorValue *)
     if (argc > 1) { [[unlikely]] 
         throw std::runtime_error("SDL_GetError requires 0 arguments.");
     }
-    static std::string error = SDL_GetError();
+    static Phasor::string error = SDL_GetError();
     return phasor_make_string(error.c_str());
 }
 
