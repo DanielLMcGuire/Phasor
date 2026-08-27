@@ -22,7 +22,7 @@ Value StdLib::array_resize(const Value::ArrayInstance &args, VM *)
     checkArgCount(args, 2, "arr_resize");
 
     requireArray(args[0], "arr_resize", "array");
-    requireInt(args[0], "arr_resize", "integer");
+    requireInt(args[1], "arr_resize", "integer");
 
     auto arr = const_cast<Value &>(args[0]).asArray();
 
@@ -91,7 +91,7 @@ Value StdLib::array_insert(const Value::ArrayInstance &args, VM *)
     checkArgCount(args, 3, "arr_insert");
 
     requireArray(args[0], "arr_insert", "array");
-    requireInt(args[0], "arr_insert", "index");
+    requireInt(args[1], "arr_insert", "index");
 
     auto arr = const_cast<Value &>(args[0]).asArray();
 

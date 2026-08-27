@@ -1,23 +1,37 @@
-.TH PHASORSTD_RAND 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_RAND 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
-phasorstd_rand \- Phasor pseudo-random number generation (xorshift+) functions
+phasorstd_rand \- Phasor pseudo-random and cryptographically-secure random number generation
 .SH SYNOPSIS
 .nf
-.B include "std/rand.phs";
+.B include "std/rand";
 .PP
 .B rand_seed(s1, s2)
 .B rand_next_range(min, max)
 .B rand_next_float()
+.B rand_next_float_range(min, max)
+.B rand_crypto_int()
+.B rand_crypto_float()
 .fi
-.SH FUNCTIONS
+.SH DESCRIPTION
+This module provides two independent sources of randomness:
+.RS
+.IP \(bu 2
+A fast, seedable xorshift+ pseudo-random generator
+.RB ( rand_seed() ", " rand_next_range() ", " rand_next_float() ", " rand_next_float_range() ),
+suitable for simulations, games, and anywhere reproducibility is wanted. This generator's
+state is global to the process (not per-VM) and is
+.B not
+safe to use concurrently from multiple threads without external synchronization.
+.IP \(bu 2
+An OS-backed cryptographically-secure generator
+.RB ( rand_crypto_int() ", " rand_crypto_float() ),
+suitable for tokens, keys, and other security-sensitive values. It cannot be seeded and does
+not use the xorshift+ state at all.
+.RE
+.SH PSEUDO-RANDOM FUNCTIONS
 .TP
 .BR rand_seed (s1, s2)
-Seed the pseudo-random number generator with two positive integer values. Must be called
-before using
-.B rand_next_range()
-or
-.B rand_next_float()
-to ensure reproducible sequences.
+Seed the pseudo-random number generator with two positive integer values.
 .RS
 .PP
 .B Arguments:
@@ -32,7 +46,8 @@ Second seed value; must be a positive non-zero integer
 Null value
 .PP
 .B Throws:
-Runtime error if either seed is not a positive integer.
+Runtime error if either argument is not an integer, or if either seed is not strictly
+positive
 .RE
 .PP
 .TP
@@ -43,38 +58,83 @@ Generate a pseudo-random integer in the closed interval [\fBmin\fR, \fBmax\fR].
 .B Arguments:
 .RS
 .IP \fBmin\fR 12
-Lower bound of the range (inclusive). Non-integer values are treated as 0.
+Lower bound of the range (inclusive)
 .IP \fBmax\fR 12
-Upper bound of the range (inclusive). Non-integer values are treated as 0.
+Upper bound of the range (inclusive)
 .RE
 .PP
 .B Returns:
 Integer in the range [\fBmin\fR, \fBmax\fR]
 .PP
 .B Throws:
-Runtime error if
-.B min
-is greater than
-.B max
+Runtime error if either argument is not an integer, or if \fBmin\fR is greater than \fBmax\fR
 .RE
 .PP
 .TP
 .BR rand_next_float ()
-Generate a pseudo-random float (double-percision) value.
+Generate a pseudo-random double-precision float.
 .RS
 .PP
 .B Arguments:
 None
 .PP
 .B Returns:
-float in the range [0.0, 1.0)
+Float in the range [0.0, 1.0)
+.RE
+.PP
+.TP
+.BR rand_next_float_range (min, max)
+Generate a pseudo-random double-precision float in a given range.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBmin\fR 12
+Lower bound of the range (inclusive); integer or float
+.IP \fBmax\fR 12
+Upper bound of the range (exclusive); integer or float
+.RE
+.PP
+.B Returns:
+Float in the range [\fBmin\fR, \fBmax\fR)
+.PP
+.B Throws:
+Runtime error if either argument is not a number, or if \fBmin\fR is greater than \fBmax\fR
+.RE
+.SH CRYPTOGRAPHIC FUNCTIONS
+.TP
+.BR rand_crypto_int ()
+Generate a cryptographically-secure random 64-bit integer, sourced from the operating
+system's CSPRNG (\fBBCryptGenRandom\fR on Windows, \fBSecRandomCopyBytes\fR on Apple
+platforms, \fBgetrandom()\fR on Linux, or \fB/dev/urandom\fR elsewhere).
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+A random 64-bit integer covering the full \fBi64\fR range (positive or negative), or null if
+the underlying OS randomness source could not be read
+.RE
+.PP
+.TP
+.BR rand_crypto_float ()
+Generate a cryptographically-secure random double-precision float.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+Float in the range [0.0, 1.0), built from 53 random bits, or null if the underlying OS
+randomness source could not be read
 .RE
 .SH EXAMPLES
 .B Basic Usage
 .PP
 .nf
 .RS
-include "std/rand.phs";
+include "std/rand";
 
 // Seed the generator
 rand_seed(123456, 789012);
@@ -106,54 +166,59 @@ var d = rand_next_range(0, 9);
 .RE
 .fi
 .PP
-.B Simulating a Coin Flip
-.PP
-.nf
-.RS
-rand_seed(seed1, seed2);
-
-var flip = rand_next_range(0, 1);
-if (flip == 0) {
-    puts("Heads");
-} else {
-    puts("Tails");
-}
-.RE
-.fi
-.PP
-.B Scaling a float to a Custom Range
+.B A Float in a Custom Range
 .PP
 .nf
 .RS
 rand_seed(111, 222);
 
-// Random float between 0.0 and 10.0
-var scaled = rand_next_float() * 10.0;
+// Random float between -5.0 and 5.0
+var scaled = rand_next_float_range(-5.0, 5.0);
 putf("Scaled value: %f", scaled);
+.RE
+.fi
+.PP
+.B Generating a Secure Token
+.PP
+.nf
+.RS
+include "std/rand";
+include "std/type";
+
+var token = to_string(rand_crypto_int());
+if (token == "null") {
+    error("Failed to obtain secure randomness");
+}
 .RE
 .fi
 .SH NOTES
 .IP \(bu 2
-The generator must be seeded with
-.B rand_seed()
-before use; behaviour is undefined if
-.B rand_next_range()
-or
-.B rand_next_float()
-are called without a prior seed
+The pseudo-random generator's state is global and starts at (0, 0) until
+.BR rand_seed()
+is called; with an all-zero xorshift+ state every subsequent call to
+.BR rand_next_range() ", " rand_next_float() ", or " rand_next_float_range()
+will deterministically return the same degenerate value (effectively zero) until the
+generator has been seeded at least once
 .IP \(bu 2
-Using the same pair of seeds always produces the same set of values, which is
-useful for various purposes.
-.IP \(bu 2
-Both seeds must be strictly positive; zero and negative values are rejected
-.IP \(bu 2
-Non-integer arguments to
 .B rand_seed()
-and
-.B rand_next_range()
-are silently coerced to 0, which will cause
-.B rand_seed()
-to throw
+throws if either seed is zero or negative; there is no silent coercion of invalid arguments
+.IP \(bu 2
+Using the same pair of seeds always reproduces the same sequence of pseudo-random values
+.IP \(bu 2
+.BR rand_next_range() " is inclusive of both " min " and " max ;
+.B rand_next_float_range()
+is inclusive of \fBmin\fR but exclusive of \fBmax\fR
+.IP \(bu 2
+The pseudo-random generator is not cryptographically secure and must not be used for
+security-sensitive values (tokens, keys, passwords); use
+.BR rand_crypto_int() " or " rand_crypto_float()
+for those instead
+.IP \(bu 2
+.BR rand_crypto_int() " and " rand_crypto_float()
+do not require or use
+.BR rand_seed() ;
+they always draw fresh entropy from the operating system and can return null if that source
+is unavailable
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

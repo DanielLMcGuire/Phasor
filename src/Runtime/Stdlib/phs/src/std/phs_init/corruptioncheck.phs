@@ -35,7 +35,7 @@ static_if (PHS_DEBUG)
     printf("phsrt__chk_canary(cookiePtr: %#x)\n", cookiePtr);
 static_endif
     var vm_cookie: i64[2] = phs_pop();
-    var cookie: i64[2] = [phs__memory_read_native(cookiePtr, 8), phs__memory_read_offset_native(cookiePtr, 8, 16)];
+    var cookie: i64[2] = [phs__memory_read_native(cookiePtr, 8), phs__memory_read_offset_native(cookiePtr, 8, 8)];
 static_if (PHS_DEBUG)  
     if (vm_cookie[0] != cookie[0] || vm_cookie[1] != cookie[1])
     {

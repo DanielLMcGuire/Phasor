@@ -1,11 +1,11 @@
 add_executable(phasor_help
     phasor_help.rc
-    phasor_help_bootstrap.c
+    ../Runtime/stub_bootstrap.c
 )
 phasor_add_transpiled_header(
     TARGET phasor_help
     NAME main
-    SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/phasor_help_main.phs"
+    SOURCE "${CMAKE_SOURCE_DIR}/src/modules/help/main.phs"
 )
 
 if(PHS_DEBUG_ENABLED)

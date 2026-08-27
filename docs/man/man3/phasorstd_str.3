@@ -1,9 +1,9 @@
-.TH PHASORSTD_STR 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_STR 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_str \- Phasor string manipulation functions
 .SH SYNOPSIS
 .nf
-.B include "std/str.phs";
+.B include "std/str";
 .PP
 .B find(string, substr[, start[, end]])
 .B len(string)
@@ -26,7 +26,9 @@ phasorstd_str \- Phasor string manipulation functions
 .SH STRING FUNCTIONS
 .TP
 .BR find (string, substr[, start[, end]])
-Find the first occurrence of a substring in a string.
+Find the first occurrence of a substring in a string. Three calling conventions are
+supported, and \fBthey do not all behave the same way when the substring is not found\fR
+(see NOTES).
 .RS
 .PP
 .B Arguments:
@@ -36,22 +38,51 @@ Input string
 .IP \fBsubstr\fR 12
 Substring to search for
 .IP \fBstart\fR 12
-Starting index (optional, defaults to 0)
+Starting index to begin the search from (optional)
 .IP \fBend\fR 12
-Ending index (optional, defaults to string length)
+Upper bound on the position where a match may \fIstart\fR (optional; requires \fBstart\fR to
+also be given)
 .RE
 .PP
 .B Returns:
-Index of the first occurrence of the substring, or -1 if not found
+.RS
+.IP \(bu 2
+Called with 2 arguments: index of the first occurrence anywhere in \fBstring\fR, or
+.B 0
+if not found (see NOTES \(em this is
+.B not
+\-1)
+.IP \(bu 2
+Called with 3 arguments: index of the first occurrence at or after \fBstart\fR, or \-1 if not
+found
+.IP \(bu 2
+Called with 4 arguments: index of the first occurrence at or after \fBstart\fR whose starting
+position is less than \fBend\fR, or \-1 if not found. \fBend\fR bounds where the match may
+.I begin,
+not where it must finish; a match that starts before \fBend\fR but extends past it is still
+returned.
+.RE
+.PP
+.B Throws:
+Runtime error if \fBstring\fR or \fBsubstr\fR is not a string, if \fBstart\fR or \fBend\fR
+(when given) is not an integer, or if more than 4 arguments are passed
 .RE
 .PP
 .TP
 .BR len (string)
-Get the length of a string in characters.
+Get the length of a value's string representation, in characters.
 .RS
 .PP
+.B Arguments:
+.RS
+.IP \fBstring\fR 12
+Value to measure. Non-string values are converted to their string representation first
+(the same conversion \fBto_string()\fR performs), so \fBlen()\fR does not require a string
+argument.
+.RE
+.PP
 .B Returns:
-Integer length of the string
+Integer length of the (possibly converted) string
 .RE
 .PP
 .TP
@@ -68,7 +99,10 @@ Zero-based character index
 .RE
 .PP
 .B Returns:
-Single-character string, or empty string if index is out of bounds
+Single-character string, or empty string if \fBindex\fR is negative or out of bounds
+.PP
+.B Throws:
+Runtime error if \fBstring\fR is not a string or \fBindex\fR is not an integer
 .RE
 .PP
 .TP
@@ -83,22 +117,27 @@ Input string
 .IP \fBstart\fR 12
 Starting index (zero-based)
 .IP \fBlength\fR 12
-Number of characters to extract (optional, defaults to end of string)
+Number of characters to extract (optional; defaults to the remainder of the string from
+\fBstart\fR onward)
 .RE
 .PP
 .B Returns:
-Extracted substring, or empty string if start is out of bounds
+Extracted substring, or empty string if \fBstart\fR is negative or out of bounds
+.PP
+.B Throws:
+Runtime error if \fBstring\fR is not a string, if \fBstart\fR or \fBlength\fR (when given) is
+not an integer, or if more than 3 arguments are passed
 .RE
 .PP
 .TP
 .BR concat (string1, string2, ...)
-Concatenate multiple strings together.
+Concatenate two or more values together, converting each to its string representation first.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBstring...\fR 12
-Two or more strings to concatenate (variadic)
+Two or more values to concatenate (variadic); need not already be strings
 .RE
 .PP
 .B Returns:
@@ -107,20 +146,26 @@ Concatenated string
 .PP
 .TP
 .BR to_upper (string)
-Convert a string to uppercase.
+Convert a string to uppercase using the C locale.
 .RS
 .PP
 .B Returns:
 Uppercase version of the string
+.PP
+.B Throws:
+Runtime error if the argument is not a string
 .RE
 .PP
 .TP
 .BR to_lower (string)
-Convert a string to lowercase.
+Convert a string to lowercase using the C locale.
 .RS
 .PP
 .B Returns:
 Lowercase version of the string
+.PP
+.B Throws:
+Runtime error if the argument is not a string
 .RE
 .PP
 .TP
@@ -137,7 +182,11 @@ Prefix to match
 .RE
 .PP
 .B Returns:
-Boolean true if string starts with prefix, false otherwise
+Boolean true if string starts with prefix, false otherwise (including when \fBprefix\fR is
+longer than \fBstring\fR)
+.PP
+.B Throws:
+Runtime error if either argument is not a string
 .RE
 .PP
 .TP
@@ -154,7 +203,11 @@ Suffix to match
 .RE
 .PP
 .B Returns:
-Boolean true if string ends with suffix, false otherwise
+Boolean true if string ends with suffix, false otherwise (including when \fBsuffix\fR is
+longer than \fBstring\fR)
+.PP
+.B Throws:
+Runtime error if either argument is not a string
 .RE
 .PP
 .TP
@@ -174,12 +227,17 @@ Delimiter string to split on
 Array of strings. If \fBdelimiter\fR is an empty string, the array contains the original
 string unchanged, as a single element. Consecutive delimiters produce empty-string elements
 in the result.
+.PP
+.B Throws:
+Runtime error if either argument is not a string
 .RE
 .SH STRINGBUILDER FUNCTIONS
-StringBuilder provides efficient string concatenation for building large strings incrementally.
+StringBuilder provides efficient string concatenation for building large strings
+incrementally. A StringBuilder is referred to by an integer handle returned from
+.BR sb_new() .
 .TP
 .BR sb_new ()
-Create a new StringBuilder instance.
+Create a new, empty StringBuilder instance.
 .RS
 .PP
 .B Returns:
@@ -187,25 +245,23 @@ Integer handle representing the StringBuilder
 .RE
 .PP
 .TP
-.BR sb_append (handle, string)
-Append a string to a StringBuilder.
+.BR sb_append (handle, value)
+Append a value to a StringBuilder, converting it to its string representation first.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBhandle\fR 12
-StringBuilder handle from sb_new()
-.IP \fBstring\fR 12
-String to append
+StringBuilder handle from \fBsb_new()\fR
+.IP \fBvalue\fR 12
+Value to append; need not already be a string
 .RE
 .PP
 .B Returns:
 The handle (for method chaining)
 .PP
 .B Throws:
-Runtime error if
-.B handle
-is not a valid, currently-allocated StringBuilder handle
+Runtime error if \fBhandle\fR is not a valid, currently-allocated StringBuilder handle
 .RE
 .PP
 .TP
@@ -218,23 +274,23 @@ current contents.
 .B Arguments:
 .RS
 .IP \fBhandle\fR 12
-StringBuilder handle from sb_new()
+StringBuilder handle from \fBsb_new()\fR
 .IP \fBcapacity\fR 12
-Number of characters to reserve space for. Values less than or equal to 0 are ignored.
+Number of characters to reserve space for. Values less than or equal to 0 are silently
+ignored (not an error).
 .RE
 .PP
 .B Returns:
 The handle (for method chaining)
 .PP
 .B Throws:
-Runtime error if
-.B handle
-is not a valid, currently-allocated StringBuilder handle
+Runtime error if \fBhandle\fR is not a valid, currently-allocated StringBuilder handle, or if
+\fBcapacity\fR is not an integer
 .RE
 .PP
 .TP
 .BR sb_to_string (handle)
-Convert a StringBuilder to a string.
+Convert a StringBuilder to a string without freeing it.
 .RS
 .PP
 .B Arguments:
@@ -244,7 +300,10 @@ StringBuilder handle
 .RE
 .PP
 .B Returns:
-The complete string
+The complete string built so far
+.PP
+.B Throws:
+Runtime error if \fBhandle\fR is not a valid, currently-allocated StringBuilder handle
 .RE
 .PP
 .TP
@@ -260,11 +319,15 @@ StringBuilder handle
 .PP
 .B Returns:
 The handle (for method chaining)
+.PP
+.B Throws:
+Runtime error if \fBhandle\fR is not a valid, currently-allocated StringBuilder handle
 .RE
 .PP
 .TP
 .BR sb_free (handle)
-Free a StringBuilder and return its contents.
+Free a StringBuilder and return its final contents. The handle becomes eligible for reuse by
+a future \fBsb_new()\fR call and must not be used again.
 .RS
 .PP
 .B Arguments:
@@ -275,13 +338,16 @@ StringBuilder handle
 .PP
 .B Returns:
 The final string value
+.PP
+.B Throws:
+Runtime error if \fBhandle\fR is not a valid, currently-allocated StringBuilder handle
 .RE
 .SH EXAMPLES
 .B Basic String Operations
 .PP
 .nf
 .RS
-include "std/str.phs";
+include "std/str";
 
 var text = "Hello, World!";
 puts(len(text));              // 13
@@ -316,6 +382,25 @@ var first = "Hello";
 var last = "World";
 var result = concat(first, ", ", last, "!");
 puts(result);  // "Hello, World!"
+.RE
+.fi
+.PP
+.B Finding Substrings \(em Mind the Not-Found Value
+.PP
+.nf
+.RS
+var text = "hello world";
+
+// 2-argument form: not-found returns 0, NOT -1
+var a = find(text, "xyz");        // 0  (looks like index 0, but it's "not found")
+var b = find(text, "hello");      // 0  (a real match at index 0)
+
+// 3- and 4-argument forms: not-found returns -1
+var c = find(text, "xyz", 0);     // -1
+var d = find(text, "world", 0);   // 6
+
+// Prefer the 3-argument form (with an explicit start of 0) if you need to
+// reliably distinguish "found at index 0" from "not found".
 .RE
 .fi
 .PP
@@ -362,9 +447,9 @@ sb_free(sb);
 .PP
 .nf
 .RS
-include "std/str.phs";
-include "std/type.phs";
-include "std/file.phs";
+include "std/str";
+include "std/type";
+include "std/file";
 
 var sb = sb_new();
 sb_prealloc(sb, 8192); // reserve space up front to avoid reallocations
@@ -380,13 +465,34 @@ fwrite("numbers.txt", output);
 .IP \(bu 2
 String indices are zero-based
 .IP \(bu 2
-Out-of-bounds access returns empty strings rather than throwing errors
+Out-of-bounds access in
+.BR char_at() " and " substr()
+returns empty strings rather than throwing errors
 .IP \(bu 2
-StringBuilder is more efficient than repeated string concatenation
+.B find()
+called with exactly 2 arguments returns
+.B 0
+when the substring is not found, which is indistinguishable from a genuine match at index 0.
+The 3- and 4-argument forms return \-1 on failure instead. This inconsistency is a quirk of
+the current implementation, not an intentional design choice \(em prefer
+\fBfind(string, substr, 0)\fR over the bare 2-argument form when the result of the search
+needs to be checked.
+.IP \(bu 2
+In the 4-argument form of
+.BR find() ,
+.B end
+only limits where a match may
+.I start;
+it does not truncate the search or guarantee the match finishes before
+.BR end .
+.IP \(bu 2
+StringBuilder is more efficient than repeated string concatenation for building large strings
 .IP \(bu 2
 Always free StringBuilders with
 .B sb_free()
-when done to avoid memory leaks
+when done; freed handles are recycled by later \fBsb_new()\fR calls, so re-using a handle
+after it has been freed will silently operate on an unrelated StringBuilder rather than
+raising an error
 .IP \(bu 2
 StringBuilder handles are integers and can be stored in variables
 .IP \(bu 2

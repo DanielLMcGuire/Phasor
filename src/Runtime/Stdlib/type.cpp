@@ -60,8 +60,8 @@ Phasor::string StdLib::to_json(const Value::ArrayInstance &args, VM *)
 	{
 		PHS_ERROR("to_json() expects at most 4 arguments");
 	}
-	if (args.size() > 1) requireInt(args[0], "to_json", "indent");
-	if (args.size() > 2) requireInt(args[1], "to_json", "depth");
+	if (args.size() > 1) requireInt(args[1], "to_json", "indent");
+	if (args.size() > 2) requireInt(args[2], "to_json", "depth");
 	return args[0].jsonSerialize(args.size() > 1 ? static_cast<int>(args[1].asInt()) : -1, args.size() > 2 ? static_cast<int>(args[2].asInt()) : 0);
 }
 

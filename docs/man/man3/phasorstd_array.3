@@ -1,16 +1,37 @@
-.TH PHASORSTD_ARRAY 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_ARRAY 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
 phasorstd_array \- Phasor array manipulation functions
 .SH SYNOPSIS
 .nf
-.B include "std/array.phs";
+.B include "std/array";
 .PP
+.B arr_length(array)
 .B arr_push(array, value)
 .B arr_pop(array)
 .B arr_insert(array, index, value)
 .B arr_resize(array, new_size)
+.B arr_join(array, separator)
+.B arr_find(array, value)
 .fi
 .SH FUNCTIONS
+.TP
+.BR arr_length (array)
+Get the number of elements in an array.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to measure
+.RE
+.PP
+.B Returns:
+Integer number of elements in \fBarray\fR
+.PP
+.B Throws:
+Runtime error if the argument is not an array
+.RE
+.PP
 .TP
 .BR arr_push (array, value)
 Append a value to the end of an array, mutating it in place.
@@ -94,12 +115,57 @@ The same array (for chaining)
 .B Throws:
 Runtime error if the first argument is not an array, or if \fBnew_size\fR is negative
 .RE
+.PP
+.TP
+.BR arr_join (array, separator)
+Concatenate every element of an array into a single string, converting each element to a
+string first and inserting \fBseparator\fR between elements.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array whose elements will be joined
+.IP \fBseparator\fR 12
+String inserted between each pair of elements
+.RE
+.PP
+.B Returns:
+The joined string, or an empty string \fB""\fR if \fBarray\fR is empty or is a null array
+handle
+.PP
+.B Throws:
+Runtime error if the first argument is not an array, or if \fBseparator\fR is not a string
+.RE
+.PP
+.TP
+.BR arr_find (array, value)
+Check whether an array contains a value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to search
+.IP \fBvalue\fR 12
+Value to search for, compared against each element with \fB==\fR
+.RE
+.PP
+.B Returns:
+Boolean \fBtrue\fR if any element of \fBarray\fR equals \fBvalue\fR, \fBfalse\fR otherwise.
+Despite the name, this does
+.B not
+return an index.
+.PP
+.B Throws:
+Runtime error if the first argument is not an array
+.RE
 .SH EXAMPLES
 .B Basic Array Operations
 .PP
 .nf
 .RS
-include "std/array.phs";
+include "std/array";
 
 var items = ["a", "b", "c"];
 putf("Length: %d\n", arr_length(items));  // 3
@@ -116,7 +182,7 @@ puts(last);  // "d"
 .PP
 .nf
 .RS
-include "std/array.phs";
+include "std/array";
 
 var nums = [1, 2, 4, 5];
 arr_insert(nums, 2, 3);  // nums is now [1, 2, 3, 4, 5]
@@ -130,20 +196,49 @@ arr_resize(nums, 5);     // nums grows back to 5 elements, new slots default-ini
 .PP
 .nf
 .RS
-include "std/array.phs";
+include "std/array";
 
 var stack = [];
 arr_push(arr_push(arr_push(stack, 1), 2), 3);
 // stack is now [1, 2, 3]
 .RE
 .fi
+.PP
+.B Joining and Searching
+.PP
+.nf
+.RS
+include "std/array";
+
+var words = ["the", "quick", "fox"];
+puts(arr_join(words, " "));  // "the quick fox"
+puts(arr_join(words, ", ")); // "the, quick, fox"
+
+var nums = [10, 20, 30];
+if (arr_find(nums, 20)) {
+    puts("Found 20");
+}
+if (!arr_find(nums, 99)) {
+    puts("99 is not in the array");
+}
+.RE
+.fi
 .SH NOTES
 .IP \(bu 2
-All functions in this module mutate the array argument in place rather than returning a copy
+.BR arr_push() ", " arr_insert() ", " arr_resize() ", and " arr_join()
+do not throw for an empty array; only
+.BR arr_pop()
+requires the array to be non-empty
 .IP \(bu 2
 .BR arr_push() ", " arr_insert() ", and " arr_resize()
-return the array itself so calls can be chained; \fBarr_pop()\fR is the exception and returns
-the removed element instead
+mutate the array argument in place and return the array itself so calls can be chained;
+.BR arr_pop()
+is the exception and returns the removed element instead
+.IP \(bu 2
+.BR arr_find()
+returns a boolean, not an index; there is no native function in this module for locating the
+.I position
+of a value within an array
 .IP \(bu 2
 Array indices are zero-based
 .SH AUTHOR

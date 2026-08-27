@@ -1,6 +1,6 @@
 add_executable(phasor_build
     phasor_build.rc
-    phasor_build_bootstrap.c
+    ../Runtime/stub_bootstrap.c
 )
 phasor_add_transpiled_header(
     TARGET phasor_build

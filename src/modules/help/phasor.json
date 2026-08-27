@@ -1,6 +1,6 @@
 {
-    "source": "snake.phs",
-    "out": "snake.phsb",
+    "source": "main.phs",
+    "out": "phasorhelp.phsb",
     "defines": [""],
     "includes": [""],
     "irMode": false,

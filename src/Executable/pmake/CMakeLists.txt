@@ -1,6 +1,6 @@
 add_executable(pmake
     pmake.rc
-    pmake_bootstrap.c
+    ../Runtime/stub_bootstrap.c
 )
 phasor_add_transpiled_header(
     TARGET pmake
