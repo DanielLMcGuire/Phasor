@@ -32,7 +32,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     set(STACKTRACE_LIBS "")
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set(STACKTRACE_LIBS "-lbacktrace")
+        set(STACKTRACE_LIBS "-lstdc++exp")
     endif()
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
