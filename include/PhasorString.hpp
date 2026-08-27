@@ -114,6 +114,7 @@ public:
  
     string& operator=(const char* s)      { return *this = string{s}; }
     string& operator=(std::string_view sv){ return *this = string{sv}; }
+    string& operator=(const std::string& s) { return *this = std::string_view{s}; }
  
     [[nodiscard]] std::size_t size()   const noexcept { return is_small() ? sm().len : lg().size(); }
     [[nodiscard]] std::size_t length() const noexcept { return size(); }
