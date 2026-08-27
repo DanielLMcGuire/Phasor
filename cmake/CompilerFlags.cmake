@@ -30,11 +30,6 @@ if(MSVC)
     )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
-    set(STACKTRACE_LIBS "")
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set(STACKTRACE_LIBS "-lstdc++exp")
-    endif()
-
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (PGO_A)
         set(LTO_FLAG "")
@@ -159,8 +154,8 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         set(EXE_LINKER_FLAGS    "${STATIC_FLAG} ${STATIC_LIBS}")
         set(SHARED_LINKER_FLAGS "${STATIC_LIBS}")
     else()
-        set(EXE_LINKER_FLAGS    "-Wl,--gc-sections ${STATIC_FLAG} ${STATIC_LIBS} ${STACKTRACE_LIBS}")
-        set(SHARED_LINKER_FLAGS "-Wl,--gc-sections ${STATIC_LIBS} ${STACKTRACE_LIBS}")
+        set(EXE_LINKER_FLAGS    "-Wl,--gc-sections ${STATIC_FLAG} ${STATIC_LIBS}")
+        set(SHARED_LINKER_FLAGS "-Wl,--gc-sections ${STATIC_LIBS}")
     endif()
 
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE    "${EXE_LINKER_FLAGS}")
@@ -188,6 +183,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         "$<$<COMPILE_LANGUAGE:CXX>:-include>"
         "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/include/alloc_trace.hpp>"
     )
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        link_libraries(stdc++exp)
+    endif()
 else()
     message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}. No custom flags applied.")
 endif()
