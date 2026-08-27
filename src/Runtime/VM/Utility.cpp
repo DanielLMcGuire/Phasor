@@ -45,7 +45,10 @@ inline bool isDebuggerAttached()
 	#define PHS_SRC_LOC() (std::format("{} @ {}:{}", BOOST_CURRENT_LOCATION.function_name(), BOOST_CURRENT_LOCATION.file_name(), BOOST_CURRENT_LOCATION.line()))
 #elif defined(__cpp_lib_stacktrace) && __cpp_lib_stacktrace >= 202011L
 	#include <stacktrace>
-	#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
+#endif
+
+#ifndef PHASOR_USES_BOOST
+#define PHS_SRC_LOC() (std::format("VM::{}()", __func__))
 #endif
 
 namespace Phasor
