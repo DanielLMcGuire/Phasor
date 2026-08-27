@@ -1,0 +1,29 @@
+#!/usr/bin/env phasor
+
+include "std/array";
+include "std/io";
+include "std/type";
+include "std/str";
+include "std/file";
+include "std/http";
+
+fn main(args: string[]) -> i64 {
+    if (args.len() > 3) return 1;
+    var url: string = "http://example.com";
+    if (args.len() >= 2)
+        url = args[1];
+    var outFile: int = null;
+    if (args.len() == 3)
+        outFile = fopen(args[2], "w");
+    var res: HTTPResponse = http_get(url, [], 1500);
+    if (res != null && res.status == HTTPCode.OK && res.body.get_type() == phs_type.string) {
+        if (outFile == null) print res.body;
+        else { fwrite(outFile, res.body); fclose(outFile); }
+    } else {
+        putf_error("Failed with error: %d", res.status);
+    }
+
+    return to_int(!(res.status == HTTPCode.OK));
+}
+
+include "std/main";
