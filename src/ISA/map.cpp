@@ -130,7 +130,8 @@ const std::unordered_map<OpCode, Phasor::string> opCodeToStringMap = {{OpCode::P
                                                                    {OpCode::NEW_ARR, "NEW_ARR"},
                                                                    {OpCode::LOAD_ARR, "LOAD_ARR"},
                                                                    {OpCode::STORE_ARR, "STORE_ARR"},
-                                                                   {OpCode::GET_FIELD_DYN, "GET_FIELD_DYN"}
+                                                                   {OpCode::GET_FIELD_DYN, "GET_FIELD_DYN"},
+                                                                   {OpCode::SET_FIELD_DYN, "SET_FIELD_DYN"}
                                                                 };
 
 const std::unordered_map<std::string, OpCode> stringToOpCodeMap = [] {

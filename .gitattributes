@@ -1,6 +1,7 @@
 [attr]phasor text eol=lf whitespace=tab-in-indent,trailing-space,tabwidth=4
 
 *.phs phasor
+src/Runtime/Stdlib/phs/**/* phasor
 *.1 eol=lf
 *.3 eol=lf
 *.5 eol=lf

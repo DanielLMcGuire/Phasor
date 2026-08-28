@@ -71,6 +71,7 @@ int PhasorIR::getOperandCount(OpCode op)
     case OpCode::LOAD_ARR:
     case OpCode::STORE_ARR:
     case OpCode::GET_FIELD_DYN:
+    case OpCode::SET_FIELD_DYN:
         return 0;
 
     // 1 operand

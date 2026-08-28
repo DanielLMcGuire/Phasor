@@ -120,7 +120,7 @@ fn demo_http() {
 
 fn main(args: string[]) -> int {
     var parentDir: string = fabsolute(args[0]).fparent();
-    load_mimetypes(parentDir.fjoin(["extra", "mimetypes.json"]));
+    load_mimetypes(parentDir.fjoin(["extra-web", "mimetypes.json"]));
     demo_dns();
     demo_tcp_client();
     demo_tcp_server();

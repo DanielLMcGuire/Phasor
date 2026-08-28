@@ -22,7 +22,7 @@ struct httpbin_post_res {
 
 fn main(args: string[]) -> i64 {
     var parentDir: string = fabsolute(args[0]).fparent();
-    load_mimetypes(parentDir.fjoin(["extra", "mimetypes.json"]));
+    load_mimetypes(parentDir.fjoin(["extra-web", "mimetypes.json"]));
     var input: string[] = [];
     for (var i: i64 = 1; i < args.len(); i++)
         input.arr_push(args[i]);

@@ -202,6 +202,7 @@ void VM::evalLoop()
 		s_table[(unsigned)OpCode::STORE_ARR] = &&LABEL_STORE_ARR;
 
 		s_table[(unsigned)OpCode::GET_FIELD_DYN] = &&LABEL_GET_FIELD_DYN;
+		s_table[(unsigned)OpCode::SET_FIELD_DYN] = &&LABEL_SET_FIELD_DYN;
 
         s_ready = true;
     }
@@ -724,6 +725,23 @@ PHS_ERROR("Invalid default constant index for struct field");
 		NEXT();
 	}
 
+	LABEL_SET_FIELD_DYN:
+    {
+        {
+            Value val       = pop();
+            Value fieldName = pop();
+            Value obj       = pop();
+            if (!fieldName.isString())
+                PHS_ERROR("SET_FIELD_DYN: field name must be a string");
+            if (!obj.isStruct())
+                PHS_ERROR("SET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
+            
+            obj.setField(fieldName.string(), val);
+            push(val);
+        }
+        NEXT();
+    }
+
     LABEL_SET_FIELD_STATIC:
     {
         {
@@ -1002,6 +1020,10 @@ PHS_ERROR("Invalid default constant index for struct field");
             flush();
 #endif
             std::getline(std::cin, s);
+#if defined(_WIN32)
+            if (!s.empty() && s.back() == '\r')
+                s.pop_back();
+#endif
 #ifdef TRACING
             log(std::format("\nREADLINE_R: {}\n", s));
 #endif
@@ -1787,6 +1809,21 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		break;
 	}
 
+	case OpCode::SET_FIELD_DYN:
+    {
+        Value val       = pop();
+        Value fieldName = pop();
+        Value obj       = pop();
+        if (!fieldName.isString())
+            PHS_ERROR("SET_FIELD_DYN: field name must be a string");
+        if (!obj.isStruct())
+            PHS_ERROR("SET_FIELD_DYN: expected struct, got " + Value::typeToString(obj.getType()).string());
+            
+        obj.setField(fieldName.string(), val);
+        push(val);
+        break;
+    }
+
 	case OpCode::SET_FIELD_STATIC: {
 		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->structs.size()))
 			PHS_ERROR("Invalid struct index for SET_FIELD_STATIC");
@@ -2210,18 +2247,22 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::READLINE_R: {
-		std::string s;
+        std::string s;
 #ifdef TRACING
-		log("READLINE_R:");
-		flush();
+        log("READLINE:");
+        flush();
 #endif
-		std::getline(std::cin, s);
+        std::getline(std::cin, s);
+#if defined(_WIN32)
+        if (!s.empty() && s.back() == '\r')
+            s.pop_back();
+#endif
 #ifdef TRACING
-		log(std::format("\nREADLINE_R: {}\n", s));
+        log(std::format("\nREADLINE: {}\n", s));
 #endif
-		registers[rA] = s;
+        registers[rA] = s;
 		break;
-	}
+    }
 
 #pragma endregion
 #pragma region REG SYSTEM

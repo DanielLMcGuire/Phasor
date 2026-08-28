@@ -206,7 +206,8 @@ enum class OpCode : u8
 	LOAD_ARR,
 	STORE_ARR,
 
-	GET_FIELD_DYN
+	GET_FIELD_DYN,
+	SET_FIELD_DYN
 };
 
 /// @brief Instruction with up to 5 operands

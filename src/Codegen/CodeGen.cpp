@@ -2026,11 +2026,22 @@ void CodeGenerator::generateAssignmentExpr(const AST::AssignmentExpr *assignExpr
             }
         }
 
+		bool isStructAccess = false;
+        if (const auto *identExpr = dynamic_cast<const AST::IdentifierExpr *>(arrayAccess->array.get()))
+        {
+            auto it = inferredTypes.find(identExpr->name);
+            if (it != inferredTypes.end() && it->second == ValueType::Struct)
+            {
+                isStructAccess = true;
+            }
+        }
+
         generateExpression(arrayAccess->array.get());
         generateExpression(arrayAccess->index.get());
         generateExpression(assignExpr->value.get());
 
-        bytecode.emit(OpCode::STORE_ARR);
+        // EMIT DYNAMIC SET OR ARRAY STORE
+        bytecode.emit(isStructAccess ? OpCode::SET_FIELD_DYN : OpCode::STORE_ARR);
     }
     else
     {
