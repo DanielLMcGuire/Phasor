@@ -1,5 +1,5 @@
 """
-phasor.OpCode
+phasor-py.OpCode
 =============
 OpCode enumeration — mirrors ISA.hpp exactly.
 
@@ -163,3 +163,4 @@ class OpCode(IntEnum):
     STORE_ARR = 0x7D
 
     GET_FIELD_DYN = 0x7E
+    SET_FIELD_DYN = 0x7F

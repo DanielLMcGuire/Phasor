@@ -361,6 +361,6 @@ Mentions of the Free Software Foundation, Inc., 'Java™', Oracle® Corporation,
 
 Phasor Toolchain is licensed for use under the Apache 2.0 License.
 
-Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `out/lib/**/*`, `out/include/**/*`, etc) is licensed for use under the Apache 2.0 with LLVM-Exceptions License.
+Phasor Runtime (`phasorrt.dll`, `libphasorrt.so`, `libphasorrt.dylib`, `out/lib/**/*`, `out/include/**/*`, etc) is licensed for use under the Apache 2.0 with Phasor Exceptions License.
 
 Phasor and the "sinewave Phasor" logo are trademarks of Daniel McGuire.

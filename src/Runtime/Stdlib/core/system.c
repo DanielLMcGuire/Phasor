@@ -1,3 +1,16 @@
+// Copyright 2026 Daniel McGuire
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://phasor.pages.dev/LICENSE.txt
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "system.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
@@ -61,99 +74,5 @@
 
 #else
 	return 0;
-#endif
-}
-
-[[nodiscard]] int PHASORstd_sys_run(const char *name, int argc, char **argv)
-{
-	char **args = (char **)malloc((argc + 2) * sizeof(char *));
-	if (!args) 
-	{
-		return -1;
-	}
-
-	args[0] = (char *)name;
-	for (int i = 0; i < argc; i++) 
-	{
-		args[i + 1] = argv[i];
-	}
-	args[argc + 1] = nullptr;
-
-#ifdef _WIN32
-	int ret = (int)_spawnvp(_P_WAIT, name, (const char *const *)args);
-	if (ret == -1)
-	{
-		perror(name);
-	}
-#else
-	int   ret = -1;
-	pid_t pid = fork();
-	if (pid == 0)
-	{
-		execvp(name, args);
-		exit(1); // execvp failed
-	}
-	int status;
-	waitpid(pid, &status, 0);
-	ret = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-#endif
-
-	free(args);
-	return ret;
-}
-
-[[nodiscard]] int PHASORstd_sys_run_detached(const char *name, int argc, char **argv)
-{
-	char **args = (char **)malloc((argc + 2) * sizeof(char *));
-	if (!args) 
-	{
-		return -1;
-	}
-
-	args[0] = (char *)name;
-	for (int i = 0; i < argc; i++) 
-	{
-		args[i + 1] = argv[i];
-	}
-	args[argc + 1] = nullptr;
-
-#ifdef _WIN32
-
-	int ret = (int)_spawnvp(_P_NOWAIT, name, (const char *const *)args);
-	if (ret == -1) 
-	{
-		perror(name);
-	}
-
-	free(args);
-	return ret;
-
-#else
-
-	pid_t pid = fork();
-	if (pid < 0)
-	{
-		free(args);
-		return -1;
-	}
-
-	if (pid == 0)
-	{
-		setsid();
-
-		pid_t pid2 = fork();
-		if (pid2 < 0)
-			exit(1);
-
-		if (pid2 > 0)
-			exit(0);
-
-		execvp(name, args);
-		exit(1);
-	}
-
-	free(args);
-	return 0;
-
 #endif
 }

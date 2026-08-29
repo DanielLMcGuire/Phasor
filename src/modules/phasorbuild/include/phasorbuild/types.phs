@@ -11,39 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_SYSTEM_H
-#define CORE_SYSTEM_H
-
-// Phasor stdlibcore system
-
-#ifdef _WIN32
-#include <windows.h>
-#include <process.h>
-#elif defined(__APPLE__) && defined(__MACH__)
-#include <unistd.h>
-#include <mach/mach.h>
-#include <mach/host_info.h>
-#elif defined(__linux__)
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#endif
-
-#include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-	size_t PHASORstd_sys_getAvailableMemory(void);
-
-#ifdef __cplusplus
+struct buildConfig {
+    source: string,
+    out: string,
+    defines: string[],
+    includes: string[],
+    irMode: bool,
+    verbose: bool,
+    taskHandler: string,
+    buildTask: bool
 }
-#endif
-#endif // CORE_SYSTEM_H

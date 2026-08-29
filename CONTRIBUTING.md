@@ -17,7 +17,6 @@
   - `Phasor/CCompiler` - `.phs` → `.phsb` (in-memory) → C++ header + main.cpp stub → object file → linked executable
   - `Shared/Assembler` - Assembles `.phir` → `.phsb`
   - `Shared/Disassembler` - Disassembles `.phsb` → `.phir`
-- **Frontend/** - High-level API (runScript, runRepl)
 - **Runtime/** - VM, standard library, FFI layer
 
 ### Tools & Interfaces

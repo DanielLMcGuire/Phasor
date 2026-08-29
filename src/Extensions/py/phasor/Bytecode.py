@@ -1,5 +1,5 @@
 """
-phasor.Bytecode
+phasor-py.Bytecode
 ================
 in-memory representation of a compiled
 Phasor program.
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .Instruction import Instruction
 from .OpCode import OpCode
@@ -35,8 +35,8 @@ class Bytecode:
     points, and the next free variable slot counter.
 
     Attributes:
-        instructions: Ordered list of :class:`~phasor.Instruction.Instruction` objects forming the program.
-        constants: Constant pool; entries are indexed by :attr:`~phasor.OpCode.OpCode.PUSH_CONST` / :attr:`~phasor.OpCode.OpCode.LOAD_CONST_R`.
+        instructions: Ordered list of :class:`~phasor-py.Instruction.Instruction` objects forming the program.
+        constants: Constant pool; entries are indexed by :attr:`~phasor-py.OpCode.OpCode.PUSH_CONST` / :attr:`~phasor-py.OpCode.OpCode.LOAD_CONST_R`.
         variables: Maps each variable name to its integer slot index.
         function_entries: Maps each function name to the index of its first instruction.
         function_param_counts: Maps each function name to its parameter count.
@@ -59,8 +59,6 @@ class Bytecode:
     structs:                   List[StructInfo]        = field(default_factory=list)
     struct_entries:            Dict[str, int]          = field(default_factory=dict)
 
-    # Mirrors C++ stringConstantCache: dedup cache for string constants.
-    # Not a dataclass field — excluded from __init__, __repr__, serialisation, etc.
     _string_constant_cache:    Dict[str, int]          = field(default_factory=dict, repr=False, compare=False)
 
     def add_constant(self, value: Value) -> int:
@@ -104,10 +102,10 @@ class Bytecode:
 
     def emit(self, op: OpCode,
              op1: int = 0, op2: int = 0, op3: int = 0) -> int:
-        """Append a new :class:`~phasor.Instruction.Instruction` to :attr:`instructions` and return its index.
+        """Append a new :class:`~phasor-py.Instruction.Instruction` to :attr:`instructions` and return its index.
 
         Args:
-            op: The :class:`~phasor.OpCode.OpCode` for this instruction.
+            op: The :class:`~phasor-py.OpCode.OpCode` for this instruction.
             op1 … op3: Operand values; unused operands should be left as ``0``.
 
         Returns:
@@ -131,7 +129,7 @@ class Bytecode:
     def save(self, path: Path | str) -> None:
         """Serialise this object and write it to a ``.phsb`` file at *path*.
 
-        Delegates to :class:`~phasor.Serializer.BytecodeSerializer`.
+        Delegates to :class:`~phasor-py.Serializer.BytecodeSerializer`.
         """
         from .Serializer import BytecodeSerializer
         BytecodeSerializer().save_to_file(self, Path(path))
@@ -140,7 +138,7 @@ class Bytecode:
     def load(cls, path: Path | str) -> "Bytecode":
         """Read a ``.phsb`` file at *path* and return a deserialised :class:`Bytecode`.
 
-        Delegates to :class:`~phasor.Deserializer.BytecodeDeserializer`.
+        Delegates to :class:`~phasor-py.Deserializer.BytecodeDeserializer`.
         """
         from .Deserializer import BytecodeDeserializer
         return BytecodeDeserializer().load_from_file(Path(path))
@@ -149,7 +147,7 @@ class Bytecode:
     def from_bytes(cls, data: bytes | bytearray) -> "Bytecode":
         """Deserialise a :class:`Bytecode` from a raw ``.phsb`` byte buffer.
 
-        Delegates to :class:`~phasor.Deserializer.BytecodeDeserializer`.
+        Delegates to :class:`~phasor-py.Deserializer.BytecodeDeserializer`.
         """
         from .Deserializer import BytecodeDeserializer
         return BytecodeDeserializer().deserialize(bytes(data))
@@ -157,7 +155,7 @@ class Bytecode:
     def to_bytes(self) -> bytes:
         """Serialise this object to a raw ``.phsb`` byte buffer.
 
-        Delegates to :class:`~phasor.Serializer.BytecodeSerializer`.
+        Delegates to :class:`~phasor-py.Serializer.BytecodeSerializer`.
         """
         from .Serializer import BytecodeSerializer
         return bytes(BytecodeSerializer().serialize(self))

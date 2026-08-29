@@ -1,8 +1,8 @@
 # Serializer.py
 """
-phasor.Serializer
+phasor-py.Serializer
 =================
-Serialises a :class:`~phasor.Bytecode.Bytecode` object to the binary ``.phsb`` format.
+Serialises a :class:`~phasor-py.Bytecode.Bytecode` object to the binary ``.phsb`` format.
 """
 
 from __future__ import annotations
@@ -15,14 +15,14 @@ from typing import Dict, List
 from .Bytecode import Bytecode, StructInfo
 from .Instruction import Instruction
 from .Metadata import (
-    HEADER_SIZE, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
+    SEC_SCOPE_VARS, HEADER_SIZE, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
     SEC_FUNC_TYPES, SEC_INSTRUCTIONS, SEC_STRUCTS, SEC_VARIABLES, VERSION,
 )
 from .Value import Value, ValueType
 
 
 class BytecodeSerializer:
-    """Converts a :class:`~phasor.Bytecode.Bytecode` object into its binary ``.phsb`` representation."""
+    """Converts a :class:`~phasor-py.Bytecode.Bytecode` object into its binary ``.phsb`` representation."""
 
     def __init__(self) -> None:
         """Initialise the serializer with an empty write buffer."""
@@ -36,7 +36,7 @@ class BytecodeSerializer:
         instructions sections in order.
 
         Args:
-            bytecode: The :class:`~phasor.Bytecode.Bytecode` object to serialise.
+            bytecode: The :class:`~phasor-py.Bytecode.Bytecode` object to serialise.
 
         Returns:
             The complete ``.phsb`` binary as a :class:`bytes` object.
@@ -67,7 +67,7 @@ class BytecodeSerializer:
         Parent directories are created automatically if they do not exist.
 
         Args:
-            bytecode: The :class:`~phasor.Bytecode.Bytecode` object to serialise.
+            bytecode: The :class:`~phasor-py.Bytecode.Bytecode` object to serialise.
             path: Destination file path; typically ends with ``.phsb``.
         """
         path = Path(path)
@@ -75,7 +75,7 @@ class BytecodeSerializer:
         path.write_bytes(self.serialize(bytecode))
 
     def _write_constant_pool(self, constants: List[Value]) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_CONSTANTS` section: count followed by each :class:`~phasor.Value.Value`."""
+        """Write the :data:`~phasor-py.Metadata.SEC_CONSTANTS` section: count followed by each :class:`~phasor-py.Value.Value`."""
         self._write_uint8(SEC_CONSTANTS)
         self._write_uint32(len(constants))
         for value in constants:
@@ -84,7 +84,7 @@ class BytecodeSerializer:
     def _write_variable_mapping(
         self, variables: Dict[str, int], next_var_index: int
     ) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_VARIABLES` section: count, :attr:`~phasor.Bytecode.Bytecode.next_var_index`, then each name→slot pair."""
+        """Write the :data:`~phasor-py.Metadata.SEC_VARIABLES` section: count, :attr:`~phasor-py.Bytecode.Bytecode.next_var_index`, then each name→slot pair."""
         self._write_uint8(SEC_VARIABLES)
         self._write_uint32(len(variables))
         self._write_int32(next_var_index)
@@ -102,7 +102,7 @@ class BytecodeSerializer:
                 self._write_string(var_name)
 
     def _write_function_entries(self, function_entries: Dict[str, int]) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_FUNCTIONS` section: count then each name→instruction-index entry point."""
+        """Write the :data:`~phasor-py.Metadata.SEC_FUNCTIONS` section: count then each name→instruction-index entry point."""
         self._write_uint8(SEC_FUNCTIONS)
         self._write_uint32(len(function_entries))
         for name, address in function_entries.items():
@@ -110,7 +110,7 @@ class BytecodeSerializer:
             self._write_int32(address)
 
     def _write_function_types(self, bytecode: Bytecode) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_FUNC_TYPES` section (0x06).
+        """Write the :data:`~phasor-py.Metadata.SEC_FUNC_TYPES` section (0x06).
 
         Binary layout per entry::
 
@@ -120,7 +120,7 @@ class BytecodeSerializer:
             string  paramTypeName[0..paramCount-1]
 
         Only functions present in
-        :attr:`~phasor.Bytecode.Bytecode.function_param_type_names` are emitted;
+        :attr:`~phasor-py.Bytecode.Bytecode.function_param_type_names` are emitted;
         untyped functions are omitted from this section.
         """
         self._write_uint8(SEC_FUNC_TYPES)
@@ -133,7 +133,7 @@ class BytecodeSerializer:
                 self._write_string(type_name)
 
     def _write_struct_section(self, structs: List[StructInfo]) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_STRUCTS` section (0x05).
+        """Write the :data:`~phasor-py.Metadata.SEC_STRUCTS` section (0x05).
 
         Binary layout per entry::
 
@@ -152,7 +152,7 @@ class BytecodeSerializer:
                 self._write_string(field_name)
 
     def _write_instructions(self, instructions: List[Instruction]) -> None:
-        """Write the :data:`~phasor.Metadata.SEC_INSTRUCTIONS` section: count then each :class:`~phasor.Instruction.Instruction` as ``uint8`` opcode + three ``int32`` operands."""
+        """Write the :data:`~phasor-py.Metadata.SEC_INSTRUCTIONS` section: count then each :class:`~phasor-py.Instruction.Instruction` as ``uint8`` opcode + three ``int32`` operands."""
         self._write_uint8(SEC_INSTRUCTIONS)
         self._write_uint32(len(instructions))
         for instr in instructions:
@@ -162,7 +162,7 @@ class BytecodeSerializer:
             self._write_int32(instr.operand3)
 
     def _write_value(self, value: Value) -> None:
-        """Write a :class:`~phasor.Value.Value` as a ``uint8`` type tag followed by its payload.
+        """Write a :class:`~phasor-py.Value.Value` as a ``uint8`` type tag followed by its payload.
 
         Tags and layouts::
 
@@ -175,8 +175,8 @@ class BytecodeSerializer:
             6  Array  : uint32(elementCount) [value]...
 
         Raises:
-            NotImplementedError: If :attr:`value.type <phasor.Value.Value.type>` is not a
-                recognised :class:`~phasor.Value.ValueType`.
+            NotImplementedError: If :attr:`value.type <phasor-py.Value.Value.type>` is not a
+                recognised :class:`~phasor-py.Value.ValueType`.
         """
         t = value.type
         if t == ValueType.Null:

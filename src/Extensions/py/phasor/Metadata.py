@@ -1,5 +1,5 @@
 """
-phasor.Metadata
+phasor-py.Metadata
 ================
 Binary format constants shared by the Serializer and Deserializer.
 """

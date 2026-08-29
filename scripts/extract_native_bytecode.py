@@ -3,10 +3,10 @@
 import sys
 import argparse
 from pathlib import Path
-from phasor import Bytecode
+from phasor-py import Bytecode
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Extract phasor bytecode from a compiled binary.")
+    ap = argparse.ArgumentParser(description="Extract phasor-py bytecode from a compiled binary.")
     ap.add_argument("binary", help="Path to the compiled binary")
     ap.add_argument("-o", "--output", default="out.phsb", help="Output file")
     args = ap.parse_args()

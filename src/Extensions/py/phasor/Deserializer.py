@@ -1,8 +1,8 @@
 # Deserializer.py
 """
-phasor.Deserializer
+phasor-py.Deserializer
 ===================
-Deserialises the binary ``.phsb`` format into a :class:`~phasor.Bytecode.Bytecode` object.
+Deserialises the binary ``.phsb`` format into a :class:`~phasor-py.Bytecode.Bytecode` object.
 """
 
 from __future__ import annotations
@@ -14,15 +14,15 @@ from pathlib import Path
 from .Bytecode import Bytecode, StructInfo
 from .Instruction import Instruction
 from .Metadata import (
-    HEADER_SIZE, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
+    SEC_SCOPE_VARS, MAGIC, SEC_CONSTANTS, SEC_FUNCTIONS,
     SEC_FUNC_TYPES, SEC_INSTRUCTIONS, SEC_STRUCTS, SEC_VARIABLES, VERSION,
 )
 from .OpCode import OpCode
-from .Value import Value, ValueType
+from .Value import Value
 
 
 class BytecodeDeserializer:
-    """Deserialises ``.phsb`` into :class:`~phasor.Bytecode.Bytecode`."""
+    """Deserialises ``.phsb`` into :class:`~phasor-py.Bytecode.Bytecode`."""
 
     def __init__(self) -> None:
         """Initialise the deserializer with an empty data buffer and zero read position."""
@@ -30,13 +30,13 @@ class BytecodeDeserializer:
         self._pos:  int   = 0
 
     def deserialize(self, data: bytes) -> Bytecode:
-        """Parse a raw ``.phsb`` byte buffer into a :class:`~phasor.Bytecode.Bytecode` object.
+        """Parse a raw ``.phsb`` byte buffer into a :class:`~phasor-py.Bytecode.Bytecode` object.
 
         Args:
             data: Raw bytes of a ``.phsb`` file.
 
         Returns:
-            A fully populated :class:`~phasor.Bytecode.Bytecode` instance.
+            A fully populated :class:`~phasor-py.Bytecode.Bytecode` instance.
 
         Raises:
             ValueError: If the magic number, version, or CRC-32 checksum is invalid,
@@ -72,7 +72,7 @@ class BytecodeDeserializer:
             path: Path to the ``.phsb`` file to load.
 
         Returns:
-            A fully populated :class:`~phasor.Bytecode.Bytecode` instance.
+            A fully populated :class:`~phasor-py.Bytecode.Bytecode` instance.
         """
         data = Path(path).read_bytes()
         return self.deserialize(data)
@@ -85,8 +85,8 @@ class BytecodeDeserializer:
             the actual data after reading.
 
         Raises:
-            ValueError: If the magic number does not equal :data:`~phasor.Metadata.MAGIC`
-                or the version does not equal :data:`~phasor.Metadata.VERSION`.
+            ValueError: If the magic number does not equal :data:`~phasor-py.Metadata.MAGIC`
+                or the version does not equal :data:`~phasor-py.Metadata.VERSION`.
         """
         magic = self._read_uint32()
         if magic != MAGIC:
@@ -105,7 +105,7 @@ class BytecodeDeserializer:
         return checksum
 
     def _read_constant_pool(self, bytecode: Bytecode) -> None:
-        """Read the :data:`~phasor.Metadata.SEC_CONSTANTS` section and append entries to :attr:`bytecode.constants <phasor.Bytecode.Bytecode.constants>`."""
+        """Read the :data:`~phasor-py.Metadata.SEC_CONSTANTS` section and append entries to :attr:`bytecode.constants <phasor-py.Bytecode.Bytecode.constants>`."""
         section_id = self._read_uint8()
         if section_id != SEC_CONSTANTS:
             raise ValueError(
@@ -117,7 +117,7 @@ class BytecodeDeserializer:
             bytecode.constants.append(self._read_value())
 
     def _read_variable_mapping(self, bytecode: Bytecode) -> None:
-        """Read the :data:`~phasor.Metadata.SEC_VARIABLES` section and populate :attr:`bytecode.variables <phasor.Bytecode.Bytecode.variables>` and :attr:`~phasor.Bytecode.Bytecode.next_var_index`."""
+        """Read the :data:`~phasor-py.Metadata.SEC_VARIABLES` section and populate :attr:`bytecode.variables <phasor-py.Bytecode.Bytecode.variables>` and :attr:`~phasor-py.Bytecode.Bytecode.next_var_index`."""
         section_id = self._read_uint8()
         if section_id != SEC_VARIABLES:
             raise ValueError(
@@ -149,7 +149,7 @@ class BytecodeDeserializer:
             bytecode.scope_var_lists.append(scope)
 
     def _read_function_entries(self, bytecode: Bytecode) -> None:
-        """Read the :data:`~phasor.Metadata.SEC_FUNCTIONS` section and populate :attr:`bytecode.function_entries <phasor.Bytecode.Bytecode.function_entries>`."""
+        """Read the :data:`~phasor-py.Metadata.SEC_FUNCTIONS` section and populate :attr:`bytecode.function_entries <phasor-py.Bytecode.Bytecode.function_entries>`."""
         section_id = self._read_uint8()
         if section_id != SEC_FUNCTIONS:
             raise ValueError(
@@ -163,10 +163,10 @@ class BytecodeDeserializer:
             bytecode.function_entries[name] = address
 
     def _read_function_types(self, bytecode: Bytecode) -> None:
-        """Read the :data:`~phasor.Metadata.SEC_FUNC_TYPES` section (0x06) and populate
-        :attr:`~phasor.Bytecode.Bytecode.function_param_type_names`,
-        :attr:`~phasor.Bytecode.Bytecode.function_return_type_names`, and
-        :attr:`~phasor.Bytecode.Bytecode.function_param_counts`.
+        """Read the :data:`~phasor-py.Metadata.SEC_FUNC_TYPES` section (0x06) and populate
+        :attr:`~phasor-py.Bytecode.Bytecode.function_param_type_names`,
+        :attr:`~phasor-py.Bytecode.Bytecode.function_return_type_names`, and
+        :attr:`~phasor-py.Bytecode.Bytecode.function_param_counts`.
         """
         section_id = self._read_uint8()
         if section_id != SEC_FUNC_TYPES:
@@ -185,9 +185,9 @@ class BytecodeDeserializer:
             bytecode.function_param_counts[name]       = param_count
 
     def _read_struct_section(self, bytecode: Bytecode) -> None:
-        """Read the :data:`~phasor.Metadata.SEC_STRUCTS` section (0x05) and populate
-        :attr:`~phasor.Bytecode.Bytecode.structs` and
-        :attr:`~phasor.Bytecode.Bytecode.struct_entries`.
+        """Read the :data:`~phasor-py.Metadata.SEC_STRUCTS` section (0x05) and populate
+        :attr:`~phasor-py.Bytecode.Bytecode.structs` and
+        :attr:`~phasor-py.Bytecode.Bytecode.struct_entries`.
         """
         section_id = self._read_uint8()
         if section_id != SEC_STRUCTS:
@@ -211,7 +211,7 @@ class BytecodeDeserializer:
             bytecode.struct_entries[name] = i
 
     def _read_instructions(self, bytecode: Bytecode) -> None:
-        """Read the :data:`~phasor.Metadata.SEC_INSTRUCTIONS` section and populate :attr:`bytecode.instructions <phasor.Bytecode.Bytecode.instructions>`."""
+        """Read the :data:`~phasor-py.Metadata.SEC_INSTRUCTIONS` section and populate :attr:`bytecode.instructions <phasor-py.Bytecode.Bytecode.instructions>`."""
         section_id = self._read_uint8()
         if section_id != SEC_INSTRUCTIONS:
             raise ValueError(
@@ -227,7 +227,7 @@ class BytecodeDeserializer:
             bytecode.instructions.append(Instruction(opcode, op1, op2, op3))
 
     def _read_value(self) -> Value:
-        """Read a type-tagged value and return the corresponding :class:`~phasor.Value.Value`.
+        """Read a type-tagged value and return the corresponding :class:`~phasor-py.Value.Value`.
 
         Tags::
 

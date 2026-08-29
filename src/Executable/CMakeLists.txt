@@ -15,7 +15,7 @@ endif()
 add_library(phasor_native_runtime SHARED
     ${NATIVE_RUNTIME_SOURCES}
 )
-target_link_libraries(phasor_native_runtime phasor_native_runtime_lib PhasorFrontend)
+target_link_libraries(phasor_native_runtime phasor_native_runtime_lib)
 target_compile_definitions(phasor_native_runtime PRIVATE _SHARED)
 set_target_properties(phasor_native_runtime PROPERTIES OUTPUT_NAME phasorrt)
 
@@ -25,7 +25,6 @@ add_library(phasor_native_runtime_static STATIC
 
 target_link_libraries(phasor_native_runtime_static PRIVATE
     phasor_native_runtime_lib
-    PhasorFrontend
 )
 
 set_target_properties(phasor_native_runtime_static PROPERTIES OUTPUT_NAME phasorstaticrt)

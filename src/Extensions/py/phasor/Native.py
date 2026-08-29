@@ -1,5 +1,5 @@
 """
-phasor.Native
+phasor-py.Native
 ==============
 Extract bytecode from a ELF / PE / MachO binary.
 """
@@ -157,7 +157,7 @@ def extract_phsb_bytes(path: Path) -> bytes:
 
     Returns:
         The raw ``.phsb`` bytes, suitable for passing to
-        :meth:`~phasor.Bytecode.Bytecode.from_bytes`.
+        :meth:`~phasor-py.Bytecode.Bytecode.from_bytes`.
 
     Raises:
         ImportError: If the ``lief`` package is not installed.

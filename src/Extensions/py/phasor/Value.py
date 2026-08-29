@@ -1,5 +1,5 @@
 """
-phasor.Value
+phasor-py.Value
 =============
 Runtime value types stored in the constant pool.
 """

@@ -1,12 +1,12 @@
 """
-phasor
+phasor-py
 ======
 Python module for reading, writing, manipulating, and executing Phasor VM bytecode.
 
 -----------
 Load a ``.phsb`` file::
 
-    from phasor import Bytecode
+    from phasor-py import Bytecode
     bc = Bytecode.load("program.phsb")
     print(bc.disassemble())
 
@@ -21,7 +21,7 @@ Extract bytecode from a compiled native binary (requires ``lief``)::
 
 Build bytecode programmatically::
 
-    from phasor import Bytecode, Value, OpCode
+    from phasor-py import Bytecode, Value, OpCode
 
     bc = Bytecode()
     ci = bc.add_constant(Value.from_int(42))
@@ -31,7 +31,7 @@ Build bytecode programmatically::
 
 Compile and run via the libphasorrt library::
 
-    from phasor import new_state, free_state, evaluate_phs, compile_phs, run
+    from phasor-py import new_state, free_state, evaluate_phs, compile_phs, run
 
     evaluate_phs('print("hello");')
 

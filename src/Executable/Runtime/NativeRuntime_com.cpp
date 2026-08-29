@@ -1,8 +1,23 @@
+// Copyright 2026 Daniel McGuire
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://phasor.pages.dev/LICENSE.txt
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "NativeRuntime_com.hpp"
 
-#include "../../Frontend/Phasor/Frontend.hpp"
 #include "../../Runtime/Stdlib/StdLib.hpp"
 #include "../../Runtime/VM/VM.hpp"
+#include "../../Codegen/CodeGen.hpp"
+#include "../../Language/Phasor/Lexer/Lexer.hpp"
+#include "../../Language/Phasor/Parser/Parser.hpp"
 
 #include <PhasorString.hpp>
 #include <phs_dupenv.hpp>
@@ -14,6 +29,44 @@
 
 namespace
 {
+	HRESULT runScript(const Phasor::string &source, Phasor::VM *vm, const std::vector<std::filesystem::path> &paths = {""}) {
+		if (vm == nullptr) return E_FAIL;
+		int           status = 0;
+		Phasor::CodeGenerator codegen;
+		Phasor::Lexer         lexer(source);
+		Phasor::Parser        parser(lexer.tokenize());
+		if (!paths.empty())
+		{
+			parser.setIncludePaths(paths);
+		}
+
+		auto program = parser.parse();
+		auto bytecode = codegen.generate(*program);
+
+	#if defined(_WIN32)
+		vm->initFFI({"phasornative", "plugins"});
+	#elif defined(__APPLE__)
+		vm->initFFI({"phasornative", "/Library/Application Support/org.Phasor.Phasor/plugins"});
+	#else
+		vm->initFFI({"phasornative", "/usr/lib/phasor/plugins/"});
+	#endif
+
+		try
+		{
+			status = vm->run(bytecode);
+
+			if (status != 0)
+			{
+				vm->resetStatus();
+				vm->reset(true, false, false);
+			}
+		} catch (...) {
+			return E_FAIL;
+		}
+
+		return status == 0 ? S_OK : E_FAIL;
+	}
+
 	std::vector<std::filesystem::path> fetchIncludeDirs()
 	{
 		std::vector<std::filesystem::path> finalPaths;
@@ -296,8 +349,7 @@ HRESULT __stdcall PhasorScriptEngine::ParseScriptText(
 	try
 	{
 		Phasor::string src = wideToUtf8(code);
-		Phasor::Frontend::runScript(src, &vm, fetchIncludeDirs(), false);
-		return S_OK;
+		return runScript(src, &vm, fetchIncludeDirs());
 	}
 	catch (...)
 	{

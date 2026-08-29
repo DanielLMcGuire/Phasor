@@ -1,5 +1,5 @@
 """
-phasor.Runtime
+phasor-py.Runtime
 ==============
 cffi bindings for the PhasorRT shared library.
 
@@ -115,7 +115,7 @@ def _two_pass_compile(compile_fn, *leading_args: bytes) -> Bytecode:
     """Size-probe then compile as required by the C API.
 
     Returns:
-        A :class:`~phasor.Bytecode.Bytecode` object built from the compiled output.
+        A :class:`~phasor-py.Bytecode.Bytecode` object built from the compiled output.
     """
     out_size = _ffi.new("size_t *")
 
@@ -228,9 +228,9 @@ def compile_phs(
             Defaults to the current working directory.
 
     Returns:
-        A :class:`~phasor.Bytecode.Bytecode` object, ready to inspect, modify,
+        A :class:`~phasor-py.Bytecode.Bytecode` object, ready to inspect, modify,
         pass to :func:`run`, or serialise with
-        :meth:`~phasor.Bytecode.Bytecode.save` / :meth:`~phasor.Bytecode.Bytecode.to_bytes`.
+        :meth:`~phasor-py.Bytecode.Bytecode.save` / :meth:`~phasor-py.Bytecode.Bytecode.to_bytes`.
 
     Raises:
         RuntimeError: If compilation fails.
@@ -261,7 +261,7 @@ def compile_phs_file(
             Defaults to the parent directory of *path*.
 
     Returns:
-        A :class:`~phasor.Bytecode.Bytecode` object.
+        A :class:`~phasor-py.Bytecode.Bytecode` object.
 
     Raises:
         FileNotFoundError: If *path* does not exist.
@@ -290,7 +290,7 @@ def compile_pul(
         module_name: Name reported in error messages. Defaults to ``"Python"``.
 
     Returns:
-        A :class:`~phasor.Bytecode.Bytecode` object.
+        A :class:`~phasor-py.Bytecode.Bytecode` object.
 
     Raises:
         RuntimeError: If compilation fails.
@@ -316,7 +316,7 @@ def compile_pul_file(
             Defaults to the file's stem.
 
     Returns:
-        A :class:`~phasor.Bytecode.Bytecode` object.
+        A :class:`~phasor-py.Bytecode.Bytecode` object.
 
     Raises:
         FileNotFoundError: If *path* does not exist.
@@ -341,9 +341,9 @@ def run(
     """Execute pre-compiled ``.phsb`` bytecode.
 
     Args:
-        bytecode: Raw ``.phsb`` bytes **or** a :class:`~phasor.Bytecode.Bytecode`
+        bytecode: Raw ``.phsb`` bytes **or** a :class:`~phasor-py.Bytecode.Bytecode`
             object (e.g. from :func:`compile_phs` or
-            :meth:`~phasor.Bytecode.Bytecode.load`).
+            :meth:`~phasor-py.Bytecode.Bytecode.load`).
         state: An optional handle from :func:`new_state`. When ``None``,
             PhasorRT creates and manages a transient state internally.
         module_name: Name reported in error messages. Defaults to ``"Python"``.
