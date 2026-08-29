@@ -1,0 +1,286 @@
+include "std/io";
+include "std/file";
+include "std/type";
+include "std/sys";
+include "std/array";
+
+var g_localVars: any = {};
+var currentExpansionError: int = 0;
+
+struct Command {
+    title: string,
+    args: string[],
+    error: bool,
+    errorMsg: string
+}
+
+struct processedCommand {
+    shellError: bool,
+    commandExit: int,
+    needExit: bool
+}
+
+var shellError: processedCommand = processedCommand{
+    shellError: true,
+    commandExit: 1,
+    needExit: false
+};
+
+var shellSuccess: processedCommand = processedCommand{
+    shellError: false,
+    commandExit: 0,
+    needExit: false
+};
+
+fn shellShutdown(code: int) -> processedCommand {
+    return processedCommand{
+        shellError: false,
+        commandExit: 0,
+        needExit: true
+    };
+}
+
+fn commandRan(status: int) -> processedCommand {
+    return processedCommand{
+        shellError: false,
+        commandExit: status,
+        needExit: false
+    };
+}
+
+fn set(name: string, value: any) {
+    g_localVars[name] =  value;
+}
+
+fn unset(name: string) {
+    g_localVars[name] = null;
+}
+
+fn getVarValue(name: string) -> string {
+    var val: any = g_localVars[name];
+    if (val == null) return "";
+    return to_string(val);
+}
+
+fn processLine(input: string) -> Command;
+
+fn executeForExpansion(cmdLine: string) -> string {
+    var cmd: Command = processLine(cmdLine);
+    if (cmd.error) {
+        currentExpansionError = 1;
+        return "";
+    }
+    
+    var res: sys_fork_out = sys_fork(cmd.title, cmd.args, true);
+    
+    if (res.status != 0) {
+        currentExpansionError = res.status;
+        return "";
+    }
+    
+    if (res.output == null) {
+        currentExpansionError = 1;
+        return "";
+    }
+    
+    return res.output;
+}
+
+fn getInput(prompt: string) -> string {
+    print prompt.concat(" ");
+    var input: string = gets();
+    while (true) {
+        if (input.len() != 0) {
+            print "\n";
+            return input;
+        } else {
+            print concat("\n", prompt, " ");
+            input = gets();
+        }
+    }
+}
+
+fn handleExpansion(input: string, i: int, n: int, sb: int) -> int {
+    if (i + 1 < n && input.char_at(i + 1) == "(") {
+        var start: int = i + 2;
+        var depth: int = 1;
+        var j: int = start;
+        for (; j < n && depth > 0; j++) {
+            var curr: string = input.char_at(j);
+            if (curr == "(") depth = depth + 1;
+            if (curr == ")") depth = depth - 1;
+        }
+        if (depth == 0) {
+            var inner: string = input.substr(start, j - start - 1);
+            sb.sb_append(executeForExpansion(inner));
+            return j;
+        }
+    } else {
+        var varName: string = "";
+        for (var k: int = i + 1; k < n; k++) {
+            var v: string = input.char_at(k);
+            if ((v >= "a" && v <= "z") || (v >= "A" && v <= "Z") || (v >= "0" && v <= "9") || v == "_") {
+                varName = varName.concat(v);
+            } else {
+                break;
+            }
+        }
+        sb.sb_append(getVarValue(varName));
+        return i + varName.len();
+    }
+    return i + 1;
+}
+
+fn processLine(input: string) -> Command {
+    var cmd: Command = Command{};
+    var args: string[];
+    var haveTitle: bool = false;
+
+    var sb: int = sb_new();
+    var tokenStarted: bool = false;
+
+    var inSingle: bool = false;
+    var inDouble: bool = false;
+
+    var n: int = input.len();
+
+    for (var i: int = 0; i < n; i++) {
+        var c: string = input.char_at(i);
+
+        if (inSingle) {
+            if (c == "'") inSingle = false;
+            else sb.sb_append(c);
+            continue;
+        }
+
+        if (inDouble) {
+            if (c == "\"") {
+                inDouble = false;
+            } else if (c == "\\" && i + 1 < n) {
+                var next: string = input.char_at(i + 1);
+                if (next == "\"" || next == "\\" || next == "$") {
+                    sb.sb_append(next);
+                    i = i + 1;
+                } else {
+                    sb.sb_append(c);
+                }
+            } else if (c == "$") {
+                i = handleExpansion(input, i, n, sb) - 1;
+            } else {
+                sb.sb_append(c);
+            }
+            continue;
+        }
+
+        if (c == " " || c == "\t") {
+            if (tokenStarted) {
+                if (!haveTitle) {
+                    cmd.title = sb.sb_to_string();
+                    haveTitle = true;
+                } else {
+                    args.arr_push(sb.sb_to_string());
+                }
+                sb.sb_clear();
+                tokenStarted = false;
+            }
+            continue;
+        }
+
+        if (c == "'") { inSingle = true; tokenStarted = true; continue; }
+        if (c == "\"") { inDouble = true; tokenStarted = true; continue; }
+
+        if (c == "$") {
+            i = handleExpansion(input, i, n, sb) - 1;
+            tokenStarted = true;
+            continue;
+        }
+
+        if (c == "\\" && i + 1 < n) {
+            sb.sb_append(input.char_at(i + 1));
+            tokenStarted = true;
+            i = i + 1;
+            continue;
+        }
+
+        sb.sb_append(c);
+        tokenStarted = true;
+    }
+
+    if (inSingle || inDouble) {
+        cmd.errorMsg = "unterminated quote\n";
+        cmd.error = true;
+        sb.sb_free();
+        return cmd;
+    }
+
+    if (tokenStarted) {
+        if (!haveTitle) {
+            cmd.title = sb.sb_to_string();
+        } else {
+            args.arr_push(sb.sb_to_string());
+        }
+    }
+
+    sb.sb_free();
+    cmd.args = args;
+    return cmd;
+}
+
+fn processCommand(cmd: Command) -> processedCommand {
+    switch (cmd.title) {
+        case "exit":
+            if (cmd.args.len() == 1) return shellShutdown(to_int(cmd.args[0]));
+            else return shellShutdown(0);
+        case "set":
+            if (cmd.args.len() == 1) {
+                unset(cmd.args[0]);
+                return shellSuccess;
+            } else if (cmd.args.len() > 1) {   
+                set(cmd.args[0], cmd.args[1]);
+                return shellSuccess;
+            }
+            return shellError;
+        case "echo":
+            if (cmd.args.len() == 1) {
+                puts(cmd.args[0]);
+                return shellSuccess;
+            } else if (cmd.args.len() > 1) {   
+                puts(cmd.args.arr_join(" "));
+                return shellSuccess;
+            }
+            return shellError;
+        default:
+            var res: sys_fork_out = sys_fork(cmd.title, cmd.args);
+            return commandRan(res.status);
+    }
+}
+
+fn main(args: string[]) -> int {
+    var in: string = getInput(fcd().concat(">"));
+    while (true) {
+        currentExpansionError = 0;
+        var cmd: Command = processLine(in);
+        
+        if (currentExpansionError != 0) {
+            var status: int = currentExpansionError;
+            in = getInput(concat("(", to_string(status), ") ", fcd(), ">"));
+            continue;
+        }
+
+        var res: processedCommand;
+        if (!cmd.error) {
+            res = processCommand(cmd);
+        } else {
+            puts_error(cmd.errorMsg);
+            res = shellError;
+        }
+
+        if (res.needExit) 
+            return res.commandExit;
+            
+        in = getInput(concat("(", to_string(res.commandExit), ") ", fcd(), ">"));
+    }
+    return 0;
+}
+
+include "std/main";
