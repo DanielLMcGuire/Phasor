@@ -17,7 +17,7 @@ fn msToSeconds(milli: float) -> float
     return milli / 1000;
 }
 
-fn secondsToMinutes(seconds: float) -> string
+fn fmtTime(seconds: float) -> string
 {
     if (seconds < 60)
         return c_fmt("%fs", seconds);
@@ -25,10 +25,21 @@ fn secondsToMinutes(seconds: float) -> string
     var mins: int = seconds / 60;
     var secs: int = seconds % 60;
 
-    if (secs < 10)
-        return c_fmt("%d:0%ds", mins, secs);
+    if (mins < 60)
+    {
+        if (secs < 10)
+            return c_fmt("%d:0%ds", mins, secs);
 
-    return c_fmt("%d:%ds", mins, secs);
+        return c_fmt("%d:%ds", mins, secs);
+    }
+
+    var hours: int = mins / 60;
+    mins = mins % 60;
+
+    if (mins < 10)
+        return c_fmt("%d:0%d:%02ds", hours, mins, secs);
+
+    return c_fmt("%d:%d:%02ds", hours, mins, secs);
 }
 
 struct ChunkStats
@@ -47,9 +58,9 @@ fn printChunkStats(stats: ChunkStats) -> void
     printf("\rGENERATION %d-%d TIME: %s, TOTAL: %s, ETA: %s",
         stats.generation_start,
         stats.generation_end,
-        secondsToMinutes(stats.chunk_time),
-        secondsToMinutes(stats.total_time),
-        secondsToMinutes(stats.eta)
+        fmtTime(stats.chunk_time),
+        fmtTime(stats.total_time),
+        fmtTime(stats.eta)
     );
 }
 
@@ -227,7 +238,7 @@ fn rule110(args: rule110_args) -> int
 
     if (!args.stdout)
     {
-        printf("GENERATION 0 TIME: %s", secondsToMinutes(
+        printf("GENERATION 0 TIME: %s", fmtTime(
             msToSeconds(time() - state.start_time)
         ));
     }
@@ -272,7 +283,7 @@ fn rule110(args: rule110_args) -> int
 
     putf(
         "\nTOTAL: %s",
-        secondsToMinutes(
+        fmtTime(
             msToSeconds(time() - state.start_time)
         )
     );
