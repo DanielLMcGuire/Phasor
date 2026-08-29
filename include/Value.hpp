@@ -205,11 +205,6 @@ class Value
 			s->fields[k] = std::move(v);
 		data = std::move(s);
 	}
-	/// @brief Struct constructor
-	static inline Value createStruct(std::initializer_list<std::pair<Phasor::string, Phasor::Value>> fields)
-	{
-		return Value(fields);
-	}
 
 	static Value from_json(const std::string& json);
 

@@ -22,7 +22,7 @@ Value StdLib::object_has(const Value::ArrayInstance &args, VM *)
     const Value& elementName = args[1];
     requireString(elementName, "has", "string");
 
-    return {object->fields.contains(elementName.string())};
+    return object->fields.contains(elementName.string());
 }
 
 Value StdLib::object_find(const Value::ArrayInstance &args, VM *)
@@ -93,7 +93,7 @@ Value StdLib::object_filter(const Value::ArrayInstance &args, VM *)
         if (!nameVal.isString())
             PHS_ERROR("filter() condition 'elementName' must be a string");
 
-        Value valueVal = cond.hasField(Phasor::string("value")) ? cond.getField(Phasor::string("value")) : Value();
+        Value valueVal = cond.hasField(Phasor::string("value")) ? cond.getField(Phasor::string("value")) : phsnull;
         conditions.push_back({nameVal.string(), std::move(valueVal)});
     }
 

@@ -138,9 +138,9 @@ Value iniDataToValue(const IniDataInternal &data)
 	{
 		Value sectionValue = Value::createStruct("IniSection");
 		for (const auto &entry : section.entries)
-			sectionValue.setField(entry.key, Value(entry.value));
+			sectionValue[entry.key] = entry.value;
 
-		root.setField(section.name, sectionValue);
+		root[section.name] = sectionValue;
 	}
 	return root;
 }
@@ -259,7 +259,7 @@ Value StdLib::ini_read_section(const Value::ArrayInstance &args, VM *)
 
 	Value sectionValue = Value::createStruct("IniSection");
 	for (const auto &entry : section->entries)
-		sectionValue.setField(entry.key, Value(entry.value));
+		sectionValue[entry.key] = entry.value;
 
 	return sectionValue;
 }

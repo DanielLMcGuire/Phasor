@@ -307,7 +307,7 @@ Value StdLib::net_connect(const Value::ArrayInstance &args, VM *)
 
 	i64 timeoutMs = args.size() >= 3 ? args[2].asInt() : -1;
 	i64 fd = tcpConnectImpl(args[0].stl_string(), std::to_string(args[1].asInt()), timeoutMs);
-	return fd < 0 ? phsnull : Value(fd);
+	return fd < 0 ? phsnull : fd;
 }
 
 Value StdLib::net_listen(const Value::ArrayInstance &args, VM *)
@@ -354,7 +354,7 @@ Value StdLib::net_listen(const Value::ArrayInstance &args, VM *)
 	handle->boundHost    = host;
 	handle->boundPort    = static_cast<int>(args[1].asInt());
 
-	return Value(allocSocketHandle(std::move(handle)));
+	return allocSocketHandle(std::move(handle));
 }
 
 Value StdLib::net_accept(const Value::ArrayInstance &args, VM *)
@@ -389,11 +389,11 @@ Value StdLib::net_accept(const Value::ArrayInstance &args, VM *)
 
 	i64 fd = registerConnectedSocket(client);
 
-	return Value::createStruct({
-		{"fd",   Value(fd)},
-		{"host", Value(Phasor::string(hostBuf))},
-		{"port", Value(static_cast<i64>(std::atoi(portBuf)))},
-	});
+	return {
+		{"fd", fd},
+		{"host", Phasor::string(hostBuf)},
+		{"port", static_cast<i64>(std::atoi(portBuf))},
+	};
 }
 
 bool StdLib::net_close_listener(const Value::ArrayInstance &args, VM *)
@@ -481,10 +481,10 @@ Value socketAddressToValue(const sockaddr_storage &addr, socklen_t len)
 	char portBuf[NI_MAXSERV]{};
 	::getnameinfo(reinterpret_cast<const sockaddr *>(&addr), len, hostBuf, sizeof(hostBuf), portBuf,
 	              sizeof(portBuf), NI_NUMERICHOST | NI_NUMERICSERV);
-	return Value::createStruct({
-		{"host", Value(Phasor::string(hostBuf))},
-		{"port", Value(static_cast<i64>(std::atoi(portBuf)))},
-	});
+	return {
+		{"host", Phasor::string(hostBuf)},
+		{"port", static_cast<i64>(std::atoi(portBuf))},
+	};
 }
 } // namespace
 
@@ -575,7 +575,7 @@ Value StdLib::net_udp_open(const Value::ArrayInstance &args, VM *)
 	handle->protocol     = SocketProtocol::UDP;
 	handle->role         = SocketRole::UdpSocket;
 
-	return Value(allocSocketHandle(std::move(handle)));
+	return allocSocketHandle(std::move(handle));
 }
 
 i64 StdLib::net_udp_send_to(const Value::ArrayInstance &args, VM *)
@@ -636,11 +636,11 @@ Value StdLib::net_udp_recv_from(const Value::ArrayInstance &args, VM *)
 	char hostBuf[INET_ADDRSTRLEN]{};
 	::inet_ntop(AF_INET, &from.sin_addr, hostBuf, sizeof(hostBuf));
 
-	return Value::createStruct({
-		{"data", Value(Phasor::string(buf.data(), static_cast<size_t>(n)))},
-		{"host", Value(Phasor::string(hostBuf))},
-		{"port", Value(static_cast<i64>(ntohs(from.sin_port)))},
-	});
+	return {
+		{"data", Phasor::string(buf.data(), static_cast<size_t>(n))},
+		{"host", Phasor::string(hostBuf)},
+		{"port", static_cast<i64>(ntohs(from.sin_port))},
+	};
 }
 
 bool StdLib::net_udp_close(const Value::ArrayInstance &args, VM *)
@@ -873,13 +873,13 @@ Value StdLib::http_request(const Value::ArrayInstance &args, VM *)
 
 	Value::ArrayInstance headerPairs;
 	for (auto &[k, v] : respHeaders)
-		headerPairs.emplace_back(Value::createStruct({{"key", Value(k)}, {"value", Value(v)}}));
+		headerPairs.emplace_back(Value({{"key", k}, {"value", v}}));
 
-	return Value::createStruct({
-		{"status",  Value(static_cast<i64>(status))},
+	return {
+		{"status",  static_cast<i64>(status)},
 		{"headers", Value::createArray(std::move(headerPairs))},
-		{"body",    Value(responseBody)},
-	});
+		{"body",    responseBody},
+	};
 }
 
 } // namespace Phasor

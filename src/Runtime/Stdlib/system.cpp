@@ -127,7 +127,7 @@ Value StdLib::sys_time_formatted(const Value::ArrayInstance &args, VM *)
     try {
         return Phasor::string(std::vformat("{:" + format + "}", std::make_format_args(now)));
     } catch (const std::format_error &) {
-        return {" "};
+        return " ";
     }
 }
 
@@ -181,7 +181,7 @@ Value StdLib::sys_sleep(const Value::ArrayInstance &args, VM *)
 	requireNumber(args[0], "sleep", "milliseconds");
 	double ms = args[0].asFloat();
 	std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(ms));
-	return {" "};
+	return " ";
 }
 
 Value StdLib::sys_env(const Value::ArrayInstance &args, VM *)
@@ -286,7 +286,7 @@ Value StdLib::sys_wait_for_input(const Value::ArrayInstance &args, VM *vm)
 {
 	checkArgCount(args, 0, "wait_for_input");
 	io_gets({}, vm);
-	return {""};
+	return "";
 }
 
 Value StdLib::sys_shell(const Value::ArrayInstance &args, VM *vm)
@@ -389,8 +389,8 @@ Value StdLib::sys_fork(const Value::ArrayInstance &args, VM *)
 #endif
 
 	Value result = Value::createStruct("ProcessResult");
-	result.setField("status", Value(static_cast<i64>(exitCode)));
-	result.setField("output", pipe ? Value(output) : phsnull);
+	result["status"] = static_cast<i64>(exitCode);
+	result["output"] = pipe ? output : phsnull;
 	return result;
 }
 
@@ -470,14 +470,14 @@ Value StdLib::sys_fork_detached(const Value::ArrayInstance &args, VM *)
 
 	Value result = Value::createStruct("ProcessHandle");
 #if defined(_WIN32)
-	result.setField("pid", Value(static_cast<i64>(proc.processId)));
+	result["pid"] = static_cast<i64>(proc.processId);
 #else
-	result.setField("pid", Value(static_cast<i64>(proc.pid)));
+	result["pid"] = static_cast<i64>(proc.pid);
 #endif
-	result.setField("handle", Value(poolHandle));
-	result.setField("stdin",  proc.stdinWrite ? Value(allocFileDescriptor(std::move(proc.stdinWrite), StreamKind::Pipe)) : phsnull);
-	result.setField("stdout", proc.stdoutRead ? Value(allocFileDescriptor(std::move(proc.stdoutRead), StreamKind::Pipe)) : phsnull);
-	result.setField("stderr", proc.stderrRead ? Value(allocFileDescriptor(std::move(proc.stderrRead), StreamKind::Pipe)) : phsnull);
+	result["handle"] = poolHandle;
+	result["stdin"] = proc.stdinWrite ? allocFileDescriptor(std::move(proc.stdinWrite), StreamKind::Pipe) : phsnull;
+	result["stdout"] = proc.stdoutRead ? allocFileDescriptor(std::move(proc.stdoutRead), StreamKind::Pipe) : phsnull;
+	result["stderr"] = proc.stderrRead ? allocFileDescriptor(std::move(proc.stderrRead), StreamKind::Pipe) : phsnull;
 	return result;
 }
 
@@ -527,7 +527,7 @@ Value StdLib::proc_status(const Value::ArrayInstance &args, VM *)
 	auto *proc = getProcessHandleLocked(args[0].asInt());
 	if (!proc) PHS_ERROR("procstatus() invalid process handle");
 	if (!pollProcessExitLocked(*proc)) return phsnull;
-	return Value(static_cast<i64>(proc->exitCode));
+	return static_cast<i64>(proc->exitCode);
 }
 
 bool StdLib::proc_kill(const Value::ArrayInstance &args, VM *)

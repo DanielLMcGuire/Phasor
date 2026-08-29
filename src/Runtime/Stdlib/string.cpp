@@ -207,7 +207,7 @@ Value StdLib::str_char_at(const Value::ArrayInstance &args, VM *)
 	i64            idx = args[1].asInt();
 	if (idx < 0 || std::cmp_greater_equal(idx ,s.length())) 
 	{
-		return {""};
+		return "";
 	}
 	return Phasor::string(1, s[idx]);
 }
@@ -229,10 +229,10 @@ Value StdLib::str_substr(const Value::ArrayInstance &args, VM *)
 
 	if (start < 0 || std::cmp_greater_equal(start ,s.length()))
 	{
-		return {""};
+		return "";
 	}
 
-	return Value(s.substr(start, len));
+	return s.substr(start, len);
 }
 
 Phasor::string StdLib::str_concat(const Value::ArrayInstance &args, VM *)
@@ -282,9 +282,9 @@ Value StdLib::str_starts_with(const Value::ArrayInstance &args, VM *)
 	std::string prefix = args[1].string();
 	if (s.length() >= prefix.length())
 	{
-		return {s.starts_with(prefix)};
+		return s.starts_with(prefix);
 	}
-	return {false};
+	return false;
 }
 
 Value StdLib::str_ends_with(const Value::ArrayInstance &args, VM *)
@@ -297,8 +297,8 @@ Value StdLib::str_ends_with(const Value::ArrayInstance &args, VM *)
 	std::string suffix = args[1].string();
 	if (s.length() >= suffix.length())
 	{
-		return {s.ends_with(suffix)};
+		return s.ends_with(suffix);
 	}
-	return {false};
+	return false;
 }
 } // namespace Phasor
