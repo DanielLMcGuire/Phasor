@@ -210,7 +210,8 @@ with the conditions of Sections 4(a), 4(b) and 4(d) of the License.
 
 As an exception, if, as a result of distributing a script "loading" or another 
 scripting system, you may redistribute Phasor Standard Library code written in
-the Phasor Programming Language without complying with the conditions of Sections 4(a), 4(b) and 4(d) of the License.
+the Phasor Programming Language without complying with the conditions of 
+Sections 4(a), 4(b) and 4(d) of the License.
 
 In addition, if you combine or link compiled forms of this Software with
 software that is licensed under the GPLv2 ("Combined Software") and if a
