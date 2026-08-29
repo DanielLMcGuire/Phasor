@@ -11,13 +11,16 @@
 #else
     #include <unistd.h>
     #include <sys/select.h>
+    #include <sys/ioctl.h>
 #endif
+
+#include "../include/sscanf.h"
 
 #define MAX_LANG 100
 #define LINE_LEN 256
 #define MAX_CMD 4096
 
-typedef struct {
+typedef struct _language {
     char name[64];
     int code;
 } Language;
@@ -53,9 +56,29 @@ int stdin_has_data(void) {
     tv.tv_usec = 0;
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
-    select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+    select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
     return FD_ISSET(STDIN_FILENO, &fds);
 #endif
+}
+
+int get_console_width(void) {
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+        return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    }
+    return 80;
+#else
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0) {
+        return w.ws_col;
+    }
+    return 80;
+#endif
+}
+
+int compare_langs(const void *a, const void *b) {
+    return ((Language *)b)->code - ((Language *)a)->code;
 }
 
 int main(int argc, char *argv[]) {
@@ -82,7 +105,7 @@ int main(int argc, char *argv[]) {
         
         for (int i = 1; i < argc; i++) {
             size_t arg_len = strlen(argv[i]);
-            int needs_quotes = (strchr(argv[i], ' ') != NULL) ? 1 : 0;
+            int needs_quotes = (strchr(argv[i], ' ') != nullptr) ? 1 : 0;
             size_t required = pos + 1 + (needs_quotes ? 2 : 0) + arg_len;
             
             if (required >= MAX_CMD) {
@@ -91,14 +114,10 @@ int main(int argc, char *argv[]) {
             }
             
             cmd[pos++] = ' ';
-            if (needs_quotes) {
-                cmd[pos++] = '"';
-            }
+            if (needs_quotes) cmd[pos++] = '"';
             memcpy(cmd + pos, argv[i], arg_len);
             pos += arg_len;
-            if (needs_quotes) {
-                cmd[pos++] = '"';
-            }
+            if (needs_quotes) cmd[pos++] = '"';
         }
         cmd[pos] = '\0';
         
@@ -128,13 +147,9 @@ int main(int argc, char *argv[]) {
         char langName[64];
         int files, blank, comment, code;
 
-        int matched = sscanf(line, "%63[^0-9] %d %d %d %d", langName, &files, &blank, &comment, &code);
+        int matched = sscanf(line, "%63s %d %d %d %d", langName, &files, &blank, &comment, &code);
         if (matched == 5) {
             size_t name_len = strlen(langName);
-            for (size_t i = name_len; i > 0 && (langName[i - 1] == ' ' || langName[i - 1] == '\t'); i--) {
-                langName[i - 1] = '\0';
-                name_len = i - 1;
-            }
             
             if (langCount < MAX_LANG) {
                 size_t copy_len = name_len < 63 ? name_len : 63;
@@ -152,15 +167,58 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (argc > 1) {
-        pclose(input);
+    if (argc > 1) pclose(input);
+
+    qsort(langs, langCount, sizeof(Language), compare_langs);
+
+    if (totalCode > 0) {
+        int console_width = get_console_width();
+        int target_width = (console_width * 1) / 3;
+        int bar_width = target_width - 2;
+        
+        if (bar_width < 10) bar_width = 10;
+
+        char *bar = malloc(bar_width + 1);
+        int pos = 0;
+        int cumulative_code = 0;
+
+        for (int i = 0; i < langCount; i++) {
+            if (i < 6) {
+                int old_pos = (int)(((double)cumulative_code / totalCode) * bar_width);
+                cumulative_code += langs[i].code;
+                int new_pos = (int)(((double)cumulative_code / totalCode) * bar_width);
+                
+                int chars_for_this = new_pos - old_pos;
+                for (int c = 0; c < chars_for_this && pos < bar_width; c++) {
+                    bar[pos++] = '1' + i;
+                }
+            } else {
+                cumulative_code += langs[i].code;
+            }
+        }
+
+        while (pos < bar_width) {
+            bar[pos++] = 'O';
+        }
+        bar[pos] = '\0';
+
+        printf("[%s]\n\n", bar);
+        free(bar);
+    }
+
+    int index_width = 1;
+    int temp = langCount;
+    while (temp > 9) {
+        index_width++;
+        temp /= 10;
     }
 
     printf("Total code lines: %d\n", totalCode);
     printf("Language percentages:\n");
+    
     for (int i = 0; i < langCount; i++) {
         double percent = (totalCode > 0) ? (langs[i].code * 100.0 / totalCode) : 0.0;
-        printf("%-*s : %6.2f%% (%d lines)\n", maxNameLen, langs[i].name, percent, langs[i].code);
+        printf("%0*d: %-*s : %6.2f%% (%d lines)\n", index_width, i + 1, maxNameLen, langs[i].name, percent, langs[i].code);
     }
 
     return 0;

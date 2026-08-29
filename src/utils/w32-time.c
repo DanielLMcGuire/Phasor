@@ -41,7 +41,7 @@ static wchar_t *get_child_command_line(void)
         ++p;
 
     if (!*p)
-        return NULL;
+        return nullptr;
 
     return _wcsdup(p);
 }
@@ -55,7 +55,7 @@ int wmain(void)
         return 1;
     }
 
-    HANDLE job = CreateJobObjectW(NULL, NULL);
+    HANDLE job = CreateJobObjectW(nullptr, nullptr);
     if (!job) {
         fwprintf(stderr, L"CreateJobObject failed: %lu\n", GetLastError());
         free(command_line);
@@ -75,14 +75,14 @@ int wmain(void)
     QueryPerformanceCounter(&start);
 
     if (!CreateProcessW(
-            NULL,
+            nullptr,
             command_line,
-            NULL,
-            NULL,
+            nullptr,
+            nullptr,
             TRUE,
             CREATE_SUSPENDED,
-            NULL,
-            NULL,
+            nullptr,
+            nullptr,
             &si,
             &pi)) {
 
@@ -121,7 +121,7 @@ int wmain(void)
             JobObjectBasicAccountingInformation,
             &accounting,
             sizeof(accounting),
-            NULL)) {
+            nullptr)) {
 
         fwprintf(stderr,
                  L"QueryInformationJobObject failed: %lu\n",
