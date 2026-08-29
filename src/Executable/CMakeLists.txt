@@ -140,7 +140,6 @@ if(NOT IS_SANDBOXED)
         endif()
     else()
         if(APPLE)
-            enable_language(OBJC)
             add_library(phasor_applescript_bindings SHARED
                 ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/macOS/main.c
                 ${CMAKE_SOURCE_DIR}/src/Bindings/macOS/AppleScript.m
