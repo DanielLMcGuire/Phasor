@@ -116,10 +116,6 @@ endif()
 
 elseif(APPLE)
 
-if(PHASOR_BUILD_PMAKE OR PHASOR_BUILD_PMAKE_STANDALONE)
-    list(APPEND NON_STATIC_TARGETS pmake)
-endif()
-
     SET(NON_STATIC_TARGETS
         phasor_main
         phasor_help
@@ -208,9 +204,9 @@ endif()
 
     install(TARGETS
         ${NON_STATIC_TARGETS}
-        RUNTIME DESTINATION usr/local/bin
-        LIBRARY DESTINATION usr/local/lib
-        ARCHIVE DESTINATION usr/local/lib
+        RUNTIME DESTINATION usr/bin
+        LIBRARY DESTINATION usr/lib
+        ARCHIVE DESTINATION usr/lib
         FRAMEWORK DESTINATION frameworks
     )
 
