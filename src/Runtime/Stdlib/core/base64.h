@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
+#include <phsint.hpp>
 #include <stdexcept>
 #include <PhasorString.hpp>
 #include <vector>
@@ -58,9 +58,9 @@ inline Phasor::string encode(const unsigned char* data, std::size_t len,
 
     std::size_t i = 0;
     while (i + 3 <= len) {
-        unsigned int n = (static_cast<unsigned int>(data[i]) << 16) |
-                         (static_cast<unsigned int>(data[i + 1]) << 8) |
-                          static_cast<unsigned int>(data[i + 2]);
+        Phasor::uint n = (static_cast<Phasor::uint>(data[i]) << 16) |
+                         (static_cast<Phasor::uint>(data[i + 1]) << 8) |
+                          static_cast<Phasor::uint>(data[i + 2]);
         out.push_back(table[(n >> 18) & 0x3F]);
         out.push_back(table[(n >> 12) & 0x3F]);
         out.push_back(table[(n >> 6) & 0x3F]);
@@ -70,13 +70,13 @@ inline Phasor::string encode(const unsigned char* data, std::size_t len,
 
     const std::size_t rem = len - i;
     if (rem == 1) {
-        unsigned int n = static_cast<unsigned int>(data[i]) << 16;
+        Phasor::uint n = static_cast<Phasor::uint>(data[i]) << 16;
         out.push_back(table[(n >> 18) & 0x3F]);
         out.push_back(table[(n >> 12) & 0x3F]);
         if (pad) { out.push_back('='); out.push_back('='); }
     } else if (rem == 2) {
-        unsigned int n = (static_cast<unsigned int>(data[i]) << 16) |
-                         (static_cast<unsigned int>(data[i + 1]) << 8);
+        Phasor::uint n = (static_cast<Phasor::uint>(data[i]) << 16) |
+                         (static_cast<Phasor::uint>(data[i + 1]) << 8);
         out.push_back(table[(n >> 18) & 0x3F]);
         out.push_back(table[(n >> 12) & 0x3F]);
         out.push_back(table[(n >> 6) & 0x3F]);
@@ -133,10 +133,10 @@ inline std::vector<unsigned char> decode(const Phasor::string& in) {
             }
         }
 
-        unsigned int n = (static_cast<unsigned int>(v[0]) << 18) |
-                         (static_cast<unsigned int>(v[1]) << 12) |
-                         (static_cast<unsigned int>(v[2]) << 6) |
-                          static_cast<unsigned int>(v[3]);
+        Phasor::uint n = (static_cast<Phasor::uint>(v[0]) << 18) |
+                         (static_cast<Phasor::uint>(v[1]) << 12) |
+                         (static_cast<Phasor::uint>(v[2]) << 6) |
+                          static_cast<Phasor::uint>(v[3]);
 
         out.push_back(static_cast<unsigned char>((n >> 16) & 0xFF));
         if (pad_count < 2) out.push_back(static_cast<unsigned char>((n >> 8) & 0xFF));

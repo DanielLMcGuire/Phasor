@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ static_if (WIN32_ARGS)
 static_else
     var CommandLine: string = phsrt__build_args().arr_join(" ");
 static_endif
-    var ret: i64 = WinMain(hInstance, CommandLine);
+    var ret: i64 = wmain(hInstance, CommandLine);
     if (ret.get_type() != phs_type.i64) return ERROR_INVALID_PARAMETER; 
 static_if (!NO_STACK_COOKIE)
     phsrt__chk_and_free_canary(cookiePtr);

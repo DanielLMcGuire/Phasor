@@ -23,10 +23,3 @@ add_library(phasor_native_runtime_lib STATIC
 target_link_libraries(PhasorRuntime PUBLIC PhasorCodegen phasor_language)
 
 target_link_libraries(phasor_native_runtime_lib PUBLIC PhasorRuntime "$<$<PLATFORM_ID:Darwin>:-framework CoreFoundation>" "$<$<PLATFORM_ID:Darwin>:-framework Security>")
-
-add_library(phasor_binary_runtime_lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/Library/BinaryRuntime.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Library/BinaryRuntime.hpp
-)
-
-target_link_libraries(phasor_binary_runtime_lib PUBLIC PhasorRuntime PhasorCodegen)

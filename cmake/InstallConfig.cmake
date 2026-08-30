@@ -22,7 +22,6 @@ elseif(WIN32)
         phasor_compiler
         phasor_c_transpiler
         phasor_lsp
-        pmake
 
         phasor_asm
         phasor_disasm
@@ -30,9 +29,12 @@ elseif(WIN32)
         phasor_native_runtime
     )
 
+if(PHASOR_BUILD_PMAKE OR PHASOR_BUILD_PMAKE_STANDALONE)
+    list(APPEND NON_STATIC_TARGETS pmake)
+endif()
+
     install(TARGETS
         ${NON_STATIC_TARGETS}
-        phasor_native_runtime_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -113,20 +115,31 @@ elseif(WIN32)
     endif()
 
 elseif(APPLE)
-    install(TARGETS
+
+if(PHASOR_BUILD_PMAKE OR PHASOR_BUILD_PMAKE_STANDALONE)
+    list(APPEND NON_STATIC_TARGETS pmake)
+endif()
+
+    SET(NON_STATIC_TARGETS
         phasor_main
         phasor_help
         phasor_build
         phasor_compiler
         phasor_c_transpiler
         phasor_lsp
-        pmake
 
         phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
-        phasor_native_runtime_static
+    )
+
+if(PHASOR_BUILD_PMAKE OR PHASOR_BUILD_PMAKE_STANDALONE)
+    list(APPEND NON_STATIC_TARGETS pmake)
+endif()
+
+    install(TARGETS
+        ${NON_STATIC_TARGETS}
         RUNTIME DESTINATION usr/local/bin
         LIBRARY DESTINATION usr/local/lib
         ARCHIVE DESTINATION usr/local/lib
@@ -175,23 +188,30 @@ elseif(APPLE)
     endif()
 
 else()
-    install(TARGETS
+    SET(NON_STATIC_TARGETS
         phasor_main
         phasor_help
         phasor_build
         phasor_compiler
         phasor_c_transpiler
         phasor_lsp
-        pmake
 
         phasor_asm
         phasor_disasm
         phasor_runtime_exe
         phasor_native_runtime
-        phasor_native_runtime_static
-        RUNTIME DESTINATION usr/bin
-        LIBRARY DESTINATION usr/lib
-        ARCHIVE DESTINATION usr/lib
+    )
+
+if(PHASOR_BUILD_PMAKE OR PHASOR_BUILD_PMAKE_STANDALONE)
+    list(APPEND NON_STATIC_TARGETS pmake)
+endif()
+
+    install(TARGETS
+        ${NON_STATIC_TARGETS}
+        RUNTIME DESTINATION usr/local/bin
+        LIBRARY DESTINATION usr/local/lib
+        ARCHIVE DESTINATION usr/local/lib
+        FRAMEWORK DESTINATION frameworks
     )
 
     install(DIRECTORY

@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -470,8 +470,8 @@ extern "C"
 				return false;
 			}
 
+			std::memcpy(buffer, data.data(), data.size());   // <-- add this
 			return true;
-
 		}
 		catch (const std::exception &e)
 		{
@@ -489,6 +489,27 @@ extern "C"
 	PHASOR_API void initStdLib(void *vmPtr)
 	{
 		Phasor::StdLib::registerFunctions(*static_cast<Phasor::VM *>(vmPtr));
+	}
+
+	PHASOR_API void initFFI(void *state, const char **paths, size_t pathCount)
+	{
+		if (state == nullptr)
+		{
+			return;
+		}
+
+		std::vector<std::filesystem::path> ffiPaths;
+		ffiPaths.reserve(pathCount);
+
+		for (size_t i = 0; i < pathCount; ++i)
+		{
+			if (paths != nullptr && paths[i] != nullptr)
+			{
+				ffiPaths.emplace_back(paths[i]);
+			}
+		}
+
+		static_cast<Phasor::VM *>(state)->initFFI(ffiPaths);
 	}
 
 	PHASOR_API bool freeState(void *vmPtr)

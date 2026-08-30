@@ -1,13 +1,36 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                                             //
+//   PPPPPPP  H     H      AA      SSSSSSS  OOOOOOO  RRRRRRR    L            AA      NN    N  GGGGGGG  U     U      AA      GGGGGGG  EEEEEEE   //
+//   P     P  H     H     A  A     S        O     O  R     R    L           A  A     N N   N  G        U     U     A  A     G        E         //
+//   PPPPPPP  HHHHHHH    AAAAAA    SSSSSSS  O     O  RRRRRRR    L          AAAAAA    N  N  N  G  GGGG  U     U    AAAAAA    G  GGGG  EEEEEEE   //
+//   P        H     H   A      A         S  O     O  R    R     L         A      A   N   N N  G     G  U     U   A      A   G     G  E         //
+//   P        H     H  A        A  SSSSSSS  OOOOOOO  R     R    LLLLLLL  A        A  N    NN  GGGGGGG  UUUUUUU  A        A  GGGGGGG  EEEEEEE   //
+//                                                                                                                                             //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Copyright 2025-2026 Daniel McGuire
+// Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
+// Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// or https://phasor.pages.dev/LICENSE.txt
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
 #include <iostream>
 #include <sstream>
-#include <string>
+#include <PhasorString.hpp>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
-#include <cstdint>
+#include <phsint.hpp>
 #include <climits>
 #include <algorithm>
 #include <vector>
@@ -134,23 +157,7 @@ static const char *parse(const char *f, Spec &s, va_list &ap)
     return f;
 }
 
-static std::string build_fmt_stl(const Spec &s, const char *len_override, char conv)
-{
-    std::string f = "%";
-    if (s.minus) f += '-';
-    if (s.plus) f += '+';
-    if (s.space) f += ' ';
-    if (s.hash) f += '#';
-    if (s.zero) f += '0';
-    if (s.quote) f += '\'';
-    if (s.width > 0) f += std::to_string(s.width);
-    if (s.prec  >= 0) { f += '.'; f += std::to_string(s.prec); }
-    f += len_override;
-    f += conv;
-    return f;
-}
-
-static Phasor::string build_fmt_phs(const Spec &s, const char *len_override, char conv)
+static Phasor::string build_fmt(const Spec &s, const char *len_override, char conv)
 {
     Phasor::string f = "%";
     if (s.minus) f += '-';
@@ -167,7 +174,7 @@ static Phasor::string build_fmt_phs(const Spec &s, const char *len_override, cha
 }
 
 template<typename Fill>
-static std::string snprintf_into(int hint, Fill fill)
+static Phasor::string snprintf_into(int hint, Fill fill)
 {
     int sz = std::max(hint, 64);
     std::vector<char> buf(sz);
@@ -177,14 +184,14 @@ static std::string snprintf_into(int hint, Fill fill)
         buf.resize(needed + 1);
         fill(buf.data(), needed + 1);
     }
-    return std::string(buf.data());
+    return Phasor::string(buf.data());
 }
 
 static int hint(const Spec &s) {
     return std::max({ s.width, s.prec, 0 }) + 80;
 }
 
-static std::string fmt_signed(const Spec &s, va_list &ap)
+static Phasor::string fmt_signed(const Spec &s, va_list &ap)
 {
     long long val;
     switch (s.length) {
@@ -213,76 +220,76 @@ static std::string fmt_signed(const Spec &s, va_list &ap)
             val = va_arg(ap, int);
             break;
     }
-    std::string f = build_fmt_stl(s, "ll", s.conv);
+    Phasor::string f = build_fmt(s, "ll", s.conv);
     return snprintf_into(hint(s), [&](char *b, int n){
         return std::snprintf(b, n, f.c_str(), val);
     });
 }
 
-static std::string fmt_unsigned(const Spec &s, va_list &ap)
+static Phasor::string fmt_unsigned(const Spec &s, va_list &ap)
 {
-    unsigned long long val;
+    Phasor::ulong val;
     switch (s.length) {
         case Length::hh: 
-            val = (unsigned char)va_arg(ap, unsigned int);
+            val = (unsigned char)va_arg(ap, Phasor::uint);
             break;
         case Length::h:
-            val = (unsigned short)va_arg(ap, unsigned int);
+            val = (unsigned short)va_arg(ap, Phasor::uint);
             break;
         case Length::l:
-            val = va_arg(ap, unsigned long);
+            val = va_arg(ap, Phasor::ulong);
             break;
         case Length::ll: 
-            val = va_arg(ap, unsigned long long);
+            val = va_arg(ap, Phasor::ulong);
             break;
         case Length::z:
-            val = (unsigned long long) va_arg(ap, std::size_t);
+            val = (Phasor::ulong) va_arg(ap, std::size_t);
             break;
         case Length::t:
-            val = (unsigned long long)(std::ptrdiff_t)va_arg(ap, std::ptrdiff_t);
+            val = (Phasor::ulong)(std::ptrdiff_t)va_arg(ap, std::ptrdiff_t);
             break;
         case Length::j:
-            val = (unsigned long long) va_arg(ap, std::uintmax_t);
+            val = (Phasor::ulong) va_arg(ap, std::uintmax_t);
             break;
         default:
-            val = va_arg(ap, unsigned int);
+            val = va_arg(ap, Phasor::uint);
             break;
     }
-    std::string f = build_fmt_stl(s, "ll", s.conv);
+    Phasor::string f = build_fmt(s, "ll", s.conv);
     return snprintf_into(hint(s), [&](char *b, int n){
         return std::snprintf(b, n, f.c_str(), val);
     });
 }
 
-static std::string fmt_float(const Spec &s, va_list &ap)
+static Phasor::string fmt_float(const Spec &s, va_list &ap)
 {
     if (s.length == Length::L) {
         long double val = va_arg(ap, long double);
-        std::string f = build_fmt_stl(s, "L", s.conv);
+        Phasor::string f = build_fmt(s, "L", s.conv);
         return snprintf_into(hint(s), [&](char *b, int n){
             return std::snprintf(b, n, f.c_str(), val);
         });
     } else {
         double val = va_arg(ap, double);
-        std::string f = build_fmt_stl(s, "", s.conv);
+        Phasor::string f = build_fmt(s, "", s.conv);
         return snprintf_into(hint(s), [&](char *b, int n){
             return std::snprintf(b, n, f.c_str(), val);
         });
     }
 }
 
-static std::string fmt_char(const Spec &s, va_list &ap)
+static Phasor::string fmt_char(const Spec &s, va_list &ap)
 {
     char c = (char)va_arg(ap, int);
     int pad = s.width - 1;
-    std::string out;
+    Phasor::string out;
     if (!s.minus && pad > 0) out.append(pad, ' ');
     out += c;
     if ( s.minus && pad > 0) out.append(pad, ' ');
     return out;
 }
 
-static std::string fmt_string(const Spec &s, va_list &ap)
+static Phasor::string fmt_string(const Spec &s, va_list &ap)
 {
     const char *str = va_arg(ap, const char *);
     if (!str) str = "(null)";
@@ -292,7 +299,7 @@ static std::string fmt_string(const Spec &s, va_list &ap)
                     : ::strlen(str);
 
     int pad = s.width - (int)len;
-    std::string out;
+    Phasor::string out;
     out.reserve(len + std::max(pad, 0));
     if (!s.minus && pad > 0) out.append(pad, ' ');
     out.append(str, len);
@@ -300,10 +307,10 @@ static std::string fmt_string(const Spec &s, va_list &ap)
     return out;
 }
 
-static std::string fmt_pointer(const Spec &s, va_list &ap)
+static Phasor::string fmt_pointer(const Spec &s, va_list &ap)
 {
     void *val = va_arg(ap, void *);
-    std::string f = "%";
+    Phasor::string f = "%";
     if (s.minus) f += '-';
     if (s.width > 0) f += std::to_string(s.width);
     f += 'p';
@@ -312,12 +319,12 @@ static std::string fmt_pointer(const Spec &s, va_list &ap)
     });
 }
 
-static std::string do_vformat(const char *fmt, va_list ap_in)
+static Phasor::string do_vformat(const char *fmt, va_list ap_in)
 {
     va_list ap;
     va_copy(ap, ap_in);
 
-    std::string result;
+    Phasor::string result;
     result.reserve(128);
 
     const char *f = fmt;
@@ -392,23 +399,23 @@ static std::string do_vformat(const char *fmt, va_list ap_in)
 
 } // namespace detail
 
-inline std::string vformat(const char *fmt, va_list ap)
+inline Phasor::string vformat(const char *fmt, va_list ap)
 {
     return detail::do_vformat(fmt, ap);
 }
 
-inline std::string format(const char *fmt, ...)
+inline Phasor::string format(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    std::string result = detail::do_vformat(fmt, ap);
+    Phasor::string result = detail::do_vformat(fmt, ap);
     va_end(ap);
     return result;
 }
 
 inline int vfprintf(std::ostream &os, const char *fmt, va_list ap)
 {
-    std::string s = detail::do_vformat(fmt, ap);
+    Phasor::string s = detail::do_vformat(fmt, ap);
     os.write(s.data(), (std::streamsize)s.size());
     if (!os) return -1;
     return (int)s.size();
@@ -534,7 +541,7 @@ inline Phasor::string str_format_v(const char *fmt, const std::vector<Phasor::Va
                 else if (type == Phasor::ValueType::Float)
                     v = (long long)val.asFloat();
 
-                Phasor::string fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
+                Phasor::string fmtStr = detail::build_fmt(s, "ll", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -543,16 +550,16 @@ inline Phasor::string str_format_v(const char *fmt, const std::vector<Phasor::Va
             }
 
             case 'u': case 'o': case 'x': case 'X': {
-                unsigned long long v = 0;
+                Phasor::ulong v = 0;
 
                 if (type == Phasor::ValueType::Int)
-                    v = (unsigned long long)val.asInt();
+                    v = (Phasor::ulong)val.asInt();
                 else if (type == Phasor::ValueType::Bool)
                     v = val.asBool() ? 1ULL : 0ULL;
                 else if (type == Phasor::ValueType::Float)
-                    v = (unsigned long long)val.asFloat();
+                    v = (Phasor::ulong)val.asFloat();
 
-                Phasor::string fmtStr = detail::build_fmt_phs(s, "ll", s.conv);
+                Phasor::string fmtStr = detail::build_fmt(s, "ll", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -573,7 +580,7 @@ inline Phasor::string str_format_v(const char *fmt, const std::vector<Phasor::Va
                 else if (type == Phasor::ValueType::Bool)
                     v = val.asBool() ? 1.0 : 0.0;
 
-                Phasor::string fmtStr = detail::build_fmt_phs(s, "", s.conv);
+                Phasor::string fmtStr = detail::build_fmt(s, "", s.conv);
 
                 result += detail::snprintf_into(detail::hint(s), [&](char *b, int n) {
                     return std::snprintf(b, n, fmtStr.c_str(), v);
@@ -625,7 +632,7 @@ inline Phasor::string str_format_v(const char *fmt, const std::vector<Phasor::Va
                 const void *ptr = nullptr;
 
                 if (type == Phasor::ValueType::Int)
-                    ptr = (const void*)(uintptr_t)val.asInt();
+                    ptr = (const void*)(Phasor::uptr)val.asInt();
                 else
                     ptr = nullptr;
 

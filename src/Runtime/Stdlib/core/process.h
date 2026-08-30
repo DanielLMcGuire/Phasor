@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ struct LaunchedProcess
 {
 #if defined(_WIN32)
 	void*         nativeHandle = nullptr;
-	unsigned long processId    = 0;
+	Phasor::ulong processId    = 0;
 #else
 	long          pid = -1;
 #endif

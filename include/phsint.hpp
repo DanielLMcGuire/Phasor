@@ -8,7 +8,7 @@
 //                                                                                                                                             //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ namespace Phasor
 {
 using f32 = float;
 using f64 = double;
+
+using uint = unsigned int;
+using ulong = unsigned long;
 
 using u8 = uint8_t;
 using u16 = uint16_t;

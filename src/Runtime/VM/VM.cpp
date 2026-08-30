@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ VM::VM() : stack(&stack_pool)
 {
 #ifdef TRACING
 	log(std::format("{}: v{}:\nnormal instance created {:#x}\n", PHS_SRC_LOC(), getVersion(),
-	                (uintptr_t)this));
+	                (Phasor::uptr)this));
 	log(std::format("Value size: {}, VM Size: {}\n", sizeof(Phasor::Value), sizeof(Phasor::VM)));
 	flush();
 #endif
@@ -40,7 +40,7 @@ VM::VM() : stack(&stack_pool)
 VM::VM(const Bytecode &bytecode) : stack(&stack_pool)
 {
 #ifdef TRACING
-	log(std::format("{}: v{}:\nfast instance created {:#x}\n", PHS_SRC_LOC(), getVersion(), (uintptr_t)this));
+	log(std::format("{}: v{}:\nfast instance created {:#x}\n", PHS_SRC_LOC(), getVersion(), (Phasor::uptr)this));
 	flush();
 #endif
 	run(bytecode);
@@ -50,7 +50,7 @@ VM::VM(const OpCode &op, const int &operand1, const int &operand2, const int &op
 {
 #ifdef TRACING
 	log(std::format("{}: v{}:\noperation instance created {:#x}\n", PHS_SRC_LOC(), getVersion(),
-	                (uintptr_t)this));
+	                (Phasor::uptr)this));
 	flush();
 #endif
 	operation(op, operand1, operand2, operand3);
@@ -60,7 +60,7 @@ VM::~VM()
 {
 	cleanup();
 #ifdef TRACING
-	log(std::format("{}: killed {:#x}\n", PHS_SRC_LOC(), (uintptr_t)this));
+	log(std::format("{}: killed {:#x}\n", PHS_SRC_LOC(), (Phasor::uptr)this));
 	flush();
 #endif
 }

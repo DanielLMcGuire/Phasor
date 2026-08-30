@@ -263,7 +263,7 @@ fn main(args: string[]) -> int {
         
         if (currentExpansionError != 0) {
             var status: int = currentExpansionError;
-            in = getInput(concat("(", to_string(status), ") ", fcd(), ">"));
+            in = getInput(c_fmt("PHS %s>", fcd()));
             continue;
         }
 
@@ -278,7 +278,7 @@ fn main(args: string[]) -> int {
         if (res.needExit) 
             return res.commandExit;
             
-        in = getInput(concat("(", to_string(res.commandExit), ") ", fcd(), ">"));
+        in = getInput(c_fmt("(%d) %s>", res.commandExit, fcd()));
     }
     return 0;
 }

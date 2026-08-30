@@ -1,153 +1,250 @@
-.TH PHASORSTD_META 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_META 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
-phasorstd_meta \- Phasor VM introspection and meta-programming functions
+phasorstd_meta \- Phasor runtime introspection, bytecode, and sub-interpreter functions
 .SH SYNOPSIS
 .nf
 .B include "std/meta.phs";
 .PP
-.B phs_version()
-.B phs_op(opcode[, a, b, c])
-.B phs_stack_run(opcode, ...)
-.B get_elements(struct_value)
-.B get_elements_values(struct_value)
+.B phs_version([type])
 .B get_registers()
-.B get_type(value)
 .B get_self()
-.B get_self_instructions()
-.B get_self_constants()
-.B get_self_variables()
-.B get_self_functions()
-.B get_self_structs()
-.B get_self_global_scopes()
-.B run_program(program)
-.B run_program_function(program, functionName, func_arguments, cli_arguments)
+.B load_bytecode(file_path)
+.B save_bytecode(program, file_path)
+.PP
+.I "The following are unavailable in sandboxed builds:"
+.B phs_op(opcode[, a[, b[, c]]])
+.B self_stack_run(opcode, ...)
+.B vm_push(value)
+.B vm_pop()
+.B new_vm()
+.B free_vm(vm)
+.B phs_compile(source, module_path, include_paths, defines)
+.B phs_exec(vm, bytecode)
+.B phs_eval(vm, source, module_path, include_paths, defines, verbose)
+.fi
+.SH TYPES
+.TP
+.B Bytecode
+.RS
+.nf
+struct Bytecode {
+    instructions: Instruction[],
+    constants: any[],
+    variables: any,
+    scopeVarLists: ScopeVar[][],
+    functionEntries: any,
+    functionParamCounts: any,
+    functionParamTypeNames: any,
+    functionParamArrayDims: any,
+    functionReturnTypeNames: any,
+    functionReturnArrayDims: any,
+    nextVarIndex: int,
+    structs: StructInfo[],
+    structEntries: any
+}
 .fi
 .PP
-.B Note:
-.B phs_op()
-and
-.B phs_stack_run()
-are only available in non-sandboxed builds.
-.B get_self*(), run_program*(),
-are Phasor-level helper functions defined in \fBphs/meta.phs\fR itself, layered on top of
-lower-level native introspection; they require \fBinclude "std/meta.phs"\fR and are also
-unavailable in sandboxed builds.
-.SH FUNCTIONS
+Represents a fully compiled Phasor program: the flat instruction list, the constant pool, and
+the metadata needed to resolve variables, functions, and struct layouts at run time. The
+.BR functionEntries ", " functionParamCounts ", " functionParamTypeNames ", " functionParamArrayDims ,
+.BR functionReturnTypeNames ", " functionReturnArrayDims ", and " structEntries
+fields are internal lookup tables (typed as \fBany\fR, i.e.\& dictionary-like) rather than
+plain arrays of records; treat them as opaque unless you are matching the runtime's own
+bytecode-serialization format. Returned by \fBget_self()\fR and \fBload_bytecode()\fR, and
+accepted by \fBsave_bytecode()\fR and \fBphs_exec()\fR.
+.RE
 .TP
-.BR phs_version ()
-Return the current Phasor runtime version string.
+.B Instruction
+.RS
+.nf
+struct Instruction {
+    op: int,
+    o1: int,
+    o2: int,
+    o3: int
+}
+.fi
+.PP
+One entry in \fBBytecode.instructions\fR: an opcode number and up to three integer operands
+(register indices, constant-pool indices, or jump targets, depending on the opcode).
+.RE
+.TP
+.B ScopeVar
+.RS
+.nf
+struct ScopeVar {
+    index: int,
+    name: string
+}
+.fi
+.PP
+Maps a variable's storage index to its source-level name within one lexical scope; a
+\fBBytecode\fR has one array of these per scope in \fBscopeVarLists\fR.
+.RE
+.TP
+.B StructInfo
+.RS
+.nf
+struct StructInfo {
+    name: string,
+    firstConstIndex: int,
+    fieldCount: int,
+    fieldNames: string[],
+    fieldArrayDims: int[][],
+    fieldTypeNames: string[]
+}
+.fi
+.PP
+Describes one struct type declared in a compiled program: its name, its fields' names and
+type names, the array dimensions of any array-typed fields, and where its field-name
+constants begin in the constant pool.
+.RE
+.TP
+.B VM
+.RS
+.nf
+struct VM {
+    handle: any
+}
+.fi
+.PP
+An opaque handle to an independent virtual machine instance, as created by \fBnew_vm()\fR.
+The pre-built variable \fBNULL_VM\fR (\fBVM{handle: null}\fR) can be passed anywhere a
+\fBVM\fR is expected to mean "run this on a disposable, throwaway VM instead of a specific
+one" \(em see \fBphs_exec()\fR and \fBphs_eval()\fR.
+.RE
+.SH VERSION AND INTROSPECTION
+.TP
+.BR phs_version ([type])
+Get the Phasor runtime's version.
 .RS
 .PP
 .B Arguments:
-None
-.PP
-.B Returns:
-String containing the Phasor version (e.g.\& \fB"4.0.0"\fR)
-.RE
-.PP
-.TP
-.BR phs_op (opcode, a, b, c)
-Execute a VM opcode directly with three optional operands as per the ISA spec.
 .RS
-.PP
-.B Arguments:
-.RS
-.IP \fBopcode\fR 12
-Integer or string OpCode to execute
-.IP \fBa\fR 12
-First integer operand (optional, default 0)
-.IP \fBb\fR 12
-Second integer operand (optional, default 0)
-.IP \fBc\fR 12
-Third integer operand (optional, default 0)
+.IP \fBtype\fR 12
+Optional integer selecting a single version component instead of the full version string:
+\fB0\fR for major, \fB1\fR for minor, \fB2\fR for patch. The named constants
+\fBsys_version_type.major\fR, \fBsys_version_type.minor\fR, and \fBsys_version_type.patch\fR
+are available once \fBstd/meta.phs\fR is included.
 .RE
 .PP
 .B Returns:
-Integer result of the operation
+With no arguments, the full version string (e.g.\& \fB"4.0.0"\fR). With \fBtype\fR given,
+just that component as a string (e.g.\& \fB"4"\fR for major).
 .PP
 .B Throws:
-Runtime error if
-.B opcode
-is not an integer or string, or if more than 4 arguments are provided
-.RE
-.PP
-.TP
-.BR phs_stack_run (opcode, ...)
-Push arguments onto the VM stack, execute a VM opcode, then pop and return the result.
-Operands are pushed in reverse order so they appear in the expected order when the opcode
-executes. Only available in non-sandboxed builds.
-.RS
-.PP
-.B Arguments:
-.RS
-.IP \fBopcode\fR 12
-Integer or string OpCode to execute
-.IP \fB...\fR 12
-Operands to push onto the stack before execution (variadic)
-.RE
-.PP
-.B Returns:
-The value on top of the VM stack after execution
-.PP
-.B Throws:
-Runtime error if
-.B opcode
-is not an integer or string
-.RE
-.PP
-.TP
-.BR get_elements (struct_value)
-Get the field names of a struct instance.
-.RS
-.PP
-.B Arguments:
-.RS
-.IP \fBstruct_value\fR 12
-A struct instance
-.RE
-.PP
-.B Returns:
-Array of strings, the field names of the struct (order matches the struct's internal field
-storage, not necessarily declaration order)
-.PP
-.B Throws:
-Runtime error if the argument is not a struct, or is a null struct instance
-.RE
-.PP
-.TP
-.BR get_elements_values (struct_value)
-Get the field values of a struct instance.
-.RS
-.PP
-.B Arguments:
-.RS
-.IP \fBstruct_value\fR 12
-A struct instance
-.RE
-.PP
-.B Returns:
-Array of values, the field values of the struct, in the same order as the names returned by
-.BR get_elements()
-.PP
-.B Throws:
-Runtime error if the argument is not a struct, or is a null struct instance
+Runtime error if more than 1 argument is given
 .RE
 .PP
 .TP
 .BR get_registers ()
-Get a snapshot of the current values held in every VM register.
+Get a snapshot of every value currently held in the calling VM's registers.
 .RS
 .PP
 .B Arguments:
 None
 .PP
 .B Returns:
-Array containing the current value of each VM register, in register index order
+Array of the current values of all VM registers, in register order. This is a low-level
+debugging aid that reflects Phasor's register-based execution model.
 .RE
 .PP
 .TP
-.BR get_type (value)
-Get the runtime type name of a value.
+.BR get_self ()
+Get the compiled bytecode of the currently running program.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+A \fBBytecode\fR struct describing the currently executing program, suitable for saving with
+\fBsave_bytecode()\fR or re-running with \fBphs_exec()\fR
+.RE
+.SH BYTECODE PERSISTENCE
+.TP
+.BR load_bytecode (file_path)
+Load a previously saved bytecode file from disk.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfile_path\fR 12
+Path to a bytecode file previously written by \fBsave_bytecode()\fR
+.RE
+.PP
+.B Returns:
+A \fBBytecode\fR struct
+.PP
+.B Throws:
+Runtime error if \fBfile_path\fR does not exist, or if the file cannot be parsed as bytecode
+.RE
+.PP
+.TP
+.BR save_bytecode (program, file_path)
+Serialize a \fBBytecode\fR struct to disk.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBprogram\fR 12
+A \fBBytecode\fR struct, typically from \fBget_self()\fR or \fBphs_compile()\fR
+.IP \fBfile_path\fR 12
+Destination file path
+.RE
+.PP
+.B Returns:
+Boolean true on success, false on failure
+.RE
+.SH LOW-LEVEL VM ACCESS
+These functions are compiled out of sandboxed builds.
+.TP
+.BR phs_op (opcode[, a[, b[, c]]])
+Execute a single raw VM instruction directly.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBopcode\fR 12
+The opcode to execute, as either its integer value or its mnemonic name (e.g.\&
+\fB"ADD"\fR)
+.IP "\fBa\fR, \fBb\fR, \fBc\fR" 12
+Up to three optional integer operands for the instruction (default \fB0\fR if omitted)
+.RE
+.PP
+.B Returns:
+Integer result of executing the instruction
+.PP
+.B Throws:
+Runtime error if more than 4 arguments are given, or if \fBopcode\fR is not an integer or
+string
+.RE
+.PP
+.TP
+.BR self_stack_run (opcode, ...)
+Push a set of values onto the VM's operand stack and then execute an opcode that consumes
+them from the stack.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBopcode\fR 12
+The opcode to execute, as either its integer value or its mnemonic name
+.IP \fB...\fR 12
+Any number of additional values, pushed onto the stack in reverse order (so the first extra
+argument ends up on top of the stack) before \fBopcode\fR runs
+.RE
+.PP
+.B Returns:
+The value popped off the stack after \fBopcode\fR executes
+.PP
+.B Throws:
+Runtime error if \fBopcode\fR is not an integer or string
+.RE
+.PP
+.TP
+.BR vm_push (value)
+Push a value onto the calling VM's operand stack.
 .RS
 .PP
 .B Arguments:
@@ -157,309 +254,208 @@ Any value
 .RE
 .PP
 .B Returns:
-String naming the value's type (e.g.\& \fB"i64"\fR, \fB"string"\fR, \fB"array"\fR,
-\fB"struct"\fR, \fB"null"\fR)
+Null
 .RE
 .PP
 .TP
-.BR get_self ()
-Get the full bytecode representation of the currently-running program as a \fBBytecode\fR
-struct.
+.BR vm_pop ()
+Pop and return the top value from the calling VM's operand stack.
 .RS
 .PP
 .B Arguments:
 None
 .PP
 .B Returns:
-.B Bytecode
-struct (see \fBTYPES\fR below), containing the current program's instructions, constants,
-variables, functions, structs, and global scopes
+The value that was on top of the stack
 .RE
-.PP
+.SH SUB-INTERPRETERS
+These functions are compiled out of sandboxed builds. They let a script compile and run
+Phasor source or bytecode in an independent virtual machine, separate from the one running
+the calling script.
 .TP
-.BR get_self_instructions ()
-Shorthand for \fBget_self().instructions\fR.
+.BR new_vm ()
+Create a new, independent virtual machine instance.
 .RS
 .PP
+.B Arguments:
+None
+.PP
 .B Returns:
-Array of
-.B InstructionData
-structs
+A \fBVM\fR handle. Must eventually be released with \fBfree_vm()\fR.
 .RE
 .PP
 .TP
-.BR get_self_constants ()
-Shorthand for \fBget_self().constants\fR.
-.RS
-.PP
-.B Returns:
-Array of
-.B ConstantData
-structs
-.RE
-.PP
-.TP
-.BR get_self_variables ()
-Shorthand for \fBget_self().variables\fR.
-.RS
-.PP
-.B Returns:
-Array of
-.B VariableData
-structs
-.RE
-.PP
-.TP
-.BR get_self_functions ()
-Shorthand for \fBget_self().functions\fR.
-.RS
-.PP
-.B Returns:
-Array of
-.B FunctionData
-structs
-.RE
-.PP
-.TP
-.BR get_self_structs ()
-Shorthand for \fBget_self().structs\fR.
-.RS
-.PP
-.B Returns:
-Array of
-.B StructData
-structs
-.RE
-.PP
-.TP
-.BR get_self_global_scopes ()
-Shorthand for \fBget_self().globalScopes\fR.
-.RS
-.PP
-.B Returns:
-Array of
-.B ScopeData
-structs
-.RE
-.PP
-.TP
-.BR run_program (program)
-Run a
-.B Bytecode
-struct (as obtained from \fBget_self()\fR, or built independently) to completion in a fresh,
-isolated VM instance.
+.BR free_vm (vm)
+Release a virtual machine instance created by \fBnew_vm()\fR.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBprogram\fR 12
-A
-.B Bytecode
-struct
+.IP \fBvm\fR 12
+A \fBVM\fR handle from \fBnew_vm()\fR
 .RE
 .PP
 .B Returns:
-Integer exit status of the executed program
-.PP
-.B Throws:
-Runtime error if
-.B program
-is not a struct
+Boolean true if the handle was valid and freed, false otherwise
 .RE
 .PP
 .TP
-.BR run_program_function (program, functionName, func_arguments, cli_arguments)
-Run a single function from a
-.B Bytecode
-struct in a fresh, isolated VM instance, and return its result.
+.BR phs_compile (source, module_path, include_paths, defines)
+Compile Phasor source code to bytecode without executing it.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBprogram\fR 12
-A
-.B Bytecode
-struct
-.IP \fBfunctionName\fR 12
-Name of the function to invoke
-.IP \fBfunc_arguments\fR 12
-Array of arguments to pass to the function
-.IP \fBcli_arguments\fR 12
-Array of strings used as the simulated command-line arguments for the isolated VM instance
-(available to the invoked program via \fBsys_args()\fR / \fBsys_argv()\fR)
+.IP \fBsource\fR 12
+Phasor source code to compile
+.IP \fBmodule_path\fR 12
+Path used to resolve relative \fBinclude\fR statements and to attribute error messages to a
+file; may be an empty string
+.IP \fBinclude_paths\fR 12
+Array of additional directories to search for included files, beyond the current directory,
+\fBmodule_path\fR, and any paths from the \fBPHASOR_INCLUDE_PATH\fR environment variable
+.IP \fBdefines\fR 12
+Array of preprocessor defines, each either \fB"NAME"\fR (defined with value \fB1\fR) or
+\fB"NAME=VALUE"\fR
 .RE
 .PP
 .B Returns:
-The value returned by the invoked function
+A \fBBytecode\fR struct, suitable for \fBphs_exec()\fR or \fBsave_bytecode()\fR
 .PP
 .B Throws:
-Runtime error if
-.B func_arguments
-or
-.B cli_arguments
-are not arrays, or if
-.B cli_arguments
-contains a non-string element
+Runtime error if compilation fails (lexer, parser, or codegen error)
 .RE
-.SH TYPES
 .PP
-.nf
-struct ScopeVariableData {
-    index: i64,
-    name: string
-}
-
-struct ScopeData {
-    scopeIndex: i64,
-    variables: ScopeVariableData[]
-}
-
-struct StructData {
-    name: string,
-    firstConstIndex: i64,
-    fieldCount: i64,
-    fieldNames: string[]
-}
-
-struct FunctionData {
-    name: string,
-    entry: i64,
-    paramTypes: string[],
-    paramArrayDims: i64[][],
-    returnType: string,
-    returnArrayDims: i64[],
-    scopes: ScopeData[]
-}
-
-struct ConstantData {
-    type: string,
-    value: any
-}
-
-struct VariableData {
-    name: string,
-    index: i64,
-    type: string,
-    value: any
-}
-
-struct InstructionData {
-    op: string,
-    operand1: i64,
-    operand2: i64,
-    operand3: i64
-}
-
-struct Bytecode {
-    instructions: InstructionData[],
-    constants: ConstantData[],
-    variables: VariableData[],
-    functions: FunctionData[],
-    structs: StructData[],
-    globalScopes: ScopeData[]
-}
-.fi
+.TP
+.BR phs_exec (vm, bytecode)
+Run a compiled \fBBytecode\fR struct on a VM.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvm\fR 12
+A \fBVM\fR handle from \fBnew_vm()\fR, or \fBNULL_VM\fR to run on a disposable temporary VM
+that is discarded when execution finishes
+.IP \fBbytecode\fR 12
+A \fBBytecode\fR struct, from \fBget_self()\fR, \fBload_bytecode()\fR, or
+\fBphs_compile()\fR
+.RE
+.PP
+.B Returns:
+Integer result code from running the bytecode on the VM
+.RE
+.PP
+.TP
+.BR phs_eval (vm, source, module_path, include_paths, defines, verbose)
+Compile and immediately run Phasor source code on a VM, in one call.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvm\fR 12
+A \fBVM\fR handle from \fBnew_vm()\fR, or \fBNULL_VM\fR to run on a disposable temporary VM
+that is discarded when execution finishes
+.IP \fBsource\fR 12
+Phasor source code to compile and run
+.IP \fBmodule_path\fR 12
+Same meaning as in \fBphs_compile()\fR
+.IP \fBinclude_paths\fR 12
+Same meaning as in \fBphs_compile()\fR
+.IP \fBdefines\fR 12
+Same meaning as in \fBphs_compile()\fR
+.IP \fBverbose\fR 12
+Boolean; if true, the parsed syntax tree is printed before execution, for debugging
+.RE
+.PP
+.B Returns:
+Integer result code from running the compiled source on the VM
+.PP
+.B Throws:
+Runtime error if compilation fails
+.RE
 .SH EXAMPLES
-.B Getting the Runtime Version
+.B Version and Bytecode Introspection
 .PP
 .nf
 .RS
 include "std/meta.phs";
 
-var ver = phs_version();
-.RE
-.fi
-.PP
-.B Executing an Opcode
-.PP
-.nf
-.RS
-// Execute opcode 42 with operands
-var result = phs_op(42, 1, 0, 0);
-.RE
-.fi
-.PP
-.B Stack Opcode Execution
-.PP
-.nf
-.RS
-// Push operands and execute opcode
-var result = phs_stack_run(OP_ADD, 10, 20);
-.RE
-.fi
-.PP
-.B Inspecting a Struct
-.PP
-.nf
-.RS
-struct Point { x: i64, y: i64 }
-
-var p: Point = { x: 3, y: 4 };
-var names = get_elements(p);        // ["x", "y"]
-var values = get_elements_values(p); // [3, 4]
-puts(get_type(p));                  // "struct"
-.RE
-.fi
-.PP
-.B Inspecting the Running Program
-.PP
-.nf
-.RS
-include "std/meta.phs";
+puts(phs_version());                          // e.g. "4.0.0"
+puts(phs_version(sys_version_type.major));    // e.g. "4"
 
 var bc = get_self();
-putf("Function count: %d\n", bc.functions.length);
+putf("This program has %d instructions", bc.instructions.length);
+
+save_bytecode(bc, "snapshot.phsb");
+var reloaded = load_bytecode("snapshot.phsb");
 .RE
 .fi
 .PP
-.B Running a Program Fragment in Isolation
+.B Running an Independent Sub-Interpreter
 .PP
 .nf
 .RS
 include "std/meta.phs";
 
-var bc = get_self();
-var status = run_program(bc);
+var vm = new_vm();
+var result = phs_eval(
+    vm,
+    "print \e"hello from a sub-interpreter\\n\e"; return 42;",
+    "",
+    [],
+    [],
+    false
+);
+putf("Sub-interpreter returned: %d", result);
+free_vm(vm);
 
-var result = run_program_function(bc, "add", [1, 2], []);
+// Or use NULL_VM for a one-off, throwaway run
+var quick = phs_eval(NULL_VM, "return 1 + 1;", "", [], [], false);
+
+// Compile once, execute (potentially many times) later
+var compiled = phs_compile("return 7 * 6;", "", [], []);
+var vm2 = new_vm();
+var answer = phs_exec(vm2, compiled);
+free_vm(vm2);
 .RE
 .fi
 .PP
-.B Version-Gated Behaviour
+.B Low-Level VM Access
 .PP
 .nf
 .RS
 include "std/meta.phs";
 
-var ver = phs_version();
-if (ver == "4.0.0") {
-    // Use features specific to this version
-}
+vm_push(10);
+vm_push(20);
+var sum = self_stack_run("ADD", 5, 7);  // pushes 7 then 5, then runs ADD
 .RE
 .fi
 .SH NOTES
 .IP \(bu 2
-.B phs_op()
-and
-.B phs_stack_run()
-are unavailable in sandboxed builds; attempting to call them will result in an
-undefined function error
+.BR phs_op() ", " self_stack_run() ", " vm_push() ", " vm_pop() ", " new_vm() ", " free_vm() ,
+.BR phs_compile() ", " phs_exec() ", and " phs_eval()
+are all unavailable in sandboxed builds; scripts that must run in both sandboxed and
+non-sandboxed environments should guard their use with \fBis_sandboxed()\fR (see
+\fBphasorstd_sys\fR(3))
 .IP \(bu 2
-.B run_program()
-and
-.B run_program_function()
-execute the given bytecode in a brand-new, isolated VM instance with the full standard
-library registered; they do not share state (variables, registers, etc.) with the caller
+Struct and type introspection helpers \(em
+.BR get_elements() ", " get_elements_values() ", and " get_type()
+\(em live in the
+.B type
+module, not here; see \fBphasorstd_type\fR(3)
 .IP \(bu 2
-.B phs_stack_run()
-pushes arguments in reverse order to preserve natural argument ordering for the opcode
+Passing \fBNULL_VM\fR to \fBphs_exec()\fR or \fBphs_eval()\fR runs the given bytecode or
+source on a brand-new VM that is discarded immediately afterward; there is no way to inspect
+its state once the call returns
 .IP \(bu 2
-Direct opcode execution bypasses all safety checks enforced by the compiler; incorrect
-use can corrupt VM state
+Every \fBVM\fR returned by \fBnew_vm()\fR should be released with exactly one call to
+\fBfree_vm()\fR once it is no longer needed
 .IP \(bu 2
-.B phs_version()
-reflects the version of the running runtime, which may differ from the version used to
-compile the script
+Most \fBBytecode\fR fields beyond \fBinstructions\fR, \fBconstants\fR, \fBstructs\fR, and
+\fBscopeVarLists\fR are internal, dictionary-like (\fBany\fR-typed) lookup tables rather than
+typed arrays; treat them as implementation detail unless working directly with the runtime's
+bytecode format
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

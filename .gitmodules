@@ -1,3 +1,6 @@
 [submodule "thirdparty/pmake"]
 	path = thirdparty/pmake
 	url = https://github.com/DanielLMcGuire/pmake.git
+[submodule "examples/snake"]
+	path = examples/snake
+	url = https://github.com/DanielLMcGuire/snake-phasor.git

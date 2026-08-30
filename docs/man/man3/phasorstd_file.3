@@ -12,7 +12,7 @@ phasorstd_file \- Phasor file system functions
 .B fname(path)
 .B fext(path)
 .B fparent(path)
-.B fjoin(path1, path2)
+.B fjoin(path1[, path2])
 .B fisdir(path)
 .B fread(path_or_fd)
 .B fwrite(path_or_fd, content)
@@ -27,11 +27,14 @@ phasorstd_file \- Phasor file system functions
 .B fmv(source, dest)
 .B fpropset(path, property, value)
 .B fpropget(path, property)
-.B fmk(path)
+.B ftouch(path)
 .B fmkdir(path)
 .B frmdir(path, recurse)
 .B freaddir(path)
 .B fsize(path)
+.B fmemopen(mode[, initial_content])
+.B fpipe()
+.B fkind(fd)
 .B fcp_progress(files, dest)
 .fi
 .SH FILE DESCRIPTORS
@@ -69,6 +72,66 @@ Integer file descriptor
 .PP
 .B Returns:
 Boolean true if the descriptor was valid and closed, false otherwise
+.RE
+.PP
+.TP
+.BR fmemopen (mode[, initial_content])
+Open an in-memory buffer as a stream and return a file descriptor for it, usable anywhere a
+descriptor from \fBfopen()\fR is accepted (\fBfread()\fR, \fBfwrite()\fR, \fBfreadln()\fR,
+\fBfappend()\fR, \fBfclose()\fR). Nothing ever touches disk.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBmode\fR 12
+Mode string, using the same syntax as \fBfopen()\fR's \fBmode\fR argument (\fB"r"\fR,
+\fB"w"\fR, \fB"a"\fR, \fB"r+"\fR, \fB"w+"\fR, \fB"a+"\fR, or another combination of the
+characters \fBr\fR, \fBw\fR, \fBa\fR, and \fB+\fR)
+.IP \fBinitial_content\fR 12
+Optional string used to pre-populate the buffer before it is opened in \fBmode\fR
+.RE
+.PP
+.B Returns:
+Integer file descriptor referring to the in-memory stream
+.PP
+.B Throws:
+Runtime error if more than 2 arguments are given, or if either argument is not a string
+.RE
+.PP
+.TP
+.BR fpipe ()
+Create a native, unnamed pipe and return a connected pair of file descriptors.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+A 2-element array \fB[readFd, writeFd]\fR: \fBreadFd\fR is a descriptor open for reading only,
+\fBwriteFd\fR is a descriptor open for writing only. Data written to \fBwriteFd\fR (e.g.\& via
+\fBfwrite()\fR) becomes readable from \fBreadFd\fR (e.g.\& via \fBfread()\fR or
+\fBfreadln()\fR), or null if the underlying OS pipe could not be created.
+.RE
+.PP
+.TP
+.BR fkind (fd)
+Get the kind of stream a file descriptor refers to.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+Integer file descriptor, from \fBfopen()\fR, \fBfmemopen()\fR, \fBfpipe()\fR, or a process's
+\fBstdin\fR/\fBstdout\fR/\fBstderr\fR descriptor (see \fBphasorstd_sys\fR(3))
+.RE
+.PP
+.B Returns:
+Integer stream kind: \fB0\fR = file (opened with \fBfopen()\fR), \fB1\fR = in-memory buffer
+(\fBfmemopen()\fR), \fB2\fR = pipe (\fBfpipe()\fR or a child process stream), \fB3\fR = socket
+(see \fBphasorstd_net\fR(3))
+.PP
+.B Throws:
+Runtime error if \fBfd\fR is not a currently-open descriptor
 .RE
 .SH PATH UTILITIES
 .TP
@@ -147,20 +210,29 @@ String containing the parent path. For example, given \fB"/home/user/docs/report
 .RE
 .PP
 .TP
-.BR fjoin (path1, path2)
-Join two path components together.
+.BR fjoin (path1[, path2])
+Join path components together into a single path, using the platform's native path
+separator. Each component may be a plain string or an array of strings (which is expanded
+in order), and the two calling conventions below may be mixed freely.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBpath1\fR 12
-The base path
+Either the sole argument \(em an array of one or more path component strings \(em or, when
+\fBpath2\fR is also given, the first path component (a string or an array of strings)
 .IP \fBpath2\fR 12
-The path to append
+Optional second path component (a string or an array of strings). If omitted, \fBpath1\fR
+must be an array by itself.
 .RE
 .PP
 .B Returns:
-String containing the joined path, using the platform's native path separator.
+String containing the joined path
+.PP
+.B Throws:
+Runtime error if called with zero or more than two arguments; if called with one argument
+that is not an array; if either argument is neither a string nor an array of strings; if an
+array argument is empty; or if an array argument contains a non-string element
 .RE
 .SH FILE I/O FUNCTIONS
 .TP
@@ -310,7 +382,7 @@ Boolean true if the path exists and is a directory, false otherwise
 .RE
 .PP
 .TP
-.BR fmk (path)
+.BR ftouch (path)
 Create a new empty file.
 .RS
 .PP
@@ -491,13 +563,15 @@ Set a file property (timestamp).
 .IP \fBpath\fR 12
 File path
 .IP \fBproperty\fR 12
-Property character ('a'=access, 'm'=modify)
+Property character: \fB'a'\fR (access time) or \fB'm'\fR (modify time) on every platform;
+\fB'c'\fR (creation time) is also accepted on Windows only
 .IP \fBvalue\fR 12
 Unix timestamp (epoch seconds)
 .RE
 .PP
 .B Returns:
-Boolean true on success, false on failure
+Boolean true on success, false on failure (including an unsupported \fBproperty\fR character
+for the current platform)
 .PP
 .B Throws:
 Runtime error if \fBvalue\fR is a negative integer
@@ -513,13 +587,15 @@ Get a file property (timestamp).
 .IP \fBpath\fR 12
 File path
 .IP \fBproperty\fR 12
-Property character ('a'=access, 'm'=modify)
+Property character: \fB'a'\fR (access time) or \fB'm'\fR (modify time) on every platform;
+\fB'c'\fR (creation time) is also accepted on Windows, macOS, and FreeBSD, but not on other
+Unix-like systems
 .RE
 .PP
 .B Returns:
 Integer Unix timestamp (epoch seconds). This function always returns an integer; it does not
-return null. Consult the runtime's platform-specific behavior for the sentinel value used on
-failure (e.g.\& a negative number)
+return null. Returns \fB\-1\fR if \fBpath\fR does not exist or \fBproperty\fR is not supported
+on the current platform.
 .RE
 .SH PHASOR-LEVEL HELPERS
 .TP
@@ -558,7 +634,7 @@ var content = fread("data.txt");
 puts(content);
 
 // Append to file
-fappend("data.txt", "\nNew line");
+fappend("data.txt", "\\nNew line");
 .RE
 .fi
 .PP
@@ -570,9 +646,31 @@ fappend("data.txt", "\nNew line");
 var fd = fopen("data.txt", "r+");
 if (fd != null) {
     var line = freadln(fd);       // read the next line sequentially
-    fappend(fd, "\nAppended via fd");
+    fappend(fd, "\\nAppended via fd");
     fclose(fd);
 }
+.RE
+.fi
+.PP
+.B In-Memory Streams and Pipes
+.PP
+.nf
+.RS
+// Build up content in memory, then read it back, with no disk I/O
+var mem = fmemopen("w+", "");
+fwrite(mem, "line one\\n");
+fappend(mem, "line two\\n");
+puts(fkind(mem));  // 1 (memory)
+fclose(mem);
+
+// A native pipe: write to one end, read from the other
+var ends = fpipe();
+var readFd = ends[0];
+var writeFd = ends[1];
+fwrite(writeFd, "hello through the pipe");
+fclose(writeFd);
+puts(fread(readFd));
+fclose(readFd);
 .RE
 .fi
 .PP
@@ -601,6 +699,12 @@ puts(fparent(p));  // "/home/user/docs"
 
 var full = fjoin("/home/user", "docs/report.txt");
 puts(fabsolute("../project"));
+
+// A single array argument joins every component in order
+var full2 = fjoin(["/home/user", "docs", "report.txt"]);
+
+// Either side of the two-argument form may itself be an array
+var full3 = fjoin("/home/user", ["docs", "report.txt"]);
 
 // Check before operating
 if (fisdir("/home/user/docs")) {
@@ -663,7 +767,7 @@ frmdir("old_folder", true);
 .nf
 .RS
 var bytes = fsize("document.txt");
-putf("Size: %d bytes\n", bytes);
+putf("Size: %d bytes\\n", bytes);
 .RE
 .fi
 .PP
@@ -716,13 +820,19 @@ is implemented as copy + delete, not an atomic move
 requires its \fBrecurse\fR argument; it is not optional, and removal only affects an empty
 directory unless \fBrecurse\fR is true
 .IP \(bu 2
-Property characters: 'a' for access time, 'm' for modification time
+Property characters: 'a' for access time, 'm' for modification time, and 'c' for creation
+time (platform-dependent support; see \fBfpropget()\fR/\fBfpropset()\fR above)
 .IP \(bu 2
 .B fstem()
 strips only the last extension; \fB"archive.tar.gz"\fR yields \fB"archive.tar"\fR
 .IP \(bu 2
 .B fext()
 returns an empty string if the path has no extension
+.IP \(bu 2
+.BR fmemopen() " and " fpipe()
+return descriptors from the same pool as \fBfopen()\fR; \fBfclose()\fR, \fBfread()\fR,
+\fBfwrite()\fR, \fBfreadln()\fR, and \fBfappend()\fR all work on them identically, and
+\fBfkind()\fR can be used to tell them apart at runtime
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

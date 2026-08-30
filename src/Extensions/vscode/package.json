@@ -17,7 +17,7 @@
   ],
   "main": "./extension.js",
   "scripts": {
-    "build": "tsc && vsce package"
+    "build": "esbuild extension.ts --platform=node --external:vscode --bundle --sourcemap --outfile=extension.js && vsce package"
   },
   "contributes": {
     "languages": [
@@ -30,18 +30,11 @@
         "extensions": [
           "phs"
         ],
-        "configuration": "./language-configuration-phasor.json"
-      },
-      {
-        "id": "pulsar",
-        "aliases": [
-          "Pulsar",
-          "pulsar"
-        ],
-        "extensions": [
-          "pul"
-        ],
-        "configuration": "./language-configuration-pulsar.json"
+        "configuration": "./language-configuration-phasor.json",
+        "icon": {
+          "light": "./icons/phasor-file-icon.svg",
+          "dark": "./icons/phasor-file-icon.svg"
+        }
       },
       {
         "id": "phasor-ir",
@@ -52,7 +45,11 @@
         "extensions": [
           "phir"
         ],
-        "configuration": "./language-configuration-ir.json"
+        "configuration": "./language-configuration-ir.json",
+        "icon": {
+          "light": "./icons/phasor-ir-file-icon.svg",
+          "dark": "./icons/phasor-ir-file-icon.svg"
+        }
       }
     ],
     "grammars": [
@@ -60,11 +57,6 @@
         "language": "phasor",
         "scopeName": "source.phasor",
         "path": "./syntaxes/phasor.tmLanguage.json"
-      },
-      {
-        "language": "pulsar",
-        "scopeName": "source.pulsar",
-        "path": "./syntaxes/pulsar.tmLanguage.json"
       },
       {
         "language": "phasor-ir",
@@ -134,6 +126,7 @@
     "@types/node": "^25.0.9",
     "@types/vscode": "^1.108.1",
     "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.0.1",
     "typescript": "^5.9.3"
   }

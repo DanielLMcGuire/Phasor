@@ -48,7 +48,9 @@ option(USE_PCH "Use PCH" ON)
 option(PGO_A "Instrument PGO data" OFF)
 option(PGO_B "Use PGO data" OFF)
 option(PHASOR_SDL2 "Build Phasor SDL2 Bindings" ON)
-option(PHS_DEBUG_ENABLED "Enable debugging for Phasor Runtime scripts" OFF)
+option(PHS_DEBUG_ENABLED "Enable debugging for Phasor Stdlib / startup" OFF)
+option(PHASOR_BUILD_PMAKE "Build pmake (toolchain build helper)" OFF)
+option(PHASOR_BUILD_PMAKE_STANDALONE "Build pmake (statically linked against phasorrt)" OFF)
 
 include(cmake/PhasorLanguage.cmake)
 

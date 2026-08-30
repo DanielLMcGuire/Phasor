@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 
 #include "StdLib.hpp"
 #include "core/random.hpp"
-#include <cstdint>
+#include <phsint.hpp>
 #include <cstddef>
 #include <climits>
 #include <stdexcept>
@@ -45,7 +45,7 @@ namespace Phasor
 
 namespace CryptoRand {
 
-    inline void get_bytes(uint8_t* buffer, size_t size)
+    inline void get_bytes(Phasor::u8* buffer, size_t size)
     {
         if (size == 0)
         { 
@@ -184,7 +184,7 @@ Value StdLib::rand_get_crypto_int(const Value::ArrayInstance &args, VM *)
 	checkArgCount(args, 0, "rand_crypto_int");
 	i64 val = 0;
 	try {
-		CryptoRand::get_bytes(reinterpret_cast<uint8_t*>(&val), sizeof(val));
+		CryptoRand::get_bytes(reinterpret_cast<Phasor::u8*>(&val), sizeof(val));
 	} catch (...)
     {
 		return phsnull;
@@ -195,9 +195,9 @@ Value StdLib::rand_get_crypto_int(const Value::ArrayInstance &args, VM *)
 Value StdLib::rand_get_crypto_float(const Value::ArrayInstance &args, VM *)
 {
 	checkArgCount(args, 0, "rand_crypto_float");
-	uint64_t  val = 0;
+	Phasor::u64  val = 0;
 	try {
-        CryptoRand::get_bytes(reinterpret_cast<uint8_t*>(&val), sizeof(val));
+        CryptoRand::get_bytes(reinterpret_cast<Phasor::u8*>(&val), sizeof(val));
     } catch (...)
     {
         return phsnull;

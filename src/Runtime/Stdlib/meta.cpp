@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -256,7 +256,7 @@ i64 StdLib::meta_new_state(const Value::ArrayInstance &args, VM *) {
 }
  
 bool StdLib::meta_free_state(const Value::ArrayInstance &args, VM *){
-    checkArgCount(args, 2, "free_vm");
+    checkArgCount(args, 1, "free_vm");
     requireInt(args[0], "free_vm", "state handle");
     auto *vm = static_cast<VM *>(i64_to_pointer(args[0].asInt()));
     if (vm == nullptr)

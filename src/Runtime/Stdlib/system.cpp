@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ void StdLib::registerSysFunctions(VM *vm)
 {
 #ifndef SANDBOXED
 	vm->registerNativeFunction("sys_os", StdLib::sys_os);
-	vm->registerNativeFunction("sys_os", StdLib::sys_arch);
+	vm->registerNativeFunction("sys_arch", StdLib::sys_arch);
 	vm->registerNativeFunction("sys_get_memory", StdLib::sys_get_free_memory);
 	vm->registerNativeFunction("wait_for_input", StdLib::sys_wait_for_input);
 	vm->registerNativeFunction("sys_shell", StdLib::sys_shell);

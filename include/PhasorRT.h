@@ -8,7 +8,7 @@
 //                                                                                                                                             //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -39,8 +39,10 @@
 #endif
 
 #ifdef _WIN32
-#ifdef PHASOR_EXPORTS
+#if defined(PHASOR_EXPORTS)
 #define PHASOR_API __declspec(dllexport)
+#elif defined(PHASOR_STATIC)
+#define PHASOR_API
 #else
 #define PHASOR_API __declspec(dllimport)
 #endif
@@ -216,6 +218,18 @@ extern "C"
 	@endcode
 	 */
 	PHASOR_API void *createState();
+
+	/**
+	 * @brief Initializes native FFI plugin loading for a state's VM, using the given search paths.
+	 *
+	 * @param state      Pointer to a state (as returned by createState()).
+	 * @param paths      Array of null-terminated path strings to search for native plugins, in priority order.
+	 * @param pathCount  Number of entries in the paths array.
+	 *
+	 * No-op if state is null. Paths are copied internally as std::filesystem::path values; the caller
+	 * retains ownership of paths/pathCount and may free or reuse that memory once this call returns.
+	 */
+	PHASOR_API void initFFI(void *state, const char **paths, size_t pathCount);
 
 	/**
 	 * @brief Register standard library to state instance.

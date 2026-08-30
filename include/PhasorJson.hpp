@@ -8,7 +8,7 @@
 //                                                                                                                                             //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 #pragma once
 #include "PhasorString.hpp"
+#include "phsint.hpp"
 
 namespace Phasor {
 
@@ -65,7 +66,7 @@ namespace PhsJson {
                             hex[i] = *it;
                         }
                         --it;
-                        unsigned long codepoint = std::strtoul(hex, nullptr, 16);
+                        Phasor::ulong codepoint = std::strtoul(hex, nullptr, 16);
                         if (codepoint < 0x80) {
                             result += static_cast<char>(codepoint);
                         } else if (codepoint < 0x800) {

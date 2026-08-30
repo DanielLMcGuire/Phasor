@@ -11,6 +11,7 @@ phasorstd_sys \- Phasor system and runtime functions
 .B localtimef(format)
 .B sleep(milliseconds)
 .B sys_os()
+.B sys_arch()
 .B is_sandboxed()
 .B sys_env(name)
 .B sys_args()
@@ -20,8 +21,13 @@ phasorstd_sys \- Phasor system and runtime functions
 .B isatty()
 .B wait_for_input()
 .B sys_shell(command)
-.B sys_fork(executable, ...)
-.B sys_fork_detached(executable, ...)
+.B sys_fork(program[, args[, pipe[, input[, isolate]]]])
+.B sys_fork_detached(program[, args[, pipe[, stream[, isolate]]]])
+.B procwait(handle)
+.B procstatus(handle)
+.B prockill(handle[, signal])
+.B procforget(handle)
+.B procfree(handle)
 .B sys_pid()
 .B error(message)
 .B reset()
@@ -150,6 +156,33 @@ struct once \fBphs/sys.phs\fR (or \fBphs/types/sys.phs\fR) is included..
 .RE
 .PP
 .TP
+.BR sys_arch ()
+Get an integer identifying the current CPU architecture the runtime was built for.
+.RS
+.PP
+.B Returns:
+Integer:
+.B 0
+= ARM64/AArch64,
+.B 1
+= 32-bit ARM,
+.B 2
+= x86-64,
+.B 3
+= 32-bit x86,
+.B 4
+= unknown.
+.PP
+The named constants
+.BR arm64 ", " aarch64 ", " arm32 ", " x64 ", " x86_64 ", " x86 ", and " unknown
+are available as fields on the
+.B sys_arch
+struct once \fBphs/sys.phs\fR (or \fBphs/types/sys.phs\fR) is included; the array
+.B sys_arch_map
+maps a code back to its architecture name.
+.RE
+.PP
+.TP
 .BR is_sandboxed ()
 Check whether the runtime was built as a sandboxed build.
 .RS
@@ -257,40 +290,173 @@ Result of the underlying system call, typically the command's exit code
 .RE
 .PP
 .TP
-.BR sys_fork (executable, ...)
-Run a native executable as a child process and wait for it to exit.
+.BR sys_fork (program[, args[, pipe[, input[, isolate]]]])
+Run a native executable as a child process and block until it exits.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBexecutable\fR 12
+.IP \fBprogram\fR 12
 Path to the executable
-.IP \fB...\fR 12
-Additional arguments passed to the process. Either a single array of strings, or a variadic
-list of individual string arguments.
+.IP \fBargs\fR 12
+Optional array of string arguments to pass to the process. Must be an array (or null/omitted);
+individual variadic string arguments are \fBnot\fR accepted.
+.IP \fBpipe\fR 12
+Optional boolean (default \fBfalse\fR). If true, the child's stdout is captured and returned;
+if \fBinput\fR is also non-empty, it is written to the child's stdin.
+.IP \fBinput\fR 12
+Optional string (default empty) written to the child's stdin when \fBpipe\fR is true
+.IP \fBisolate\fR 12
+Optional boolean (default \fBfalse\fR). If true, the child is launched in its own process
+group/session rather than sharing the caller's.
 .RE
 .PP
 .B Returns:
-Integer exit code of the child process
+A struct with two fields: \fBstatus\fR (integer exit code of the child process) and
+\fBoutput\fR (string containing everything the child wrote to stdout if \fBpipe\fR was true,
+otherwise null), or null if the process could not be launched
+.PP
+.B Throws:
+Runtime error if more than 5 arguments are given, if \fBprogram\fR is not a string, or if
+\fBargs\fR is given but is not an array of strings
 .RE
 .PP
 .TP
-.BR sys_fork_detached (executable, ...)
-Run a native executable as a detached (background) process.
+.BR sys_fork_detached (program[, args[, pipe[, stream[, isolate]]]])
+Launch a native executable as a background process without waiting for it to exit.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBexecutable\fR 12
+.IP \fBprogram\fR 12
 Path to the executable
-.IP \fB...\fR 12
-Additional arguments passed to the process, given individually (variadic). Unlike
-\fBsys_fork()\fR, this function does not accept a single array of arguments.
+.IP \fBargs\fR 12
+Optional array of string arguments to pass to the process. Must be an array (or
+null/omitted); individual variadic string arguments are \fBnot\fR accepted.
+.IP \fBpipe\fR 12
+Optional boolean (default \fBfalse\fR). If true, connect the streams selected by
+\fBstream\fR to descriptors the caller can read/write.
+.IP \fBstream\fR 12
+Optional integer (default \fB1\fR), meaningful only when \fBpipe\fR is true: \fB0\fR wires up
+the child's stdin, \fB1\fR its stdout, \fB2\fR its stderr, \fB3\fR both stdout and stderr.
+.IP \fBisolate\fR 12
+Optional boolean (default \fBfalse\fR), same meaning as in \fBsys_fork()\fR
 .RE
 .PP
 .B Returns:
-Integer result of launching the detached process (implementation-defined; not necessarily an
-exit code, since the function does not wait for the process to finish)
+A struct describing the launched process, or null if it could not be launched:
+.RS
+.IP \fBpid\fR 12
+Integer process ID of the child
+.IP \fBhandle\fR 12
+Integer process handle for use with \fBprocwait()\fR, \fBprocstatus()\fR, \fBprockill()\fR,
+\fBprocforget()\fR, and \fBprocfree()\fR
+.IP \fBstdin\fR 12
+File descriptor (see \fBphasorstd_file\fR(3)) connected to the child's stdin if requested via
+\fBstream\fR, otherwise null
+.IP \fBstdout\fR 12
+File descriptor connected to the child's stdout if requested via \fBstream\fR, otherwise null
+.IP \fBstderr\fR 12
+File descriptor connected to the child's stderr if requested via \fBstream\fR, otherwise null
+.RE
+.PP
+.B Throws:
+Runtime error if more than 5 arguments are given, if \fBprogram\fR is not a string, if
+\fBargs\fR is given but is not an array of strings, or if \fBstream\fR is given and is not
+0, 1, 2, or 3
+.RE
+.PP
+.TP
+.BR procwait (handle)
+Block until a process launched by \fBsys_fork_detached()\fR exits, then return its exit code.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+Integer process handle from \fBsys_fork_detached()\fR
+.RE
+.PP
+.B Returns:
+Integer exit code of the process (querying again after the process has already exited returns
+the same cached exit code without blocking)
+.PP
+.B Throws:
+Runtime error if \fBhandle\fR is not a valid process handle
+.RE
+.PP
+.TP
+.BR procstatus (handle)
+Non-blocking check of whether a process launched by \fBsys_fork_detached()\fR has exited.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+Integer process handle from \fBsys_fork_detached()\fR
+.RE
+.PP
+.B Returns:
+Integer exit code if the process has already exited, or null if it is still running
+.PP
+.B Throws:
+Runtime error if \fBhandle\fR is not a valid process handle
+.RE
+.PP
+.TP
+.BR prockill (handle[, signal])
+Terminate a process launched by \fBsys_fork_detached()\fR.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+Integer process handle from \fBsys_fork_detached()\fR
+.IP \fBsignal\fR 12
+Optional integer signal number (default \fB15\fR, SIGTERM on POSIX). On Windows, a value of
+\fB9\fR forcibly terminates the process; any other value sends a \fBCTRL_BREAK_EVENT\fR if the
+process was launched with \fBisolate\fR true, or otherwise also forcibly terminates it.
+.RE
+.PP
+.B Returns:
+Boolean true if the signal was sent successfully, false if the process had already exited or
+the signal could not be delivered
+.PP
+.B Throws:
+Runtime error if \fBhandle\fR is not a valid process handle
+.RE
+.PP
+.TP
+.BR procforget (handle)
+Detach from a process launched by \fBsys_fork_detached()\fR without waiting for it: if it has
+already exited its handle is freed immediately, otherwise it is marked to be freed
+automatically in the background once it does exit.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+Integer process handle from \fBsys_fork_detached()\fR
+.RE
+.PP
+.B Returns:
+Boolean true if \fBhandle\fR was a valid process handle, false otherwise
+.RE
+.PP
+.TP
+.BR procfree (handle)
+Block until a process launched by \fBsys_fork_detached()\fR exits, then free its handle.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+Integer process handle from \fBsys_fork_detached()\fR
+.RE
+.PP
+.B Returns:
+Boolean true if \fBhandle\fR was a valid process handle (whether or not it had already
+exited), false otherwise
 .RE
 .PP
 .TP
@@ -380,6 +546,10 @@ if (sys_os() == sys_os.linux) {
     puts("Running on Windows");
 }
 
+if (sys_arch() == sys_arch.x64) {
+    puts("Running on x86-64");
+}
+
 var mem = sys_get_memory();
 putf("Available memory: %d bytes", mem);
 .RE
@@ -450,15 +620,27 @@ include "std/sys.phs";
 var result = sys_shell("ls -la");
 putf("Command exit code: %d", result);
 
-// Launch a child process and wait (variadic args)
-var code = sys_fork("/usr/bin/gzip", "file.txt");
-putf("gzip exited with: %d", code);
+// Launch a child process and wait; args must be an array
+var result1 = sys_fork("/usr/bin/gzip", ["-k", "file.txt"]);
+putf("gzip exited with: %d", result1.status);
 
-// Launch a child process and wait (array of args)
-var code2 = sys_fork("/usr/bin/gzip", ["-k", "file.txt"]);
+// Capture stdout by passing pipe=true
+var result2 = sys_fork("/usr/bin/echo", ["hello"], true);
+puts(result2.output);  // "hello\\n"
 
-// Launch a background process (variadic args only)
-sys_fork_detached("/usr/bin/myservice", "--daemon");
+// Launch a background process and track it via its handle
+var proc = sys_fork_detached("/usr/bin/myservice", ["--daemon"]);
+putf("Launched PID %d", proc.pid);
+
+// Poll without blocking
+var status = procstatus(proc.handle);
+if (status == null) {
+    puts("Still running");
+}
+
+// Stop it and clean up
+prockill(proc.handle);
+procfree(proc.handle);
 
 // Get current PID
 var pid = sys_pid();
@@ -518,6 +700,18 @@ is granted
 .B clear()
 uses ANSI escape codes (may not work in all terminals) and is part of the \fBstdio\fR module
 (\fBphs/io.phs\fR), not \fBstdsys\fR
+.IP \(bu 2
+.BR sys_fork() " returns a struct (" status ", " output "), not a bare integer; " sys_fork_detached()
+returns a struct describing the launched process (\fBpid\fR, \fBhandle\fR, \fBstdin\fR,
+\fBstdout\fR, \fBstderr\fR), not an exit code
+.IP \(bu 2
+Every process handle returned by
+.B sys_fork_detached()
+must eventually be released with exactly one of
+.BR procforget() " or " procfree() ,
+or its resources are never reclaimed;
+.BR procwait() " and " procstatus()
+do not release the handle themselves
 .IP \(bu 2
 .B sys_shell()
 runs commands through the system shell

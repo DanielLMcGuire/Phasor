@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ class StdLib
 	inline static void registerFunctions(VM &vm)
 	{
 #ifdef TRACING
-		vm.log(std::format("({})(&VM@{:#x})\n", PHS_SRC_LOC(), reinterpret_cast<std::uintptr_t>(&vm)));
+		vm.log(std::format("({})(&VM@{:#x})\n", PHS_SRC_LOC(), reinterpret_cast<Phasor::uptr>(&vm)));
 		vm.flush();
 #endif
 		vm.registerNativeFunction("phs__std", std_import);
@@ -97,7 +97,7 @@ class StdLib
 	{
 #if defined(_WIN32)
 		void*         nativeHandle = nullptr;
-		unsigned long processId    = 0;
+		Phasor::ulong processId    = 0;
 #else
 		long          pid = -1;
 #endif
@@ -120,7 +120,7 @@ class StdLib
 
 	struct SocketHandle
 	{
-		std::uintptr_t nativeSocket = 0;
+		Phasor::uptr nativeSocket = 0;
 		SocketProtocol  protocol = SocketProtocol::TCP;
 		SocketRole      role     = SocketRole::Listener;
 		std::string     boundHost;

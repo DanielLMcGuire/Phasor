@@ -8,7 +8,7 @@
 //                                                                                                                                             //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 //
 // Usage:
 // ```cpp
-// // #define NEED_PHASOR_C_ABI
 // #include <Phasor.hpp>
 // ```
 //
@@ -44,6 +43,4 @@
 #include "Phasor/PhasorVM.hpp"
 #include "Phasor/PhasorISA.hpp"
 #include "Value.hpp"
-#ifdef NEED_PHASOR_C_ABI
 #include "PhasorRT.h"
-#endif // PHASOR_C_ABI

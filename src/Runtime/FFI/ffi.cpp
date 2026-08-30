@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -312,7 +312,7 @@ FFI::FFI(const std::vector<std::filesystem::path> &pluginFolders, VM *vm)
 	cachedVersion_ = vm_->getVersion();
 
 #ifdef TRACING
-	vm_->log(std::format("{}: created {:#x}\n", PHS_SRC_LOC(), (uintptr_t)this));
+	vm_->log(std::format("{}: created {:#x}\n", PHS_SRC_LOC(), (Phasor::uptr)this));
 	vm_->flush();
 #endif
 	vm_->registerNativeFunction("load_plugin", INSTANCED_FFI(FFI::native_add_plugin));
@@ -341,7 +341,7 @@ FFI::~FFI()
 	}
 
 #ifdef TRACING
-	vm_->log(std::format("{}: killed {:#x}\n", PHS_SRC_LOC(), (uintptr_t)this));
+	vm_->log(std::format("{}: killed {:#x}\n", PHS_SRC_LOC(), (Phasor::uptr)this));
 	vm_->flush();
 #endif
 }

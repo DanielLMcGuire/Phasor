@@ -117,36 +117,45 @@ Nearest value to x, returned as a float. Halfway values round away from zero (e.
 .SS Comparison Functions
 .TP
 .BR math_min (a, b)
-Return the smaller of two numbers.
+Return the smaller of two values.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBa\fR 12
-First number
+First value: number or string
 .IP \fBb\fR 12
-Second number
+Second value: number or string
 .RE
 .PP
 .B Returns:
-The smaller value (preserves type when both are same type)
+The smaller of the two. If both arguments are integers the comparison and result stay
+integer; if both are numbers (integer or float) it is done in floating point; if both are
+strings the comparison is lexicographic.
+.PP
+.B Throws:
+Runtime error if the arguments are not both numbers or both strings (e.g.\& one number and
+one string)
 .RE
 .PP
 .TP
 .BR math_max (a, b)
-Return the larger of two numbers.
+Return the larger of two values.
 .RS
 .PP
 .B Arguments:
 .RS
 .IP \fBa\fR 12
-First number
+First value: number or string
 .IP \fBb\fR 12
-Second number
+Second value: number or string
 .RE
 .PP
 .B Returns:
-The larger value (preserves type when both are same type)
+The larger of the two, using the same integer/float/string rules as \fBmath_min()\fR
+.PP
+.B Throws:
+Runtime error if the arguments are not both numbers or both strings
 .RE
 .PP
 .SS Exponential and Logarithmic Functions
@@ -333,6 +342,10 @@ puts(circle_circumference(5));  // ~= 31.42
 .RE
 .fi
 .SH NOTES
+.IP \(bu 2
+.BR math_min() " and " math_max()
+also accept a pair of strings, in which case they compare lexicographically instead of
+numerically; mixing a number with a string is a runtime error
 .IP \(bu 2
 All trigonometric functions use radians, not degrees
 .IP \(bu 2

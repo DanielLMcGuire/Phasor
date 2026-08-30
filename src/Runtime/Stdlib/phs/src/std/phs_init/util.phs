@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire -- Phasor Runtime
+// Copyright 2025-2026 Daniel McGuire -- Phasor Runtime
 // src/std/phs_init/util.phs
 // Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ static_if (PHS_DEBUG)
 static_if (PHS_DEBUG)
     printf("phsrt_check_runtime() -> %O\n", res);
 static_endif // (PHS_DEBUG)
-    return true;
+    return res;
 }
 
 // checks support

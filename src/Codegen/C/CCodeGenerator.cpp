@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <phsint.hpp>
 
 namespace Phasor
 {
@@ -146,7 +147,7 @@ std::vector<unsigned char> CCodeGenerator::parseEmbeddedBytecode(const Phasor::s
 	{
 		if (token.size() >= 3 && token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
 		{
-			unsigned int       byte;
+			Phasor::uint       byte;
 			std::istringstream hexStream(token);
 			hexStream >> std::hex >> byte;
 			result.push_back(static_cast<unsigned char>(byte));

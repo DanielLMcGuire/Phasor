@@ -1,4 +1,4 @@
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -361,7 +361,7 @@ Value StdLib::net_listen(const Value::ArrayInstance &args, VM *)
 	::freeaddrinfo(res);
 
 	auto handle = std::make_unique<SocketHandle>();
-	handle->nativeSocket = static_cast<std::uintptr_t>(sock);
+	handle->nativeSocket = static_cast<Phasor::uptr>(sock);
 	handle->protocol     = SocketProtocol::TCP;
 	handle->role         = SocketRole::Listener;
 	handle->boundHost    = host;
@@ -584,7 +584,7 @@ Value StdLib::net_udp_open(const Value::ArrayInstance &args, VM *)
 	}
 
 	auto handle = std::make_unique<SocketHandle>();
-	handle->nativeSocket = static_cast<std::uintptr_t>(sock);
+	handle->nativeSocket = static_cast<Phasor::uptr>(sock);
 	handle->protocol     = SocketProtocol::UDP;
 	handle->role         = SocketRole::UdpSocket;
 

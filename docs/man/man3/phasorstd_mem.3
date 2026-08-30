@@ -1,68 +1,422 @@
-.TH PHASORSTD_MEM 3 "July 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.TH PHASORSTD_MEM 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
 .SH NAME
-phasorstd_mem \- Phasor memory management functions
+phasorstd_mem \- Phasor native memory management functions
 .SH SYNOPSIS
 .nf
 .B include "std/mem.phs";
 .PP
-.B free(name)
+.B malloc_native(size)
+.B calloc_native(size)
+.B realloc_native(handle, size)
+.B free_native(handle)
+.B c_stralloc_native(data)
+.B c_strcpy_native(dest, src)
+.B write_native(handle, data)
+.B write_offset_native(handle, offset, data)
+.B write_c_string_native(handle, data)
+.B write_c_string_offset_native(handle, offset, data)
+.B read_native(handle)
+.B read_native_offset(handle, offset)
+.B read_c_string_native(handle)
+.B read_c_string_native_offset(handle, offset)
 .fi
-.SH FUNCTIONS
+.SH DESCRIPTION
+This module exposes raw, unmanaged heap memory to Phasor scripts, for building binary
+buffers or interoperating with native data. Every function works in terms of a
+.B ManagedMemory
+handle (see TYPES) rather than a bare pointer: the handle pairs a native address with the
+byte size the allocation was made with, and that size is used as the bound for every
+subsequent read or write against the handle.
+.PP
+There is no garbage collection in this module. Every successful allocation from
+.BR malloc_native() ", " calloc_native() ", " realloc_native() ", or " c_stralloc_native()
+must eventually be released with exactly one call to \fBfree_native()\fR. Using a handle
+after it has been freed, or freeing it twice, is undefined behavior, exactly as with C's
+\fBmalloc\fR/\fBfree\fR.
+.SH TYPES
 .TP
-.BR free (name)
-Free a named variable from the VM's memory, releasing any heap resources associated with it.
+.B ManagedMemory
+.RS
+.nf
+struct ManagedMemory {
+    ptr: i64,
+    size: i64
+}
+.fi
+.PP
+.B ptr
+is the native memory address, as an integer.
+.B size
+is the byte size associated with the allocation, and is what every read/write function in
+this module uses to bound its access \(em it is not necessarily how many bytes are still
+"valid" after a partial write, just the size of the buffer itself.
+.PP
+The variable
+.B null_managed_memory
+is a pre-built \fBManagedMemory\fR with \fBptr: 0\fR and \fBsize: 0\fR, useful as a sentinel
+or default value.
+.RE
+.SH ALLOCATION
+.TP
+.BR malloc_native (size)
+Allocate \fBsize\fR bytes of uninitialized heap memory.
 .RS
 .PP
 .B Arguments:
 .RS
-.IP \fBname\fR 12
-String name of the variable to free
+.IP \fBsize\fR 12
+Number of bytes to allocate; must be greater than zero
 .RE
 .PP
 .B Returns:
-Null value
+A \fBManagedMemory\fR handle with \fBsize\fR set to the requested size
 .PP
 .B Throws:
-Runtime error if the argument is not a string
+Runtime error if \fBsize\fR is not a positive integer, or if the allocation fails
+.RE
+.PP
+.TP
+.BR calloc_native (size)
+Allocate \fBsize\fR bytes of zero-initialized heap memory.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBsize\fR 12
+Number of bytes to allocate; must be greater than zero
+.RE
+.PP
+.B Returns:
+A \fBManagedMemory\fR handle with \fBsize\fR set to the requested size, with every byte
+initialized to zero
+.PP
+.B Throws:
+Runtime error if \fBsize\fR is not a positive integer, or if the allocation fails
+.RE
+.PP
+.TP
+.BR realloc_native (handle, size)
+Resize a previous allocation.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle previously returned by \fBmalloc_native()\fR,
+\fBcalloc_native()\fR, or a prior \fBrealloc_native()\fR call
+.IP \fBsize\fR 12
+New size in bytes; must be greater than zero
+.RE
+.PP
+.B Returns:
+A new \fBManagedMemory\fR handle with \fBsize\fR set to the new size. The underlying address
+may or may not change; always use the returned handle, and discard the old one.
+.PP
+.B Throws:
+Runtime error if \fBsize\fR is not a positive integer, or if the reallocation fails
+.RE
+.PP
+.TP
+.BR free_native (handle)
+Release a heap allocation.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle previously returned by \fBmalloc_native()\fR,
+\fBcalloc_native()\fR, \fBrealloc_native()\fR, or \fBc_stralloc_native()\fR
+.RE
+.PP
+.B Returns:
+Null. The handle's memory is freed, but the handle value itself is left unchanged (Phasor
+does not null it out); do not read or write through it after this call.
+.RE
+.SH C STRING HELPERS
+.TP
+.BR c_stralloc_native (data)
+Allocate a null-terminated C string on the heap from a Phasor string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBdata\fR 12
+String to copy onto the heap
+.RE
+.PP
+.B Returns:
+A \fBManagedMemory\fR handle whose \fBsize\fR is \fBlength(data) + 1\fR (the extra byte is
+the terminating NUL), containing \fBdata\fR followed by a NUL byte
+.PP
+.B Throws:
+Runtime error if the allocation fails
+.RE
+.PP
+.TP
+.BR c_strcpy_native (dest, src)
+Copy a null-terminated C string from one allocation into another.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBdest\fR 12
+Destination \fBManagedMemory\fR handle
+.IP \fBsrc\fR 12
+Source \fBManagedMemory\fR handle; must contain a NUL byte within its \fBsize\fR
+.RE
+.PP
+.B Returns:
+Null
+.PP
+.B Throws:
+Runtime error if \fBsrc\fR does not contain a NUL terminator within its recorded size, or if
+\fBdest\fR is too small to hold the string being copied (including its NUL terminator)
+.RE
+.SH RAW READ/WRITE
+.TP
+.BR write_native (handle, data)
+Write an integer into a memory block, as raw bytes.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.IP \fBdata\fR 12
+Integer value to write
+.RE
+.PP
+.B Returns:
+Null
+.PP
+.B Notes:
+At most 8 bytes (the size of an \fBi64\fR) are written, and never more than
+\fBhandle.size\fR bytes; if \fBhandle.size\fR is smaller than 8, only the low-order
+\fBhandle.size\fR bytes of \fBdata\fR are written. Byte order follows the host platform's
+native endianness.
+.RE
+.PP
+.TP
+.BR write_offset_native (handle, offset, data)
+Write an integer into a memory block at a byte offset.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.IP \fBoffset\fR 12
+Byte offset into the block, from \fB0\fR to \fBhandle.size\fR inclusive
+.IP \fBdata\fR 12
+Integer value to write
+.RE
+.PP
+.B Returns:
+Null
+.PP
+.B Notes:
+Writes at most \fBmin(handle.size \- offset, 8)\fR bytes starting at \fBoffset\fR.
+.PP
+.B Throws:
+Runtime error if \fBoffset\fR is negative or greater than \fBhandle.size\fR
+.RE
+.PP
+.TP
+.BR read_native (handle)
+Read an integer out of a memory block, as raw bytes.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.RE
+.PP
+.B Returns:
+Integer assembled from at most 8 bytes (never more than \fBhandle.size\fR) read starting at
+the beginning of the block, in the host platform's native endianness. Unread high-order bytes
+are zero.
+.RE
+.PP
+.TP
+.BR read_native_offset (handle, offset)
+Read an integer out of a memory block at a byte offset.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.IP \fBoffset\fR 12
+Byte offset into the block, from \fB0\fR to \fBhandle.size\fR inclusive
+.RE
+.PP
+.B Returns:
+Integer assembled from at most \fBmin(handle.size \- offset, 8)\fR bytes read starting at
+\fBoffset\fR
+.PP
+.B Throws:
+Runtime error if \fBoffset\fR is negative or greater than \fBhandle.size\fR
+.RE
+.SH C STRING READ/WRITE
+.TP
+.BR write_c_string_native (handle, data)
+Write a Phasor string into a memory block as a null-terminated C string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.IP \fBdata\fR 12
+String to write
+.RE
+.PP
+.B Returns:
+Null
+.PP
+.B Notes:
+At most \fBhandle.size \- 1\fR characters of \fBdata\fR are copied (silently truncating
+longer strings), always leaving room for and writing a terminating NUL byte.
+.RE
+.PP
+.TP
+.BR write_c_string_offset_native (handle, offset, data)
+Write a Phasor string as a null-terminated C string at a byte offset.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.IP \fBoffset\fR 12
+Byte offset into the block, from \fB0\fR to \fBhandle.size\fR
+.IP \fBdata\fR 12
+String to write
+.RE
+.PP
+.B Returns:
+Null
+.PP
+.B Notes:
+At most \fB(handle.size \- offset) \- 1\fR characters of \fBdata\fR are copied, leaving room
+for a terminating NUL byte, which is always written.
+.PP
+.B Throws:
+Runtime error if \fBoffset\fR is negative, greater than or equal to \fBhandle.size\fR, or
+leaves no room for even a NUL terminator
+.RE
+.PP
+.TP
+.BR read_c_string_native (handle)
+Read a null-terminated C string out of a memory block.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.RE
+.PP
+.B Returns:
+String read starting at the beginning of the block, stopping at the first NUL byte or after
+\fBhandle.size\fR bytes, whichever comes first (a missing NUL terminator is not an error)
+.RE
+.PP
+.TP
+.BR read_c_string_native_offset (handle, offset)
+Read a null-terminated C string out of a memory block at a byte offset.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.IP \fBoffset\fR 12
+Byte offset into the block, from \fB0\fR to \fBhandle.size\fR inclusive
+.RE
+.PP
+.B Returns:
+String read starting at \fBoffset\fR, stopping at the first NUL byte or after
+\fBhandle.size \- offset\fR bytes, whichever comes first
+.PP
+.B Throws:
+Runtime error if \fBoffset\fR is negative or greater than \fBhandle.size\fR
 .RE
 .SH EXAMPLES
-.B Freeing a Variable
+.B Basic Allocation
 .PP
 .nf
 .RS
 include "std/mem.phs";
 
-var large_data = fread("bigfile.txt");
+var block = malloc_native(8);
+write_native(block, 42);
+puts(read_native(block));   // 42
+free_native(block);
 
-// Process data...
-
-// Release memory when no longer needed
-free("large_data");
+var zeroed = calloc_native(16);
+puts(read_native(zeroed));  // 0
+free_native(zeroed);
 .RE
 .fi
 .PP
-.B Conditional Cleanup
+.B C Strings
 .PP
 .nf
 .RS
-var buffer = allocate_buffer();
+include "std/mem.phs";
 
-if (done) {
-    free("buffer");
-}
+var greeting = c_stralloc_native("hello");
+puts(read_c_string_native(greeting));  // "hello"
+
+var copy = malloc_native(greeting.size);
+c_strcpy_native(copy, greeting);
+puts(read_c_string_native(copy));      // "hello"
+
+free_native(greeting);
+free_native(copy);
+.RE
+.fi
+.PP
+.B Resizing a Buffer
+.PP
+.nf
+.RS
+include "std/mem.phs";
+
+var buf = malloc_native(4);
+write_native(buf, 100);
+buf = realloc_native(buf, 16);  // reassign; old handle is no longer valid
+write_offset_native(buf, 8, 200);
+puts(read_native(buf));            // 100
+puts(read_native_offset(buf, 8));  // 200
+free_native(buf);
 .RE
 .fi
 .SH NOTES
 .IP \(bu 2
-The argument to
-.B free()
-must be the variable name as a string literal, not the variable itself!
+Every allocating function (\fBmalloc_native()\fR, \fBcalloc_native()\fR,
+\fBrealloc_native()\fR, \fBc_stralloc_native()\fR) must be paired with exactly one
+\fBfree_native()\fR call; there is no automatic memory management in this module
 .IP \(bu 2
-Freeing a variable that does not exist has no effect
+.B realloc_native()
+returns a new handle; do not continue using the handle you passed in, since its address may
+have moved or been freed
 .IP \(bu 2
-After calling
-.BR free() ,
-any further access to the freed variable will do nothing, as the entry will be NULL, not removed. You can reuse freed variables later.
+All read/write functions are bounded by the \fBsize\fR recorded in the handle you pass, not
+by any size you pass separately \(em to read or write fewer bytes, allocate a smaller block
+or use the \fB_offset\fR variants
+.IP \(bu 2
+The integer read/write functions
+.RB ( write_native (), " " read_native () ,
+and their
+.B _offset
+counterparts) cap every access at 8 bytes, the size of an \fBi64\fR
+.IP \(bu 2
+This module was previously exposed as a simpler, name-based API for freeing VM-managed
+values; that API no longer exists. All functions in this module now operate on native
+\fBManagedMemory\fR handles as described above.
 .SH AUTHOR
 Daniel McGuire
 .SH COPYRIGHT

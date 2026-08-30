@@ -1,3 +1,5 @@
+// Copyright 2019-2026 Daniel McGuire -- MIT License
+
 #define _WIN32_WINNT 0x0601
 
 #include <windows.h>

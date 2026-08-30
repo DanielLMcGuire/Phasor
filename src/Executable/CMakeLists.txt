@@ -78,16 +78,16 @@ set_target_properties(phasor_lsp PROPERTIES OUTPUT_NAME phasor-lsp)
 
 add_executable(phasor_disasm
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Disassembler_main.c
 )
-target_link_libraries(phasor_disasm phasor_disasm_lib)
+target_link_libraries(phasor_disasm phasor_native_runtime)
 set_target_properties(phasor_disasm PROPERTIES OUTPUT_NAME phasordecomp)
 
 add_executable(phasor_asm
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Assembler.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Assembler_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Shared/Assembler_main.c
 )
-target_link_libraries(phasor_asm phasor_asm_lib)
+target_link_libraries(phasor_asm phasor_native_runtime)
 set_target_properties(phasor_asm PROPERTIES OUTPUT_NAME phasorasm)
 
 add_executable(phasor_c_transpiler
@@ -99,9 +99,9 @@ set_target_properties(phasor_c_transpiler PROPERTIES OUTPUT_NAME phasorcc)
 
 add_executable(phasor_runtime_exe
     ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/BinaryRuntime.rc
-    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/BinaryRuntime_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Runtime/BinaryRuntime_main.c
 )
-target_link_libraries(phasor_runtime_exe phasor_binary_runtime_lib)
+target_link_libraries(phasor_runtime_exe phasor_native_runtime)
 set_target_properties(phasor_runtime_exe PROPERTIES OUTPUT_NAME phasorvm)
 
 endif() # NOT IS_XBOX AND NOT EMBEDDED

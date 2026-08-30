@@ -12,6 +12,9 @@ phasorstd_type \- Phasor type conversion and JSON functions
 .B to_json(value[, indent[, flags]])
 .B from_json(json_string)
 .B ascii_to_string(code)
+.B get_elements(struct_value)
+.B get_elements_values(struct_value)
+.B get_type(value)
 .fi
 .SH FUNCTIONS
 .TP
@@ -200,6 +203,64 @@ Single-character string corresponding to \fBcode\fR
 .B Throws:
 Runtime error if the argument is not an integer
 .RE
+.PP
+.TP
+.BR get_elements (struct_value)
+Get the field names of a struct instance.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstruct_value\fR 12
+A struct instance
+.RE
+.PP
+.B Returns:
+Array of strings, the field names of the struct (order matches the struct's internal field
+storage, not necessarily declaration order)
+.PP
+.B Throws:
+Runtime error if the argument is not a struct, or is a null struct instance
+.RE
+.PP
+.TP
+.BR get_elements_values (struct_value)
+Get the field values of a struct instance.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstruct_value\fR 12
+A struct instance
+.RE
+.PP
+.B Returns:
+Array of values, the field values of the struct, in the same order as the names returned by
+.BR get_elements()
+.PP
+.B Throws:
+Runtime error if the argument is not a struct, or is a null struct instance
+.RE
+.PP
+.TP
+.BR get_type (value)
+Get the runtime type code of a value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBvalue\fR 12
+Any value
+.RE
+.PP
+.B Returns:
+Integer type code: \fB0\fR = null, \fB1\fR = bool, \fB2\fR = int (i64), \fB3\fR = float (f64),
+\fB4\fR = string, \fB5\fR = struct (object), \fB6\fR = array. The named constants
+\fBvoid\fR, \fBbool\fR, \fBint\fR/\fBi64\fR, \fBfloat\fR/\fBf64\fR, \fBstring\fR,
+\fBobject\fR, and \fBarray\fR are available as fields on the \fBphs_type\fR struct once
+\fBphs/type.phs\fR (or \fBphs/types/type.phs\fR) is included; the array \fBphs_type_map\fR
+maps a code back to its type name (e.g.\& \fBphs_type_map[get_type(x)]\fR).
+.RE
 .SH EXAMPLES
 .B Integer Conversion
 .PP
@@ -271,7 +332,7 @@ puts(to_bool("0"));      // true (non-empty string)
 .RS
 include "std/type.phs";
 
-var json_str = "{\"name\":\"John\",\"age\":30,\"tags\":[\"dev\",\"ops\"]}";
+var json_str = "{\e"name\e":\e"John\e",\e"age\e":30,\e"tags\e":[\e"dev\e",\e"ops\e"]}";
 var data = from_json(json_str);
 
 puts(data.name);   // "John"
@@ -368,6 +429,25 @@ puts(ascii_to_string(65));   // "A"
 puts(ascii_to_string(97));   // "a"
 .RE
 .fi
+.PP
+.B Introspecting a Struct
+.PP
+.nf
+.RS
+include "std/type.phs";
+
+struct Point { x: i64, y: i64 }
+
+var p: Point = { x: 3, y: 4 };
+var names = get_elements(p);         // ["x", "y"]
+var values = get_elements_values(p); // [3, 4]
+
+puts(get_type(p));                   // 5 (phs_type.object)
+puts(phs_type_map[get_type(p)]);     // "object"
+puts(get_type(42));                  // 2 (phs_type.int)
+puts(get_type("hi"));                // 4 (phs_type.string)
+.RE
+.fi
 .SH NOTES
 .IP \(bu 2
 Integer conversion truncates floating-point values (does not round)
@@ -387,6 +467,13 @@ Very large integers may lose precision when converted to float
 \fBfrom_json\fR requires a valid JSON string; malformed input causes a runtime error
 .IP \(bu 2
 JSON objects become structs; JSON arrays become Phasor arrays. Nested combinations are fully supported.
+.IP \(bu 2
+.B get_type()
+returns an integer code, not a type name string; use \fBphs_type_map\fR to convert it to a
+human-readable name, or compare it against the named fields of \fBphs_type\fR
+.IP \(bu 2
+.BR get_elements() " and " get_elements_values()
+operate on struct instances only, and throw if given a null struct or a non-struct value
 .SH TYPE SYSTEM
 Phasor supports the following types:
 .RS

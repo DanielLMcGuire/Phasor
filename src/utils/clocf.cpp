@@ -1,3 +1,5 @@
+// Copyright 2025-2026 Daniel McGuire -- MIT License
+
 #include <algorithm>
 #include <charconv>
 #include <format>

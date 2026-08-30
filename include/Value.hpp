@@ -8,7 +8,7 @@
 //                                                                                                                                             //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Copyright 2026 Daniel McGuire
+// Copyright 2025-2026 Daniel McGuire
 // Phasor Toolchain Licensed under the Apache License, Version 2.0 (the "License");
 // Phasor Runtime Licensed under the Apache License (with Phasor Exceptions), Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1233,7 +1233,7 @@ inline Value Value::from_json(const Phasor::string& json) {
 
 template <> struct std::formatter<Phasor::Value>
 {
-	enum class Style
+	enum class Style: Phasor::u8
 	{
 		Value,
 		TypeOnly,

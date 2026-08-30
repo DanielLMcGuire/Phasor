@@ -12,9 +12,14 @@ phasorstd_io \- Phasor standard I/O functions
 .B puts(string)
 .B putf(format, ...)
 .B gets()
+.B get_input()
 .B puts_error(string)
 .B putf_error(format, ...)
 .fi
+.PP
+.B Note:
+.BR clear() ", " gets() ", and " get_input()
+are unavailable in sandboxed builds.
 .SH FUNCTIONS
 .TP
 .BR c_fmt (format, ...)
@@ -150,6 +155,20 @@ String containing the input line
 .RE
 .PP
 .TP
+.BR get_input ()
+Read from stdin until end-of-file and return everything read.
+.RS
+.PP
+.B Arguments:
+None
+.PP
+.B Returns:
+String containing the entire remaining contents of stdin, up to EOF. Unlike \fBgets()\fR,
+this does not stop at the first newline; it keeps reading until the input stream is closed
+(e.g.\& stdin is redirected from a file, or the sender closes a pipe).
+.RE
+.PP
+.TP
 .BR puts_error (string)
 Print a string to stderr followed by a newline character.
 .RS
@@ -214,6 +233,9 @@ printf("Result: %s got %f%%", name, score);
 puts("Enter your name:");
 var name = gets();
 putf("Hello, %s!", name);
+
+// Slurp everything piped into the program, e.g.\& `cat file | phasor script.phs`
+var all_input = get_input();
 .RE
 .fi
 .PP
@@ -242,7 +264,11 @@ All print functions flush output immediately
 .IP \(bu 2
 The
 .B gets()
-function reads until a newline character is encountered
+function reads until a newline character is encountered; \fBget_input()\fR instead reads
+until end-of-file, which may mean it blocks waiting for the input stream to close
+.IP \(bu 2
+.BR clear() ", " gets() ", and " get_input()
+are compiled out of sandboxed builds and are not available there
 .IP \(bu 2
 Format strings are processed at runtime, not compile time
 .IP \(bu 2
