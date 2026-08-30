@@ -1,0 +1,321 @@
+.TH PHASORSTD_INI 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.SH NAME
+phasorstd_ini \- Phasor INI file parsing and generation functions
+.SH SYNOPSIS
+.nf
+\fBinclude "std/ini.phs";\fR
+.PP
+.B ini_read(content)
+.B ini_write(data)
+.B ini_read_entry(content, section, key)
+.B ini_write_entry(content, section, key, value)
+.B ini_read_section(content, section)
+.B ini_write_section(content, section, entries)
+.B ini_has_section(content, section)
+.B ini_has_entry(content, section, key)
+.B ini_remove_section(content, section)
+.B ini_remove_entry(content, section, key)
+.B ini_empty(content)
+.fi
+.SH DESCRIPTION
+This module is quite simple, it reads and writes INI configuration data. Every function in this module
+works purely on strings: it takes INI data (text) as input and, for the write functions,
+returns updated INI-formatted text as output. None of these functions touch the filesystem thus 
+work fine while sandboxed; to work with an INI file on disk, read it with \fBfread()\fR (see \fBphasorstd_file\fR(3)),
+pass the contents through this module, and write the result back with \fBfwrite()\fR.
+.PP
+The parser recognizes \fB[section]\fR headers, \fBkey=value\fR entries, and \fB;\fR or
+\fB#\fR comments (a semicolon or hash only starts a comment at the beginning of a line or
+after whitespace, not inside a value). Entries that appear before any \fB[section]\fR header
+belong to an unnamed section with an empty-string name. Blank lines and surrounding
+whitespace around keys and values are ignored.
+.SH TYPES
+.TP
+.B IniFile / IniSection
+A parsed INI document is represented as a struct (conventionally named \fBIniFile\fR) whose
+field names are the section names (the unnamed section, if any, uses the key \fB""\fR) and
+whose field values are themselves structs (conventionally named \fBIniSection\fR) mapping
+each entry's key to its string value. There is no fixed declared \fBIniFile\fR/\fBIniSection\fR
+type to include; these structs are built and consumed dynamically, with whatever section and
+key names are present in the data.
+.SH FUNCTIONS
+.TP
+.BR ini_read (content)
+Parse INI text into a struct.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.RE
+.PP
+.B Returns:
+An \fBIniFile\fR struct: one field per section, each holding an \fBIniSection\fR struct of
+that section's key/value pairs (see TYPES)
+.RE
+.PP
+.TP
+.BR ini_write (data)
+Serialize a struct back to INI text.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBdata\fR 12
+An \fBIniFile\fR-shaped struct, typically from \fBini_read()\fR
+.RE
+.PP
+.B Returns:
+INI-formatted text. Non-string entry values are converted with the same rules as
+\fBto_string()\fR (see \fBphasorstd_type\fR(3)).
+.PP
+.B Throws:
+Runtime error if \fBdata\fR is not a struct
+.RE
+.PP
+.TP
+.BR ini_read_entry (content, section, key)
+Read a single value directly out of INI text, without building a full struct.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.IP \fBsection\fR 12
+Section name (use \fB""\fR for the unnamed section)
+.IP \fBkey\fR 12
+Entry key
+.RE
+.PP
+.B Returns:
+The entry's string value, or an empty string if the section or key does not exist (there is
+no way to distinguish a missing key from a key whose value is genuinely empty; use
+\fBini_has_entry()\fR first if that distinction matters)
+.RE
+.PP
+.TP
+.BR ini_write_entry (content, section, key, value)
+Set a single value in INI text, creating the section and/or key if needed.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+Existing INI-formatted text (may be an empty string to start a new document)
+.IP \fBsection\fR 12
+Section name to write into; created at the end of the document if it does not already exist
+.IP \fBkey\fR 12
+Entry key; created if it does not already exist, otherwise its value is overwritten
+.IP \fBvalue\fR 12
+New value. If not already a string, it is converted with the same rules as \fBto_string()\fR.
+.RE
+.PP
+.B Returns:
+The updated INI-formatted text
+.RE
+.PP
+.TP
+.BR ini_read_section (content, section)
+Read an entire section out of INI text.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.IP \fBsection\fR 12
+Section name
+.RE
+.PP
+.B Returns:
+An \fBIniSection\fR struct of the section's key/value pairs, or null if the section does not
+exist
+.RE
+.PP
+.TP
+.BR ini_write_section (content, section, entries)
+Replace an entire section in INI text (or add it if it doesn't exist).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+Existing INI-formatted text
+.IP \fBsection\fR 12
+Section name to replace or add
+.IP \fBentries\fR 12
+A struct whose fields become the section's entries, replacing any entries the section
+previously had. Non-string field values are converted with the same rules as
+\fBto_string()\fR.
+.RE
+.PP
+.B Returns:
+The updated INI-formatted text
+.PP
+.B Throws:
+Runtime error if \fBentries\fR is not a struct
+.RE
+.PP
+.TP
+.BR ini_has_section (content, section)
+Check whether a section exists.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.IP \fBsection\fR 12
+Section name
+.RE
+.PP
+.B Returns:
+Boolean true if the section exists, false otherwise
+.RE
+.PP
+.TP
+.BR ini_has_entry (content, section, key)
+Check whether a key exists within a section.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.IP \fBsection\fR 12
+Section name
+.IP \fBkey\fR 12
+Entry key
+.RE
+.PP
+.B Returns:
+Boolean true if the section and key both exist, false otherwise
+.RE
+.PP
+.TP
+.BR ini_remove_section (content, section)
+Remove an entire section from INI text.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.IP \fBsection\fR 12
+Section name to remove
+.RE
+.PP
+.B Returns:
+The updated INI-formatted text with the section removed. If the section did not exist, the
+text is returned unchanged (except for having been re-serialized, which may normalize
+whitespace and comments away).
+.RE
+.PP
+.TP
+.BR ini_remove_entry (content, section, key)
+Remove a single key from a section.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+INI-formatted text
+.IP \fBsection\fR 12
+Section name
+.IP \fBkey\fR 12
+Entry key to remove
+.RE
+.PP
+.B Returns:
+The updated INI-formatted text with the entry removed. If the section or key did not exist,
+the text is returned unchanged (aside from re-serialization).
+.RE
+.PP
+.TP
+.BR ini_empty (content)
+Check whether INI text is empty or contains only whitespace.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBcontent\fR 12
+Text to check
+.RE
+.PP
+.B Returns:
+Boolean true if \fBcontent\fR is empty or contains only whitespace, false otherwise. This
+does not parse the content as INI; it does not detect, for example, a document that contains
+only comments.
+.RE
+.SH EXAMPLES
+.B Reading and Writing a Config File
+.PP
+.nf
+.RS
+include "std/ini.phs";
+include "std/file.phs";
+
+var content: string = fread("config.ini");
+var config: any = ini_read(content);
+
+puts(config.database.host);
+puts(config.database.port);
+
+// Round-trip: modify one entry and write the file back
+var updated: string = ini_write_entry(content, "database", "port", "5433");
+fwrite("config.ini", updated);
+.RE
+.fi
+.PP
+.B Direct Entry Access
+.PP
+.nf
+.RS
+include "std/ini.phs";
+
+var doc: string = "[server]\enhost=localhost\enport=8080\en";
+
+if (ini_has_entry(doc, "server", "port")) {
+    puts(ini_read_entry(doc, "server", "port"));  // "8080"
+}
+
+doc = ini_write_entry(doc, "server", "timeout", "30");
+doc = ini_remove_entry(doc, "server", "host");
+puts(doc);
+.RE
+.fi
+.PP
+.B Building a Document from Scratch
+.PP
+.nf
+.RS
+include "std/ini.phs";
+
+var doc: string = "";
+doc = ini_write_section(doc, "app", { name: "MyApp", version: "1.0" });
+doc = ini_write_section(doc, "app", { name: "MyApp", version: "1.0", debug: "true" });
+puts(doc);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+Every function in this module is a pure string transformation; none of them read or write
+files directly \(em combine them with \fBfread()\fR/\fBfwrite()\fR (see
+\fBphasorstd_file\fR(3)) to persist changes to disk
+.IP \(bu 2
+Because the write functions re-parse and re-serialize the entire document, round-tripping
+through any \fBini_write_*()\fR function normalizes formatting (spacing around \fB=\fR,
+blank lines between sections) and drops comments
+.IP \(bu 2
+Comment characters (\fB;\fR and \fB#\fR) only start a comment at the start of a line or after
+whitespace; a semicolon or hash inside an unquoted value is treated as part of the value
+.IP \(bu 2
+.B ini_read_entry()
+cannot distinguish "key not found" from "key found with an empty value"; use
+\fBini_has_entry()\fR if that distinction matters
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

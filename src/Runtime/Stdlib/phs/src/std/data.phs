@@ -13,11 +13,11 @@
 include "../../include/std/types/mem.phs";
 
 
-fn base64_encode_native(handle: ManagedMemory) -> string {
-    return phs__base64_encode_native(handle.ptr, handle.size);
+fn base64_encode_native(handle: ManagedMemory, urlSafe: bool) -> string {
+    return phs__base64_encode_native(handle.ptr, handle.size, urlSafe);
 }
 
-fn base64_decode_native(data: string) -> ManagedMemory {
+fn base64_decode_native(data: string, handle: ManagedMemory) -> i64 {
     return phs__base64_decode_native(data, handle.ptr, handle.size);
 }
 

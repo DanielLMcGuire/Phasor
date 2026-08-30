@@ -1,0 +1,390 @@
+.TH PHASORSTD_NET 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.SH NAME
+phasorstd_net \- Phasor TCP and UDP networking functions
+.SH SYNOPSIS
+.nf
+\fBinclude "std/net.phs";\fR
+.PP
+.B net_connect(host, port[, timeoutMs])
+.B net_listen(host, port[, backlog])
+.B net_accept(listener[, timeoutMs])
+.B net_close_listener(listener)
+.B net_set_timeout(fd, ms)
+.B net_set_option(fd, option, value)
+.B net_shutdown(fd[, how])
+.B net_peer_address(fd)
+.B net_local_address(fd)
+.B net_resolve(host)
+.B net_udp_open([bind_host, bind_port])
+.B net_udp_send_to(handle, host, port, data)
+.B net_udp_recv_from(handle, max_length[, timeoutMs])
+.B net_udp_close(handle)
+.fi
+.PP
+\fBinclude "std/http";\fR
+is also included automatically; see \fBphasorstd_http\fR(3).
+.SH DESCRIPTION
+This module provides raw TCP client/server sockets and UDP datagram sockets. TCP
+.I connections
+(from \fBnet_connect()\fR or \fBnet_accept()\fR) are exposed as ordinary file descriptors,
+usable with \fBfread()\fR, \fBfreadln()\fR, \fBfwrite()\fR, \fBfappend()\fR, and
+\fBfclose()\fR from \fBphasorstd_file\fR(3) \(em \fBfkind()\fR reports these as kind
+.B 3
+(socket). TCP
+.I listeners
+and UDP sockets, by contrast, use a separate integer handle space of their own (returned by
+\fBnet_listen()\fR and \fBnet_udp_open()\fR); these handles are
+.B not
+file descriptors and cannot be passed to the \fBphasorstd_file\fR(3) functions.
+.SH FUNCTIONS
+.TP
+.BR net_connect (host, port[, timeoutMs])
+Open a TCP connection to a remote host.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhost\fR 12
+Hostname or IP address to connect to
+.IP \fBport\fR 12
+TCP port number
+.IP \fBtimeoutMs\fR 12
+Optional connect/read/write timeout in milliseconds. If omitted, no timeout is applied.
+.RE
+.PP
+.B Returns:
+A file descriptor (integer) for the connection, usable with \fBfread()\fR, \fBfreadln()\fR,
+\fBfwrite()\fR, and \fBfclose()\fR (see \fBphasorstd_file\fR(3)); or null if the connection
+could not be established
+.RE
+.PP
+.TP
+.BR net_listen (host, port[, backlog])
+Create a TCP listening socket.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhost\fR 12
+Local address to bind to; an empty string or \fB"*"\fR binds to all interfaces
+(\fB0.0.0.0\fR)
+.IP \fBport\fR 12
+TCP port number to listen on
+.IP \fBbacklog\fR 12
+Optional pending-connection queue size (default \fB128\fR)
+.RE
+.PP
+.B Returns:
+A listener handle (integer, from a separate handle space, not a file descriptor), for use
+with \fBnet_accept()\fR and \fBnet_close_listener()\fR; or null if binding or listening
+failed
+.RE
+.PP
+.TP
+.BR net_accept (listener[, timeoutMs])
+Accept the next incoming connection on a listener.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBlistener\fR 12
+A listener handle from \fBnet_listen()\fR
+.IP \fBtimeoutMs\fR 12
+Optional maximum time to wait for a pending connection, in milliseconds. If omitted, blocks
+indefinitely until a connection arrives.
+.RE
+.PP
+.B Returns:
+A struct describing the accepted connection, or null if \fBlistener\fR is not a valid
+listener handle, the timeout elapsed with no connection, or accepting otherwise failed:
+.RS
+.IP \fBfd\fR 12
+File descriptor for the new connection, usable with \fBfread()\fR/\fBfwrite()\fR/etc.
+.IP \fBhost\fR 12
+Remote peer's IP address as a string
+.IP \fBport\fR 12
+Remote peer's port number
+.RE
+.RE
+.PP
+.TP
+.BR net_close_listener (listener)
+Close a TCP listening socket.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBlistener\fR 12
+A listener handle from \fBnet_listen()\fR
+.RE
+.PP
+.B Returns:
+Boolean true
+.RE
+.PP
+.TP
+.BR net_set_timeout (fd, ms)
+Set the read and write timeout on an open TCP connection.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+A file descriptor from \fBnet_connect()\fR or \fBnet_accept()\fR
+.IP \fBms\fR 12
+Timeout in milliseconds, applied to both reads and writes
+.RE
+.PP
+.B Returns:
+Boolean true on success, false if \fBfd\fR is not an open socket descriptor
+.RE
+.PP
+.TP
+.BR net_set_option (fd, option, value)
+Set a low-level socket option on an open TCP connection.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+A file descriptor from \fBnet_connect()\fR or \fBnet_accept()\fR
+.IP \fBoption\fR 12
+Option name: \fB"nodelay"\fR (disable Nagle's algorithm) or \fB"keepalive"\fR (enable TCP
+keepalive)
+.IP \fBvalue\fR 12
+Boolean, or an integer treated as a boolean (nonzero enables the option)
+.RE
+.PP
+.B Returns:
+Boolean true on success, false if \fBfd\fR is not an open socket descriptor or the option
+could not be set
+.PP
+.B Throws:
+Runtime error if \fBoption\fR is not \fB"nodelay"\fR or \fB"keepalive"\fR
+.RE
+.PP
+.TP
+.BR net_shutdown (fd[, how])
+Shut down one or both directions of an open TCP connection without closing its descriptor.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+A file descriptor from \fBnet_connect()\fR or \fBnet_accept()\fR
+.IP \fBhow\fR 12
+Optional direction: \fB"read"\fR, \fB"write"\fR, or the default \fB"both"\fR
+.RE
+.PP
+.B Returns:
+Boolean true on success, false if \fBfd\fR is not an open socket descriptor or the shutdown
+call failed. The descriptor itself remains open and should still be closed with
+\fBfclose()\fR when done.
+.RE
+.PP
+.TP
+.BR net_peer_address (fd)
+Get the remote address of an open TCP connection.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+A file descriptor from \fBnet_connect()\fR or \fBnet_accept()\fR
+.RE
+.PP
+.B Returns:
+A struct with \fBhost\fR (string) and \fBport\fR (integer) fields, or null if \fBfd\fR is not
+an open socket descriptor
+.RE
+.PP
+.TP
+.BR net_local_address (fd)
+Get the local address of an open TCP connection.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBfd\fR 12
+A file descriptor from \fBnet_connect()\fR or \fBnet_accept()\fR
+.RE
+.PP
+.B Returns:
+A struct with \fBhost\fR (string) and \fBport\fR (integer) fields, or null if \fBfd\fR is not
+an open socket descriptor
+.RE
+.PP
+.TP
+.BR net_resolve (host)
+Resolve a hostname to its IP addresses.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhost\fR 12
+Hostname to resolve
+.RE
+.PP
+.B Returns:
+Array of IP address strings (IPv4 and/or IPv6, in whatever order the system resolver returns
+them), or null if resolution failed
+.RE
+.SH UDP FUNCTIONS
+.TP
+.BR net_udp_open ([bind_host, bind_port])
+Create a UDP socket.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBbind_host\fR 12
+Optional local address to bind to. If given, \fBbind_port\fR must also be given.
+.IP \fBbind_port\fR 12
+Optional local port to bind to, for receiving datagrams on a known port. If both arguments
+are omitted, the socket is left unbound and can only be used to send, with the OS assigning
+an ephemeral local port.
+.RE
+.PP
+.B Returns:
+A UDP handle (integer, from the same handle space as \fBnet_listen()\fR, not a file
+descriptor), or null if the socket could not be created or bound
+.RE
+.PP
+.TP
+.BR net_udp_send_to (handle, host, port, data)
+Send a UDP datagram.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A UDP handle from \fBnet_udp_open()\fR
+.IP \fBhost\fR 12
+Destination IPv4 address (as a dotted-decimal string; hostnames are not resolved here, use
+\fBnet_resolve()\fR first if needed)
+.IP \fBport\fR 12
+Destination port
+.IP \fBdata\fR 12
+String payload to send
+.RE
+.PP
+.B Returns:
+Integer number of bytes sent, or \fB\-1\fR if \fBhandle\fR is not a valid UDP handle or the
+send failed
+.RE
+.PP
+.TP
+.BR net_udp_recv_from (handle, max_length[, timeoutMs])
+Receive a UDP datagram.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A UDP handle from \fBnet_udp_open()\fR
+.IP \fBmax_length\fR 12
+Maximum number of bytes to receive; datagrams larger than this are truncated
+.IP \fBtimeoutMs\fR 12
+Optional maximum time to wait for a datagram, in milliseconds. If omitted, blocks
+indefinitely.
+.RE
+.PP
+.B Returns:
+A struct with \fBdata\fR (the received bytes as a string), \fBhost\fR (sender's IPv4 address),
+and \fBport\fR (sender's port); or null if \fBhandle\fR is not a valid UDP handle, the
+timeout elapsed, or nothing was received
+.RE
+.PP
+.TP
+.BR net_udp_close (handle)
+Close a UDP socket.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A UDP handle from \fBnet_udp_open()\fR
+.RE
+.PP
+.B Returns:
+Boolean true
+.RE
+.SH EXAMPLES
+.B TCP Client
+.PP
+.nf
+.RS
+include "std/net.phs";
+include "std/file.phs";
+
+var fd: int = net_connect("example.com", 80, 5000);
+if (fd == null) {
+    puts("Connection failed");
+} else {
+    fwrite(fd, "GET / HTTP/1.0\er\enHost: example.com\er\en\er\en");
+    var response: string = fread(fd);
+    fclose(fd);
+    puts(response);
+}
+.RE
+.fi
+.PP
+.B TCP Server
+.PP
+.nf
+.RS
+include "std/net.phs";
+include "std/file.phs";
+
+var listener: any = net_listen("0.0.0.0", 9000);
+if (listener == null) {
+    puts("Failed to start listener");
+} else {
+    var conn: any = net_accept(listener);
+    if (conn != null) {
+        putf("Connection from %s:%d", conn.host, conn.port);
+        var line = freadln(conn.fd);
+        fwrite(conn.fd, "Hello, client!\en");
+        fclose(conn.fd);
+    }
+    net_close_listener(listener);
+}
+.RE
+.fi
+.PP
+.B UDP
+.PP
+.nf
+.RS
+include "std/net.phs";
+
+var sock: any = net_udp_open("0.0.0.0", 9001);
+var packet: any = net_udp_recv_from(sock, 1024, 5000);
+if (packet != null) {
+    putf("Got %s from %s:%d", packet.data, packet.host, packet.port);
+    net_udp_send_to(sock, packet.host, packet.port, "ack");
+}
+net_udp_close(sock);
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+Handles from \fBnet_listen()\fR and \fBnet_udp_open()\fR live in a separate handle space
+from file descriptors; do not pass them to \fBfread()\fR/\fBfwrite()\fR/\fBfclose()\fR or vice
+versa
+.IP \(bu 2
+Connections from \fBnet_connect()\fR and \fBnet_accept()\fR
+.I are
+file descriptors and must be closed with \fBfclose()\fR, not a networking-specific close
+function
+.IP \(bu 2
+.B net_udp_send_to()
+requires a numeric IPv4 address, not a hostname; resolve hostnames with \fBnet_resolve()\fR
+first
+.IP \(bu 2
+This module has no built-in TLS/SSL support; connections made with \fBnet_connect()\fR are
+always plaintext
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

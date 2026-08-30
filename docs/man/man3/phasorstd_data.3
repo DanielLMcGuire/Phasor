@@ -1,0 +1,245 @@
+.TH PHASORSTD_DATA 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.SH NAME
+phasorstd_data \- Phasor encoding and hashing functions
+.SH SYNOPSIS
+.nf
+\fBinclude "std/data.phs";\fR
+.PP
+.B base64_encode(input, url_safe)
+.B base64_decode(data)
+.B md5(input)
+.B sha1(input)
+.B sha256(input)
+.PP
+.B base64_encode_native(handle)
+.B base64_decode_native(data)
+.B md5_native(handle)
+.B sha1_native(handle)
+.B sha256_native(handle)
+.fi
+.SH DESCRIPTION
+This module provides encoding/decoding, hashing, potentially home to cryptographic functions 
+in the future. Each function has a simple string-based form (documented under FUNCTIONS) and
+.B ManagedMemory
+the native form (see \fBphasorstd_mem\fR(3) for the \fBManagedMemory\fR type) that
+operates directly on a heap allocation instead of a Phasor string, for hashing or encoding
+actual data.
+.SH FUNCTIONS
+.TP
+.BR base64_encode (input, url_safe)
+Base64-encode a string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBinput\fR 12
+String to encode
+.IP \fBurl_safe\fR 12
+Boolean; if true, uses the URL- and filename-safe Base64 alphabet (\fB\-\fR and \fB_\fR in
+place of \fB+\fR and \fB/\fR) instead of standard Base64
+.RE
+.PP
+.B Returns:
+Base64-encoded string
+.PP
+.B Throws:
+Runtime error if \fBinput\fR is not a string or \fBurl_safe\fR is not a boolean
+.RE
+.PP
+.TP
+.BR base64_decode (data)
+Decode a Base64-encoded string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBdata\fR 12
+Base64-encoded string (standard or URL-safe alphabet)
+.RE
+.PP
+.B Returns:
+The decoded string
+.PP
+.B Throws:
+Runtime error if \fBdata\fR is not a string
+.RE
+.PP
+.TP
+.BR md5 (input)
+Compute the MD5 digest of a string.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBinput\fR 12
+String to hash
+.RE
+.PP
+.B Returns:
+32-character lowercase hexadecimal MD5 digest
+.PP
+.B Throws:
+Runtime error if \fBinput\fR is not a string
+.RE
+.PP
+.TP
+.BR sha1 (input)
+Compute the SHA-1 digest of a value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBinput\fR 12
+String, integer, or float to hash. A string is hashed as its text bytes; an integer or float
+is hashed as the raw bytes of its in-memory representation (platform-dependent size and
+endianness), not as the text of its decimal representation.
+.RE
+.PP
+.B Returns:
+40-character lowercase hexadecimal SHA-1 digest, or an empty string if \fBinput\fR is a type
+other than string, integer, or float (e.g.\& boolean, array, struct, or null)
+.RE
+.PP
+.TP
+.BR sha256 (input)
+Compute the SHA-256 digest of a value.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBinput\fR 12
+String, integer, or float to hash, with the same string-vs-numeric hashing rules as
+\fBsha1()\fR
+.RE
+.PP
+.B Returns:
+64-character lowercase hexadecimal SHA-256 digest, or an empty string if \fBinput\fR is a
+type other than string, integer, or float
+.RE
+.SH NATIVE MEMORY VARIANTS
+These operate on a \fBManagedMemory\fR handle (see \fBphasorstd_mem\fR(3)) instead of a
+Phasor string, hashing or transcoding the raw bytes of the allocation directly.
+.TP
+.BR md5_native (handle)
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.RE
+.PP
+.B Returns:
+32-character lowercase hexadecimal MD5 digest of the \fBhandle.size\fR bytes at
+\fBhandle.ptr\fR
+.RE
+.PP
+.TP
+.BR sha1_native (handle)
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.RE
+.PP
+.B Returns:
+40-character lowercase hexadecimal SHA-1 digest of the \fBhandle.size\fR bytes at
+\fBhandle.ptr\fR
+.RE
+.PP
+.TP
+.BR sha256_native (handle)
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.RE
+.PP
+.B Returns:
+64-character lowercase hexadecimal SHA-256 digest of the \fBhandle.size\fR bytes at
+\fBhandle.ptr\fR
+.RE
+.PP
+.TP
+.BR base64_encode_native (handle)
+Intended to Base64-encode the raw bytes of a \fBManagedMemory\fR allocation.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBhandle\fR 12
+A \fBManagedMemory\fR handle
+.RE
+.PP
+.B Returns:
+Base64-encoded string of the \fBhandle.size\fR bytes at \fBhandle.ptr\fR, using the standard
+(non-URL-safe) alphabet
+.RE
+.PP
+.TP
+.BR base64_decode_native (data)
+Intended to decode a Base64 string into a newly allocated \fBManagedMemory\fR buffer.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBdata\fR 12
+Base64-encoded string
+.RE
+.PP
+.B Returns:
+A \fBManagedMemory\fR handle over a new heap allocation holding the decoded bytes; must be
+released with \fBfree_native()\fR (see \fBphasorstd_mem\fR(3)) when no longer needed
+.RE
+.SH EXAMPLES
+.B Base64
+.PP
+.nf
+.RS
+include "std/data.phs";
+
+var encoded: string = base64_encode("hello, world", false);
+puts(encoded);                    // "aGVsbG8sIHdvcmxk"
+puts(base64_decode(encoded));     // "hello, world"
+.RE
+.fi
+.PP
+.B Hashing
+.PP
+.nf
+.RS
+include "std/data.phs";
+
+puts(md5("hello"));      // 5d41402abc4b2a76b9719d911017c592
+puts(sha1("hello"));     // aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
+puts(sha256("hello"));   // 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+
+// Hashing a number hashes its raw bytes, not its printed digits
+puts(sha256(42));
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+.B md5()
+requires a string and throws on any other type;
+.BR sha1() " and " sha256()
+instead accept string, integer, or float and silently return an empty string for any other
+type (boolean, array, struct, null) \(em check the return value if the input type is not
+guaranteed to be one of these three
+.IP \(bu 2
+Hashing an integer or float hashes the raw bytes of its native representation, which is
+platform- and build-dependent; if you need a stable, portable hash of a number, convert it to
+a string first and hash that instead (e.g.\& \fBsha256(to_string(42))\fR)
+.IP \(bu 2
+.B base64_encode()
+requires the \fBurl_safe\fR argument explicitly; there is no default
+.IP \(bu 2
+All hash digests are returned as lowercase hexadecimal strings
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

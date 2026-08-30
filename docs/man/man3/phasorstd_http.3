@@ -1,0 +1,205 @@
+.TH PHASORSTD_HTTP 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.SH NAME
+phasorstd_http \- Phasor HTTP client functions
+.SH SYNOPSIS
+.nf
+\fBinclude "std/http";\fR
+.PP
+.B http_request(method, url[, body[, headers[, timeoutMs[, maxRedirects]]]])
+.B http_useragent(user_agent)
+.PP
+.I "Convenience wrappers, all built on http_request():"
+.B http_get(url, headers, timeoutMs)
+.B http_post(url, body, headers, timeoutMs)
+.B http_put(url, body, headers, timeoutMs)
+.B http_patch(url, body, headers, timeoutMs)
+.B http_delete(url, body, headers, timeoutMs)
+.B http_head(url, headers, timeoutMs)
+.B http_options(url, headers, timeoutMs)
+.fi
+.SH TYPES
+.TP
+.B HTTPHeader
+.RS
+.nf
+struct HTTPHeader {
+    key: string,
+    value: string
+}
+.fi
+.RE
+.TP
+.B HTTPResponse
+.RS
+.nf
+struct HTTPResponse {
+    status: int,
+    headers: HTTPHeader[],
+    body: string
+}
+.fi
+.RE
+.TP
+.B HTTPCode
+A struct of named integer constants for common HTTP status codes, e.g.\&
+\fBHTTPCode.OK\fR (200), \fBHTTPCode.NotFound\fR (404), \fBHTTPCode.InternalServerError\fR
+(500). Available once \fBstd/http\fR (or \fBstd/net.phs\fR) is included.
+.SH FUNCTIONS
+.TP
+.BR http_request (method, url[, body[, headers[, timeoutMs[, maxRedirects]]]])
+Perform an HTTP request. This is the underlying function every convenience wrapper below
+calls; use it directly for methods or options the wrappers don't expose.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBmethod\fR 12
+HTTP method, e.g.\& \fB"GET"\fR, \fB"POST"\fR, \fB"PUT"\fR, \fB"DELETE"\fR
+.IP \fBurl\fR 12
+Full URL, including scheme (\fBhttp://\fR only \(em see NOTES) and host
+.IP \fBbody\fR 12
+Optional request body string. Pass null to send no body.
+.IP \fBheaders\fR 12
+Optional array of \fBHTTPHeader\fR structs (or equivalent \fB{key, value}\fR structs) to add
+to the request. A \fBHost\fR, \fBConnection\fR, \fBUser-Agent\fR, and \fBAccept\fR header are
+always added automatically; a \fBContent-Length\fR header is added automatically for a
+non-empty \fBbody\fR unless one of your headers already sets it (case-insensitively).
+.IP \fBtimeoutMs\fR 12
+Optional connect/read/write timeout in milliseconds (default \fB15000\fR)
+.IP \fBmaxRedirects\fR 12
+Optional maximum number of \fB3xx\fR redirects to follow (default \fB5\fR). A \fB301\fR,
+\fB302\fR, or \fB303\fR redirect switches the method to \fBGET\fR and drops the body, matching
+common browser behavior; other \fB3xx\fR statuses with a \fBLocation\fR header re-request the
+new location with the same method and body.
+.RE
+.PP
+.B Returns:
+An \fBHTTPResponse\fR struct: \fBstatus\fR (integer status code, or \fB0\fR if the final
+response's status line couldn't be parsed), \fBheaders\fR (array of \fBHTTPHeader\fR structs
+from the final response), and \fBbody\fR (the final response's body, with \fBchunked\fR
+transfer-encoding already decoded)
+.PP
+.B Throws:
+Runtime error if \fBurl\fR cannot be parsed, if \fBurl\fR (or a redirect target) uses a scheme
+other than \fBhttp\fR (including \fBhttps\fR \(em see NOTES), or if the connection to the
+server fails
+.RE
+.PP
+.TP
+.BR http_useragent (user_agent)
+Set the \fBUser-Agent\fR header sent with every subsequent \fBhttp_request()\fR call (and
+therefore every convenience wrapper call).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBuser_agent\fR 12
+New User-Agent string, replacing the default entirely
+.RE
+.PP
+.B Returns:
+Null
+.RE
+.SH CONVENIENCE WRAPPERS
+Each of these simply calls \fBhttp_request()\fR, so their argument and
+return semantics are otherwise identical to it. All of them use the default
+\fBmaxRedirects\fR (5); use \fBhttp_request()\fR directly if you need to change it!
+.TP
+.BR http_get (url, headers, timeoutMs)
+Equivalent to \fBhttp_request("GET", url, null, headers, timeoutMs)\fR.
+.TP
+.BR http_post (url, body, headers, timeoutMs)
+Equivalent to \fBhttp_request("POST", url, body, headers, timeoutMs)\fR.
+.TP
+.BR http_put (url, body, headers, timeoutMs)
+Equivalent to \fBhttp_request("PUT", url, body, headers, timeoutMs)\fR.
+.TP
+.BR http_patch (url, body, headers, timeoutMs)
+Equivalent to \fBhttp_request("PATCH", url, body, headers, timeoutMs)\fR.
+.TP
+.BR http_delete (url, body, headers, timeoutMs)
+Equivalent to \fBhttp_request("DELETE", url, body, headers, timeoutMs)\fR.
+.TP
+.BR http_head (url, headers, timeoutMs)
+Equivalent to \fBhttp_request("HEAD", url, null, headers, timeoutMs)\fR.
+.TP
+.BR http_options (url, headers, timeoutMs)
+Equivalent to \fBhttp_request("OPTIONS", url, null, headers, timeoutMs)\fR.
+.PP
+Unlike \fBhttp_request()\fR, none of these seven wrappers treat \fBheaders\fR or
+\fBtimeoutMs\fR as optional at the Phasor call-site \(em pass an empty array (\fB[]\fR) for
+no extra headers, and the default timeout explicitly if you want it.
+.SH EXAMPLES
+.B Simple GET
+.PP
+.nf
+.RS
+include "std/http";
+
+var res: HTTPResponse = http_get("http://example.com/api/status", [], 10000);
+if (res.status == HTTPCode.OK) {
+    puts(res.body);
+} else {
+    putf("Request failed with status %d", res.status);
+}
+.RE
+.fi
+.PP
+.B POST with Headers
+.PP
+.nf
+.RS
+include "std/http";
+
+var headers: HTTPHeader[] = [
+    { key: "Content-Type", value: "application/json" },
+    { key: "Authorization", value: "Bearer some-token" }
+];
+
+var res: HTTPResponse = http_post(
+    "http://example.com/api/items",
+    "{\e"name\e": \e"widget\e"}",
+    headers,
+    10000
+);
+
+putf("Status: %d", res.status);
+for (var i: i64 = 0; i < res.headers.length; i++) {
+    putf("%s: %s", res.headers[i].key, res.headers[i].value);
+}
+.RE
+.fi
+.PP
+.B Custom User-Agent and Raw Request
+.PP
+.nf
+.RS
+include "std/http";
+
+http_useragent("MyPhasorApp/1.0");
+
+// http_request() directly, to control redirect following
+var res: HTTPResponse = http_request("GET", "http://example.com/", null, [], 5000, 0);
+puts(res.status);  // a 3xx status here, since redirects are disabled (maxRedirects: 0)
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+.B https://
+URLs are not supported: TLS/SSL is not implemented, and \fBhttp_request()\fR throws a runtime
+error if given (or redirected to) an \fBhttps://\fR URL. Only plain \fBhttp://\fR is usable for now.
+.IP \(bu 2
+.B http_useragent()
+changes the User-Agent for the whole process going forward, not just the next call; there is
+no way to override it for a single request without changing it back afterward
+.IP \(bu 2
+Each call to \fBhttp_request()\fR (and therefore each wrapper call) opens and closes its own
+TCP connection; there is no connection reuse or keep-alive across calls
+.IP \(bu 2
+A response with no \fBContent-Length\fR and no chunked \fBTransfer-Encoding\fR is read until
+the server closes the connection, which relies on the request having sent
+\fBConnection: close\fR (always true here, since that header is added automatically)
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire

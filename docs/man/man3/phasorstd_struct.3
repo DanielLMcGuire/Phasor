@@ -1,0 +1,157 @@
+.TH PHASORSTD_STRUCT 3 "August 2026" "Phasor 4.0.0" "Phasor Standard Library 4.0.0"
+.SH NAME
+phasorstd_struct \- Phasor struct field and array-of-structs search functions
+.SH SYNOPSIS
+.nf
+\fBinclude "std/struct";\fR
+.PP
+.B has(struct_value, field_name)
+.B struct_find(array, field_name[, value])
+.B filter(array, conditions)
+.fi
+.SH DESCRIPTION
+This module provides functions for structs, obviously.
+To inspect the actual list of field
+.I names
+a struct has (rather than just checking one), see \fBget_elements()\fR and
+\fBget_elements_values()\fR in \fBphasorstd_type\fR(3).
+.SH FUNCTIONS
+.TP
+.BR has (struct_value, field_name)
+Check whether a struct has a given field.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBstruct_value\fR 12
+A struct instance
+.IP \fBfield_name\fR 12
+Field name to look for
+.RE
+.PP
+.B Returns:
+Boolean true if the struct has a field named \fBfield_name\fR, false otherwise
+.PP
+.B Throws:
+Runtime error if \fBstruct_value\fR is not a struct, or \fBfield_name\fR is not a string
+.RE
+.PP
+.TP
+.BR struct_find (array, field_name[, value])
+Find the first struct in an array whose given field is present (and, optionally, equal to a
+specific value).
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to search. Non-struct elements are skipped rather than causing an error.
+.IP \fBfield_name\fR 12
+Field name each candidate struct must have
+.IP \fBvalue\fR 12
+Optional value the field must equal. If omitted, the first struct that simply has a field
+named \fBfield_name\fR is returned, regardless of its value.
+.RE
+.PP
+.B Returns:
+The first matching struct element, or null if no element matches (or if the array is empty)
+.PP
+.B Throws:
+Runtime error if \fBarray\fR is not an array, if \fBfield_name\fR is not a string, or if more
+than 3 arguments are given
+.RE
+.PP
+.TP
+.BR filter (array, conditions)
+Find every struct in an array that matches a set of field/value conditions, all of which must
+hold.
+.RS
+.PP
+.B Arguments:
+.RS
+.IP \fBarray\fR 12
+Array to search. Non-struct elements are skipped rather than causing an error.
+.IP \fBconditions\fR 12
+Array of condition structs, each with an \fBelementName\fR string field naming the field to
+check, and an optional \fBvalue\fR field giving the value it must equal (if \fBvalue\fR is
+omitted from a condition, the field must equal null to match)
+.RE
+.PP
+.B Returns:
+A new array containing every element of \fBarray\fR that is a struct, has every field named
+in \fBconditions\fR, and whose value for each of those fields equals the corresponding
+condition's \fBvalue\fR. Returns an empty array if nothing matches.
+.PP
+.B Throws:
+Runtime error if \fBarray\fR or \fBconditions\fR is not an array, if any element of
+\fBconditions\fR is not a struct, or if a condition struct is missing an \fBelementName\fR
+field or has a non-string \fBelementName\fR
+.RE
+.SH EXAMPLES
+.B Checking and Finding
+.PP
+.nf
+.RS
+include "std/struct";
+
+var people: any[] = [
+    { name: "Alice", age: 30, role: "admin" },
+    { name: "Bob", age: 25 },
+    { name: "Carol", age: 30, role: "editor" }
+];
+
+puts(has(people[0], "role"));   // true
+puts(has(people[1], "role"));   // false
+
+// First struct that simply has a "role" field
+var firstWithRole: any = struct_find(people, "role");
+puts(firstWithRole.name);       // "Alice"
+
+// First struct whose "age" field equals 30
+var firstAge30: any = struct_find(people, "age", 30);
+puts(firstAge30.name);          // "Alice"
+.RE
+.fi
+.PP
+.B Filtering with Multiple Conditions
+.PP
+.nf
+.RS
+include "std/struct";
+
+var people: any[] = [
+    { name: "Alice", age: 30, role: "admin" },
+    { name: "Bob", age: 25, role: "admin" },
+    { name: "Carol", age: 30, role: "editor" }
+];
+
+// Every struct where age == 30 AND role == "admin"
+var matches: any[] = filter(people, [
+    { elementName: "age", value: 30 },
+    { elementName: "role", value: "admin" }
+]);
+
+for (var i: i64 = 0; i < matches.length; i++) {
+    puts(matches[i].name);   // "Alice"
+}
+.RE
+.fi
+.SH NOTES
+.IP \(bu 2
+.BR struct_find() " and " filter()
+silently skip any array element that is not a struct, rather than treating it as an error or
+a non-match failure \(em a mixed array of structs and other values is fine to pass in
+.IP \(bu 2
+.B filter()
+condition structs are plain, ad hoc structs with \fBelementName\fR and \fBvalue\fR fields;
+there is no declared type to include for them, just build them as struct literals
+.IP \(bu 2
+.B struct_find()
+with only two arguments matches on field \fIpresence\fR, not on any particular value; pass a
+third argument to also require a specific value
+.IP \(bu 2
+Field-name matching in all three functions is by exact string equality, not case-insensitive
+.SH AUTHOR
+Daniel McGuire
+.SH COPYRIGHT
+Copyright \(co 2026 Daniel McGuire
