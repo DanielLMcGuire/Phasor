@@ -33,6 +33,7 @@ fn build(paths: ProjectPaths) -> bool {
 
 fn install(paths: ProjectPaths) -> bool {
     var args: string[] = ["--install", paths.out, "--prefix", paths.install];
+    if (!fexists(paths.install)) fmkdir(paths.install);
     var dispArgs: string[] = ["--install", paths.out.frelative(), "--prefix", paths.install.frelative()];
     putf("Running: cmake %s", dispArgs.arr_join(" "));
     var p: sys_fork_out = sys_fork("cmake", args);

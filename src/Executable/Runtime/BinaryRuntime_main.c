@@ -23,7 +23,7 @@
 #include <unistd.h>
 #endif
 
-typedef struct
+typedef struct _rt_args
 {
     const char *inputFile;
     bool verbose;
@@ -43,25 +43,6 @@ static void printRuntimeHelp(const char *programName)
             "  -v, --verbose       Enable verbose output\n"
             "  -h, --help          Show this help message\n",
             version, name);
-}
-
-static char *duplicateString(const char *value)
-{
-    if (value == nullptr)
-    {
-        return nullptr;
-    }
-
-    size_t length = strlen(value);
-    char *copy = (char *)malloc(length + 1);
-    if (copy == nullptr)
-    {
-        fprintf(stderr, "Error: out of memory\n");
-        exit(1);
-    }
-
-    memcpy(copy, value, length + 1);
-    return copy;
 }
 
 static unsigned char *readBinaryFile(const char *path, size_t *outSize)
