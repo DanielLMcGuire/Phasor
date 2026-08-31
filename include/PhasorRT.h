@@ -83,7 +83,7 @@ extern "C"
 	 * @return                     The exit code of the program given from script (-1 might be an unhandled exception in
 	 * VM).
 	 */
-	PHASOR_API int exec(void *state, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
+	PHASOR_API int exec(VMState state, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
 	                    int argc, const char **argv);
 
 	/**
@@ -99,7 +99,7 @@ extern "C"
 	 * @param functionName         The name of the function to execute.
 	 * @return                     The return from the function call (-1 might be an unhandled exception in VM).
 	 */
-	PHASOR_API int execFuncInt(void *state, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
+	PHASOR_API int execFuncInt(VMState state, const unsigned char *bytecode, size_t bytecodeSize, const char *moduleName,
 	                           int argc, const char **argv, const char *functionName);
 
 	/**
@@ -117,7 +117,7 @@ extern "C"
 	 * C++ runtime when you unload the DLL, and is overwritten after recalling this function. This DOES NOT use two pass
 	 * for perf reasons. Copy the string to safe memory, or you will lose the data.
 	 */
-	PHASOR_API const char *execFuncString(void *state, const unsigned char *bytecode, size_t bytecodeSize,
+	PHASOR_API const char *execFuncString(VMState state, const unsigned char *bytecode, size_t bytecodeSize,
 	                                      const char *moduleName, int argc, const char **argv,
 	                                      const char *functionName);
 
@@ -133,7 +133,7 @@ extern "C"
 	 * @param verbose    Prints AST to stdout.
 	 * @return           The exit code of the program given from script (-1 might be an unhandled exception in VM).
 	 */
-	PHASOR_API int evaluatePHS(void *state, const char *script, const char *moduleName, const char *modulePath,
+	PHASOR_API int evaluatePHS(VMState state, const char *script, const char *moduleName, const char *modulePath,
 	                           const char **includePaths, int includePathCount,
 	                           const char **defines, int defineCount,
 	                           bool verbose);
@@ -199,7 +199,7 @@ extern "C"
 	of the VM.
 	 *
 	@code
-	void *state = createState();
+	VMState state = createState();
 	initStdLib(state);
 
 	const char *script = "phs__std(\\\"stdio\\\"); puts(\\\"Hello, World!\\");";
@@ -217,7 +217,7 @@ extern "C"
 	freeState(state);
 	@endcode
 	 */
-	PHASOR_API void *createState();
+	PHASOR_API VMState createState();
 
 	/**
 	 * @brief Initializes native FFI plugin loading for a state's VM, using the given search paths.
@@ -229,7 +229,7 @@ extern "C"
 	 * No-op if state is null. Paths are copied internally as std::filesystem::path values; the caller
 	 * retains ownership of paths/pathCount and may free or reuse that memory once this call returns.
 	 */
-	PHASOR_API void initFFI(void *state, const char **paths, size_t pathCount);
+	PHASOR_API void initFFI(VMState state, const char **paths, size_t pathCount);
 
 	/**
 	 * @brief Register standard library to state instance.
@@ -238,7 +238,7 @@ extern "C"
 	 *
 	 * Registers standard library functions to a State instance.
 	 */
-	PHASOR_API void initStdLib(void *state);
+	PHASOR_API void initStdLib(VMState state);
 
 	/**
 	 * @brief Frees an existing state instance.
@@ -249,7 +249,7 @@ extern "C"
 	 * This function like any low level function could be potentially unsafe if given the wrong thing.
 	 * Support will not be accepted in these scenarios. Do not call many times on the same pointer.
 	 */
-	PHASOR_API bool freeState(void *state);
+	PHASOR_API bool freeState(VMState state);
 
 	/**
 	 * @brief Resets the state.
@@ -260,7 +260,7 @@ extern "C"
 	 *
 	 * This will always clear the stack, reset the PC, and clear bytecode.
 	 */
-	PHASOR_API bool resetState(void *state, bool resetFunctions, bool resetVariables);
+	PHASOR_API bool resetState(VMState state, bool resetFunctions, bool resetVariables);
 
 	/**
 	 * @brief Checks if the state is in an error status.
@@ -270,7 +270,7 @@ extern "C"
 	 * 
 	 * Returns false if the pointer	is invalid or null.
 	 */
-	PHASOR_API bool isErrorStatus(void *state);
+	PHASOR_API bool isErrorStatus(VMState state);
 
 #ifdef __cplusplus
 }
