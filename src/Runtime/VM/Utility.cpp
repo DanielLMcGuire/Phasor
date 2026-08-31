@@ -117,8 +117,10 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	setup(bc, startPC);
 #ifdef TRACING
 	bool singleInstruction = false;
-#endif
 	tracelog.push({"<init>", 0, {}, {phsnull, phsnull, phsnull}});
+#else
+	tracelog.push({"<init>"});
+#endif
 
 	if (m_bytecode->instructions.size() < 2) { [[unlikely]]
 		if (m_bytecode->instructions.size() == 1) {
@@ -222,7 +224,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 #else
 		stacklog << "[No C++23 <stacktrace> support]";
 #endif
-		logerr(std::format("\n{}: \x1B[0;31mUNCAUGHT std::exception occured in Phasor VM Runtime\x1B[0m\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(), stacklog.str()));
+		logerr(std::format("\n{}: \x1B[0;31mUNCAUGHT std::exception occured in Phasor VM Runtime\x1B[0m\n\n{}\n\n{}\n\nMANAGED:\n{}\n\nNATIVE:\n{}\n\n", PHS_SRC_LOC(), e.what(), getInformation(), tracelog.format(bc), stacklog.str()));
 		flusherr();
 		status = BAD_STATUS;
 #ifdef _DEBUG

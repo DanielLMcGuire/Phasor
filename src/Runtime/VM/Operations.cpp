@@ -257,29 +257,44 @@ void VM::evalLoop()
     }
 
     LABEL_CALL:
-    {
-        {
-            Value       funcNameVal = m_bytecode->constants[operand1];
-            std::string funcName    = funcNameVal.string();
-            auto        it          = m_bytecode->functionEntries.find(funcName);
-            if (it == m_bytecode->functionEntries.end())
-                PHS_ERROR("Unknown function: " + funcName);
-#ifdef TRACING
-            log(std::format("CALL: {} -> {}: {}\n", pc - 1, funcName, it->second));
-            flush();
-#endif
+	{
+		{
+			Value funcNameVal = m_bytecode->constants[operand1];
+			std::string funcName = funcNameVal.string();
+
+			auto it = m_bytecode->functionEntries.find(funcName);
+			if (it == m_bytecode->functionEntries.end())
+				PHS_ERROR("Unknown function: " + funcName);
+
+	#ifdef TRACING
+			log(std::format("CALL: {} -> {}: {}\n", pc - 1, funcName, it->second));
+			flush();
+	#endif
+
 			int argCount = static_cast<int>(peek().asInt());
 			Value::ArrayInstance args(argCount);
+
 			for (int i = argCount - 1; i >= 0; --i)
 			{
 				args[i] = stack[stack.size() - 2 - (argCount - 1 - i)];
 			}
-			tracelog.push({funcName, static_cast<i64>(pc), args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
-            callStack.push_back(static_cast<int>(pc));
-            pc = it->second;
-        }
-        NEXT();
-    }
+
+	#ifdef TRACING
+			tracelog.push({
+				funcName,
+				static_cast<i64>(it->second),
+				args,
+				{registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}
+			});
+	#else
+			tracelog.push({static_cast<i64>(it->second)});
+	#endif
+
+			callStack.push_back(static_cast<int>(pc));
+			pc = it->second;
+		}
+		NEXT();
+	}
 
     LABEL_RETURN:
     {
@@ -328,8 +343,10 @@ void VM::evalLoop()
             }
             log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
             flush();
+			tracelog.push({funcName, "<native>", args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});	
+#else
+			tracelog.push({funcName});
 #endif
-			tracelog.push({funcName, "(native)", args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
             push(it->second(args, this));
 			tracelog.pop();
         }
@@ -1171,24 +1188,40 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	[[likely]] case OpCode::CALL: {
-		Value       funcNameVal = m_bytecode->constants[operand1];
+		Value funcNameVal = m_bytecode->constants[operand1];
 		std::string funcName = funcNameVal.string();
-		auto        it = m_bytecode->functionEntries.find(funcName);
+
+		auto it = m_bytecode->functionEntries.find(funcName);
 		if (it == m_bytecode->functionEntries.end())
 			PHS_ERROR("Unknown function: " + funcName);
-#ifdef TRACING
+
+	#ifdef TRACING
 		log(std::format("CALL: {} -> {}: {}\n", pc - 1, funcName, it->second));
 		flush();
-#endif
+	#endif
+
 		int argCount = static_cast<int>(peek().asInt());
 		Value::ArrayInstance args(argCount);
+
 		for (int i = argCount - 1; i >= 0; --i)
 		{
 			args[i] = stack[stack.size() - 2 - (argCount - 1 - i)];
 		}
-		tracelog.push({funcName, static_cast<i64>(pc), args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
+
+	#ifdef TRACING
+		tracelog.push({
+			funcName,
+			static_cast<i64>(it->second),
+			args,
+			{registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}
+		});
+	#else
+		tracelog.push({static_cast<i64>(it->second)});
+	#endif
+
 		callStack.push_back(static_cast<int>(pc));
 		pc = it->second;
+
 		break;
 	}
 	[[likely]] case OpCode::RETURN: {
@@ -1238,8 +1271,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		}
 		log(std::format("CALL_NATIVE: {}({})\n", funcName, argsText));
 		flush();
+		tracelog.push({funcName, "<native>", args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
+#else
+		tracelog.push({funcName});
 #endif
-		tracelog.push({funcName, "(native)", args, {registers[REGISTER1], registers[REGISTER2], registers[REGISTER3]}});
         push(it->second(args, this));
 		tracelog.pop();
 		break;

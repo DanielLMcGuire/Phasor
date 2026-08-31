@@ -63,16 +63,21 @@
 namespace Phasor
 {
 
-struct ManagedTraceEntry
+struct ManagedTraceFrame
 {
+#ifdef TRACING
 	Phasor::string functionName;
+#endif
     Value pc;
+#ifdef TRACING
 	Value::ArrayInstance args;
     std::array<Value, 3> registers;
-
-	[[nodiscard]] inline Phasor::string formatTrace() const
+#endif
+	[[nodiscard]] inline Phasor::string formatTrace(const Bytecode &bc) const
 	{
-		Phasor::string entry = vformat::format(
+		Phasor::string entry;
+#ifdef TRACING
+		entry = vformat::format(
 			"PC=%s FUNC=%s ARGS=%s R0=%s R1=%s R2=%s",
 			pc.toRepr().c_str(),
 			Value(functionName).toRepr().c_str(),
@@ -81,7 +86,28 @@ struct ManagedTraceEntry
 			registers[1].toRepr().c_str(),
 			registers[2].toRepr().c_str()
 		);
+#else
+		if (!pc.isInt()) {
+			entry = vformat::format(
+				"PC=\"<UNKNOWN>\" FUNC=%s",
+				pc.toRepr().c_str()
+			);
+		} else {
+			Phasor::string functionName = "\"<UNKNOWN>\"";
 
+			for (const auto& [name, value] : bc.functionEntries) {
+				if (value == (int)pc.asInt()) {
+					functionName = name;
+				}
+			}
+
+			entry = vformat::format(
+				"PC=%s FUNC=%s",
+				pc.toRepr().c_str(),
+				Value(functionName).toRepr().c_str()
+			);
+		}
+#endif
 		return entry;
 	}
 };
@@ -89,15 +115,15 @@ struct ManagedTraceEntry
 class ManagedTraceLog
 {
 private:
-    std::vector<ManagedTraceEntry> stack;
+    std::vector<ManagedTraceFrame> stack;
 
 public:
-    void push(const ManagedTraceEntry& entry)
+    void push(const ManagedTraceFrame& entry)
     {
         stack.push_back(entry);
     }
 
-    bool pop(ManagedTraceEntry& out)
+    bool pop(ManagedTraceFrame& out)
     {
         if (stack.empty())
             return false;
@@ -126,7 +152,7 @@ public:
         stack.clear();
     }
 
-	[[nodiscard]] inline Phasor::string format() const
+	[[nodiscard]] inline Phasor::string format(const Bytecode &bc) const
 	{
 		Phasor::string result;
 		size_t counter = 0;
@@ -136,7 +162,7 @@ public:
 			result += ' ';
 			result += std::to_string(counter);
 			result += "# ";
-			result += entry.formatTrace();
+			result += entry.formatTrace(bc);
 			result += '\n';
 			counter++;
 		}
