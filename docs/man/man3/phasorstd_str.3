@@ -349,7 +349,7 @@ Runtime error if \fBhandle\fR is not a valid, currently-allocated StringBuilder 
 .RS
 include "std/str";
 
-var text = "Hello, World!";
+var text: string = "Hello, World!";
 puts(len(text));              // 13
 puts(char_at(text, 0));        // "H"
 puts(substr(text, 7, 5));      // "World"
@@ -362,7 +362,7 @@ puts(to_lower(text));          // "hello, world!"
 .PP
 .nf
 .RS
-var filename = "document.txt";
+var filename: string = "document.txt";
 
 if (ends_with(filename, ".txt")) {
     puts("Text file detected");
@@ -378,9 +378,9 @@ if (starts_with(filename, "doc")) {
 .PP
 .nf
 .RS
-var first = "Hello";
-var last = "World";
-var result = concat(first, ", ", last, "!");
+var first: string = "Hello";
+var last: string = "World";
+var result: string = concat(first, ", ", last, "!");
 puts(result);  // "Hello, World!"
 .RE
 .fi
@@ -389,15 +389,15 @@ puts(result);  // "Hello, World!"
 .PP
 .nf
 .RS
-var text = "hello world";
+var text: string = "hello world";
 
 // 2-argument form: not-found returns 0, NOT -1
-var a = find(text, "xyz");        // 0  (looks like index 0, but it's "not found")
-var b = find(text, "hello");      // 0  (a real match at index 0)
+var a: int = find(text, "xyz");        // 0  (looks like index 0, but it's "not found")
+var b: int = find(text, "hello");      // 0  (a real match at index 0)
 
 // 3- and 4-argument forms: not-found returns -1
-var c = find(text, "xyz", 0);     // -1
-var d = find(text, "world", 0);   // 6
+var c: int = find(text, "xyz", 0);     // -1
+var d: int = find(text, "world", 0);   // 6
 
 // Prefer the 3-argument form (with an explicit start of 0) if you need to
 // reliably distinguish "found at index 0" from "not found".
@@ -408,8 +408,8 @@ var d = find(text, "world", 0);   // 6
 .PP
 .nf
 .RS
-var csv = "one,two,,four";
-var parts = split(csv, ",");
+var csv: string = "one,two,,four";
+var parts: string[] = split(csv, ",");
 // parts == ["one", "two", "", "four"]
 for (var i: i64 = 0; i < parts.length; i++) {
     puts(parts[i]);
@@ -421,12 +421,12 @@ for (var i: i64 = 0; i < parts.length; i++) {
 .PP
 .nf
 .RS
-var sb = sb_new();
+var sb: int = sb_new();
 sb_append(sb, "Line 1\\n");
 sb_append(sb, "Line 2\\n");
 sb_append(sb, "Line 3\\n");
 
-var result = sb_to_string(sb);
+var result: string = sb_to_string(sb);
 puts(result);
 sb_free(sb);
 .RE
@@ -436,7 +436,7 @@ sb_free(sb);
 .PP
 .nf
 .RS
-var sb = sb_new();
+var sb: int = sb_new();
 sb_append(sb_append(sb_append(sb, "A"), "B"), "C");
 puts(sb_to_string(sb));  // "ABC"
 sb_free(sb);
@@ -451,13 +451,13 @@ include "std/str";
 include "std/type";
 include "std/file";
 
-var sb = sb_new();
+var sb: int = sb_new();
 sb_prealloc(sb, 8192); // reserve space up front to avoid reallocations
 for (var i = 0; i < 1000; i++) {
     sb_append(sb, to_string(i));
     sb_append(sb, "\\n");
 }
-var output = sb_free(sb);
+var output: string = sb_free(sb);
 fwrite("numbers.txt", output);
 .RE
 .fi

@@ -3,7 +3,7 @@
 phasorstd_data \- Phasor encoding and hashing functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/data.phs";\fR
+\fBinclude "std/data";\fR
 .PP
 .B base64_encode(input, url_safe)
 .B base64_decode(data)
@@ -200,7 +200,7 @@ released with \fBfree_native()\fR (see \fBphasorstd_mem\fR(3)) when no longer ne
 .PP
 .nf
 .RS
-include "std/data.phs";
+include "std/data";
 
 var encoded: string = base64_encode("hello, world", false);
 puts(encoded);                    // "aGVsbG8sIHdvcmxk"
@@ -212,7 +212,7 @@ puts(base64_decode(encoded));     // "hello, world"
 .PP
 .nf
 .RS
-include "std/data.phs";
+include "std/data";
 
 puts(md5("hello"));      // 5d41402abc4b2a76b9719d911017c592
 puts(sha1("hello"));     // aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d

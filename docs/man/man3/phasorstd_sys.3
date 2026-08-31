@@ -3,7 +3,7 @@
 phasorstd_sys \- Phasor system and runtime functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/sys.phs";\fR
+\fBinclude "std/sys";\fR
 .PP
 .B time()
 .B localtime()
@@ -511,20 +511,20 @@ Does not return (exits program)
 .PP
 .nf
 .RS
-include "std/sys.phs";
+include "std/sys";
 
 // Measure elapsed time (time() is a monotonic clock, not wall-clock time)
-var start = time();
+var start: int = time();
 // ... do work ...
-var elapsed = time() - start;
+var elapsed: int = time() - start;
 putf("Elapsed: %f ms", elapsed);
 
 // Current wall-clock time
-var now_local_ms = localtime();
+var now_local_ms: int = localtime();
 
 // Formatted time
-var utc_stamp = timef("%Y-%m-%d %H:%M:%S");       // UTC
-var local_stamp = localtimef("%Y-%m-%d %H:%M:%S"); // local timezone
+var utc_stamp: string = timef("%Y-%m-%d %H:%M:%S");       // UTC
+var local_stamp: string = localtimef("%Y-%m-%d %H:%M:%S"); // local timezone
 puts(utc_stamp);
 
 // Sleep
@@ -538,7 +538,7 @@ puts("Done!");
 .PP
 .nf
 .RS
-include "std/sys.phs";
+include "std/sys";
 
 if (sys_os() == sys_os.linux) {
     puts("Running on Linux");
@@ -550,7 +550,7 @@ if (sys_arch() == sys_arch.x64) {
     puts("Running on x86-64");
 }
 
-var mem = sys_get_memory();
+var mem: int = sys_get_memory();
 putf("Available memory: %d bytes", mem);
 .RE
 .fi
@@ -559,13 +559,13 @@ putf("Available memory: %d bytes", mem);
 .PP
 .nf
 .RS
-include "std/sys.phs";
-include "std/str.phs";
+include "std/sys";
+include "std/str";
 
-var home = sys_env("HOME");
+var home: string = sys_env("HOME");
 putf("Home directory: %s", home);
 
-var path = sys_env("PATH");
+var path: string = sys_env("PATH");
 if (len(path) > 0) {
     puts("PATH is set");
 }
@@ -576,13 +576,13 @@ if (len(path) > 0) {
 .PP
 .nf
 .RS
-include "std/sys.phs";
+include "std/sys";
 
-var argc = sys_argc();
+var argc: int = sys_argc();
 putf("Argument count: %d", argc);
 
 // Preferred: get every argument as an array
-var args = sys_args();
+var args: string[] = sys_args();
 for (var i: i64 = 0; i < args.length; i++) {
     puts(args[i]);
 }
@@ -599,8 +599,8 @@ if (argc > 1) {
 .PP
 .nf
 .RS
-include "std/sys.phs";
-include "std/io.phs"; // clear() lives in the stdio module
+include "std/sys";
+include "std/io"; // clear() lives in the stdio module
 
 clear();  // Clear screen
 puts("Screen cleared!");
@@ -614,26 +614,26 @@ wait_for_input();
 .PP
 .nf
 .RS
-include "std/sys.phs";
+include "std/sys";
 
 // Execute shell command
-var result = sys_shell("ls -la");
+var result: int = sys_shell("ls -la");
 putf("Command exit code: %d", result);
 
 // Launch a child process and wait; args must be an array
-var result1 = sys_fork("/usr/bin/gzip", ["-k", "file.txt"]);
+var result1: any = sys_fork("/usr/bin/gzip", ["-k", "file.txt"]);
 putf("gzip exited with: %d", result1.status);
 
 // Capture stdout by passing pipe=true
-var result2 = sys_fork("/usr/bin/echo", ["hello"], true);
+var result2: any = sys_fork("/usr/bin/echo", ["hello"], true);
 puts(result2.output);  // "hello\\n"
 
 // Launch a background process and track it via its handle
-var proc = sys_fork_detached("/usr/bin/myservice", ["--daemon"]);
+var proc: any = sys_fork_detached("/usr/bin/myservice", ["--daemon"]);
 putf("Launched PID %d", proc.pid);
 
 // Poll without blocking
-var status = procstatus(proc.handle);
+var status: int = procstatus(proc.handle);
 if (status == null) {
     puts("Still running");
 }
@@ -643,7 +643,7 @@ prockill(proc.handle);
 procfree(proc.handle);
 
 // Get current PID
-var pid = sys_pid();
+var pid: int = sys_pid();
 putf("My PID: %d", pid);
 
 // Controlled error

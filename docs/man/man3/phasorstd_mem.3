@@ -3,7 +3,7 @@
 phasorstd_mem \- Phasor native memory management functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/mem.phs";\fR
+\fBinclude "std/mem";\fR
 .PP
 .B malloc_native(size)
 .B calloc_native(size)
@@ -348,15 +348,15 @@ Runtime error if \fBoffset\fR is negative or greater than \fBhandle.size\fR
 .PP
 .nf
 .RS
-include "std/mem.phs";
+include "std/mem";
 
-var block = malloc_native(8);
+var block: ManagedMemory = malloc_native(8);
 write_native(block, 42);
-puts(read_native(block));   // 42
+puts(to_string(read_native(block)));   // 42
 free_native(block);
 
-var zeroed = calloc_native(16);
-puts(read_native(zeroed));  // 0
+var zeroed: ManagedMemory = calloc_native(16);
+puts(to_string(read_native(zeroed)));  // 0
 free_native(zeroed);
 .RE
 .fi
@@ -365,12 +365,12 @@ free_native(zeroed);
 .PP
 .nf
 .RS
-include "std/mem.phs";
+include "std/mem";
 
-var greeting = c_stralloc_native("hello");
+var greeting: ManagedMemory = c_stralloc_native("hello");
 puts(read_c_string_native(greeting));  // "hello"
 
-var copy = malloc_native(greeting.size);
+var copy: ManagedMemory  = malloc_native(greeting.size);
 c_strcpy_native(copy, greeting);
 puts(read_c_string_native(copy));      // "hello"
 
@@ -383,9 +383,9 @@ free_native(copy);
 .PP
 .nf
 .RS
-include "std/mem.phs";
+include "std/mem";
 
-var buf = malloc_native(4);
+var buf: ManagedMemory = malloc_native(4);
 write_native(buf, 100);
 buf = realloc_native(buf, 16);  // reassign; old handle is no longer valid
 write_offset_native(buf, 8, 200);

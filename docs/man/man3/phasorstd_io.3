@@ -3,7 +3,7 @@
 phasorstd_io \- Phasor standard I/O functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/io.phs";\fR
+\fBinclude "std/io";\fR
 .PP
 .B c_fmt(format, ...)
 .B clear()
@@ -204,7 +204,7 @@ Empty string
 .PP
 .nf
 .RS
-include "std/io.phs";
+include "std/io";
 
 puts("Hello, World!");
 prints("No newline");
@@ -215,9 +215,9 @@ prints("No newline");
 .PP
 .nf
 .RS
-var name = "Alice";
-var age = 30;
-var score = 95.5;
+var name: string = "Alice";
+var age: int = 30;
+var score: float = 95.5;
 
 putf("Name: %s", name);
 putf("Age: %d", age);
@@ -231,11 +231,10 @@ printf("Result: %s got %f%%", name, score);
 .nf
 .RS
 puts("Enter your name:");
-var name = gets();
+var name: string = gets();
 putf("Hello, %s!", name);
 
-// Slurp everything piped into the program, e.g.\& `cat file | phasor script.phs`
-var all_input = get_input();
+var all_input: string = get_input();
 .RE
 .fi
 .PP
@@ -254,7 +253,7 @@ if (error_condition) {
 .PP
 .nf
 .RS
-var message = c_fmt("User %s (ID: %d)", username, user_id);
+var message: string = c_fmt("User %s (ID: %d)", username, user_id);
 puts(message);
 .RE
 .fi

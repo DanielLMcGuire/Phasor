@@ -140,11 +140,11 @@ include "std/rand";
 rand_seed(123456, 789012);
 
 // Generate a random integer between 1 and 100
-var n = rand_next_range(1, 100);
+var n: int = rand_next_range(1, 100);
 putf("Random number: %d", n);
 
 // Generate a random float
-var d = rand_next_float();
+var d: float = rand_next_float();
 putf("Random float: %f", d);
 .RE
 .fi
@@ -155,12 +155,12 @@ putf("Random float: %f", d);
 .RS
 // Same seeds always produce the same sequence
 rand_seed(42, 1337);
-var a = rand_next_range(0, 9);
-var b = rand_next_range(0, 9);
+var a: int = rand_next_range(0, 9);
+var b: int = rand_next_range(0, 9);
 
 rand_seed(42, 1337);
-var c = rand_next_range(0, 9);
-var d = rand_next_range(0, 9);
+var c: int = rand_next_range(0, 9);
+var d: int = rand_next_range(0, 9);
 
 // a == c and b == d
 .RE
@@ -173,22 +173,19 @@ var d = rand_next_range(0, 9);
 rand_seed(111, 222);
 
 // Random float between -5.0 and 5.0
-var scaled = rand_next_float_range(-5.0, 5.0);
+var scaled: float = rand_next_float_range(-5.0, 5.0);
 putf("Scaled value: %f", scaled);
 .RE
 .fi
 .PP
-.B Generating a Secure Token
+.B Generating a Secure RNG
 .PP
 .nf
 .RS
 include "std/rand";
 include "std/type";
 
-var token = to_string(rand_crypto_int());
-if (token == "null") {
-    error("Failed to obtain secure randomness");
-}
+var token: int = rand_crypto_int();
 .RE
 .fi
 .SH NOTES

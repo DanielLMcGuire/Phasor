@@ -3,7 +3,7 @@
 phasorstd_file \- Phasor file system functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/file.phs";\fR
+\fBinclude "std/file";\fR
 .PP
 .B fopen(path, mode)
 .B fclose(fd)
@@ -624,13 +624,13 @@ function stops at the first failure and does not attempt the remaining files)
 .PP
 .nf
 .RS
-include "std/file.phs";
+include "std/file";
 
 // Write to file
 fwrite("data.txt", "Hello, World!");
 
 // Read from file
-var content = fread("data.txt");
+var content: string = fread("data.txt");
 puts(content);
 
 // Append to file
@@ -643,9 +643,9 @@ fappend("data.txt", "\\nNew line");
 .nf
 .RS
 // Open once, read/write multiple times without reopening the path
-var fd = fopen("data.txt", "r+");
+var fd: int = fopen("data.txt", "r+");
 if (fd != null) {
-    var line = freadln(fd);       // read the next line sequentially
+    var line: string = freadln(fd);       // read the next line sequentially
     fappend(fd, "\\nAppended via fd");
     fclose(fd);
 }
@@ -657,16 +657,15 @@ if (fd != null) {
 .nf
 .RS
 // Build up content in memory, then read it back, with no disk I/O
-var mem = fmemopen("w+", "");
-fwrite(mem, "line one\\n");
-fappend(mem, "line two\\n");
-puts(fkind(mem));  // 1 (memory)
-fclose(mem);
+var mem: int = fmemopen("w+", "");
+fwrite(int, "line one\\n");
+fappend(int, "line two\\n");
+fclose(int);
 
 // A native pipe: write to one end, read from the other
-var ends = fpipe();
-var readFd = ends[0];
-var writeFd = ends[1];
+var ends: int[] = fpipe();
+var readFd: int = ends[0];
+var writeFd: int = ends[1];
 fwrite(writeFd, "hello through the pipe");
 fclose(writeFd);
 puts(fread(readFd));
@@ -679,7 +678,7 @@ fclose(readFd);
 .nf
 .RS
 // Read a specific line by index
-var line = freadln("config.txt", 0);
+var line: string = freadln("config.txt", 0);
 
 // Update a specific line (path only; fwriteln does not accept a descriptor)
 fwriteln("config.txt", 2, "new_setting=value");
@@ -690,25 +689,25 @@ fwriteln("config.txt", 2, "new_setting=value");
 .PP
 .nf
 .RS
-var p = "/home/user/docs/report.txt";
+var p: string = "/home/user/docs/report.txt";
 
 puts(fname(p));    // "report.txt"
 puts(fstem(p));    // "report"
 puts(fext(p));     // ".txt"
 puts(fparent(p));  // "/home/user/docs"
 
-var full = fjoin("/home/user", "docs/report.txt");
+var full: string = fjoin("/home/user", "docs/report.txt");
 puts(fabsolute("../project"));
 
 // A single array argument joins every component in order
-var full2 = fjoin(["/home/user", "docs", "report.txt"]);
+var full2: string = fjoin(["/home/user", "docs", "report.txt"]);
 
 // Either side of the two-argument form may itself be an array
-var full3 = fjoin("/home/user", ["docs", "report.txt"]);
+var full3: string = fjoin("/home/user", ["docs", "report.txt"]);
 
 // Check before operating
 if (fisdir("/home/user/docs")) {
-    var entries = freaddir("/home/user/docs");
+    var entries: string[] = freaddir("/home/user/docs");
     for (var i: i64 = 0; i < entries.length; i++) {
         puts(entries[i]);
     }
@@ -742,7 +741,7 @@ frm("unwanted.txt");
 .nf
 .RS
 // Get current directory
-var cwd = fcd();
+var cwd: string = fcd();
 puts(cwd);
 
 // Change directory
@@ -752,7 +751,7 @@ fcd("/home/user/projects");
 fmkdir("new_folder");
 
 // List directory (returns an array of filenames)
-var entries = freaddir(".");
+var entries: string[] = freaddir(".");
 for (var i: i64 = 0; i < entries.length; i++) {
     puts(entries[i]);
 }
@@ -766,7 +765,7 @@ frmdir("old_folder", true);
 .PP
 .nf
 .RS
-var bytes = fsize("document.txt");
+var bytes: int = fsize("document.txt");
 putf("Size: %d bytes\\n", bytes);
 .RE
 .fi
@@ -776,11 +775,11 @@ putf("Size: %d bytes\\n", bytes);
 .nf
 .RS
 // Get modification time
-var mtime = fpropget("file.txt", 'm');
+var mtime: int = fpropget("file.txt", 'm');
 puts(mtime);
 
 // Set access time
-var now = time();
+var now: int = time();
 fpropset("file.txt", 'a', now);
 .RE
 .fi
@@ -789,8 +788,8 @@ fpropset("file.txt", 'a', now);
 .PP
 .nf
 .RS
-var files = ["a.txt", "b.txt", "c.txt"];
-var ok = fcp_progress(files, "/backup/destination");
+var files: stringp[ = ["a.txt", "b.txt", "c.txt"];
+var ok: bool = fcp_progress(files, "/backup/destination");
 if (!ok) {
     puts("One or more files failed to copy");
 }

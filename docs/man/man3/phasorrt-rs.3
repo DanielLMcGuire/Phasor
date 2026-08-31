@@ -286,7 +286,7 @@ fn main() -> Result<(), PhasorError> {
 use phasorrt_rs::{PhasorVM, PhasorError, compile_phs};
 
 fn main() -> Result<(), PhasorError> {
-    let bytecode = compile_phs("var x = 42; print(x);", "main", None)?;
+    let bytecode = compile_phs("var x: int = 42; print(x);", "main", None)?;
     let mut vm = PhasorVM::new()?;
     vm.init_stdlib()?;
     vm.exec(&bytecode, "main", &[])?;

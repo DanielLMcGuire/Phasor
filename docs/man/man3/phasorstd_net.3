@@ -3,7 +3,7 @@
 phasorstd_net \- Phasor TCP and UDP networking functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/net.phs";\fR
+\fBinclude "std/net";\fR
 .PP
 .B net_connect(host, port[, timeoutMs])
 .B net_listen(host, port[, backlog])
@@ -314,8 +314,8 @@ Boolean true
 .PP
 .nf
 .RS
-include "std/net.phs";
-include "std/file.phs";
+include "std/net";
+include "std/file";
 
 var fd: int = net_connect("example.com", 80, 5000);
 if (fd == null) {
@@ -333,17 +333,17 @@ if (fd == null) {
 .PP
 .nf
 .RS
-include "std/net.phs";
-include "std/file.phs";
+include "std/net";
+include "std/file";
 
-var listener: any = net_listen("0.0.0.0", 9000);
+var listener: int = net_listen("0.0.0.0", 9000);
 if (listener == null) {
     puts("Failed to start listener");
 } else {
-    var conn: any = net_accept(listener);
+    var conn: Connection = net_accept(listener);
     if (conn != null) {
         putf("Connection from %s:%d", conn.host, conn.port);
-        var line = freadln(conn.fd);
+        var line: string = freadln(conn.fd);
         fwrite(conn.fd, "Hello, client!\en");
         fclose(conn.fd);
     }
@@ -356,10 +356,10 @@ if (listener == null) {
 .PP
 .nf
 .RS
-include "std/net.phs";
+include "std/net";
 
-var sock: any = net_udp_open("0.0.0.0", 9001);
-var packet: any = net_udp_recv_from(sock, 1024, 5000);
+var sock: int = net_udp_open("0.0.0.0", 9001);
+var packet: UDPPacket = net_udp_recv_from(sock, 1024, 5000);
 if (packet != null) {
     putf("Got %s from %s:%d", packet.data, packet.host, packet.port);
     net_udp_send_to(sock, packet.host, packet.port, "ack");

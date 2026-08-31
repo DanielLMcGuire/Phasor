@@ -492,7 +492,7 @@ pub fn main() !void {
 
     const bytecode = try phasorrt.compilePHS(
         alloc,
-        "var x = 42; print(x);",
+        "var x: int = 42; print(x);",
         "main",
         "",
     );

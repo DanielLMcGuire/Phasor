@@ -167,13 +167,13 @@ Runtime error if the first argument is not an array
 .RS
 include "std/array";
 
-var items = ["a", "b", "c"];
+var items: string[] = ["a", "b", "c"];
 putf("Length: %d\\n", arr_length(items));  // 3
 
 arr_push(items, "d");
 puts(items[items.len() - 1]);  // "d"
 
-var last = arr_pop(items);
+var last: string = arr_pop(items);
 puts(last);  // "d"
 .RE
 .fi
@@ -184,7 +184,7 @@ puts(last);  // "d"
 .RS
 include "std/array";
 
-var nums = [1, 2, 4, 5];
+var nums: int[] = [1, 2, 4, 5];
 arr_insert(nums, 2, 3);  // nums is now [1, 2, 3, 4, 5]
 
 arr_resize(nums, 3);     // nums is now [1, 2, 3]
@@ -198,7 +198,7 @@ arr_resize(nums, 5);     // nums grows back to 5 elements, new slots default-ini
 .RS
 include "std/array";
 
-var stack = [];
+var stack: int[] = [];
 arr_push(arr_push(arr_push(stack, 1), 2), 3);
 // stack is now [1, 2, 3]
 .RE
@@ -210,11 +210,11 @@ arr_push(arr_push(arr_push(stack, 1), 2), 3);
 .RS
 include "std/array";
 
-var words = ["the", "quick", "fox"];
+var words: string[] = ["the", "quick", "fox"];
 puts(arr_join(words, " "));  // "the quick fox"
 puts(arr_join(words, ", ")); // "the, quick, fox"
 
-var nums = [10, 20, 30];
+var nums: int[] = [10, 20, 30];
 if (arr_find(nums, 20)) {
     puts("Found 20");
 }

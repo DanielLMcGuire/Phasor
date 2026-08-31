@@ -3,7 +3,7 @@
 phasorstd_ini \- Phasor INI file parsing and generation functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/ini.phs";\fR
+\fBinclude "std/ini";\fR
 .PP
 .B ini_read(content)
 .B ini_write(data)
@@ -254,8 +254,8 @@ only comments.
 .PP
 .nf
 .RS
-include "std/ini.phs";
-include "std/file.phs";
+include "std/ini";
+include "std/file";
 
 var content: string = fread("config.ini");
 var config: any = ini_read(content);
@@ -273,7 +273,7 @@ fwrite("config.ini", updated);
 .PP
 .nf
 .RS
-include "std/ini.phs";
+include "std/ini";
 
 var doc: string = "[server]\enhost=localhost\enport=8080\en";
 
@@ -291,7 +291,7 @@ puts(doc);
 .PP
 .nf
 .RS
-include "std/ini.phs";
+include "std/ini";
 
 var doc: string = "";
 doc = ini_write_section(doc, "app", { name: "MyApp", version: "1.0" });

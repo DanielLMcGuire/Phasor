@@ -3,7 +3,7 @@
 phasorstd_math \- Phasor mathematical functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/math.phs";\fR
+\fBinclude "std/math";\fR
 .PP
 .B math_sqrt(x)
 .B math_pow(base, exponent)
@@ -239,9 +239,9 @@ Tangent of x as a float
 .PP
 .nf
 .RS
-include "std/math.phs";
+include "std/math";
 
-var x = 16.0;
+var x: float = 16.0;
 puts(math_sqrt(x));        // 4.0
 puts(math_pow(2, 8));      // 256.0
 puts(math_abs(-42));       // 42
@@ -252,7 +252,7 @@ puts(math_abs(-42));       // 42
 .PP
 .nf
 .RS
-var pi = 3.14159;
+var pi: float = 3.14159;
 
 puts(math_floor(pi));      // 3
 puts(math_ceil(pi));       // 4
@@ -266,8 +266,8 @@ puts(math_round(2.5));     // 3.0 (halfway values round away from zero)
 .PP
 .nf
 .RS
-var a = 10;
-var b = 20;
+var a: int = 10;
+var b: int = 20;
 
 puts(math_min(a, b));      // 10
 puts(math_max(a, b));      // 20
@@ -284,7 +284,7 @@ puts(math_min(3.14, 2.71)); // 2.71
 puts(math_exp(1));         // e ~= 2.71828
 puts(math_log(math_exp(1))); // 1.0
 
-var x = 100;
+var x: int = 100;
 puts(math_log(x));         // Natural log of 100
 .RE
 .fi
@@ -293,7 +293,7 @@ puts(math_log(x));         // Natural log of 100
 .PP
 .nf
 .RS
-var pi = 3.14159265;
+var pi: float = 3.14159265;
 
 puts(math_sin(0));         // 0.0
 puts(math_cos(0));         // 1.0
@@ -312,13 +312,13 @@ puts(math_sin(deg_to_rad(90))); // ~= 1.0
 .PP
 .nf
 .RS
-fn distance(x1, y1, x2, y2) {
-    var dx = x2 - x1;
-    var dy = y2 - y1;
+fn distance(x1: float, y1: float, x2: float, y2: float) -> float {
+    var dx: float = x2 - x1;
+    var dy: float = y2 - y1;
     return math_sqrt(dx * dx + dy * dy);
 }
 
-var dist = distance(0, 0, 3, 4);
+var dist: float = distance(0, 0, 3, 4);
 puts(dist);  // 5.0
 .RE
 .fi
@@ -327,13 +327,13 @@ puts(dist);  // 5.0
 .PP
 .nf
 .RS
-fn circle_area(radius) {
-    var pi = 3.14159265;
+fn circle_area(radius: float) -> float {
+    var pi: float = 3.14159265;
     return pi * math_pow(radius, 2);
 }
 
-fn circle_circumference(radius) {
-    var pi = 3.14159265;
+fn circle_circumference(radius: float) -> float {
+    var pi: float = 3.14159265;
     return 2 * pi * radius;
 }
 
@@ -364,9 +364,9 @@ Phasor does not provide built-in mathematical constants. Define them as needed:
 .PP
 .nf
 .RS
-var PI = 3.14159265358979323846;
-var E = 2.71828182845904523536;
-var SQRT2 = 1.41421356237309504880;
+var PI: float = 3.14159265358979323846;
+var E: float = 2.71828182845904523536;
+var SQRT2: float = 1.41421356237309504880;
 .RE
 .fi
 .SH AUTHOR

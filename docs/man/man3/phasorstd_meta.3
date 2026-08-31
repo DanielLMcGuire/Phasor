@@ -3,7 +3,7 @@
 phasorstd_meta \- Phasor runtime introspection, bytecode, and sub-interpreter functions
 .SH SYNOPSIS
 .nf
-\fBinclude "std/meta.phs";\fR
+\fBinclude "std/meta";\fR
 .PP
 .B phs_version([type])
 .B get_registers()
@@ -378,16 +378,16 @@ Runtime error if compilation fails
 .PP
 .nf
 .RS
-include "std/meta.phs";
+include "std/meta";
 
 puts(phs_version());                          // e.g. "4.0.0"
 puts(phs_version(sys_version_type.major));    // e.g. "4"
 
-var bc = get_self();
+var bc: Bytecode = get_self();
 putf("This program has %d instructions", bc.instructions.length);
 
 save_bytecode(bc, "snapshot.phsb");
-var reloaded = load_bytecode("snapshot.phsb");
+var reloaded: Bytecode = load_bytecode("snapshot.phsb");
 .RE
 .fi
 .PP
@@ -395,10 +395,10 @@ var reloaded = load_bytecode("snapshot.phsb");
 .PP
 .nf
 .RS
-include "std/meta.phs";
+include "std/meta";
 
-var vm = new_vm();
-var result = phs_eval(
+var vm: VM = new_vm();
+var result: int = phs_eval(
     vm,
     "print \e"hello from a sub-interpreter\\n\e"; return 42;",
     "",
@@ -410,12 +410,12 @@ putf("Sub-interpreter returned: %d", result);
 free_vm(vm);
 
 // Or use NULL_VM for a one-off, throwaway run
-var quick = phs_eval(NULL_VM, "return 1 + 1;", "", [], [], false);
+var quick: int = phs_eval(NULL_VM, "return 1 + 1;", "", [], [], false);
 
 // Compile once, execute (potentially many times) later
-var compiled = phs_compile("return 7 * 6;", "", [], []);
-var vm2 = new_vm();
-var answer = phs_exec(vm2, compiled);
+var compiled: Bytecode = phs_compile("return 7 * 6;", "", [], []);
+var vm2: VM = new_vm();
+var answer: int = phs_exec(vm2, compiled);
 free_vm(vm2);
 .RE
 .fi
@@ -424,11 +424,11 @@ free_vm(vm2);
 .PP
 .nf
 .RS
-include "std/meta.phs";
+include "std/meta";
 
 vm_push(10);
 vm_push(20);
-var sum = self_stack_run("ADD", 5, 7);  // pushes 7 then 5, then runs ADD
+var sum: int = self_stack_run("IADD");
 .RE
 .fi
 .SH NOTES
