@@ -12,21 +12,18 @@
 // limitations under the License.
 
 #include "CCodeGenerator.hpp"
-#include "../Bytecode/BytecodeSerializer.hpp"
-#include "../Bytecode/BytecodeDeserializer.hpp"
 #include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <phsint.hpp>
 
 namespace Phasor
 {
 
-bool CCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &outputPath, const Phasor::string &modName)
+bool CCodeGenerator::generate(const unsigned char *bytecodeData, size_t bytecodeSize,
+                               const std::filesystem::path &outputPath, const Phasor::string &modName)
 {
 	try
 	{
-		bytecode = &bc;
 		output.str("");
 		output.clear();
 
@@ -38,9 +35,7 @@ bool CCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &o
 			moduleName = sanitizeModuleName(modName);
 		}
 
-		// Serialize bytecode to binary format
-		BytecodeSerializer serializer;
-		serializedBytecode = serializer.serialize(bc);
+		serializedBytecode.assign(bytecodeData, bytecodeData + bytecodeSize);
 
 		// Generate header file with module name, bytecode, and size
 		generateFileHeader();
@@ -65,11 +60,9 @@ bool CCodeGenerator::generate(const Bytecode &bc, const std::filesystem::path &o
 	}
 }
 
-Bytecode CCodeGenerator::generateBytecodeFromEmbedded(const Phasor::string &input)
+std::vector<unsigned char> CCodeGenerator::generateBytecodeFromEmbedded(const Phasor::string &input)
 {
-	std::vector<unsigned char> bytecodeData = parseEmbeddedBytecode(input);
-	BytecodeDeserializer       deserializer;
-	return deserializer.deserialize(bytecodeData);
+	return parseEmbeddedBytecode(input);
 }
 
 void CCodeGenerator::generateFileHeader()
@@ -147,7 +140,7 @@ std::vector<unsigned char> CCodeGenerator::parseEmbeddedBytecode(const Phasor::s
 	{
 		if (token.size() >= 3 && token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
 		{
-			Phasor::uint       byte;
+			unsigned int       byte;
 			std::istringstream hexStream(token);
 			hexStream >> std::hex >> byte;
 			result.push_back(static_cast<unsigned char>(byte));
@@ -191,25 +184,6 @@ Phasor::string CCodeGenerator::escapeString(const Phasor::string &str)
 		}
 	}
 	return escaped.str();
-}
-
-Phasor::string CCodeGenerator::getValueTypeString(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Null:
-		return "Null";
-	case ValueType::Bool:
-		return "Bool";
-	case ValueType::Int:
-		return "Int";
-	case ValueType::Float:
-		return "Float";
-	case ValueType::String:
-		return "String";
-	default:
-		return "Unknown";
-	}
 }
 
 Phasor::string CCodeGenerator::sanitizeModuleName(const Phasor::string &name)

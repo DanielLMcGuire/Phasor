@@ -114,6 +114,13 @@ if(NOT IS_SANDBOXED)
         target_link_libraries(phasor_sdl2_bindings SDL2::SDL2-static)
         set_target_properties(phasor_sdl2_bindings PROPERTIES OUTPUT_NAME sdl2_phs)
     endif()
+    if(PHASOR_ZLIB)
+        add_library(phasor_zlib_bindings SHARED
+            ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/zlib/zlib_main.cpp
+        )
+        target_link_libraries(phasor_zlib_bindings ZLIB::ZLIBSTATIC)
+        set_target_properties(phasor_zlib_bindings PROPERTIES OUTPUT_NAME zlib_phs)
+    endif()
     if(WIN32)
         add_executable(phasor_winapi_gen
             ${CMAKE_CURRENT_SOURCE_DIR}/Bindings/win32/bindgen_main.cpp

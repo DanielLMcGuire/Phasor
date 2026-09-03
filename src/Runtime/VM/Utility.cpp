@@ -122,7 +122,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 	tracelog.push({"<init>"});
 #endif
 
-	if (m_bytecode->instructions.size() < 2) { [[unlikely]]
+	if (m_bytecode->instructions.size() < 2) [[unlikely]] {
 		if (m_bytecode->instructions.size() == 1) {
 			Instruction instruction = m_bytecode->instructions[0];
 			std::vector<Phasor::string> operandParts;
@@ -196,7 +196,7 @@ int VM::run(const Bytecode &bc, const size_t startPC)
 #else
 		stacklog << "[No C++23 <stacktrace> support]";
 #endif
-		if (singleInstruction) { [[unlikely]]
+		if (singleInstruction) [[unlikely]] {
 			log(std::format("\nUser code exited {} with code {}\n", status == 0 ? "\x1B[0;32msuccessfully\x1B[0m" : "\x1B[0;31mabnormally\x1B[0m", status));
 			flush();
 		} else {

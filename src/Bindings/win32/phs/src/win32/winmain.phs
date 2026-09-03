@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
 print "Hello, Phasor! (win32)\n";
 static_endif
 
@@ -30,8 +30,8 @@ include "std/sys";
 include "std/io";
 include "std/type";
 include "std/array";
-include "../src/std/phs_init/util.phs";
-include "../src/std/phs_init/corruptioncheck.phs";
+include "../src/std/internal/utils/c_array.phs";
+include "../src/std/internal/init/corruptioncheck.phs";
 
 static_if (WIN32_ARGS)
 var win32_args: string[]; // expose args array in global scope
@@ -71,10 +71,10 @@ static_endif
     phs_push(phs__argv_ptr());
     phs_push(phs__argc_ptr());
 static_if (WIN32_ARGS)
-    win32_args = phsrt__build_args();
+    win32_args = phsrt_routine__conv_c_array();
     var CommandLine: string = win32_args.arr_join(" ");
 static_else
-    var CommandLine: string = phsrt__build_args().arr_join(" ");
+    var CommandLine: string = phsrt_routine__conv_c_array().arr_join(" ");
 static_endif
     var ret: i64 = wmain(hInstance, CommandLine);
     if (ret.get_type() != phs_type.i64) return ERROR_INVALID_PARAMETER; 
@@ -88,7 +88,7 @@ start();
 
 static_else
 
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
     print "Requires Windows or wine for compilation.\n";
 static_else
     error("Requires Windows or wine for compilation.");

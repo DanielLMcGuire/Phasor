@@ -10,8 +10,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include "./util.phs";
-include "../../../include/std/types/type.phs";
+include "../utils/c_array.phs";
+include "../../../../include/std/types/type.phs";
 
 static_if (WIN32 && !NO_CHECK_OS)
 include "win32/wincon.phs";
@@ -19,21 +19,21 @@ static_endif
 
 fn phsrt__common_init() -> i64
 {
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
     print "phsrt__common_init()\n";
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
 
 static_if (WIN32 && !NO_CHECK_OS)
     SetConsoleCP(CP_UTF8);
 static_endif
-    var args: string[] = phsrt__build_args();
-static_if (PHS_DEBUG)
+    var args: string[] = phsrt_routine__conv_c_array();
+static_if (PHS_TRACE)
     printf("main(%M)\n", args);
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
     var ret: i64 = main(args);
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
     printf("main() -> %d\n", ret);
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
 
     if (ret.get_type() != phs_type.i64)
     {
@@ -51,8 +51,8 @@ static_else // (NO_CHECK_OS)
         ret = 22; // EINVAL 22 "Invalid argument"
 static_endif // (!NO_CHECK_OS)
     }
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
     printf("phsrt__common_init() -> %d\n", ret);
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
     return ret;
 }

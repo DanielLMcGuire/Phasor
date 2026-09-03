@@ -15,6 +15,13 @@ if(PHS_DEBUG_ENABLED)
         DEFINES PHS_DEBUG
     )
 endif()
+if(PHS_TRACE_ENABLED)
+    phasor_add_transpiled_defines(
+        TARGET phasor_help
+        NAME main
+        DEFINES PHS_TRACE
+    )
+endif()
 target_link_libraries(phasor_help phasor_native_runtime)
 target_precompile_headers(phasor_help PRIVATE ${phasor_help_main_PHS_HEADER})
 set_target_properties(phasor_help PROPERTIES OUTPUT_NAME phasor-help)

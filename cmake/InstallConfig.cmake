@@ -114,6 +114,23 @@ endif()
         )
     endif()
 
+    if(PHASOR_ZLIB)
+        install(
+            TARGETS phasor_zlib_bindings
+            RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
+
+        install(
+            FILES "$<$<NOT:$<CONFIG:Release>>:$<TARGET_PDB_FILE:phasor_zlib_bindings>>"
+            DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
+
+        install(DIRECTORY
+            ${CMAKE_SOURCE_DIR}/src/Bindings/zlib/phs/
+            DESTINATION "${INCLUDE_INSTALL_DIR}"
+        )
+    endif()
+
 elseif(APPLE)
 
     SET(NON_STATIC_TARGETS
@@ -183,6 +200,18 @@ endif()
         )
     endif()
 
+    if(PHASOR_ZLIB)
+        install(
+            TARGETS phasor_zlib_bindings
+            RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
+
+        install(DIRECTORY
+            ${CMAKE_SOURCE_DIR}/src/Bindings/zlib/phs/
+            DESTINATION "${INCLUDE_INSTALL_DIR}"
+        )
+    endif()
+
 else()
     SET(NON_STATIC_TARGETS
         phasor_main
@@ -247,6 +276,17 @@ endif()
 
         install(DIRECTORY
             ${CMAKE_SOURCE_DIR}/src/Bindings/sdl2/phs/
+            DESTINATION "${INCLUDE_INSTALL_DIR}"
+        )
+    endif()
+    if(PHASOR_ZLIB)
+        install(
+            TARGETS phasor_zlib_bindings
+            RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+        )
+
+        install(DIRECTORY
+            ${CMAKE_SOURCE_DIR}/src/Bindings/zlib/phs/
             DESTINATION "${INCLUDE_INSTALL_DIR}"
         )
     endif()

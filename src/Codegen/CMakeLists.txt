@@ -4,7 +4,6 @@ set(CODEGEN_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../ISA/map.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/C/CCodeGenerator.cpp
 )
 
 set(CODEGEN_HEADERS
@@ -13,7 +12,6 @@ set(CODEGEN_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeSerializer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Bytecode/BytecodeDeserializer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/PhasorIR.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/C/CCodeGenerator.hpp
     ${CMAKE_SOURCE_DIR}/src/AST/AST.hpp
 )
 

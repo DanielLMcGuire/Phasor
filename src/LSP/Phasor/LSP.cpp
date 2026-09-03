@@ -1227,7 +1227,7 @@ void LSP::compile(DocumentState &doc)
 			                            toLspColumn(err.column) + 1});
 		}
 	}
-	catch (const std::runtime_error &e)
+	catch (const std::exception &e)
 	{
 		doc.diagnostics.push_back({e.what(), 0, 0, 0, 1});
 	}

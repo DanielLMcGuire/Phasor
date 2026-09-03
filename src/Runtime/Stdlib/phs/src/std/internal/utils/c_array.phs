@@ -1,0 +1,27 @@
+// pops argc then argv off stack, then builds and returns string[] of args
+fn phsrt_routine__conv_c_array() -> string[]
+{
+static_if (PHS_TRACE)
+    print "phsrt_routine__conv_c_array()\n";
+static_endif // (PHS_TRACE)
+    var argcPtr: i64 = phs_pop();
+    var argvPtr: i64 = phs_pop();
+static_if (PHS_TRACE)
+    printf("argv @ %#x, argc @ %#x\n", argvPtr, argcPtr);
+static_endif // (PHS_TRACE)
+    var argc: i64 = phs__memory_read_native(argcPtr, 4);
+    var argv: string[];
+
+    var argvBasePtr: i64 = phs__memory_read_native(argvPtr, PTR_SIZE);
+
+    for (var i: int = 0; i < argc; i++)
+    {
+        var elementPtr: i64 = phs__memory_read_offset_native(argvBasePtr, i * PTR_SIZE, PTR_SIZE * argc);
+        assert(elementPtr != C_NULL);
+        argv.arr_push(phs__memory_read_string_native(elementPtr, 1024));
+    }
+static_if (PHS_TRACE)
+    printf("phsrt_routine__conv_c_array() -> %M\n", argv);
+static_endif // (PHS_TRACE)
+    return argv;
+}

@@ -11,8 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <PhasorRT.h>
 #include <errno.h>
 #include <stdio.h>
@@ -58,12 +56,38 @@ static void printDisassemblerHelp(const char *programName)
             version, stemLength, base);
 }
 
+static void printFileOpenError(const char *path, bool writing)
+{
+    char errorBuffer[256];
+#if defined(_WIN32)
+    errno_t err = strerror_s(errorBuffer, sizeof(errorBuffer), errno);
+    if (err != 0)
+    {
+        snprintf(errorBuffer, sizeof(errorBuffer), "unknown error");
+    }
+#else
+    const char *errorMessage = strerror(errno);
+    if (errorMessage == nullptr)
+    {
+        errorMessage = "unknown error";
+    }
+    snprintf(errorBuffer, sizeof(errorBuffer), "%s", errorMessage);
+#endif
+
+    fprintf(stderr, "Error: could not open '%s'%s: %s\n", path, writing ? " for writing" : "", errorBuffer);
+}
+
 static unsigned char *readBinaryFile(const char *path, size_t *outSize)
 {
-    FILE *file = fopen(path, "rb");
+    FILE *file = nullptr;
+#if defined(_WIN32)
+    if (fopen_s(&file, path, "rb") != 0)
+#else
+    file = fopen(path, "rb");
     if (file == nullptr)
+#endif
     {
-        fprintf(stderr, "Error: could not open '%s': %s\n", path, strerror(errno));
+        printFileOpenError(path, false);
         return nullptr;
     }
 
@@ -121,10 +145,15 @@ static unsigned char *readBinaryFile(const char *path, size_t *outSize)
 
 static bool writeBinaryFile(const char *path, const unsigned char *buffer, size_t size)
 {
-    FILE *file = fopen(path, "wb");
+    FILE *file = nullptr;
+#if defined(_WIN32)
+    if (fopen_s(&file, path, "wb") != 0)
+#else
+    file = fopen(path, "wb");
     if (file == nullptr)
+#endif
     {
-        fprintf(stderr, "Error: could not open '%s' for writing: %s\n", path, strerror(errno));
+        printFileOpenError(path, true);
         return false;
     }
 

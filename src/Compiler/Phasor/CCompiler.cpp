@@ -12,15 +12,14 @@
 // limitations under the License.
 
 #include "CCompiler.hpp"
-#include "../../Language/Phasor/Lexer/Lexer.hpp"
-#include "../../Language/Phasor/Parser/Parser.hpp"
-#include "../../Language/Phasor/Parser/PlatformDefines.hpp"
-#include "../../Codegen/CodeGen.hpp"
 #include "../../Codegen/C/CCodeGenerator.hpp"
-#include "../../Codegen/IR/PhasorIR.hpp"
+#include <PhasorRT.h>
 #include <version.h>
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <iterator>
 #include <print>
 #include <sstream>
 #include <phs_dupenv.hpp>
@@ -60,6 +59,11 @@ int CCompiler::run()
 	{
 		std::filesystem::path inputPath(m_args.inputFile);
 		m_args.moduleName = Phasor::string(inputPath.stem().string());
+	}
+
+	if (std::find(m_args.defines.begin(), m_args.defines.end(), "PHASOR_NATIVE") == m_args.defines.end())
+	{
+		m_args.defines.insert(m_args.defines.begin(), "PHASOR_NATIVE");
 	}
 
 	// Default output file if not specified
@@ -347,10 +351,41 @@ bool CCompiler::generateHeader(const std::filesystem::path &sourcePath, const st
 {
 	try
 	{
-		Bytecode bytecode;
+		std::vector<unsigned char> bytecodeData;
+
 		if (sourcePath.extension() == ".phir")
 		{
-			bytecode = Phasor::PhasorIR::loadFromFile(sourcePath);
+			std::ifstream irFile(sourcePath, std::ios::binary);
+			if (!irFile.is_open())
+			{
+				std::println(std::cerr, "Error: Could not open input file: {}", sourcePath.string());
+				return false;
+			}
+
+			std::vector<unsigned char> irData((std::istreambuf_iterator<char>(irFile)),
+			                                   std::istreambuf_iterator<char>());
+			irFile.close();
+
+			if (m_args.verbose)
+			{
+				std::println("Assembling IR...");
+			}
+
+			size_t requiredSize = 0;
+			if (!assembleIR(irData.data(), irData.size(), nullptr, 0, &requiredSize))
+			{
+				std::println(std::cerr, "Error: Failed to assemble IR file: {}", sourcePath.string());
+				return false;
+			}
+
+			bytecodeData.resize(requiredSize);
+			size_t actualSize = 0;
+			if (!assembleIR(irData.data(), irData.size(), bytecodeData.data(), bytecodeData.size(), &actualSize))
+			{
+				std::println(std::cerr, "Error: Failed to assemble IR file: {}", sourcePath.string());
+				return false;
+			}
+			bytecodeData.resize(actualSize);
 		} else {
 			// Read source file
 			if (m_args.verbose)
@@ -367,67 +402,87 @@ bool CCompiler::generateHeader(const std::filesystem::path &sourcePath, const st
 
 			std::stringstream buffer;
 			buffer << file.rdbuf();
-			Phasor::string source = buffer.str();
+			std::string source = buffer.str();
 			file.close();
 
-			// Lex
-			if (m_args.verbose)
+			std::string modulePathArg = sourcePath.has_parent_path() ? sourcePath.parent_path().string() : ".";
+
+			std::vector<std::string> includePathStorage;
+			includePathStorage.reserve(m_args.includePaths.size());
+			for (const auto &p : m_args.includePaths)
 			{
-				std::println("Lexing...");
+				includePathStorage.push_back(p.string());
+			}
+			std::vector<const char *> includePathPtrs;
+			includePathPtrs.reserve(includePathStorage.size());
+			for (const auto &s : includePathStorage)
+			{
+				includePathPtrs.push_back(s.c_str());
 			}
 
-			Lexer lexer(source);
-			auto  tokens = lexer.tokenize();
-
-			// Parse
-			if (m_args.verbose)
+			std::vector<const char *> definePtrs;
+			definePtrs.reserve(m_args.defines.size());
+			for (const auto &d : m_args.defines)
 			{
-				std::println("Parsing...");
+				definePtrs.push_back(d.c_str());
 			}
-
-			Parser parser(tokens, sourcePath);
-			parser.setIncludePaths(m_args.includePaths);
-			parser.setDefines(Phasor::resolveDefines(m_args.defines, true));
-			auto   program = parser.parse();
 
 			if (m_args.verbose)
 			{
-				std::println("Generating bytecode...");
+				std::println("Compiling...");
 			}
 
-			CodeGenerator codegen;
-			bytecode = codegen.generate(*program);
+			size_t requiredSize = 0;
+			bool   ok = compilePHS(source.c_str(), m_args.moduleName.c_str(), modulePathArg.c_str(),
+			                       includePathPtrs.empty() ? nullptr : includePathPtrs.data(),
+			                       static_cast<int>(includePathPtrs.size()),
+			                       definePtrs.empty() ? nullptr : definePtrs.data(),
+			                       static_cast<int>(definePtrs.size()), nullptr, 0, &requiredSize);
+			if (!ok)
+			{
+				std::println(std::cerr, "Compilation Error: {}", sourcePath.string());
+				return false;
+			}
+
+			bytecodeData.resize(requiredSize);
+			size_t actualSize = 0;
+			ok = compilePHS(source.c_str(), m_args.moduleName.c_str(), modulePathArg.c_str(),
+			                includePathPtrs.empty() ? nullptr : includePathPtrs.data(),
+			                static_cast<int>(includePathPtrs.size()),
+			                definePtrs.empty() ? nullptr : definePtrs.data(),
+			                static_cast<int>(definePtrs.size()), bytecodeData.data(), bytecodeData.size(),
+			                &actualSize);
+			bytecodeData.resize(actualSize);
+
+			if (!ok)
+			{
+				std::println(std::cerr, "Compilation Error: {}", sourcePath.string());
+				return false;
+			}
 		}
 
-		if (bytecode.instructions.empty())
+		if (bytecodeData.empty())
 		{
-			std::println(std::cerr, "Error: No instructions generated");
+			std::println(std::cerr, "Error: No bytecode generated");
 			return false;
 		}
 
 		if (m_args.verbose)
 		{
-			std::println("Bytecode statistics:\n"
-			             "  Instructions: {}\n"
-			             "  Constants: {}\n"
-			             "  Variables: {}\n"
-			             "  Functions: {}",
-			             bytecode.instructions.size(), bytecode.constants.size(), bytecode.variables.size(),
-			             bytecode.functionEntries.size());
+			std::println("Bytecode size: {} bytes", bytecodeData.size());
 		}
 
-		// Generate C code
 		if (m_args.verbose)
 		{
-			std::println("Generating C code...");
+			std::println("Generating C header...");
 		}
 
 		CCodeGenerator cGen;
-		bool             success = cGen.generate(bytecode, outputPath, m_args.moduleName);
+		bool success = cGen.generate(bytecodeData.data(), bytecodeData.size(), outputPath, m_args.moduleName);
 
 		if (!success)
 		{
-			std::println(std::cerr, "Error: Failed to generate C code");
+			std::println(std::cerr, "Error: Failed to generate C header");
 			return false;
 		}
 
@@ -463,7 +518,6 @@ bool CCompiler::generateSource(const std::filesystem::path &sourcePath, const st
 		return false;
 	}
 
-	// Include the generated header file (which is the output filename with .h extension)
 	std::filesystem::path headerPath = outputPath;
 	headerPath.replace_extension(".h");
 

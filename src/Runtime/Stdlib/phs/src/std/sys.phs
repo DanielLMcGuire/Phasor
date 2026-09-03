@@ -13,7 +13,9 @@
 include "../../include/std/types/sys.phs";
 
 phs__std("__phs_init");
-include "phs_init/util.phs";
+include "internal/utils/c_array.phs";
+
+var phsrt__g_sys_args: string[] = null;
 
 fn is_sandboxed() -> bool
 {
@@ -21,7 +23,9 @@ fn is_sandboxed() -> bool
 }
 
 fn sys_args() -> string[] {
+    if (phsrt__g_sys_args != null) return phsrt__g_sys_args;
     phs_push(phs__argv_ptr());
     phs_push(phs__argc_ptr());
-    return phsrt__build_args();
+    phsrt__g_sys_args = phsrt_routine__conv_c_array();
+    return phsrt__g_sys_args;
 }

@@ -116,13 +116,13 @@ using namespace AST;
 
 Parser::Parser(const std::vector<Token> &tokens) : tokens(tokens)
 {
-	Phasor::addDefaultDefines(defines, false);
+	Phasor::addDefaultDefines(defines);
 }
 
 Parser::Parser(const std::vector<Token> &tokens, std::filesystem::path sourcePath)
     : tokens(tokens), sourcePath(std::move(sourcePath))
 {
-	Phasor::addDefaultDefines(defines, false);
+	Phasor::addDefaultDefines(defines);
 }
 
 std::unique_ptr<Program> Parser::parse(bool recoverFromErrors)

@@ -11,7 +11,7 @@
 // limitations under the License.
 
 include "../../include/std/types/mem.phs";
-
+include "internal/utils/c_array.phs";
 
 fn malloc_native(size: i64) -> ManagedMemory
 {
@@ -46,7 +46,7 @@ fn write_native(handle: ManagedMemory, data: i64) -> void
 
 fn write_offset_native(handle: ManagedMemory, offset: i64, data: i64) -> void
 {
-    phs__memory_write_offset_native(handle.ptr, offset, handle.size, data);
+    phs__memory_write_offset_native(handle.ptr, offset, handle.size * offset, data);
 }
 
 fn write_c_string_native(handle: ManagedMemory, data: string) -> void
@@ -56,7 +56,7 @@ fn write_c_string_native(handle: ManagedMemory, data: string) -> void
 
 fn write_c_string_offset_native(handle: ManagedMemory, offset: i64, data: string) -> void
 {
-    phs__memory_write_string_offset_native(handle.ptr, offset, handle.size, data);
+    phs__memory_write_string_offset_native(handle.ptr, offset, handle.size * offset, data);
 }
 
 fn read_native(handle: ManagedMemory) -> i64
@@ -66,7 +66,7 @@ fn read_native(handle: ManagedMemory) -> i64
 
 fn read_native_offset(handle: ManagedMemory, offset: i64) -> i64
 {
-    return phs__memory_read_offset_native(handle.ptr, offset, handle.size);
+    return phs__memory_read_offset_native(handle.ptr, offset, handle.size * offset);
 }
 
 fn read_c_string_native(handle: ManagedMemory) -> string
@@ -76,7 +76,20 @@ fn read_c_string_native(handle: ManagedMemory) -> string
 
 fn read_c_string_native_offset(handle: ManagedMemory, offset: i64) -> string
 {
-    return phs__memory_read_string_offset_native(handle.ptr, offset, handle.size);
+    return phs__memory_read_string_offset_native(handle.ptr, offset, handle.size * offset);
+}
+
+fn read_c_string_array_native(argc: ManagedMemory, argv: ManagedMemory) -> string[]
+{
+static_if (PHS_DEBUG)
+    assert(argc != null_managed_memory && argv != null_managed_memory);
+static_else
+    if (argc == null_managed_memory || argv == null_managed_memory)
+        error("Invalid argument: argc and argv must not be null");
+static_endif // (PHS_DEBUG) 
+    push(argv.ptr);
+    push(argc.ptr);
+    return phsrt_routine__conv_c_array();
 }
 
 fn free_native(handle: ManagedMemory) -> void

@@ -87,7 +87,7 @@ std::vector<std::filesystem::path> resolveIncludePathsFromValues(const Phasor::s
 Defines resolveDefinesFromValues(const std::vector<Phasor::string> &defines)
 {
     Defines finalDefines;
-    addDefaultDefines(finalDefines, false);
+    addDefaultDefines(finalDefines);
  
     for (const auto &raw : defines)
     {

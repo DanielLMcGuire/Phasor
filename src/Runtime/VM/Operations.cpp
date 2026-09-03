@@ -260,9 +260,9 @@ void VM::evalLoop()
 	{
 		{
 			Value funcNameVal = m_bytecode->constants[operand1];
-			std::string funcName = funcNameVal.string();
+			Phasor::string funcName = funcNameVal.string();
 
-			auto it = m_bytecode->functionEntries.find(funcName);
+			auto it = m_bytecode->functionEntries.find(funcName.str());
 			if (it == m_bytecode->functionEntries.end())
 				PHS_ERROR("Unknown function: " + funcName);
 
@@ -335,7 +335,7 @@ void VM::evalLoop()
 			}
 
 #ifdef TRACING
-            std::string argsText;
+            Phasor::string argsText;
             for (auto& arg : args)
             {
                 argsText += std::format("{:T}", arg);
@@ -430,8 +430,8 @@ void VM::evalLoop()
         NEXT();
     }
 
-    LABEL_TRUE_P: { push(Value(true));  NEXT(); }
-    LABEL_FALSE_P: { push(Value(false)); NEXT(); }
+    LABEL_TRUE_P: { push(true);  NEXT(); }
+    LABEL_FALSE_P: { push(false); NEXT(); }
     LABEL_NULL_VAL: { push(phsnull); NEXT(); }
 
 #pragma endregion
@@ -463,49 +463,49 @@ void VM::evalLoop()
 #pragma region STACK LOGICAL
 
     LABEL_NEGATE: { { Value a=pop(); push(a.isInt() ? -a.asInt() : -a.asFloat()); } NEXT(); }
-    LABEL_NOT: { push(Value(asm_flnot(pop().isTruthy() ? 1 : 0))); NEXT(); }
+    LABEL_NOT: { push(asm_flnot(pop().isTruthy() ? 1 : 0)); NEXT(); }
 
-    LABEL_IAND: { { Value b=pop(); Value a=pop(); push(Value(asm_iand(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
-    LABEL_IOR:  { { Value b=pop(); Value a=pop(); push(Value(asm_ior (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_IAND: { { Value b=pop(); Value a=pop(); push(asm_iand(a.isTruthy()?1:0, b.isTruthy()?1:0)); } NEXT(); }
+    LABEL_IOR:  { { Value b=pop(); Value a=pop(); push(asm_ior (a.isTruthy()?1:0, b.isTruthy()?1:0)); } NEXT(); }
 
-    LABEL_IEQUAL:         { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iequal(a.asInt(),b.asInt())) : Value(a==b)); } NEXT(); }
-    LABEL_INOT_EQUAL:     { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_inot_equal(a.asInt(),b.asInt())) : Value(a!=b)); } NEXT(); }
-    LABEL_ILESS_THAN:     { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_than(a.asInt(),b.asInt())) : Value(a< b)); } NEXT(); }
-    LABEL_IGREATER_THAN:  { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_than(a.asInt(),b.asInt())) : Value(a> b)); } NEXT(); }
-    LABEL_ILESS_EQUAL:    { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_iless_equal(a.asInt(),b.asInt())) : Value(a<=b)); } NEXT(); }
-    LABEL_IGREATER_EQUAL: { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? Value(asm_igreater_equal(a.asInt(),b.asInt())) : Value(a>=b)); } NEXT(); }
+    LABEL_IEQUAL:         { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? asm_iequal(a.asInt(),b.asInt()) : a==b); } NEXT(); }
+    LABEL_INOT_EQUAL:     { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? asm_inot_equal(a.asInt(),b.asInt()) : a!=b); } NEXT(); }
+    LABEL_ILESS_THAN:     { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? asm_iless_than(a.asInt(),b.asInt()) : a< b); } NEXT(); }
+    LABEL_IGREATER_THAN:  { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? asm_igreater_than(a.asInt(),b.asInt()) : a> b); } NEXT(); }
+    LABEL_ILESS_EQUAL:    { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? asm_iless_equal(a.asInt(),b.asInt()) : a<=b); } NEXT(); }
+    LABEL_IGREATER_EQUAL: { { Value b=pop(); Value a=pop(); push(a.isInt()&&b.isInt() ? asm_igreater_equal(a.asInt(),b.asInt()) : a>=b); } NEXT(); }
 
-    LABEL_FLAND: { { Value b=pop(); Value a=pop(); push(Value(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
-    LABEL_FLOR: { { Value b=pop(); Value a=pop(); push(Value(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0))); } NEXT(); }
+    LABEL_FLAND: { { Value b=pop(); Value a=pop(); push(asm_fland(a.isTruthy()?1:0, b.isTruthy()?1:0)); } NEXT(); }
+    LABEL_FLOR: { { Value b=pop(); Value a=pop(); push(asm_flor (a.isTruthy()?1:0, b.isTruthy()?1:0)); } NEXT(); }
     LABEL_FLEQUAL: { { 
 		Value b = pop();
 		Value a = pop(); 
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b)); 
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flequal(a.asFloat(), b.asFloat()) : a == b); 
 	} NEXT(); }
     LABEL_FLNOT_EQUAL: { {
         Value b = pop();
         Value a = pop();
-        push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
+        push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flnot_equal(a.asFloat(), b.asFloat()) : a != b);
     } NEXT(); }
     LABEL_FLLESS_THAN: { {
         Value b = pop();
         Value a = pop();
-            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
+            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flless_than(a.asFloat(), b.asFloat()) : a < b);
     } NEXT(); }
     LABEL_FLGREATER_THAN: { {
         Value b = pop();
         Value a = pop();
-        push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
+        push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flgreater_than(a.asFloat(), b.asFloat()) : a > b);
     } NEXT(); }
     LABEL_FLLESS_EQUAL: { {
             Value b = pop();
             Value a = pop();
-            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
+            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flless_equal(a.asFloat(), b.asFloat()) : a <= b);
         } NEXT(); }
     LABEL_FLGREATER_EQUAL: { {
             Value b = pop();
             Value a = pop();
-            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
+            push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flgreater_equal(a.asFloat(), b.asFloat()) : a >= b);
     } NEXT(); }
 
 #pragma endregion
@@ -515,7 +515,7 @@ void VM::evalLoop()
     {
         {
             Value       v = pop();
-            std::string s = v.toString();
+            Phasor::string s = v.toString();
 #ifdef TRACING
             log(std::format("PRINT: (stdout) {:T}\n", v));
 #else
@@ -530,7 +530,7 @@ void VM::evalLoop()
     {
         {
             Value       v = pop();
-            std::string s = v.toString();
+            Phasor::string s = v.toString();
 #ifdef TRACING
             log(std::format("PRINTERROR: (stderr) {:T}\n", v));
 #else
@@ -590,7 +590,7 @@ void VM::evalLoop()
         {
 #ifdef TRACING
             Value       cmd = pop();
-            std::string ret = c_system_out(cmd.c_str());
+            Phasor::string ret = c_system_out(cmd.c_str());
             log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
             push(ret);
 #else
@@ -610,7 +610,7 @@ void VM::evalLoop()
         {
 #ifdef TRACING
             Value       cmd = pop();
-            std::string ret = c_system_err(cmd.c_str());
+            Phasor::string ret = c_system_err(cmd.c_str());
             log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
             push(ret);
 #else
@@ -631,11 +631,11 @@ void VM::evalLoop()
             Value v = pop();
             if (v.isArray())
             {
-                push(Value(static_cast<i64>(v.asArray()->size())));
+                push(static_cast<i64>(v.asArray()->size()));
             }
             else
             {
-                push(Value(static_cast<i64>(v.string().length())));
+                push(static_cast<i64>(v.string().length()));
             }
         }
         NEXT();
@@ -646,7 +646,7 @@ void VM::evalLoop()
         {
             Value       idxVal = pop();
             Value       strVal = pop();
-            std::string s;
+            Phasor::string s;
             if (strVal.isString())
 			{
 				s = strVal.string();
@@ -662,6 +662,7 @@ void VM::evalLoop()
 				idx = static_cast<i64>(idxVal.asFloat());
             } else if (idxVal.isString()) {
                 try { idx = std::stoll(idxVal.string()); }
+				catch (const std::exception& e) { PHS_ERROR(Phasor::string("char_at() ") + e.what()); }
                 catch (...) { PHS_ERROR("char_at() expects index convertible to integer"); }
             } else {
 				PHS_ERROR("char_at() expects string and integer");
@@ -669,9 +670,9 @@ void VM::evalLoop()
 
             if (idx < 0 || std::cmp_greater_equal(idx ,s.length())) 
 			{
-                push(Value(""));
+                push("");
             } else {
-                push(Value(std::string(1, s[static_cast<size_t>(idx)])));
+                push(Phasor::string(1, s[static_cast<size_t>(idx)]));
 			}
         }
         NEXT();
@@ -685,14 +686,14 @@ void VM::evalLoop()
             Value strVal   = pop();
             if (strVal.isString() && startVal.isInt() && lenVal.isInt())
             {
-                const std::string& s     = strVal.string();
+                const Phasor::string& s     = strVal.string();
                 i64                start = startVal.asInt();
                 i64                len   = lenVal.asInt();
                 if (start < 0 || std::cmp_greater_equal(start ,s.length())) 
 				{
-push(Value(""));
+					push("");
                 } else {
-push(Value(s.substr(start, len)));
+					push(s.substr(start, len));
 				}
             }
             else
@@ -802,7 +803,7 @@ PHS_ERROR("Invalid default constant index for struct field");
         {
             if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
                 PHS_ERROR("Invalid constant index for SET_FIELD");
-            std::string fieldName = m_bytecode->constants[operand1].string();
+            Phasor::string fieldName = m_bytecode->constants[operand1].string();
             Value       value     = pop();
             Value       obj       = pop();
             obj.setField(fieldName, value);
@@ -932,82 +933,82 @@ PHS_ERROR("Invalid default constant index for struct field");
 #pragma region REG ARITHMETIC
     
 
-    LABEL_IADD_R: { registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
-    LABEL_ISUB_R: { registers[rA] = Value(asm_isub(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
-    LABEL_IMUL_R: { registers[rA] = Value(asm_imul(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
-    LABEL_IDIV_R: { registers[rA] = Value(asm_idiv(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
-    LABEL_IMOD_R: { registers[rA] = Value(asm_imod(registers[rB].asInt(), registers[rC].asInt())); NEXT(); }
-    LABEL_FLADD_R: { registers[rA] = Value(asm_fladd(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
-    LABEL_FLSUB_R: { registers[rA] = Value(asm_flsub(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
-    LABEL_FLMUL_R: { registers[rA] = Value(asm_flmul(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
-    LABEL_FLDIV_R: { registers[rA] = Value(asm_fldiv(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
-    LABEL_FLMOD_R: { registers[rA] = Value(asm_flmod(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
+    LABEL_IADD_R: { registers[rA] = asm_iadd(registers[rB].asInt(), registers[rC].asInt()); NEXT(); }
+    LABEL_ISUB_R: { registers[rA] = asm_isub(registers[rB].asInt(), registers[rC].asInt()); NEXT(); }
+    LABEL_IMUL_R: { registers[rA] = asm_imul(registers[rB].asInt(), registers[rC].asInt()); NEXT(); }
+    LABEL_IDIV_R: { registers[rA] = asm_idiv(registers[rB].asInt(), registers[rC].asInt()); NEXT(); }
+    LABEL_IMOD_R: { registers[rA] = asm_imod(registers[rB].asInt(), registers[rC].asInt()); NEXT(); }
+    LABEL_FLADD_R: { registers[rA] = asm_fladd(registers[rB].asFloat(), registers[rC].asFloat()); NEXT(); }
+    LABEL_FLSUB_R: { registers[rA] = asm_flsub(registers[rB].asFloat(), registers[rC].asFloat()); NEXT(); }
+    LABEL_FLMUL_R: { registers[rA] = asm_flmul(registers[rB].asFloat(), registers[rC].asFloat()); NEXT(); }
+    LABEL_FLDIV_R: { registers[rA] = asm_fldiv(registers[rB].asFloat(), registers[rC].asFloat()); NEXT(); }
+    LABEL_FLMOD_R: { registers[rA] = asm_flmod(registers[rB].asFloat(), registers[rC].asFloat()); NEXT(); }
     LABEL_MADD_R: { registers[rA] = registers[rB] + registers[rC]; NEXT(); }
     LABEL_MSUB_R: { registers[rA] = registers[rB] - registers[rC]; NEXT(); }
     LABEL_MMUL_R: { registers[rA] = registers[rB] * registers[rC]; NEXT(); }
     LABEL_MDIV_R: { registers[rA] = registers[rB] / registers[rC]; NEXT(); }
-    LABEL_SQRT_R: { registers[rA] = Value(asm_sqrt(registers[rB].asFloat())); NEXT(); }
-    LABEL_POW_R: { registers[rA] = Value(asm_pow(registers[rB].asFloat(), registers[rC].asFloat())); NEXT(); }
-    LABEL_LOG_R: { registers[rA] = Value(asm_log(registers[rB].asFloat())); NEXT(); }
-    LABEL_EXP_R: { registers[rA] = Value(asm_exp(registers[rB].asFloat())); NEXT(); }
-    LABEL_SIN_R: { registers[rA] = Value(asm_sin(registers[rB].asFloat())); NEXT(); }
-    LABEL_COS_R: { registers[rA] = Value(asm_cos(registers[rB].asFloat())); NEXT(); }
-    LABEL_TAN_R: { registers[rA] = Value(asm_tan(registers[rB].asFloat())); NEXT(); }
+    LABEL_SQRT_R: { registers[rA] = asm_sqrt(registers[rB].asFloat()); NEXT(); }
+    LABEL_POW_R: { registers[rA] = asm_pow(registers[rB].asFloat(), registers[rC].asFloat()); NEXT(); }
+    LABEL_LOG_R: { registers[rA] = asm_log(registers[rB].asFloat()); NEXT(); }
+    LABEL_EXP_R: { registers[rA] = asm_exp(registers[rB].asFloat()); NEXT(); }
+    LABEL_SIN_R: { registers[rA] = asm_sin(registers[rB].asFloat()); NEXT(); }
+    LABEL_COS_R: { registers[rA] = asm_cos(registers[rB].asFloat()); NEXT(); }
+    LABEL_TAN_R: { registers[rA] = asm_tan(registers[rB].asFloat()); NEXT(); }
 
 #pragma endregion
 #pragma region REGISTER LOGICAL
     
 
-    LABEL_NEG_R: { registers[rA] = Value(asm_flneg(registers[rB].asFloat())); NEXT(); }
-    LABEL_NOT_R: { registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0)); NEXT(); }
-    LABEL_IAND_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_iand(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-    LABEL_IOR_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_ior (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_NEG_R: { registers[rA] = asm_flneg(registers[rB].asFloat()); NEXT(); }
+    LABEL_NOT_R: { registers[rA] = asm_flnot(registers[rB].isTruthy() ? 1 : 0); NEXT(); }
+    LABEL_IAND_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=asm_iand(b.isTruthy()?1:0,c.isTruthy()?1:0); NEXT(); }
+    LABEL_IOR_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=asm_ior (b.isTruthy()?1:0,c.isTruthy()?1:0); NEXT(); }
 
-    LABEL_IEQ_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_iequal(b.asInt(),c.asInt())) : Value(b==c); NEXT(); }
-    LABEL_INE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_inot_equal(b.asInt(),c.asInt())) : Value(b!=c); NEXT(); }
-    LABEL_ILT_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_iless_than(b.asInt(),c.asInt())) : Value(b< c); NEXT(); }
-    LABEL_IGT_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_igreater_than(b.asInt(),c.asInt())) : Value(b> c); NEXT(); }
-    LABEL_ILE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_iless_equal(b.asInt(),c.asInt())) : Value(b<=c); NEXT(); }
-    LABEL_IGE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? Value(asm_igreater_equal(b.asInt(),c.asInt())) : Value(b>=c); NEXT(); }
+    LABEL_IEQ_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? asm_iequal(b.asInt(),c.asInt()) : b==c; NEXT(); }
+    LABEL_INE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? asm_inot_equal(b.asInt(),c.asInt()) : b!=c; NEXT(); }
+    LABEL_ILT_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? asm_iless_than(b.asInt(),c.asInt()) : b< c; NEXT(); }
+    LABEL_IGT_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? asm_igreater_than(b.asInt(),c.asInt()) : b> c; NEXT(); }
+    LABEL_ILE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? asm_iless_equal(b.asInt(),c.asInt()) : b<=c; NEXT(); }
+    LABEL_IGE_R:   { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=(b.isInt()&&c.isInt()) ? asm_igreater_equal(b.asInt(),c.asInt()) : b>=c; NEXT(); }
     LABEL_FLEQ_R: { 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? 
-			Value(asm_flequal(b.asFloat(), c.asFloat())) :
-			Value(b == c); NEXT();
+			asm_flequal(b.asFloat(), c.asFloat()) :
+			b == c; NEXT();
     }
     LABEL_FLNE_R: {
         Value &b = registers[rB];
         Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flnot_equal(b.asFloat(), c.asFloat()) : b != c;
         NEXT();
     }
     LABEL_FLLT_R: {
         Value &b = registers[rB];
         Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flless_than(b.asFloat(), c.asFloat()) : b < c;
         NEXT();
     }
     LABEL_FLGT_R: {
         Value &b = registers[rB];
         Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flgreater_than(b.asFloat(), c.asFloat()) : b > c;
         NEXT();
     }
     LABEL_FLLE_R: {
         Value &b = registers[rB];
         Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flless_equal(b.asFloat(), c.asFloat()) : b <= c;
         NEXT();
     }
     LABEL_FLGE_R: {
         Value &b = registers[rB];
         Value &c = registers[rC];
-        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+        registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flgreater_equal(b.asFloat(), c.asFloat()) : b >= c;
         NEXT();
     }
-    LABEL_FLAND_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
-    LABEL_FLOR_R:  { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=Value(asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0)); NEXT(); }
+    LABEL_FLAND_R: { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=asm_fland(b.isTruthy()?1:0,c.isTruthy()?1:0); NEXT(); }
+    LABEL_FLOR_R:  { Value &b=registers[rB]; Value &c=registers[rC]; registers[rA]=asm_flor (b.isTruthy()?1:0,c.isTruthy()?1:0); NEXT(); }
 
 #pragma endregion
 #pragma region REGISTER I/O
@@ -1016,7 +1017,7 @@ PHS_ERROR("Invalid default constant index for struct field");
     LABEL_PRINT_R:
     {
         {
-            std::string s = registers[rA].toString();
+            Phasor::string s = registers[rA].toString();
 #ifdef TRACING
             log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
 #else
@@ -1030,7 +1031,7 @@ PHS_ERROR("Invalid default constant index for struct field");
     LABEL_PRINTERROR_R:
     {
         {
-            std::string s = registers[rA].toString();
+            Phasor::string s = registers[rA].toString();
 #ifdef TRACING
             log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
 #else
@@ -1094,7 +1095,7 @@ PHS_ERROR("Invalid default constant index for struct field");
         {
 #ifdef TRACING
             Value       cmd = registers[rA];
-            std::string ret = c_system_out(cmd.c_str());
+            Phasor::string ret = c_system_out(cmd.c_str());
             log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
             registers[rA] = ret;
 #else
@@ -1114,7 +1115,7 @@ PHS_ERROR("Invalid default constant index for struct field");
         {
 #ifdef TRACING
             Value       cmd = registers[rA];
-            std::string ret = c_system_err(cmd.c_str());
+            Phasor::string ret = c_system_err(cmd.c_str());
             log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
             registers[rA] = ret;
 #else
@@ -1189,9 +1190,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[likely]] case OpCode::CALL: {
 		Value funcNameVal = m_bytecode->constants[operand1];
-		std::string funcName = funcNameVal.string();
+		Phasor::string funcName = funcNameVal.string();
 
-		auto it = m_bytecode->functionEntries.find(funcName);
+		auto it = m_bytecode->functionEntries.find(funcName.str());
 		if (it == m_bytecode->functionEntries.end())
 			PHS_ERROR("Unknown function: " + funcName);
 
@@ -1262,7 +1263,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		}
 
 #ifdef TRACING
-		std::string argsText;
+		Phasor::string argsText;
 		for (auto &arg : args)
 		{
 			argsText += std::format("{:T}", arg);
@@ -1349,12 +1350,12 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::TRUE_P: {
-		push(Value(true));
+		push(true);
 		break;
 	}
 
 	case OpCode::FALSE_P: {
-		push(Value(false));
+		push(false);
 		break;
 	}
 
@@ -1521,119 +1522,119 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::NOT: {
-		push(Value(asm_flnot(pop().isTruthy() ? 1 : 0)));
+		push(asm_flnot(pop().isTruthy() ? 1 : 0));
 		break;
 	}
 
 	case OpCode::IAND: {
 		Value b = pop();
 		Value a = pop();
-		push(Value(asm_iand(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		push(asm_iand(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0));
 		break;
 	}
 
 	case OpCode::IOR: {
 		Value b = pop();
 		Value a = pop();
-		push(Value(asm_ior(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		push(asm_ior(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0));
 		break;
 	}
 
 	case OpCode::IEQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_iequal(a.asInt(), b.asInt())) : Value(a == b));
+		push(a.isInt() && b.isInt() ? asm_iequal(a.asInt(), b.asInt()) : a == b);
 		break;
 	}
 
 	case OpCode::INOT_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_inot_equal(a.asInt(), b.asInt())) : Value(a != b));
+		push(a.isInt() && b.isInt() ? asm_inot_equal(a.asInt(), b.asInt()) : a != b);
 		break;
 	}
 
 	case OpCode::ILESS_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_iless_than(a.asInt(), b.asInt())) : Value(a < b));
+		push(a.isInt() && b.isInt() ? asm_iless_than(a.asInt(), b.asInt()) : a < b);
 		break;
 	}
 
 	case OpCode::IGREATER_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_igreater_than(a.asInt(), b.asInt())) : Value(a > b));
+		push(a.isInt() && b.isInt() ? asm_igreater_than(a.asInt(), b.asInt()) : a > b);
 		break;
 	}
 
 	case OpCode::ILESS_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_iless_equal(a.asInt(), b.asInt())) : Value(a <= b));
+		push(a.isInt() && b.isInt() ? asm_iless_equal(a.asInt(), b.asInt()) : a <= b);
 		break;
 	}
 
 	case OpCode::IGREATER_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(a.isInt() && b.isInt() ? Value(asm_igreater_equal(a.asInt(), b.asInt())) : Value(a >= b));
+		push(a.isInt() && b.isInt() ? asm_igreater_equal(a.asInt(), b.asInt()) : a >= b);
 		break;
 	}
 
 	case OpCode::FLAND: {
 		Value b = pop();
 		Value a = pop();
-		push(Value(asm_fland(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		push(asm_fland(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0));
 		break;
 	}
 
 	case OpCode::FLOR: {
 		Value b = pop();
 		Value a = pop();
-		push(Value(asm_flor(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0)));
+		push(asm_flor(a.isTruthy() ? 1 : 0, b.isTruthy() ? 1 : 0));
 		break;
 	}
 
 	case OpCode::FLEQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flequal(a.asFloat(), b.asFloat())) : Value(a == b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flequal(a.asFloat(), b.asFloat()) : a == b);
 		break;
 	}
 
 	case OpCode::FLNOT_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flnot_equal(a.asFloat(), b.asFloat())) : Value(a != b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flnot_equal(a.asFloat(), b.asFloat()) : a != b);
 		break;
 	}
 
 	case OpCode::FLLESS_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_than(a.asFloat(), b.asFloat())) : Value(a < b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flless_than(a.asFloat(), b.asFloat()) : a < b);
 		break;
 	}
 
 	case OpCode::FLGREATER_THAN: {
 		Value b = pop();
 		Value a = pop();
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_than(a.asFloat(), b.asFloat())) : Value(a > b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flgreater_than(a.asFloat(), b.asFloat()) : a > b);
 		break;
 	}
 
 	case OpCode::FLLESS_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flless_equal(a.asFloat(), b.asFloat())) : Value(a <= b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flless_equal(a.asFloat(), b.asFloat()) : a <= b);
 		break;
 	}
 
 	case OpCode::FLGREATER_EQUAL: {
 		Value b = pop();
 		Value a = pop();
-		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? Value(asm_flgreater_equal(a.asFloat(), b.asFloat())) : Value(a >= b));
+		push(((a.isFloat() || a.isInt()) && (b.isFloat() || b.isInt())) ? asm_flgreater_equal(a.asFloat(), b.asFloat()) : a >= b);
 		break;
 	}
 
@@ -1642,7 +1643,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	case OpCode::PRINT: {
 		Value       v = pop();
-		std::string s = v.toString();
+		Phasor::string s = v.toString();
 #ifdef TRACING
 		log(std::format("PRINT: (stdout) {:T}\n", v));
 #else
@@ -1654,7 +1655,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 	[[unlikely]] case OpCode::PRINTERROR: {
 		Value       v = pop();
-		std::string s = v.toString();
+		Phasor::string s = v.toString();
 #ifdef TRACING
 		log(std::format("PRINTERROR: (stderr) {:T}\n", v));
 #else
@@ -1705,7 +1706,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 #ifdef TRACING
 		Value       cmd = pop();
-		std::string ret = c_system_out(cmd.c_str());
+		Phasor::string ret = c_system_out(cmd.c_str());
 		log(std::format("SYSTEM_OUT: {:T} -> {}\n", cmd, ret));
 		push(ret);
 #else
@@ -1722,7 +1723,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 #ifdef TRACING
 		Value       cmd = pop();
-		std::string ret = c_system_err(cmd.c_str());
+		Phasor::string ret = c_system_err(cmd.c_str());
 		log(std::format("SYSTEM_ERR: {:T} -> {}\n", cmd, ret));
 		push(ret);
 #else
@@ -1739,9 +1740,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value v = pop();
 		if (v.isArray())
 		{
-			push(Value(static_cast<i64>(v.asArray()->size())));
+			push(static_cast<i64>(v.asArray()->size()));
 		} else {
-			push(Value(static_cast<i64>(v.string().length())));
+			push(static_cast<i64>(v.string().length()));
 		}
 		break;
 	}
@@ -1750,7 +1751,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value idxVal = pop();
 		Value strVal = pop();
 
-		std::string s;
+		Phasor::string s;
 		if (strVal.isString()) 
 		{
 			s = strVal.string();
@@ -1770,6 +1771,10 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			{
 				idx = std::stoll(idxVal.string());
 			}
+			catch (const std::exception &e)
+			{
+				PHS_ERROR(Phasor::string("char_at() ") + e.what());
+			}
 			catch (...)
 			{
 				PHS_ERROR("char_at() expects index convertible to integer");
@@ -1780,9 +1785,9 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 		if (idx < 0 || std::cmp_greater_equal(idx ,s.length())) 
 		{
-			push(Value(""));
+			push("");
 		} else {
-			push(Value(std::string(1, s[static_cast<size_t>(idx)])));
+			push(Phasor::string(1, s[static_cast<size_t>(idx)]));
 		}
 		break;
 	}
@@ -1794,15 +1799,15 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 
 		if (strVal.isString() && startVal.isInt() && lenVal.isInt())
 		{
-			const std::string &s     = strVal.string();
+			const Phasor::string &s     = strVal.string();
 			i64                start = startVal.asInt();
 			i64                len   = lenVal.asInt();
 
 			if (start < 0 || std::cmp_greater_equal(start ,s.length()))
 			{
-				push(Value(""));
+				push("");
 			} else {
-				push(Value(s.substr(start, len)));
+				push(s.substr(start, len));
 			}
 		} else {
 			PHS_ERROR("substr() expects string, int, int");
@@ -1825,7 +1830,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 			if (constIndex < 0 || std::cmp_greater_equal(constIndex ,m_bytecode->constants.size()))
 				PHS_ERROR("Invalid default constant index for struct field");
 			const Value       &defVal    = m_bytecode->constants[constIndex];
-			const std::string &fieldName = info.fieldNames[i];
+			const Phasor::string &fieldName = info.fieldNames[i];
 			instance.setField(fieldName, defVal);
 		}
 		push(instance);
@@ -1839,7 +1844,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			PHS_ERROR("Invalid field offset for GET_FIELD_STATIC");
-		const std::string &fieldName = info.fieldNames[fieldOffset];
+		const Phasor::string &fieldName = info.fieldNames[fieldOffset];
 		Value              obj       = pop();
 		push(obj.getField(fieldName));
 		break;
@@ -1879,7 +1884,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		int               fieldOffset = operand2;
 		if (fieldOffset < 0 || fieldOffset >= info.fieldCount)
 			PHS_ERROR("Invalid field offset for SET_FIELD_STATIC");
-		const std::string &fieldName = info.fieldNames[fieldOffset];
+		const Phasor::string &fieldName = info.fieldNames[fieldOffset];
 		Value              value     = pop();
 		Value              obj       = pop();
 		obj.setField(fieldName, value);
@@ -1891,7 +1896,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index for NEW_STRUCT");
 		Value       nameVal    = m_bytecode->constants[operand1];
-		std::string structName = nameVal.string();
+		Phasor::string structName = nameVal.string();
 		push(Value::createStruct(structName));
 		break;
 	}
@@ -1899,7 +1904,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::SET_FIELD: {
 		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index for SET_FIELD");
-		std::string fieldName = m_bytecode->constants[operand1].string();
+		Phasor::string fieldName = m_bytecode->constants[operand1].string();
 		Value       value     = pop();
 		Value       obj       = pop();
 		obj.setField(fieldName, value);
@@ -1910,7 +1915,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	case OpCode::GET_FIELD: {
 		if (operand1 < 0 || std::cmp_greater_equal(operand1 ,m_bytecode->constants.size()))
 			PHS_ERROR("Invalid constant index for GET_FIELD");
-		std::string fieldName = m_bytecode->constants[operand1].string();
+		Phasor::string fieldName = m_bytecode->constants[operand1].string();
 		Value       obj       = pop();
 		push(obj.getField(fieldName));
 		break;
@@ -2037,52 +2042,52 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region REG ARITHMETIC
 
 	case OpCode::IADD_R: {
-		registers[rA] = Value(asm_iadd(registers[rB].asInt(), registers[rC].asInt()));
+		registers[rA] = asm_iadd(registers[rB].asInt(), registers[rC].asInt());
 		break;
 	}
 
 	case OpCode::ISUB_R: {
-		registers[rA] = Value(asm_isub(registers[rB].asInt(), registers[rC].asInt()));
+		registers[rA] = asm_isub(registers[rB].asInt(), registers[rC].asInt());
 		break;
 	}
 
 	case OpCode::IMUL_R: {
-		registers[rA] = Value(asm_imul(registers[rB].asInt(), registers[rC].asInt()));
+		registers[rA] = asm_imul(registers[rB].asInt(), registers[rC].asInt());
 		break;
 	}
 
 	case OpCode::IDIV_R: {
-		registers[rA] = Value(asm_idiv(registers[rB].asInt(), registers[rC].asInt()));
+		registers[rA] = asm_idiv(registers[rB].asInt(), registers[rC].asInt());
 		break;
 	}
 
 	case OpCode::IMOD_R: {
-		registers[rA] = Value(asm_imod(registers[rB].asInt(), registers[rC].asInt()));
+		registers[rA] = asm_imod(registers[rB].asInt(), registers[rC].asInt());
 		break;
 	}
 
 	case OpCode::FLADD_R: {
-		registers[rA] = Value(asm_fladd(registers[rB].asFloat(), registers[rC].asFloat()));
+		registers[rA] = asm_fladd(registers[rB].asFloat(), registers[rC].asFloat());
 		break;
 	}
 
 	case OpCode::FLSUB_R: {
-		registers[rA] = Value(asm_flsub(registers[rB].asFloat(), registers[rC].asFloat()));
+		registers[rA] = asm_flsub(registers[rB].asFloat(), registers[rC].asFloat());
 		break;
 	}
 
 	case OpCode::FLMUL_R: {
-		registers[rA] = Value(asm_flmul(registers[rB].asFloat(), registers[rC].asFloat()));
+		registers[rA] = asm_flmul(registers[rB].asFloat(), registers[rC].asFloat());
 		break;
 	}
 
 	case OpCode::FLDIV_R: {
-		registers[rA] = Value(asm_fldiv(registers[rB].asFloat(), registers[rC].asFloat()));
+		registers[rA] = asm_fldiv(registers[rB].asFloat(), registers[rC].asFloat());
 		break;
 	}
 
 	case OpCode::FLMOD_R: {
-		registers[rA] = Value(asm_flmod(registers[rB].asFloat(), registers[rC].asFloat()));
+		registers[rA] = asm_flmod(registers[rB].asFloat(), registers[rC].asFloat());
 		break;
 	}
 
@@ -2107,37 +2112,37 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	case OpCode::SQRT_R: {
-		registers[rA] = Value(asm_sqrt(registers[rB].asFloat()));
+		registers[rA] = asm_sqrt(registers[rB].asFloat());
 		break;
 	}
 
 	case OpCode::POW_R: {
-		registers[rA] = Value(asm_pow(registers[rB].asFloat(), registers[rC].asFloat()));
+		registers[rA] = asm_pow(registers[rB].asFloat(), registers[rC].asFloat());
 		break;
 	}
 
 	case OpCode::LOG_R: {
-		registers[rA] = Value(asm_log(registers[rB].asFloat()));
+		registers[rA] = asm_log(registers[rB].asFloat());
 		break;
 	}
 
 	case OpCode::EXP_R: {
-		registers[rA] = Value(asm_exp(registers[rB].asFloat()));
+		registers[rA] = asm_exp(registers[rB].asFloat());
 		break;
 	}
 
 	case OpCode::SIN_R: {
-		registers[rA] = Value(asm_sin(registers[rB].asFloat()));
+		registers[rA] = asm_sin(registers[rB].asFloat());
 		break;
 	}
 
 	case OpCode::COS_R: {
-		registers[rA] = Value(asm_cos(registers[rB].asFloat()));
+		registers[rA] = asm_cos(registers[rB].asFloat());
 		break;
 	}
 
 	case OpCode::TAN_R: {
-		registers[rA] = Value(asm_tan(registers[rB].asFloat()));
+		registers[rA] = asm_tan(registers[rB].asFloat());
 		break;
 	}
 
@@ -2145,89 +2150,89 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region REG LOGICAL
 
 	case OpCode::NEG_R: {
-		registers[rA] = Value(asm_flneg(registers[rB].asFloat()));
+		registers[rA] = asm_flneg(registers[rB].asFloat());
 		break;
 	}
 
 	case OpCode::NOT_R: {
-		registers[rA] = Value(asm_flnot(registers[rB].isTruthy() ? 1 : 0));
+		registers[rA] = asm_flnot(registers[rB].isTruthy() ? 1 : 0);
 		break;
 	}
 
 	case OpCode::IEQ_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_iequal(b.asInt(), c.asInt())) : Value(b == c);
+		registers[rA] = (b.isInt() && c.isInt()) ? asm_iequal(b.asInt(), c.asInt()) : b == c;
 		break;
 	}
 
 	case OpCode::INE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_inot_equal(b.asInt(), c.asInt())) : Value(b != c);
+		registers[rA] = (b.isInt() && c.isInt()) ? asm_inot_equal(b.asInt(), c.asInt()) : b != c;
 		break;
 	}
 
 	case OpCode::ILT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_iless_than(b.asInt(), c.asInt())) : Value(b < c);
+		registers[rA] = (b.isInt() && c.isInt()) ? asm_iless_than(b.asInt(), c.asInt()) : b < c;
 		break;
 	}
 
 	case OpCode::IGT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_igreater_than(b.asInt(), c.asInt())) : Value(b > c);
+		registers[rA] = (b.isInt() && c.isInt()) ? asm_igreater_than(b.asInt(), c.asInt()) : b > c;
 		break;
 	}
 
 	case OpCode::ILE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_iless_equal(b.asInt(), c.asInt())) : Value(b <= c);
+		registers[rA] = (b.isInt() && c.isInt()) ? asm_iless_equal(b.asInt(), c.asInt()) : b <= c;
 		break;
 	}
 
 	case OpCode::IGE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = (b.isInt() && c.isInt()) ? Value(asm_igreater_equal(b.asInt(), c.asInt())) : Value(b >= c);
+		registers[rA] = (b.isInt() && c.isInt()) ? asm_igreater_equal(b.asInt(), c.asInt()) : b >= c;
 		break;
 	}
 
 	case OpCode::IAND_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = Value(asm_iand(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		registers[rA] = asm_iand(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0);
 		break;
 	}
 
 	case OpCode::IOR_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = Value(asm_ior(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		registers[rA] = asm_ior(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0);
 		break;
 	}
 
 	case OpCode::FLEQ_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flequal(b.asFloat(), c.asFloat())) : Value(b == c);
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flequal(b.asFloat(), c.asFloat()) : b == c;
 		break;
 	}
 
 	case OpCode::FLNE_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flnot_equal(b.asFloat(), c.asFloat())) : Value(b != c);
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flnot_equal(b.asFloat(), c.asFloat()) : b != c;
 		break;
 	}
 
 	case OpCode::FLLT_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_than(b.asFloat(), c.asFloat())) : Value(b < c);
+		registers[rA] = ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flless_than(b.asFloat(), c.asFloat()) : b < c;
 		break;
 	}
 
@@ -2235,7 +2240,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] =
-		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_than(b.asFloat(), c.asFloat())) : Value(b > c);
+		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flgreater_than(b.asFloat(), c.asFloat()) : b > c;
 		break;
 	}
 
@@ -2243,7 +2248,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] =
-		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flless_equal(b.asFloat(), c.asFloat())) : Value(b <= c);
+		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flless_equal(b.asFloat(), c.asFloat()) : b <= c;
 		break;
 	}
 
@@ -2251,21 +2256,21 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 		Value &b = registers[rB];
 		Value &c = registers[rC];
 		registers[rA] =
-		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? Value(asm_flgreater_equal(b.asFloat(), c.asFloat())) : Value(b >= c);
+		    ((b.isFloat() || b.isInt()) && (c.isFloat() || c.isInt())) ? asm_flgreater_equal(b.asFloat(), c.asFloat()) : b >= c;
 		break;
 	}
 
 	case OpCode::FLAND_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = Value(asm_fland(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		registers[rA] = asm_fland(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0);
 		break;
 	}
 
 	case OpCode::FLOR_R: {
 		Value &b = registers[rB];
 		Value &c = registers[rC];
-		registers[rA] = Value(asm_flor(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0));
+		registers[rA] = asm_flor(b.isTruthy() ? 1 : 0, c.isTruthy() ? 1 : 0);
 		break;
 	}
 
@@ -2273,7 +2278,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #pragma region REG I/O
 
 	case OpCode::PRINT_R: {
-		std::string s = registers[rA].toString();
+		Phasor::string s = registers[rA].toString();
 #ifdef TRACING
 		log(std::format("PRINT_R: (stdout) {:T}\n", registers[rA]));
 #else
@@ -2284,7 +2289,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 	}
 
 	[[unlikely]] case OpCode::PRINTERROR_R: {
-		std::string s = registers[rA].toString();
+		Phasor::string s = registers[rA].toString();
 #ifdef TRACING
 		log(std::format("PRINTERROR_R: (stderr) {:T}\n", registers[rA]));
 #else
@@ -2339,7 +2344,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 #ifdef TRACING
 		Value       cmd = registers[rA];
-		std::string ret = c_system_out(cmd.c_str());
+		Phasor::string ret = c_system_out(cmd.c_str());
 		log(std::format("SYSTEM_R: {:T} -> {}\n", cmd, ret));
 		registers[rA] = ret;
 #else
@@ -2356,7 +2361,7 @@ Value VM::operation(const OpCode &op, const int &operand1, const int &operand2, 
 #else
 #ifdef TRACING
 		Value       cmd = registers[rA];
-		std::string ret = c_system_err(cmd.c_str());
+		Phasor::string ret = c_system_err(cmd.c_str());
 		log(std::format("SYSTEM_ERR_R: {:T} -> {}\n", cmd, ret));
 		registers[rA] = ret;
 #else

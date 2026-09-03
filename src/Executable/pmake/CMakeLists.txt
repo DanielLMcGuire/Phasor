@@ -38,6 +38,21 @@ elseif(PHASOR_BUILD_PMAKE_STANDALONE)
             DEFINES PHS_DEBUG
         )
     endif()
+
+    if(PHS_DEBUG_ENABLED)
+        phasor_add_transpiled_defines(
+            TARGET pmake
+            NAME main
+            DEFINES PHS_DEBUG
+        )
+    endif()
+    if(PHS_TRACE_ENABLED)
+        phasor_add_transpiled_defines(
+            TARGET pmake
+            NAME main
+            DEFINES PHS_TRACE
+        )
+    endif()
     target_link_libraries(pmake phasor_native_runtime)
     target_precompile_headers(pmake PRIVATE ${pmake_main_PHS_HEADER})
     set_target_properties(pmake PROPERTIES OUTPUT_NAME pmake)

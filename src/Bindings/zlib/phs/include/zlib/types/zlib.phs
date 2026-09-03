@@ -1,0 +1,5 @@
+struct ZlibCompressResult { 
+    bytes_in: i64, 
+    bytes_out: i64, 
+    ratio: f64 
+}

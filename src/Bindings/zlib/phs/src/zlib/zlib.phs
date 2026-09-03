@@ -1,0 +1,17 @@
+include "../../include/zlib/types/zlib.phs";
+
+fn CompressFile(src_path: string, dst_path: string, level: int) -> ZlibCompressResult {
+    return ZLIB_CompressFile(src_path, dst_path, level);
+}
+
+fn DecompressFile(src_path: string, dst_path: string) -> ZlibDecompressResult {
+    return ZLIB_DecompressFile(src_path, dst_path);
+}
+
+fn IsGzipFile(path: string) -> bool {
+    return ZLIB_IsGzipFile(path);
+}
+
+fn ZLIBVersion() -> string {
+    return ZLIB_Version();
+}

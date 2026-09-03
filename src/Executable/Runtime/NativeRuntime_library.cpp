@@ -143,7 +143,7 @@ static std::vector<std::filesystem::path> resolveIncludePaths(const char *module
 static Phasor::Defines resolveDefines(const char **defines, int defineCount)
 {
 	Phasor::Defines finalDefines;
-	Phasor::addDefaultDefines(finalDefines, false);
+	Phasor::addDefaultDefines(finalDefines);
 
 	if (defines == nullptr || defineCount <= 0)
 	{

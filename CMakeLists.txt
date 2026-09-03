@@ -2,17 +2,6 @@ cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)
 project(Phasor VERSION 4.0.0 LANGUAGES C CXX)
 
-set(CMAKE_C_STANDARD 23)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-if(APPLE)
-    enable_language(OBJC)
-endif()
-
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "/" CACHE PATH "Default install prefix" FORCE)
 endif()
@@ -48,25 +37,43 @@ option(USE_PCH "Use PCH" ON)
 option(PGO_A "Instrument PGO data" OFF)
 option(PGO_B "Use PGO data" OFF)
 option(PHASOR_SDL2 "Build Phasor SDL2 Bindings" ON)
-option(PHS_DEBUG_ENABLED "Enable debugging for Phasor Stdlib / startup" OFF)
+option(PHASOR_ZLIB "Build Phasor ZLIB Bindings" ON)
+option(PHS_DEBUG_ENABLED "Enable debugging for Phasor Stdlib" OFF)
+option(PHS_TRACE_ENABLED "Enable tracing for Phasor Stdlib" OFF)
 option(PHASOR_BUILD_PMAKE "Build pmake (toolchain build helper)" OFF)
 option(PHASOR_BUILD_PMAKE_STANDALONE "Build pmake (statically linked against phasorrt)" OFF)
 
-include(cmake/PhasorLanguage.cmake)
-
-if (PHASOR_SDL2)
-    include(cmake/prepSDL2.cmake)
+if(APPLE)
+    enable_language(OBJC)
 endif()
-
-include(cmake/prepBoost.cmake)
 
 if(WIN32 AND ASSEMBLY)
     enable_language(RC)
 endif()
 
-# Prebuild config
+# Early config
+include(cmake/prepBoost.cmake)
 include(cmake/Preprocessor.cmake)
 include(cmake/CompilerFlags.cmake)
+
+if (PHASOR_SDL2)
+    include(cmake/prepSDL2.cmake)
+endif()
+
+if (PHASOR_ZLIB)
+    include(cmake/prepZLIB.cmake)
+endif()
+
+include(cmake/PhasorLanguage.cmake)
+
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Prebuild config
 include(cmake/AssemblyConfig.cmake)
 include(cmake/Version.cmake)
 configure_file(

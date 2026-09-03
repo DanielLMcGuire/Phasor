@@ -125,8 +125,10 @@ namespace PhsJson {
         if (is_float) {
             try {
                 return Value(std::stod(number_str));
-            } catch (...) {
+            } catch (const std::out_of_range&) {
                 throw std::runtime_error("Number out of range");
+            } catch (const std::exception &e) {
+                throw std::runtime_error(Phasor::string("Invalid number format: ") + number_str + ". " + e.what());
             }
         } else {
             try {
@@ -135,8 +137,8 @@ namespace PhsJson {
             } catch (const std::out_of_range&) {
                 try {
                     return Value(std::stod(number_str));
-                } catch (...) {
-                    throw std::runtime_error("Number out of range");
+                } catch (const std::exception &e) {
+                    throw std::runtime_error(Phasor::string("Invalid number format: ") + number_str + ". " + e.what());
                 }
             }
         }
@@ -225,6 +227,6 @@ namespace PhsJson {
             throw std::runtime_error("Unexpected character");
         }
     }
-} // namespace json
+} // namespace PhsJson
 
 }

@@ -6,7 +6,7 @@ SET "PHASOR_INCLUDE_PATH=%CD%\.instrument\out\opt\include"
 
 ECHO Removing stale files
 
-rm -rf profdata .instrument
+rm -rf profdata
 
 ECHO Creating directories
 
@@ -81,4 +81,4 @@ mv *.profraw profdata\
 
 ECHO Cleanup
 
-rm -rf examples\**\*.phir examples\**\*.phsb .instrument outfile.txt
+rm -rf examples\**\*.phir examples\**\*.phsb outfile.txt

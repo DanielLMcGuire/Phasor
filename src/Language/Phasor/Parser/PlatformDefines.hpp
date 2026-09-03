@@ -43,7 +43,7 @@ struct DefineValue
 using Defines = std::unordered_map<Phasor::string, DefineValue>;
 
 
-inline void addDefaultDefines(Defines &defines, bool nativeTarget)
+inline void addDefaultDefines(Defines &defines)
 {
 	auto setFlag = [&defines](const char *name, DefineValue value = DefineValue(DefineValueKind::Number, "1")) {
 		defines[name] = std::move(value);
@@ -60,11 +60,6 @@ inline void addDefaultDefines(Defines &defines, bool nativeTarget)
 
 	(void)setString;
 	(void)setBool;
-
-	if (nativeTarget)
-	{
-		setFlag("PHASOR_NATIVE");
-	}
 
 #if defined(PHS_IS_32)
 	setNumber("PTR_SIZE", 4);
@@ -157,10 +152,10 @@ inline DefineValue parseCliDefineValue(const Phasor::string &raw)
 	return DefineValue(DefineValueKind::String, raw);
 }
 
-inline Defines resolveDefines(const std::vector<Phasor::string> &cliDefines, bool nativeTarget)
+inline Defines resolveDefines(const std::vector<Phasor::string> &cliDefines)
 {
 	Defines defines;
-	addDefaultDefines(defines, nativeTarget);
+	addDefaultDefines(defines);
 
 	for (const auto &entry : cliDefines)
 	{

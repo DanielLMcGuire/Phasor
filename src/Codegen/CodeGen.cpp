@@ -1032,6 +1032,10 @@ void CodeGenerator::generateNumberExpr(const AST::NumberExpr *numExpr)
 			bytecode.emit(OpCode::PUSH_CONST, constIndex);
 		}
 	}
+	catch (const std::exception &e)
+	{
+		throw std::runtime_error(std::format("Invalid number format: '{}'. {}", numExpr->value, e.what()));
+	}
 	catch (...)
 	{
 		throw std::runtime_error("Invalid number format: " + numExpr->value);
@@ -1318,6 +1322,10 @@ void CodeGenerator::generateBinaryExpr(const AST::BinaryExpr *binExpr, ValueType
 				bytecode.emit(OpCode::PUSH_CONST, constIndex);
 			}
 			return;
+		}
+		catch (const std::exception &e)
+		{
+			std::cerr << "Error folding binary expression: " << e.what() << "\n";
 		}
 		catch (...)
 		{
@@ -2341,11 +2349,11 @@ ValueType CodeGenerator::mapTypeNameToValueType(const std::string &typeName)
 		return ValueType::Bool;
 	}
     if (typeName == "struct")
-	{ [[unlikely]]
+	[[unlikely]] {
 		return ValueType::Struct;
 	}
     if (bytecode.structEntries.contains(typeName))
-    { [[likely]] 
+    [[likely]] { 
 		return ValueType::Struct;
 	}
     if (typeName == "void")

@@ -409,7 +409,7 @@ Value StdLib::std_assert(const Value::ArrayInstance &args, VM *)
 	checkArgCount(args, 1, "assert", true);
 
 	if (args.size() > 2)
-	{ [[unlikely]]
+	[[unlikely]] {
 		PHS_ERROR("Assert expects 1 or 2 arguments, but got " + std::to_string(args.size()));
 	}
 
@@ -434,7 +434,7 @@ Value StdLib::std_assert(const Value::ArrayInstance &args, VM *)
 
 #ifdef _DEBUG
 	if (!args[0].isTruthy())
-	{ [[unlikely]]
+	[[unlikely]] {
 		vm->logerr(std::format("({})({:T}): Assertion failed!\n", PHS_SRC_LOC(), args[0]));
 		if (haveMessage) vm->logerr(std::format("{}\n", message));
 		vm->flusherr();

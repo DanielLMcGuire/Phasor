@@ -53,6 +53,8 @@ fn read_c_string_native(handle: ManagedMemory) -> string;
 
 fn read_c_string_native_offset(handle: ManagedMemory, offset: i64) -> string;
 
+fn read_c_string_array_native(argc: ManagedMemory, argv: ManagedMemory) -> string[];
+
 fn free_native(handle: ManagedMemory) -> void;
 
 // ----

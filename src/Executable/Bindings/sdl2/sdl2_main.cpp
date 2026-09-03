@@ -20,10 +20,10 @@
 
 PhasorValue phasor_sdl_init(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 1) { [[unlikely]]
+    if (argc < 1) [[unlikely]] {
         throw std::runtime_error("SDL_Init requires 1 argument: flags (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0])) [[unlikely]] {
         throw std::runtime_error("SDL_Init argument 1 (flags) must be an integer");
     }
     int flags = (int)phasor_to_int(argv[0]);
@@ -39,11 +39,11 @@ PhasorValue phasor_sdl_quit(PhasorVM*, int, const PhasorValue*)
 
 PhasorValue phasor_sdl_create_window(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 6) { [[unlikely]]
+    if (argc < 6) [[unlikely]] {
         throw std::runtime_error("SDL_CreateWindow requires 6 arguments: title (string), x (int), y (int), w (int), h (int), flags (int)");
     }
     if (!phasor_is_string(argv[0]) || !phasor_is_int(argv[1]) || !phasor_is_int(argv[2]) || 
-        !phasor_is_int(argv[3]) || !phasor_is_int(argv[4]) || !phasor_is_int(argv[5])) { [[unlikely]]
+        !phasor_is_int(argv[3]) || !phasor_is_int(argv[4]) || !phasor_is_int(argv[5])) [[unlikely]] {
         throw std::runtime_error("SDL_CreateWindow: Invalid argument types (Expected: string, int, int, int, int, int)");
     }
     const char* title = phasor_to_string(argv[0]);
@@ -59,14 +59,14 @@ PhasorValue phasor_sdl_create_window(PhasorVM*, int argc, const PhasorValue *arg
 
 PhasorValue phasor_sdl_destroy_window(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 1) { [[unlikely]]
+    if (argc < 1) [[unlikely]] {
         throw std::runtime_error("SDL_DestroyWindow requires 1 argument: window_handle (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0])) [[unlikely]] {
         throw std::runtime_error("SDL_DestroyWindow arg 1 must be an integer (window handle)");
     }
     SDL_Window* window = (SDL_Window*)(intptr_t)phasor_to_int(argv[0]);
-    if (window) { [[likely]]
+    if (window) [[likely]] {
         SDL_DestroyWindow(window);
     }
     return phasor_make_null();
@@ -74,10 +74,10 @@ PhasorValue phasor_sdl_destroy_window(PhasorVM*, int argc, const PhasorValue *ar
 
 PhasorValue phasor_sdl_delay(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 1) { [[unlikely]]
+    if (argc < 1) [[unlikely]] {
         throw std::runtime_error("SDL_Delay requires 1 argument: ms (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0])) [[unlikely]] {
         throw std::runtime_error("SDL_Delay arg 1 must be an integer (milliseconds)");
     }
     Uint32 ms = (Uint32)phasor_to_int(argv[0]);
@@ -155,7 +155,7 @@ PhasorValue phasor_sdl_poll_event(PhasorVM*, int, const PhasorValue*)
 
 PhasorValue phasor_sdl_get_error(PhasorVM*, int argc, const PhasorValue *)
 {
-    if (argc > 1) { [[unlikely]] 
+    if (argc > 1) [[unlikely]] { 
         throw std::runtime_error("SDL_GetError requires 0 arguments.");
     }
     static Phasor::string error = SDL_GetError();
@@ -164,10 +164,10 @@ PhasorValue phasor_sdl_get_error(PhasorVM*, int argc, const PhasorValue *)
 
 PhasorValue phasor_sdl_create_renderer(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 3) { [[unlikely]]
+    if (argc < 3) [[unlikely]] { 
         throw std::runtime_error("SDL_CreateRenderer requires 3 arguments: window (int), index (int), flags (int)");
     }
-    if (!phasor_is_int(argv[0]) || !phasor_is_int(argv[1]) || !phasor_is_int(argv[2])) { [[unlikely]]
+    if (!phasor_is_int(argv[0]) || !phasor_is_int(argv[1]) || !phasor_is_int(argv[2])) [[unlikely]] {
         throw std::runtime_error("SDL_CreateRenderer: Invalid argument types (Expected: int, int, int)");
     }
     
@@ -181,14 +181,14 @@ PhasorValue phasor_sdl_create_renderer(PhasorVM*, int argc, const PhasorValue *a
 
 PhasorValue phasor_sdl_destroy_renderer(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 1) { [[unlikely]]
+    if (argc < 1) [[unlikely]] {
         throw std::runtime_error("SDL_DestroyRenderer requires 1 argument: renderer_handle (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0])) [[unlikely]] {
         throw std::runtime_error("SDL_DestroyRenderer arg 1 must be an integer (renderer handle)");
     }
     SDL_Renderer* renderer = (SDL_Renderer*)(intptr_t)phasor_to_int(argv[0]);
-    if (renderer) { [[likely]]
+    if (renderer) [[likely]] {
         SDL_DestroyRenderer(renderer);
     }
     return phasor_make_null();
@@ -196,11 +196,11 @@ PhasorValue phasor_sdl_destroy_renderer(PhasorVM*, int argc, const PhasorValue *
 
 PhasorValue phasor_sdl_set_render_draw_color(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 5) { [[unlikely]]
+    if (argc < 5) [[unlikely]] {
         throw std::runtime_error("SDL_SetRenderDrawColor requires 5 arguments: renderer (int), r (int), g (int), b (int), a (int)");
     }
     for (int i = 0; i < 5; ++i) {
-        if (!phasor_is_int(argv[i])) { [[unlikely]]
+        if (!phasor_is_int(argv[i])) [[unlikely]] {
             throw std::runtime_error("SDL_SetRenderDrawColor: All arguments must be integers (0-255)");
         }
     }
@@ -217,10 +217,10 @@ PhasorValue phasor_sdl_set_render_draw_color(PhasorVM*, int argc, const PhasorVa
 
 PhasorValue phasor_sdl_render_clear(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 1) { [[unlikely]]
+    if (argc < 1) [[unlikely]] {
         throw std::runtime_error("SDL_RenderClear requires 1 argument: renderer (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0])) [[unlikely]] {
         throw std::runtime_error("SDL_RenderClear arg 1 must be an integer (renderer handle)");
     }
     SDL_Renderer* renderer = (SDL_Renderer*)(intptr_t)phasor_to_int(argv[0]);
@@ -230,10 +230,10 @@ PhasorValue phasor_sdl_render_clear(PhasorVM*, int argc, const PhasorValue *argv
 
 PhasorValue phasor_sdl_render_present(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 1) { [[unlikely]]
+    if (argc < 1) [[unlikely]] {
         throw std::runtime_error("SDL_RenderPresent requires 1 argument: renderer (int)");
     }
-    if (!phasor_is_int(argv[0])) { [[unlikely]]
+    if (!phasor_is_int(argv[0])) [[unlikely]] {
         throw std::runtime_error("SDL_RenderPresent arg 1 must be an integer (renderer handle)");
     }
     SDL_Renderer* renderer = (SDL_Renderer*)(intptr_t)phasor_to_int(argv[0]);
@@ -243,11 +243,11 @@ PhasorValue phasor_sdl_render_present(PhasorVM*, int argc, const PhasorValue *ar
 
 PhasorValue phasor_sdl_render_draw_line(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 5) { [[unlikely]]
+    if (argc < 5) [[unlikely]] {
         throw std::runtime_error("SDL_RenderDrawLine requires 5 arguments: renderer (int), x1 (int), y1 (int), x2 (int), y2 (int)");
     }
     for (int i = 0; i < 5; ++i) {
-        if (!phasor_is_int(argv[i])) { [[unlikely]]
+        if (!phasor_is_int(argv[i])) [[unlikely]] {
             throw std::runtime_error("SDL_RenderDrawLine: All arguments must be integers");
         }
     }
@@ -264,11 +264,11 @@ PhasorValue phasor_sdl_render_draw_line(PhasorVM*, int argc, const PhasorValue *
 
 PhasorValue phasor_sdl_render_draw_rect(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 5) { [[unlikely]]
+    if (argc < 5) [[unlikely]] {
         throw std::runtime_error("SDL_RenderDrawRect requires 5 arguments: renderer (int), x (int), y (int), w (int), h (int)");
     }
     for (int i = 0; i < 5; ++i) {
-        if (!phasor_is_int(argv[i])) { [[unlikely]]
+        if (!phasor_is_int(argv[i])) [[unlikely]] {
             throw std::runtime_error("SDL_RenderDrawRect: All arguments must be integers");
         }
     }
@@ -286,11 +286,11 @@ PhasorValue phasor_sdl_render_draw_rect(PhasorVM*, int argc, const PhasorValue *
 
 PhasorValue phasor_sdl_render_fill_rect(PhasorVM*, int argc, const PhasorValue *argv)
 {
-    if (argc < 5) { [[unlikely]]
+    if (argc < 5) [[unlikely]] {
         throw std::runtime_error("SDL_RenderFillRect requires 5 arguments: renderer (int), x (int), y (int), w (int), h (int)");
     }
     for (int i = 0; i < 5; ++i) {
-        if (!phasor_is_int(argv[i])) { [[unlikely]]
+        if (!phasor_is_int(argv[i])) [[unlikely]] {
             throw std::runtime_error("SDL_RenderFillRect: All arguments must be integers");
         }
     }

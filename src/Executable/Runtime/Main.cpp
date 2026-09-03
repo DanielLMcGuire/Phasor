@@ -457,7 +457,7 @@ PHASOR_API int phasor_main(int argc, char *argv[])
 		int    scriptArgc = static_cast<int>(scriptArgv.size());
 		char **scriptArgvPtr = scriptArgv.data();
 		const Phasor::Defines defines =
-		    Phasor::resolveDefines(defines_raw, false);
+		    Phasor::resolveDefines(defines_raw);
 
 		if (has_command)
 		{

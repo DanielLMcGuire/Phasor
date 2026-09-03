@@ -22,9 +22,9 @@ namespace Phasor
 
 /**
  * @class CCompiler
- * @brief CLI wrapper for C++ code generation from Phasor source
+ * @brief CLI wrapper for C code generation from Phasor source
  *
- * Compiles Phasor source files to C++ source files that embed bytecode
+ * Compiles Phasor source files to C source files that embed bytecode
  * and link against the phasor-runtime DLL.
  */
 class CCompiler

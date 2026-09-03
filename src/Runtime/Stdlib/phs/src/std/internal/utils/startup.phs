@@ -10,36 +10,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-include "../../../include/std/types/sys.phs";
-include "../../../include/std/types/meta.phs";
-
-// pops argc then argv off stack, then builds and returns string[] of args
-fn phsrt__build_args() -> string[]
-{
-static_if (PHS_DEBUG)
-    print "phsrt__build_args()\n";
-static_endif // (PHS_DEBUG)
-    var argcPtr: i64 = phs_pop();
-    var argvPtr: i64 = phs_pop();
-static_if (PHS_DEBUG)
-    printf("argv @ %#x, argc @ %#x\n", argvPtr, argcPtr);
-static_endif // (PHS_DEBUG)
-    var argc: i64 = phs__memory_read_native(argcPtr, 4);
-    var argv: string[];
-
-    var argvBasePtr: i64 = phs__memory_read_native(argvPtr, PTR_SIZE);
-
-    for (var i: int = 0; i < argc; i++)
-    {
-        var elementPtr: i64 = phs__memory_read_offset_native(argvBasePtr, i * PTR_SIZE, PTR_SIZE * argc);
-        assert(elementPtr != C_NULL);
-        argv.arr_push(phs__memory_read_string_native(elementPtr, 1024));
-    }
-static_if (PHS_DEBUG)
-    printf("phsrt__build_args() -> %M\n", argv);
-static_endif // (PHS_DEBUG)
-    return argv;
-}
+include "../../../../include/std/types/sys.phs";
+include "../../../../include/std/types/meta.phs";
 
 fn phsrt_format_semver(version: sys_version_def) -> string {
     return c_fmt("%d.%d.%d", version.major, version.minor, version.patch);
@@ -47,9 +19,9 @@ fn phsrt_format_semver(version: sys_version_def) -> string {
 
 fn phsrt_check_runtime() -> bool
 {
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
     print "phsrt_check_runtime()\n";
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
     var res: bool = true;
     if (PHS_VERSION != phs_version()) {
         var runtime: sys_version_def = sys_version_def{
@@ -62,9 +34,9 @@ static_endif // (PHS_DEBUG)
             minor: to_int(PHS_VERSION_MINOR),
             patch: to_int(PHS_VERSION_PATCH)
         };
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
         printf("Running on Phasor %s, expecting Phasor %s\n", runtime.phsrt_format_semver(), bytecode.phsrt_format_semver());
- static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
         if (runtime.major != bytecode.major) {
             res = false;
         }
@@ -76,37 +48,49 @@ static_if (PHS_DEBUG)
             printf("Warning: This bytecode was compiled for a older Phasor patch (Runtime=%s, Bytecode=%s), it might not work correctly.\n", runtime.phsrt_format_semver(), bytecode.phsrt_format_semver());
         }
     }
-static_if (PHS_DEBUG)
+static_if (PHS_TRACE)
     printf("phsrt_check_runtime() -> %O\n", res);
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
     return res;
 }
 
 // checks support
 fn phsrt_check_support() -> void
 {
-static_if (PHS_DEBUG)
-    print "phsrt_check_support()\n";
+static_if (PHS_TRACE)
+    print "phsrt_check_support()\n"; 
     static_if (!PHASOR_NATIVE) 
         static_if (!NO_CHECK_OS)
     if (COMP_OS != sys_os())
     {
+            static_if (PHS_DEBUG)
         printf("Requires %s operating system.\n", sys_os_map[COMP_OS]);
         assert(false);
+            static_else
+        error(c_fmt("Requires %s operating system.", sys_os_map[COMP_OS]));
+            static_endif // (PHS_DEBUG)
     } else print "OS matches\n";
         static_endif // (!NO_CHECK_OS)
     if (COMP_ARCH != sys_arch())
     {
+            static_if (PHS_DEBUG)
         printf("Requires %s runtime build.\n", sys_arch_map[COMP_ARCH]);
         assert(false);
+            static_else
+        error(c_fmt("Requires %s runtime build.", sys_arch_map[COMP_ARCH]));
+            static_endif // (PHS_DEBUG)
     } else print "Arch matches\n";
     static_endif // (!PHASOR_NATIVE)
     if (!phsrt_check_runtime())
     {
+            static_if (PHS_DEBUG)
         printf("Requires at least runtime version %s.\n", PHS_VERSION);
         assert(false);
+            static_else
+        error(c_fmt("Requires at least runtime version %s.", PHS_VERSION));
+            static_endif // (PHS_DEBUG)
     } else print "Version matches\n";
-static_else // (!PHS_DEBUG)
+static_else // (!(PHS_TRACE))
     static_if (!PHASOR_NATIVE)
         static_if (!NO_CHECK_OS)
     if (COMP_OS != sys_os())
@@ -117,5 +101,5 @@ static_else // (!PHS_DEBUG)
     static_endif // (!PHASOR_NATIVE)
     if (!phsrt_check_runtime())
         error(c_fmt("Requires at least runtime version %s.", PHS_VERSION));
-static_endif // (PHS_DEBUG)
+static_endif // (PHS_TRACE)
 }

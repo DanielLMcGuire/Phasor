@@ -23,7 +23,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main(args: string[]) -> i64;
+fn keep main(args: string[]) -> i64;
 
 // ----
 include "../../src/std/main.phs";
