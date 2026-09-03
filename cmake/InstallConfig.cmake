@@ -78,6 +78,7 @@ endif()
     install(
         TARGETS phasor_winapi_bindings
         RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
     )
 
     install(
@@ -118,6 +119,7 @@ endif()
         install(
             TARGETS phasor_zlib_bindings
             RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
 
         install(
@@ -192,6 +194,7 @@ endif()
         install(
             TARGETS phasor_sdl2_bindings
             RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
 
         install(DIRECTORY
@@ -204,6 +207,7 @@ endif()
         install(
             TARGETS phasor_zlib_bindings
             RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
 
         install(DIRECTORY
@@ -272,6 +276,7 @@ endif()
         install(
             TARGETS phasor_sdl2_bindings
             RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
 
         install(DIRECTORY
@@ -283,6 +288,7 @@ endif()
         install(
             TARGETS phasor_zlib_bindings
             RUNTIME DESTINATION ${PLUGIN_INSTALL_DIR}
+            LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         )
 
         install(DIRECTORY
