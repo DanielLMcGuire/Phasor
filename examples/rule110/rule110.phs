@@ -234,7 +234,7 @@ fn rule110(args: rule110_args) -> int
     var fd: int = fopen(args.logfile, "w");
     var state: Rule110State =
         createState(args.width, args.generations, args.stdout);
-    var file_buffer: int = fmemopen("rw");
+    var file_buffer: int = sb_new().sb_prealloc(args.generations * 500);
 
     if (!args.stdout)
     {
@@ -249,16 +249,15 @@ fn rule110(args: rule110_args) -> int
         var board_string: string = boardToString(state.board);
         if (args.stdout) board_string.puts();
 
-        file_buffer.fwrite(board_string);
-        file_buffer.fwrite("\n");
+        file_buffer.sb_append(board_string);
+        file_buffer.sb_append("\n");
         computeNextGeneration(state);
 
         if (g != 0 && (g % 500 == 0))
         {
-            var chunk: string = file_buffer.fread();
-            file_buffer.fclose();
-            file_buffer = fmemopen("rw");
-            fd.fwrite(chunk);
+            var chunk: string = file_buffer.sb_to_string();
+            file_buffer.sb_clear();
+            fwrite(fd, chunk);
 
             if (!args.stdout)
             {
@@ -276,10 +275,10 @@ fn rule110(args: rule110_args) -> int
         }
     }
 
-    var chunk: string = file_buffer.fread(); file_buffer.fclose();
+    var chunk: string = file_buffer.sb_free();
     
-    fd.fwrite(chunk);
-    fd.fclose();
+    fwrite(fd, chunk);
+    fclose(fd);
 
     putf(
         "\nTOTAL: %s",

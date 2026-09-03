@@ -28,7 +28,7 @@ fn formatColor(color: Vec4) -> string {
     return c_fmt("rgba(%d, %d, %d, %d)", color.x, color.y, color.z, color.w);
 }
 
-static_if (DEBUG)
+static_if (PHS_DEBUG)
 define TIMEF = "%Y-%m-%dT%I:%M:%SZ";
 
 fn debugPrint(msg: string) {
@@ -215,7 +215,7 @@ fn main(args: string[]) -> int {
             vel.x = -vel.x;
             color = getRandColor(true, 255);
             backCol = getRandColor(false, 100);
-static_if (DEBUG)
+static_if (PHS_DEBUG)
             debugPrint(c_fmt("ran into left wall, Cube=%s,Background=%s", color.formatColor(), backCol.formatColor()));
 static_endif
         } else if (rect.x + rect.z >= screenRes.x) {
@@ -223,7 +223,7 @@ static_endif
             vel.x = -vel.x;
             color = getRandColor(true, 255);
             backCol = getRandColor(false, 100);
-static_if (DEBUG)
+static_if (PHS_DEBUG)
             debugPrint(c_fmt("ran into right wall, Cube=%s,Background=%s", color.formatColor(), backCol.formatColor()));
 static_endif
         }
@@ -233,7 +233,7 @@ static_endif
             vel.y = -vel.y;
             color = getRandColor(true, 255);
             backCol = getRandColor(false, 100);
-static_if (DEBUG)
+static_if (PHS_DEBUG)
             debugPrint(c_fmt("ran into top wall, Cube=%s,Background=%s", color.formatColor(), backCol.formatColor()));
 static_endif
         } else if (rect.y + rect.w >= screenRes.y) {
@@ -241,7 +241,7 @@ static_endif
             vel.y = -vel.y;
             color = getRandColor(true, 255);
             backCol = getRandColor(false, 100);
-static_if (DEBUG)
+static_if (PHS_DEBUG)
             debugPrint(c_fmt("ran into bottom wall, Cube=%s,Background=%s", color.formatColor(), backCol.formatColor()));
 static_endif
         }
